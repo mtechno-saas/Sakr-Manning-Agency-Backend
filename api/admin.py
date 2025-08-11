@@ -28,26 +28,52 @@ class UsersAdmin(admin.ModelAdmin):
         ("Employment Details", {
             "fields": ("salary",)
         }),
-        ("Timestamps", {
-            "fields": ("created_at", "updated_at"),
-            "classes": ("collapse",)
-        }),
         ("Education Details", {
             "fields": (
                 "marlins_test_issued_date",
                 "marlins_test_result",
                 "marlins_test_issued_by",
                 "marlins_test_issued_at",
-                "college_or_school"  # <-- Model field name
+                "college_or_school"
             ),
             "description": "Includes Marlins Test and other certifications."
         }),
+        ("Travel Documents", {
+            "fields": (
+                "passport_no", "passport_issue_date", "passport_expiry_date",
+                "passport_issued_by", "passport_place_of_issue",
+                "seaman_book_no", "seaman_book_issue_date", "seaman_book_expiry_date",
+                "seaman_book_issued_by", "seaman_book_place_of_issue",
+                "other_seaman_book_no", "other_seaman_book_issue_date", "other_seaman_book_expiry_date",
+                "other_seaman_book_issued_by", "other_seaman_book_place_of_issue"
+            )
+        }),
+        ("Timestamps", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+
+                # ... existing sections ...
+
+        ("Professional Qualification / Certificate of Competency", {
+            "fields": (
+                "coc_certificate_name", "coc_certificate_number",
+                "coc_issue_date", "coc_expiry_date",
+                "coc_issued_by", "coc_issued_at",
+                "goc_certificate_number",
+                "goc_issue_date", "goc_expiry_date",
+                "goc_issued_by", "goc_issued_at"
+            )
+        }),
+
+
     )
+
 
 
 
     readonly_fields = ("created_at", "updated_at")  
     list_display = ("first_name", "last_name", "nationality", "email", "phone_number", "salary")
-    search_fields = ("first_name", "last_name", "email", "phone_number")
+    search_fields = ("first_name", "last_name", "email", "phone_number","salary","nationality")
     list_filter = ("nationality",)
 

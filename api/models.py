@@ -63,6 +63,42 @@ class Users(models.Model):
     email = models.EmailField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+        # --- Travel Documents ---
+    passport_no = models.CharField(max_length=50, null=True, blank=True)
+    passport_issue_date = models.DateField(null=True, blank=True)
+    passport_expiry_date = models.DateField(null=True, blank=True)
+    passport_issued_by = models.CharField(max_length=100, null=True, blank=True)
+    passport_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
+
+    seaman_book_no = models.CharField(max_length=50, null=True, blank=True)
+    seaman_book_issue_date = models.DateField(null=True, blank=True)
+    seaman_book_expiry_date = models.DateField(null=True, blank=True)
+    seaman_book_issued_by = models.CharField(max_length=100, null=True, blank=True)
+    seaman_book_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
+
+    other_seaman_book_no = models.CharField(max_length=50, null=True, blank=True)
+    other_seaman_book_issue_date = models.DateField(null=True, blank=True)
+    other_seaman_book_expiry_date = models.DateField(null=True, blank=True)
+    other_seaman_book_issued_by = models.CharField(max_length=100, null=True, blank=True)
+    other_seaman_book_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
+
+
+        # ... existing fields ...
+
+    # === Professional Qualification / Certificate of Competency ===
+    coc_certificate_name = models.CharField(max_length=100, blank=True, null=True)
+    coc_certificate_number = models.CharField(max_length=50, blank=True, null=True)
+    coc_issue_date = models.DateField(blank=True, null=True)
+    coc_expiry_date = models.DateField(blank=True, null=True)
+    coc_issued_by = models.CharField(max_length=100, default="EAMS")
+    coc_issued_at = models.CharField(max_length=100, default="Alex.")
+
+    goc_certificate_number = models.CharField(max_length=50, blank=True, null=True)
+    goc_issue_date = models.DateField(blank=True, null=True)
+    goc_expiry_date = models.DateField(blank=True, null=True)
+    goc_issued_by = models.CharField(max_length=100, default="NTRA")
+    goc_issued_at = models.CharField(max_length=100, default="Cairo")
     
 
     def __str__(self):
