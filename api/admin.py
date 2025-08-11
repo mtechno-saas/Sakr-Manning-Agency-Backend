@@ -1,9 +1,7 @@
 # from django.contrib import admin
 # from . import models
 # # Register your models here.
-# admin.site.site_header = "Sakr Manning Agency Administration"
-# admin.site.site_title = "Sakr Manning Admin Portal"
-# admin.site.index_title = "Welcome to Sakr Manning Agency Management"
+
 # admin.site.register(models.Users)
 
 
@@ -11,6 +9,10 @@
 # api/admin.py
 from django.contrib import admin
 from .models import Users
+
+admin.site.site_header = "Sakr Manning Agency Administration"
+admin.site.site_title = "Sakr Manning Admin Portal"
+admin.site.index_title = "Welcome to Sakr Manning Agency Management"
 
 @admin.register(Users)
 class UsersAdmin(admin.ModelAdmin):
