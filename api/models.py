@@ -5,12 +5,29 @@ class Users(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     age = models.IntegerField()
+
+    date_of_birth = models.DateField(
+    auto_now=False,        # automatically set to current date on each save (use for created/updated dates, not birthdays)
+    auto_now_add=False,    # automatically set only when object is first created
+    null=True,             # allow storing NULL in DB
+    blank=True,            # allow leaving it empty in forms/admin
+    help_text="YYYY-MM-DD format",  # helper text in admin/forms
+    verbose_name="Date of Birth"    # human-readable field name
+)
+    nationality = models.CharField(max_length=50 , null=True)
+    Place_Of_Birth = models.CharField(max_length=100 ,null=True, blank=True)
+    Nearest_Port = models.CharField(max_length=200 , null=True)
+    Height_Cm = models.IntegerField(default=0)
+    Weight_Kg = models.IntegerField(default=0)
+
+
     salary = models.DecimalField(max_digits=7,decimal_places=2)
-    address = models.CharField(max_length=100)
+    address = models.CharField(max_length=100 , null=True)
     phone_number = models.CharField(max_length=20)
     email = models.EmailField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
 
     def __str__(self):
         return self.first_name
