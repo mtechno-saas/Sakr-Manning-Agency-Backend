@@ -8,7 +8,7 @@ from . serializer import *
 
 @api_view(['GET'])
 def get_all_users(request):
-    users = Man.objects.all()
+    users = Users.objects.all()
     serializer = ManSerializer(users , many=True)
     #print(serializer.data)
     return Response({"users":serializer.data})
