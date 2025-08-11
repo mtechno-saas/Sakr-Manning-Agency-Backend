@@ -1,5 +1,10 @@
 from django.db import models
 
+class Marital_Status(models.TextChoices):
+    SINGLE = 'SINGLE'
+    MARRIED = 'MARRIED'
+
+
 # Create your models here.
 class Users(models.Model):
     first_name = models.CharField(max_length=100)
@@ -14,6 +19,7 @@ class Users(models.Model):
     help_text="YYYY-MM-DD format",  # helper text in admin/forms
     verbose_name="Date of Birth"    # human-readable field name
 )
+    marital_status = models.CharField(max_length=40 , choices=Marital_Status.choices , default="Single")
     nationality = models.CharField(max_length=50 , null=True)
     Place_Of_Birth = models.CharField(max_length=100 ,null=True, blank=True)
     Nearest_Port = models.CharField(max_length=200 , null=True)

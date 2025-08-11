@@ -19,7 +19,7 @@ class UsersAdmin(admin.ModelAdmin):
             "fields": (
                 "first_name", "last_name", "age", "date_of_birth", 
                 "nationality", "Place_Of_Birth", "Nearest_Port", 
-                "Height_Cm", "Weight_Kg"
+                "Height_Cm", "Weight_Kg","marital_status"
             )
         }),
         ("Contact Information", {
