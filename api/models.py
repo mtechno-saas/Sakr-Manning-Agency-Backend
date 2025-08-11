@@ -27,6 +27,36 @@ class Users(models.Model):
     Weight_Kg = models.IntegerField(default=0)
 
 
+    college_or_school = models.CharField(
+    max_length=200,
+    null=True,
+    blank=True,
+    verbose_name="College Or School"
+    )
+
+        # Marlins Test fields
+    marlins_test_issued_date = models.DateField(
+        null=True, blank=True,
+        verbose_name="Marlins Test Issued Date"
+    )
+    marlins_test_result = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        null=True, blank=True,
+        verbose_name="Marlins Test Result (%)",
+        help_text="Enter percentage score, e.g., 85.50"
+    )
+    marlins_test_issued_by = models.CharField(
+        max_length=150,
+        null=True, blank=True,
+        verbose_name="Marlins Test Issued By (Authority)"
+    )
+    marlins_test_issued_at = models.CharField(
+        max_length=150,
+        null=True, blank=True,
+        verbose_name="Marlins Test Issued At (Location)"
+    )
+
+
     salary = models.DecimalField(max_digits=7,decimal_places=2)
     address = models.CharField(max_length=100 , null=True)
     phone_number = models.CharField(max_length=20)
