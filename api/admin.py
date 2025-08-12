@@ -8,11 +8,16 @@
 # api/admin.py
 # api/admin.py
 from django.contrib import admin
-from .models import Users
+from .models import Users , CERTIFICATES
+from django import forms
 
 admin.site.site_header = "Sakr Manning Agency Administration"
 admin.site.site_title = "Sakr Manning Admin Portal"
 admin.site.index_title = "Welcome to Sakr Manning Agency Management"
+
+
+
+
 
 @admin.register(Users)
 class UsersAdmin(admin.ModelAdmin):
@@ -68,8 +73,39 @@ class UsersAdmin(admin.ModelAdmin):
             )
         }),
 
+         ("Next of Kin / Emergency Contact", {
+            "fields": (
+                "next_of_kin_full_name",
+                "next_of_kin_relationship",
+                "next_of_kin_address_country",
+                "next_of_kin_phone",
+                "next_of_kin_email"
+            )
+        }),
+
+        ("Health Certificates & Vaccinations", {
+        "fields": (
+        "health_flag_state", "health_number", "health_issue_date", "health_expiry_date",
+        "health_issued_by", "health_issued_at",
+        "international_medical_number", "international_medical_issue_date", "international_medical_expiry_date",
+        "yellow_fever_number", "yellow_fever_issue_date", "yellow_fever_expiry_date",
+        "cholera_number", "cholera_issue_date", "cholera_expiry_date",
+        "covid_vaccine_name", "covid_first_dose", "covid_second_dose", "covid_other_doses_or_remarks"
+        ),
+        "description": "Includes International Medical, Yellow Fever, Cholera, and COVID-19 vaccinations."
+        }),
+
+        ("Certificates & Training", {
+            "fields": ("certificates",),
+            "classes": ("collapse",),  # This makes it collapsible
+            "description": "Expand to select completed certificates and training."
+        }),
+
 
     )
+
+
+
 
 
 
