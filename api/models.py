@@ -8,6 +8,38 @@ class Marital_Status(models.TextChoices):
 
 
 
+
+
+RANKS = [
+("DO-1.000", "Master"),
+("DO-2.000", "1st. Officer – Chief Off."),
+("DO-3.000", "2nd. Officer"),
+("DO-4.000", "3rd. Officer"),
+("DO-5.000", "Tug Master"),
+("DR-1.000", "Boson"),
+("DR-2.000", "A.B – O.S"),
+("DR-3.000", "Steward / Galley Boy"),
+("DR-4.000", "Cook / 2nd. Cook / Ass. Cook/ Baker/pastry"),
+("DR-5.000", "Carpenter"),
+("DR-6.000", "Waiter"),
+("DR-7.000", "Purser /"),
+("DR-8.000", "Doctor"),
+("EO-1.000", "1st. Engineer"),
+("EO-2.000", "2nd. Engineer"),
+("EO-3.000", "3rd. Engineer"),
+("EO-4.000", "Electrical Engineer – E/E - ETO"),
+("EO-5.000", "Assistant Electration"),
+("EO-6.000", "4TH. Engineer"),
+("ER-1.000", "Electrician"),
+("ER-2.000", "Motor Man / MECHANIC"),
+("ER-3.000", "Oiler"),
+("ER-4.000", "Fitter - Welder"),
+("ER-5.000", "Wiper")
+]
+
+
+
+
 CERTIFICATES = [
     ("PERSONAL_SURVIVAL_TECHNIQUES", "Personal Survival Techniques"),
     ("PROFICIENCY_IN_PERSONAL_SURVIVAL_TECHNIQUES", "Proficiency In Personal Survival Techniques"),
@@ -57,6 +89,24 @@ CERTIFICATES = [
 
 
 
+class Rank(models.Model):
+    code = models.CharField(max_length=780, unique=True)
+    name = models.CharField(max_length=780)
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+    
+
+
+
+class Certificate(models.Model):
+    code = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
 
 
 
@@ -89,6 +139,8 @@ class Users(models.Model):
     blank=True,
     verbose_name="College Or School"
     )
+
+    codes = models.ManyToManyField(Rank , blank=True)
 
         # Marlins Test fields
     marlins_test_issued_date = models.DateField(
@@ -195,7 +247,14 @@ class Users(models.Model):
 
     
 
-    certificates = MultiSelectField(choices=CERTIFICATES, blank=True, null=True)
+
+    #certificates = MultiSelectField(choices=CERTIFICATES, blank=True, null=True)
+    certificates = models.ManyToManyField(Certificate , blank=True)
+    
+    # codes = MultiSelectField(choices=RANKS, blank=True, null=True)\
+    #codes = MultiSelectField(max_length=780 , choices=RANKS , default="Select Any Job" )
+
+
 
 
 

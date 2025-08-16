@@ -8,7 +8,7 @@
 # api/admin.py
 # api/admin.py
 from django.contrib import admin
-from .models import Users , CERTIFICATES
+from .models import Users , CERTIFICATES 
 from django import forms
 
 admin.site.site_header = "Sakr Manning Agency Administration"
@@ -16,10 +16,30 @@ admin.site.site_title = "Sakr Manning Admin Portal"
 admin.site.index_title = "Welcome to Sakr Manning Agency Management"
 
 
+# class UsersAdminForm(forms.ModelForm):
+#     codes = forms.MultipleChoiceField(
+#         choices=RANKS,
+#         widget=forms.CheckboxSelectMultiple,
+#         required=False
+#     )
+#     certificates = forms.MultipleChoiceField(
+#         choices=CERTIFICATES,
+#         widget=forms.CheckboxSelectMultiple,
+#         required=False
+#     )
+
+#     class Meta:
+#         model = Users
+#         fields = "__all__"
+
+#     def clean_codes(self):
+#         return self.cleaned_data["codes"]
+
+#     def clean_certificates(self):
+#         return self.cleaned_data["certificates"]
 
 
-
-@admin.register(Users)
+#@admin.register(Users)
 class UsersAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Personal Information", {
@@ -44,6 +64,11 @@ class UsersAdmin(admin.ModelAdmin):
                 "college_or_school"
             ),
             "description": "Includes Marlins Test and other certifications."
+        }),
+            ("Code Employee", {
+            "fields": ("codes",),
+           # "classes": ("collapse",),  # This makes it collapsible
+            "description": "Expand to select completed codes for employement."
         }),
         ("Travel Documents", {
             "fields": (
@@ -111,7 +136,36 @@ class UsersAdmin(admin.ModelAdmin):
 
 
     readonly_fields = ("created_at", "updated_at")  
-    list_display = ("first_name", "last_name", "nationality", "email", "phone_number", "salary")
+    #list_display = ("first_name", "last_name", "nationality", "email", "phone_number", "salary","codes")
     search_fields = ("first_name", "last_name", "email", "phone_number","salary","nationality")
-    list_filter = ("nationality",)
+    list_filter = ("nationality","codes")
+
+@admin.register(Users)
+class UsersAdmin(admin.ModelAdmin):
+    list_display = (
+        "first_name",
+        "last_name",
+        "nationality",
+        "email",
+        "phone_number",
+        "salary",
+        "display_codes",
+        "get_certificates",
+    )
+
+    filter_horizontal = ('codes',)
+
+    def display_codes(self, obj):
+        return "\n ".join(f"{code.code} - {code.name}" for code in obj.codes.all())
+    display_codes.short_description = "Codes"
+
+
+    def get_certificates(self, obj):
+        return "\n ".join(c.name for c in obj.certificates.all())
+
+    get_certificates.short_description = "Certificates"
+
+
+
+
 
