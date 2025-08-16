@@ -146,6 +146,7 @@ class UsersAdmin(admin.ModelAdmin):
     list_display = (
         "first_name",
         "last_name",
+        "user_status",
         "profile_pic", 
         "nationality",
         "email",
