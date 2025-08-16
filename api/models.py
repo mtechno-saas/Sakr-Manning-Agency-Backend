@@ -115,6 +115,11 @@ class Certificate(models.Model):
 class Users(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
+    profile_image = models.ImageField(
+        upload_to="users/",  # saves images in MEDIA_ROOT/users/
+        blank=True,
+        null=True
+    )
     age = models.IntegerField()
 
     date_of_birth = models.DateField(

@@ -10,6 +10,7 @@
 from django.contrib import admin
 from .models import Users , CERTIFICATES 
 from django import forms
+from django.utils.html import format_html
 
 admin.site.site_header = "Sakr Manning Agency Administration"
 admin.site.site_title = "Sakr Manning Admin Portal"
@@ -145,6 +146,7 @@ class UsersAdmin(admin.ModelAdmin):
     list_display = (
         "first_name",
         "last_name",
+        "profile_pic", 
         "nationality",
         "email",
         "phone_number",
@@ -164,6 +166,12 @@ class UsersAdmin(admin.ModelAdmin):
         return "\n ".join(c.name for c in obj.certificates.all())
 
     get_certificates.short_description = "Certificates"
+
+    def profile_pic(self, obj):
+        if obj.profile_image:
+            return format_html('<img src="{}" width="50" height="50" style="border-radius:50%;" />', obj.profile_image.url)
+        return "No Image"
+    profile_pic.short_description = "Profile Image"
 
 
 
