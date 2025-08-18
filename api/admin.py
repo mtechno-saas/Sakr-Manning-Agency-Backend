@@ -8,9 +8,10 @@
 # api/admin.py
 # api/admin.py
 from django.contrib import admin
-from .models import Users , CERTIFICATES 
+from .models import Users , CERTIFICATES ,Certificate
 from django import forms
 from django.utils.html import format_html
+from tickets_papers.models import Ticket, TravelingPaper
 
 admin.site.site_header = "Sakr Manning Agency Administration"
 admin.site.site_title = "Sakr Manning Admin Portal"
@@ -141,40 +142,129 @@ class UsersAdmin(admin.ModelAdmin):
     search_fields = ("first_name", "last_name", "email", "phone_number","salary","nationality")
     list_filter = ("nationality","codes")
 
+# @admin.register(Users)
+# class UsersAdmin(admin.ModelAdmin):
+#     list_display = (
+#         "first_name",
+#         "last_name",
+#         "user_status",
+#         "profile_pic", 
+#         "nationality",
+#         "email",
+#         "phone_number",
+#         "salary",
+#         "display_codes",
+#         "get_certificates",
+#     )
+
+#     filter_horizontal = ('codes',)
+
+#     def display_codes(self, obj):
+#         return "\n ".join(f"{code.code} - {code.name}" for code in obj.codes.all())
+#     display_codes.short_description = "Codes"
+
+
+#     def get_certificates(self, obj):
+#         return "\n ".join(c.name for c in obj.certificates.all())
+
+#     get_certificates.short_description = "Certificates"
+
+#     def profile_pic(self, obj):
+#         if obj.profile_image:
+#             return format_html('<img src="{}" width="50" height="50" style="border-radius:50%;" />', obj.profile_image.url)
+#         return "No Image"
+#     profile_pic.short_description = "Profile Image"
+
+
+
+
+# class TicketInline(admin.TabularInline):
+#     model = Ticket
+#     extra = 1
+#     fields = ("ticket_number", "file", "created_at")
+#     readonly_fields = ("created_at",)
+
+
+# class TravelingPaperInline(admin.TabularInline):
+#     model = TravelingPaper
+#     extra = 1
+#     fields = ("title", "issued_date", "file", "created_at")
+#     readonly_fields = ("created_at",)
+
+
+# @admin.register(Users)
+# class UsersAdmin(admin.ModelAdmin):
+#     list_display = ("first_name", "last_name", "nationality", "email", "phone_number", "salary")
+#     search_fields = ("first_name", "last_name", "email", "phone_number")
+#     list_filter = ("nationality",)
+
+#     inlines = [TicketInline, TravelingPaperInline]  # ✅ moved here
+
+class TicketInline(admin.TabularInline):
+    model = Ticket
+    extra = 1
+    fields = ("ticket_number", "file", "created_at")
+    readonly_fields = ("created_at",)
+
+
+class TravelingPaperInline(admin.TabularInline):
+    model = TravelingPaper
+    extra = 1
+    fields = ("title", "issued_date", "file", "created_at")
+    readonly_fields = ("created_at",)
+
+
 @admin.register(Users)
 class UsersAdmin(admin.ModelAdmin):
     list_display = (
         "first_name",
         "last_name",
         "user_status",
-        "profile_pic", 
+        "profile_pic",
         "nationality",
         "email",
         "phone_number",
         "salary",
         "display_codes",
         "get_certificates",
+        "get_tickets",         # ✅ added
+        "get_traveling_papers"
     )
+    search_fields = ("first_name", "last_name", "email", "phone_number")
+    list_filter = ("nationality",)
+    filter_horizontal = ("codes",)
 
-    filter_horizontal = ('codes',)
+    inlines = [TicketInline, TravelingPaperInline]  # ✅ add related inlines
 
     def display_codes(self, obj):
         return "\n ".join(f"{code.code} - {code.name}" for code in obj.codes.all())
     display_codes.short_description = "Codes"
 
-
     def get_certificates(self, obj):
         return "\n ".join(c.name for c in obj.certificates.all())
-
     get_certificates.short_description = "Certificates"
 
     def profile_pic(self, obj):
         if obj.profile_image:
-            return format_html('<img src="{}" width="50" height="50" style="border-radius:50%;" />', obj.profile_image.url)
+            return format_html(
+                '<img src="{}" width="50" height="50" style="border-radius:50%;" />',
+                obj.profile_image.url,
+            )
         return "No Image"
     profile_pic.short_description = "Profile Image"
 
 
+            # ✅ Show tickets
+    def get_tickets(self, obj):
+        return "\n".join(t.ticket_number for t in obj.tickets.all())
+    get_tickets.short_description = "Tickets"
+
+    def get_traveling_papers(self, obj):
+        return "\n".join(p.title for p in obj.traveling_papers.all())
+    get_traveling_papers.short_description = "Traveling Papers"
 
 
-
+@admin.register(Certificate)
+class CertificateAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)

@@ -1,6 +1,19 @@
 from rest_framework import serializers , fields
+from tickets_papers.models import Ticket, TravelingPaper
 from .models import *
 
+
+class TicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        #fields = ["id", "ticket_number", "file", "created_at"]
+        fields = "__all__"
+
+class TravelingPaperSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TravelingPaper
+        #fields = ["id", "title", "issued_date", "file", "created_at"]
+        fields = "__all__"
 
 class RankSerializer(serializers.ModelSerializer):
     class Meta:

@@ -19,9 +19,16 @@ from django.urls import path , include
 from django.conf import settings
 from django.conf.urls.static import static
 
+# urlpatterns = [
+#     path('admin/', admin.site.urls),
+#     path('api/' , include('api.urls')),
+#     path('tickets_papers/' , include('tickets_papers.urls')),
+# ]
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/' , include('api.urls')),
+    path("api/users/", include("api.urls")),  # users API
+    path("api/tickets-papers/", include("tickets_papers.urls")),  # ✅ tickets & papers API
 ]
 
 if settings.DEBUG:

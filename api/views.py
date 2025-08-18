@@ -6,8 +6,12 @@ from django_filters import rest_framework as filters
 from rest_framework.response import Response
 from rest_framework import status
 from . models import *
-from . serializer import *
+from . serializer import  UsersSerializer , ManSerializer 
+from rest_framework import viewsets
 from .filters import UsersFilter
+from rest_framework import viewsets
+#from . import UserSerializer 
+
 # Create your views here.
 
 
@@ -50,3 +54,9 @@ def get_filter_users(request):
     serializer = UsersSerializer(filter_set.qs , many=True)
     #print(serializer.data)
     return Response({"users":serializer.data})
+
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = Users.objects.all()
+    serializer_class = UsersSerializer
