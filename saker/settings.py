@@ -45,9 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'multiselectfield',
     'django_filters',
-
+    'rest_framework',
     'api',
     'tickets_papers',
+    'companies',
+    'ships',
+
 ]
 
 MIDDLEWARE = [
