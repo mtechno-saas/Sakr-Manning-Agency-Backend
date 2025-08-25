@@ -20,10 +20,28 @@ urlpatterns = router.urls
 
 
 
+# urlpatterns = [
+#     path('users/' , views.get_all_users , name='users'),
+#     path('users_filters/' , views.get_filter_users , name='filtered_users'),
+#     path("users/create/", views.create_user, name="create_user"),  # POST
+#     path('users/<str:pk>/' , views.users_list_id , name='users_list'),
+#     path("users/<int:user_id>/assign-rank/<int:rank_id>/", views.assign_rank, name="assign_rank"),
+# ]
+
+
 urlpatterns = [
-    path('users/' , views.get_all_users , name='users'),
-    path('users_filters/' , views.get_filter_users , name='filtered_users'),
-    path("users/create/", views.create_user, name="create_user"),  # POST
-    path('users/<str:pk>/' , views.users_list_id , name='users_list'),
+    # --- List and Filter Views ---
+    # It's good practice to add trailing slashes to all endpoints for consistency.
+    path('users/', views.get_all_users, name='users_list'),
+    path('users/filter/', views.get_filter_users, name='filtered_users'),
+
+    # --- Create View ---
+    path("users/create/", views.create_user, name="create_user"),
+
+    # --- Detail, Update, and Delete View ---
+    # The fix is to add a trailing slash here: <str:pk>/
+    path('users/<str:pk>/', views.user_detail, name='user_detail'),
+
+    # --- Other Actions ---
     path("users/<int:user_id>/assign-rank/<int:rank_id>/", views.assign_rank, name="assign_rank"),
 ]
