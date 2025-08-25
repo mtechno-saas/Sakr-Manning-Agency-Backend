@@ -1,6 +1,9 @@
 from django.db import models
 from django import forms
+from django.core.management.base import BaseCommand
 from multiselectfield import MultiSelectField
+from django.utils.text import slugify
+from django.db.models import Max
 
 class Marital_Status(models.TextChoices):
     SINGLE = 'SINGLE'
@@ -95,12 +98,58 @@ CERTIFICATES = [
 
 
 
+# class Rank(models.Model):
+#     code = models.CharField(max_length=780, unique=True)
+#     name = models.CharField(max_length=780)
+
+#     def __str__(self):
+#         return f"{self.code} - {self.name}"
+
 class Rank(models.Model):
-    code = models.CharField(max_length=780, unique=True)
+    code = models.CharField(max_length=780, unique=True)  # e.g. DO-1.000
     name = models.CharField(max_length=780)
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+    
+
+class UserRank(models.Model):
+    user = models.ForeignKey("Users", on_delete=models.CASCADE, related_name="user_ranks")
+    rank = models.ForeignKey("Rank", on_delete=models.CASCADE)
+    assigned_code = models.CharField(max_length=20, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.assigned_code:  # Only auto-generate if not provided
+            # Use the rank code prefix (e.g. "DO-1", "ER-4", etc.)
+            prefix = self.rank.code.split(".")[0]  
+
+            # Find last assigned_code with same prefix
+            last_ur = (
+                UserRank.objects
+                .filter(rank__code__startswith=prefix)
+                .order_by("-assigned_code")
+                .first()
+            )
+
+            if last_ur:
+                # Extract last number part after the dot
+                last_num = int(last_ur.assigned_code.split(".")[-1])
+                next_code = f"{prefix}.{last_num+1:03d}"
+            else:
+                # Start sequence
+                next_code = f"{prefix}.001"
+
+            self.assigned_code = next_code
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.assigned_code} - {self.rank.name}"
+
+
+
+
+
     
 
 
@@ -126,7 +175,7 @@ class Users(models.Model):
         blank=True,
         null=True
     )
-    age = models.IntegerField()
+    age = models.IntegerField(null=True, blank=True)
 
     date_of_birth = models.DateField(
     auto_now=False,        # automatically set to current date on each save (use for created/updated dates, not birthdays)
@@ -177,7 +226,7 @@ class Users(models.Model):
     )
 
 
-    salary = models.DecimalField(max_digits=7,decimal_places=2)
+    salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     address = models.CharField(max_length=100 , null=True)
     phone_number = models.CharField(max_length=20)
     email = models.EmailField(max_length=100)

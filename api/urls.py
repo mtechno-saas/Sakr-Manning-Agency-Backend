@@ -25,4 +25,5 @@ urlpatterns = [
     path('users_filters/' , views.get_filter_users , name='filtered_users'),
     path("users/create/", views.create_user, name="create_user"),  # POST
     path('users/<str:pk>/' , views.users_list_id , name='users_list'),
+    path("users/<int:user_id>/assign-rank/<int:rank_id>/", views.assign_rank, name="assign_rank"),
 ]

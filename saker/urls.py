@@ -28,6 +28,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/users/", include("api.urls")),  # users API
+     path("api/", include("api.urls")),
     path("api/tickets-papers/", include("tickets_papers.urls")),  # ✅ tickets & papers API
 ]
 
