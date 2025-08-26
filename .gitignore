@@ -1,0 +1,92 @@
+<<<<<<< HEAD
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff
+*.log
+*.pot
+*.pyc
+*.pyo
+db.sqlite3
+db.sqlite3-journal
+
+# If you don't want to track migrations (optional)
+# **/migrations/
+# !**/migrations/__init__.py
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Static and media files (if generated locally)
+staticfiles/
+media/
+=======
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Django
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+
+# Environment
+.env
+*.env
+.env.local
+*.venv
+venv/
+ENV/
+env/
+env.bak/
+>>>>>>> main
+
+# IDEs and editors
+.vscode/
+.idea/
+<<<<<<< HEAD
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+=======
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage / testing
+htmlcov/
+.tox/
+.coverage
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Migrations (optional, but usually you commit them)
+# Uncomment if you don't want migration files in git
+# */migrations/*.py
+# */migrations/*.pyc
+>>>>>>> main
+db.sqlite3

@@ -30,6 +30,8 @@ urlpatterns = [
     path("api/users/", include("api.urls")),  # users API
      path("api/", include("api.urls")),
     path("api/tickets-papers/", include("tickets_papers.urls")),  # ✅ tickets & papers API
+    path("api/companies/", include("companies.urls")),
+    path("api/ships/", include("ships.urls")),
 ]
 
 if settings.DEBUG:
