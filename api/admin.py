@@ -15,6 +15,7 @@
 # api/admin.py
 from django.contrib import admin
 from .models import Rank, Users, Certificate, UserRank
+from ships.models import Ship
 from django.utils.html import format_html
 from tickets_papers.models import Ticket, TravelingPaper
 
@@ -94,8 +95,9 @@ class UsersAdmin(admin.ModelAdmin):
         "nationality",
         "get_user_ranks",
         "get_certificates",
+        "get_assigned_ships",
     )
-    list_filter = ("nationality", "user_status", "codes")
+    list_filter = ("nationality", "user_status", "codes" , "ships")
     search_fields = ("first_name", "last_name", "email", "user_ranks__assigned_code")
 
     # --- Inlines ---
@@ -111,6 +113,19 @@ class UsersAdmin(admin.ModelAdmin):
     def get_certificates(self, obj):
         return ", ".join([c.name for c in obj.certificates.all()])
     get_certificates.short_description = "Certificates"
+
+
+    def get_assigned_ships(self, obj):
+        """
+        Gets all ships the user is a crew member of.
+        The 'ships' related_name comes from the ManyToManyField on the Ship model.
+        """
+        # `obj.ships.all()` works because of the `related_name='ships'`
+        # we set on the `crew` field in the `Ship` model.
+        return ", ".join([ship.ship_name for ship in obj.ships.all()])
+
+    # Give the column a user-friendly name in the admin
+    get_assigned_ships.short_description = 'Assigned Ships'
 
     def profile_pic(self, obj):
         if obj.profile_image:
