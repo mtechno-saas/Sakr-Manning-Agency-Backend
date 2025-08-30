@@ -39,23 +39,28 @@ A complete RESTful API built with Django REST Framework provides programmatic ac
 ### 4. Full-Featured REST API
 A complete RESTful API built with Django REST Framework provides programmatic access to all resources, enabling integration with frontend applications or other services.
 
-**Key API Endpoints:**
 
-| Method | URL                                         | Description                                  |
-| :----- | :------------------------------------------ | :------------------------------------------- |
-| `GET`  | `/api/users/`                               | Get a list of all users.                     |
-| `POST` | `/api/users/create`                         | Create a new user.                           |
-| `GET`  | `/api/users/filter/`                        | Filter users by name, nationality, rank, etc. |
-| `GET`  | `/api/users/<id>/`                          | Retrieve a specific user's details.          |
-| `PUT`  | `/api/users/<id>/`                          | Update a user's details.                     |
-| `DELETE`| `/api/users/<id>/`                          | Delete a user.                               |
-| `GET`  | `/api/ships/`                               | Get a list of all ships.                     |
-| `POST` | `/api/ships/`                               | Create a new ship.                           |
-| `GET`  | `/api/ships/<id>/`                          | Retrieve a specific ship's details.          |
-| `PUT`  | `/api/ships/<id>/`                          | Update a ship's details.                     |
-| `DELETE`| `/api/ships/<id>/`                          | Delete a ship.                               |
-| `POST` | `/api/ships/<id>/assign-user/`              | **Action**: Assign a user to a ship's crew.  |
-| `POST` | `/api/ships/<id>/unassign-user/`            | **Action**: Remove a user from a ship's crew.|
+**Key API Endpoints (Requires Authentication):**
+
+| Resource | Method | URL                                         | Description                                  |
+| :--- | :----- | :------------------------------------------ | :------------------------------------------- |
+| **Users** | `GET`  | `/api/users/`                               | Get a list of all users.                     |
+| | `POST` | `/api/users/`                               | Create a new user.                           |
+| | `GET`  | `/api/users/<id>/`                          | Retrieve a specific user's details.          |
+| | `PUT`  | `/api/users/<id>/`                          | Update a user's details.                     |
+| | `DELETE`| `/api/users/<id>/`                          | Delete a user.                               |
+| **Ships** | `GET`  | `/api/ships/`                               | Get a list of all ships.                     |
+| | `POST` | `/api/ships/`                               | Create a new ship.                           |
+| | `GET`  | `/api/ships/<id>/`                          | Retrieve a specific ship's details.          |
+| | `PUT`  | `/api/ships/<id>/`                          | Update a ship's details.                     |
+| | `DELETE`| `/api/ships/<id>/`                          | Delete a ship.                               |
+| | `POST` | `/api/ships/<id>/assign-user/`              | **Action**: Assign a user to a ship's crew.  |
+| **User Documents** | `GET`  | `/api/users/<user_id>/tickets/`             | **New**: List all tickets for a specific user. |
+| | `POST` | `/api/users/<user_id>/tickets/`             | **New**: Upload a new ticket for a user.     |
+| | `DELETE`| `/api/users/<user_id>/tickets/<ticket_id>/` | **New**: Delete a specific ticket.           |
+| | `GET`  | `/api/users/<user_id>/traveling-papers/`    | **New**: List all traveling papers for a user. |
+| | `POST` | `/api/users/<user_id>/traveling-papers/`    | **New**: Upload a new traveling paper for a user.|
+| | `DELETE`| `/api/users/<user_id>/traveling-papers/<paper_id>/`| **New**: Delete a specific traveling paper.|
 
 ## Getting Started
 
