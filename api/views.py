@@ -74,6 +74,17 @@ from rest_framework import status , viewsets
 from .models import Users, Rank, UserRank
 from .serializer import UsersSerializer, UserRankSerializer
 from .filters import UsersFilter
+from .permissions import IsHROrReadOnly # <-- Import the permission
+from rest_framework.parsers import MultiPartParser, FormParser 
+
+
+
+
+class UserViewSet(viewsets.ModelViewSet): # <-- I'm assuming you have a UserViewSet, if not, apply this to your user views
+    queryset = Users.objects.all()
+    serializer_class = UsersSerializer
+    permission_classes = [IsHROrReadOnly] # <-- Use the permission class
+    parser_classes = [MultiPartParser, FormParser]
 
 
 class UserViewSet(viewsets.ModelViewSet):

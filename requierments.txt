@@ -7,4 +7,3 @@ django-multiselectfield
 django-filter
 
 
-
