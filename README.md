@@ -121,7 +121,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 Potential features and improvements planned for the future:
 
--   [ ] **API Authentication**: Implement token-based authentication (e.g., JWT or DRF's TokenAuthentication ) to secure the API.
+-   [x] **API Authentication**: Implement token-based authentication (e.g., JWT or DRF's TokenAuthentication ) to secure the API.
 -   [ ] **User Roles & Permissions**: Define distinct roles (e.g., Admin, Ship Manager, HR) with specific permissions for accessing and modifying data.
 -   [ ] **File Uploads via API**: Enhance API endpoints to handle uploads for seafarer profile pictures and scanned document files.
 -   [ ] **Advanced Reporting**: Develop a module for generating reports on crew composition, certificate expiry dates, and ship assignments.
