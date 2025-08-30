@@ -26,6 +26,16 @@ This project provides a full-featured backend system with a powerful Django Admi
 -   **Intuitive Relationship Editing**: Implements `filter_horizontal` widgets for an excellent user experience when assigning ranks, certificates, and crew members to ships.
 -   **Inline Editing**: Manage related objects like tickets and travel papers directly from the user's detail page in the admin.
 
+### 3. Secure REST API with JWT Authentication
+A complete RESTful API built with Django REST Framework provides programmatic access to all resources. The API is secured using **JSON Web Tokens (JWT)** with a 15-day refresh token lifetime.
+
+**Authentication Endpoints:**
+
+| Method | URL                     | Description                                                  |
+| :----- | :---------------------- | :----------------------------------------------------------- |
+| `POST` | `/api/login/`           | **Login**: Authenticate with username and password to receive an access and a refresh token. |
+| `POST` | `/api/login/refresh/`   | **Refresh Token**: Use a valid refresh token to get a new access token. |
+
 ### 4. Full-Featured REST API
 A complete RESTful API built with Django REST Framework provides programmatic access to all resources, enabling integration with frontend applications or other services.
 
