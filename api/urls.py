@@ -2,11 +2,11 @@ from django.urls import path
 from . import views
 
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet , RegisterView
+from .views import UserViewSet , RegisterView , ContractViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
-
+router.register(r'contracts', ContractViewSet, basename='contract')
 urlpatterns = router.urls
 
 from .models import *
@@ -35,7 +35,7 @@ urlpatterns = [
 
         # Add the new registration path
     path('register/', RegisterView.as_view(), name='api_register'),
-    
+
     path('users/', views.get_all_users, name='users_list'),
     path('users/filter/', views.get_filter_users, name='filtered_users'),
 

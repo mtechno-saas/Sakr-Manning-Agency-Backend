@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'tickets_papers',
     'companies',
     'ships',
+    'core',
 
 ]
 

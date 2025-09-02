@@ -3,7 +3,7 @@
 
 # api/admin.py
 from django.contrib import admin
-from .models import Rank, Users, Certificate, UserRank
+from .models import Rank, Users, Certificate, UserRank , Contract
 from ships.models import Ship
 from django.utils.html import format_html
 from tickets_papers.models import Ticket, TravelingPaper
@@ -145,6 +145,12 @@ class UserRankAdmin(admin.ModelAdmin):
     list_display = ("user", "rank", "assigned_code")
     search_fields = ("user__first_name", "user__last_name", "rank__name", "assigned_code")
     list_filter = ("rank",)
+
+@admin.register(Contract)
+class ContractAdmin(admin.ModelAdmin):
+    list_display = ('user', 'ship', 'rank', 'sign_on_date', 'sign_off_date', 'status')
+    list_filter = ('status', 'ship', 'rank')
+    search_fields = ('user__email', 'ship__ship_name')
 
 if admin.site.is_registered(AuthToken):
     admin.site.unregister(AuthToken)

@@ -7,8 +7,8 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status , viewsets
-from .models import Users, Rank, UserRank
-from .serializer import UsersSerializer, UserRankSerializer
+from .models import Users, Rank, UserRank , Contract
+from .serializer import UsersSerializer, UserRankSerializer , ContractSerializer
 from .filters import UsersFilter
 from .permissions import IsHROrReadOnly # <-- Import the permission
 from rest_framework.parsers import MultiPartParser, FormParser 
@@ -100,3 +100,11 @@ def assign_rank(request, user_id, rank_id):
 
 
 
+class ContractViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for managing seafarer contracts.
+    """
+    queryset = Contract.objects.all()
+    serializer_class = ContractSerializer
+    # Add permissions, e.g., only HR or Admins can create/edit contracts
+    # permission_classes = [IsAdminUser] 

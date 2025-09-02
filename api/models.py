@@ -177,6 +177,12 @@ class Users(AbstractUser):
         null=True
     )
     age = models.IntegerField(null=True, blank=True)
+    middle_name = models.CharField(max_length=100, blank=True)
+    #gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')], blank=True)
+    blood_type = models.CharField(max_length=5, blank=True)
+    smoker = models.BooleanField(default=False) # Changed from 'smokers' to singular
+    us_visa_status = models.CharField(max_length=50, blank=True, help_text="e.g., B1/B2, C1/D, None")
+    schengen_visa_status = models.CharField(max_length=50, blank=True)
 
     date_of_birth = models.DateField(
     auto_now=False,        # automatically set to current date on each save (use for created/updated dates, not birthdays)
@@ -325,3 +331,33 @@ class Users(AbstractUser):
 
     def __str__(self):
         return self.first_name
+
+
+# --- New Contract Model ---
+class Contract(models.Model):
+    """
+    Represents a specific work assignment for a user on a ship.
+    This is the most important new model for tracking employment history.
+    """
+    CONTRACT_STATUS = [
+        ('Active', 'Active'),
+        ('Completed', 'Completed'),
+        ('Pending', 'Pending'),
+    ]
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='contracts')
+    ship = models.ForeignKey('ships.Ship', on_delete=models.CASCADE, related_name='contracts')
+    rank = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True, help_text="The rank for this specific contract.")
+    
+    sign_on_date = models.DateField()
+    sign_off_date = models.DateField(null=True, blank=True)
+    salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=CONTRACT_STATUS, default='Pending')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-sign_on_date']
+
+    def __str__(self):
+        return f"{self.user.email} on {self.ship.ship_name} ({self.sign_on_date})"

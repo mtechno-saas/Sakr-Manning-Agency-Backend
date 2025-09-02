@@ -3,10 +3,11 @@
 
 # api/serializers.py
 from rest_framework import serializers
-from .models import Users, UserRank, Certificate, Rank
+from .models import Users, UserRank, Certificate, Rank , Contract
 from tickets_papers.models import Ticket, TravelingPaper
 from django.contrib.auth.models import User                   # Or your custom Users model
 from rest_framework import serializers, validators
+from ships.serializers import ShipSerializer # To show ship details in contract
 
 
 class TicketSerializer(serializers.ModelSerializer):
@@ -161,32 +162,49 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data['last_name']
         )
         return user
+    
 
-# api/serializers.py
 
-# class RegisterSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Users
-#         fields = ('email', 'password', 'first_name', 'last_name')
-#         extra_kwargs = {
-#             "password": {"write_only": True},
-#             "email": {"required": True},
-#         }
+# --- New ContractSerializer ---
+class ContractSerializer(serializers.ModelSerializer):
+    # Use nested serializers for readable output
+    user = serializers.StringRelatedField() # Show user's email
+    ship = serializers.StringRelatedField() # Show ship's name
+    rank = serializers.StringRelatedField() # Show rank's name
 
-#     def create(self, validated_data):
-#         # --- This is the corrected line ---
-#         # We must pass a value for the 'username' argument.
-#         # We will use the email for both the username and the email field.
-#         user = Users.objects.create_user(
-#             username=validated_data['email'], # <-- Provide the email as the username
-#             email=validated_data['email'],
-#             password=validated_data['password'],
-#             first_name=validated_data['first_name'],
-#             last_name=validated_data['last_name']
-#         )
-#         # ---------------------------------
+    # Use IDs for writable input
+    user_id = serializers.IntegerField(write_only=True)
+    ship_id = serializers.IntegerField(write_only=True)
+    rank_id = serializers.IntegerField(write_only=True)
 
-#         # No need to save again, create_user already does it.
-#         return user
+    class Meta:
+        model = Contract
+        fields = [
+            'id',
+            'user', 'user_id',
+            'ship', 'ship_id',
+            'rank', 'rank_id',
+            'sign_on_date', 'sign_off_date', 'salary', 'status',
+            'created_at', 'updated_at'
+        ]
+
+# --- Updated UsersSerializer ---
+class UsersSerializer(serializers.ModelSerializer):
+    # Add the new ContractSerializer to show a user's employment history
+    contracts = ContractSerializer(many=True, read_only=True)
+
+    # ... (keep all your other nested serializers like ranks, certificates)
+
+    class Meta:
+        model = Users
+        fields = [
+            # ... (include all your existing fields: id, email, first_name, etc.)
+            'id', 'email', 'first_name', 'middle_name', 'last_name', 'gender',
+            'blood_type', 'smoker', 'us_visa_status', 'schengen_visa_status',
+            # ... (and all other fields)
+            'contracts' # <-- Add the new contracts field
+        ]
+        # If you are using fields = '__all__', this will be included automatically.
+
 
 
