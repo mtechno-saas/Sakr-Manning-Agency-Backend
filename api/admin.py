@@ -1,15 +1,4 @@
 
-# from django.contrib import admin
-# from .models import Rank, Users , CERTIFICATES ,Certificate , UserRank
-# from django import forms
-# from django.utils.html import format_html
-# from tickets_papers.models import Ticket, TravelingPaper
-
-# admin.site.site_header = "Sakr Manning Agency Administration"
-# admin.site.site_title = "Sakr Manning Admin Portal"
-# admin.site.index_title = "Welcome to Sakr Manning Agency Management"
-
-
 
 
 # api/admin.py
@@ -18,6 +7,7 @@ from .models import Rank, Users, Certificate, UserRank
 from ships.models import Ship
 from django.utils.html import format_html
 from tickets_papers.models import Ticket, TravelingPaper
+from rest_framework.authtoken.models import TokenProxy as AuthToken
 
 # --- Admin Site Configuration ---
 admin.site.site_header = "Sakr Manning Agency Administration"
@@ -156,4 +146,5 @@ class UserRankAdmin(admin.ModelAdmin):
     search_fields = ("user__first_name", "user__last_name", "rank__name", "assigned_code")
     list_filter = ("rank",)
 
-
+if admin.site.is_registered(AuthToken):
+    admin.site.unregister(AuthToken)
