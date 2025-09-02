@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet
+from .views import UserViewSet , RegisterView
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -32,6 +32,10 @@ urlpatterns = router.urls
 urlpatterns = [
     # --- List and Filter Views ---
     # It's good practice to add trailing slashes to all endpoints for consistency.
+
+        # Add the new registration path
+    path('register/', RegisterView.as_view(), name='api_register'),
+    
     path('users/', views.get_all_users, name='users_list'),
     path('users/filter/', views.get_filter_users, name='filtered_users'),
 

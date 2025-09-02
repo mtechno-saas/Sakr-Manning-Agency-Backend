@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from multiselectfield import MultiSelectField
 from django.utils.text import slugify
 from django.db.models import Max
+from django.contrib.auth.models import AbstractUser
 
 class Marital_Status(models.TextChoices):
     SINGLE = 'SINGLE'
@@ -116,7 +117,7 @@ class Rank(models.Model):
 class UserRank(models.Model):
     user = models.ForeignKey("Users", on_delete=models.CASCADE, related_name="user_ranks")
     rank = models.ForeignKey("Rank", on_delete=models.CASCADE)
-    assigned_code = models.CharField(max_length=20, unique=True, blank=True)
+    assigned_code = models.CharField(max_length=20, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.assigned_code:  # Only auto-generate if not provided
@@ -167,7 +168,7 @@ class Certificate(models.Model):
 
 
 # Create your models here.
-class Users(models.Model):
+class Users(AbstractUser):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     profile_image = models.ImageField(
