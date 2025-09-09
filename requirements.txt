@@ -1,0 +1,34 @@
+# use conda venv
+Django>=4.2,<5.0
+djangorestframework>=3.14,<4.0
+django-filter>=23.0  # For filtering in DRF
+djangorestframework-simplejwt>=5.3  # For JWT auth
+django-multiselectfield
+django-filter
+langchain
+langchain-community
+python-docx
+ollama
+gunicorn
+whitenoise
+
+
+
+# {
+#     "email": "newuser22@gmail.com",
+#     "password": "111777",
+#     "first_name": "New22",
+#     "last_name": "User22"
+# }
+
+# {"refresh":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1ODU3MTI5NywiaWF0IjoxNzU3Mjc1Mjk3LCJqdGkiOiJkNDcyOGRmMjhkMjk0MDRiODdiOWM5YTQ4OTRhYjRkMyIsInVzZXJfaWQiOiI1In0.fewAsR36y9LCSRMfLUTmZ0ThZB07WjytkgmGfjQ2dHk","access":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3Mjc1NTk3LCJpYXQiOjE3NTcyNzUyOTcsImp0aSI6IjJmNjRlZmFjN2UzMjQ5YzM5MWU4MjM4NmU2MDY0Yjk5IiwidXNlcl9pZCI6IjUifQ.obwrOKM3MZNMHyDJfoV6rnkWqnDLp0UFuvcOqcblmRI"}
+
+# {"access":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3Mjc3NDQ5LCJpYXQiOjE3NTcyNzcxNTAsImp0aSI6ImUxM2M2MzA5ZDY5ZjRmYmFhNGVhYmU4N2IyNGQ5ZTlhIiwidXNlcl9pZCI6IjUifQ.T1_05pKZaNA7wL6q_1pgxjxwSDVWADZmwOLzYnQH0lY"}
+
+# {"refresh":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1ODU3NDIzMiwiaWF0IjoxNzU3Mjc4MjMyLCJqdGkiOiJiZDhlNDVkNDI4ZmE0NDZlYmU3YTE3YjMyNzM2OWQ2NiIsInVzZXJfaWQiOiI0In0.K9glakvVKnlr4ibCQOOVxFe4XI4v0RSoPx-CFXyY5mU","access":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3Mjc4NTMyLCJpYXQiOjE3NTcyNzgyMzIsImp0aSI6Ijg0NDg0YmYwNTZhOTQxMzE4NjRjMjhmYjM5ZDIxYTU4IiwidXNlcl9pZCI6IjQifQ.-RFYjxP8IQ9mIp4Vd-wbDIfsd88VBHQbUZyT-WXXT6g"}
+
+
+# {
+#     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1ODU3NDk3MiwiaWF0IjoxNzU3Mjc4OTcyLCJqdGkiOiIyZjQ0YTk0NWUwZDc0MmYwOGI0M2NkOTRjNDE4MWQyOSIsInVzZXJfaWQiOiI0In0.RYmMwcBNVAiEgG2orXrjZKoYQVJtr-4tEqx3Rx3eKAc",
+#     {"access":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU4NjQ4MDE5LCJpYXQiOjE3NTczNTIwMTksImp0aSI6ImFmNjM0NGQxZjY2ZDQzYTRhNTYzZTJiZDI1ZTIzMDYwIiwidXNlcl9pZCI6IjQifQ.4MnQDzvnB4xZDZJiO_xLoY0ugtmxrV3deLFJFYkq8yM"}
+# }

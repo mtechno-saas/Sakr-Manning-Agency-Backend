@@ -1,4 +1,17 @@
 # Sakr Manning Agency - Management System
+---
+title: Sakr Manning Agency
+emoji: 🚢
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 8000
+---
+
+# Sakr Manning Agency - Management System
+
+(The rest of your README content goes here...)
+
 
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white )
 ![Django REST Framework](https://img.shields.io/badge/Django%20REST%20Framework-A30000?style=for-the-badge&logo=django&logoColor=white )

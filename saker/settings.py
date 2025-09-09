@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-^hvh8+)3^ifz_%u6sjo67e)u!4xv%#d672l023$xo@ec!b$kmx
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'companies',
     'ships',
     'core',
+    'doc_parser', 
 
 ]
 
@@ -153,7 +154,7 @@ REST_FRAMEWORK = {
 # --- Add this new configuration block for Simple JWT ---
 SIMPLE_JWT = {
     # This is the lifetime of the short-lived access token.
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=15),
 
     # This is the lifetime of the refresh token, which is used to get new access tokens.
     # We'll set this to 15 days as you requested.
