@@ -6,11 +6,13 @@ colorFrom: blue
 colorTo: green
 sdk: docker
 app_port: 8000
+pinned: false
 ---
 
 # Sakr Manning Agency - Management System
 
-(The rest of your README content goes here...)
+(The rest of your README content, like the project description, API endpoints, etc., goes here, below the second `---` line.)
+
 
 
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white )
