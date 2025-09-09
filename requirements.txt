@@ -11,7 +11,8 @@ python-docx
 ollama
 gunicorn
 whitenoise
-
+fastapi
+uvicorn[standard]
 
 
 # {
