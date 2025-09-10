@@ -4,6 +4,7 @@ from langchain_ollama import OllamaLLM as Ollama
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
+
 # The read_docx_text() and get_yaml_template() functions do not need to change.
 # They are working perfectly.
 def read_docx_text(file_path):
