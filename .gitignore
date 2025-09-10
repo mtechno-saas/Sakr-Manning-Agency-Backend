@@ -1,18 +1,29 @@
-# Environment variables
-.env
-
-# Database
-db.sqlite3
-*.sqlite3
-
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.so
 
-# Media and Static files (if not needed in repo)
-staticfiles/
-mediafiles/
+# Virtual env
+.env
+.venv
+venv/
+ENV/
+env/
 
-# IDE folders
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+media/
+
+# IDEs
 .vscode/
 .idea/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,6 +1,12 @@
-
-
-
+---
+title: Sakr
+emoji: ⚡
+colorFrom: gray
+colorTo: yellow
+sdk: docker
+pinned: false
+license: mit
+---
 
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white )
 ![Django REST Framework](https://img.shields.io/badge/Django%20REST%20Framework-A30000?style=for-the-badge&logo=django&logoColor=white )
@@ -85,3 +91,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 -   [x] **User Roles & Permissions**: Foundational system using Django Groups is in place.
 -   [ ] **Advanced Reporting**: Develop a module for generating reports on crew composition, certificate expiry dates, and contract statuses.
 -   [ ] **Frontend Application**: Build a frontend client (e.g., using React, Vue.js, or Svelte ) to provide a rich user interface for interacting with the API.
+
+---
+
+Check out the configuration reference at [Hugging Face Docs](https://huggingface.co/docs/hub/spaces-config-reference)
