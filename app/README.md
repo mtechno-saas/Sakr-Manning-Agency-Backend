@@ -1,17 +1,4 @@
-# Sakr Manning Agency - Management System
----
-title: Sakr Manning Agency
-emoji: 🚢
-colorFrom: blue
-colorTo: green
-sdk: docker
-app_port: 8000
-pinned: false
----
 
-# Sakr Manning Agency - Management System
-
-(The rest of your README content, like the project description, API endpoints, etc., goes here, below the second `---` line.)
 
 
 
