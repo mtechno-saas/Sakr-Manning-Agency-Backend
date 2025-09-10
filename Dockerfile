@@ -1,40 +1,50 @@
-# 1. Base Image: Start with an official Python slim image.
-# This provides a lightweight environment with Python pre-installed.
+# 1. Base Image: Every Dockerfile MUST start with a FROM instruction.
+# We start with a lightweight Python 3.10 image.
 FROM python:3.10-slim
 
-# 2. Set Environment Variables:
-# These are best practices for running Python in Docker.
+# 2. Set Environment Variables for best practices
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV OLLAMA_HOST=0.0.0.0
 
-# 3. Set Working Directory:
-# This is where your application's code will live inside the container.
+# 3. Set the Working Directory inside the container
 WORKDIR /app
 
-# 4. Install System Dependencies (if any):
-# This step is often needed for libraries that have C extensions, like psycopg2 for PostgreSQL.
-# Even if using SQLite locally, it's good practice to include for future-proofing.
+# 4. Install System Dependencies needed for our Python packages and Ollama
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 5. Install Python Dependencies:
-# First, copy only the requirements file to leverage Docker's layer caching.
-# This step will only re-run if requirements.txt changes.
+# 5. Install the Ollama executable
+RUN curl -L https://ollama.com/download/ollama-linux-amd64 -o /usr/bin/ollama && chmod +x /usr/bin/ollama
+
+# 6. Copy and Install Python libraries from requirements.txt
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Copy Project Code:
-# Copy the rest of your application's code into the working directory.
+# 7. Copy your entire project's code into the container
 COPY . /app/
 
-# 7. Expose Port:
-# Tell Docker that the container will listen on port 8000 at runtime.
-# This does not actually open the port; it's for documentation and linking.
-EXPOSE 8000
+# 8. Create directories for persistent data (though Hugging Face may not persist them )
+RUN mkdir -p /root/.ollama
+RUN mkdir -p /app/staticfiles
+RUN mkdir -p /app/mediafiles
 
-# 8. Set Default Command (for development):
-# This is the command that will run if you start the container without any other instructions.
-# It runs the Django development server, which is great for local testing.
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# 9. Expose the ports for Django and Ollama (for documentation and linking)
+EXPOSE 8000
+EXPOSE 11434
+
+# 10. Create the startup script that will run everything
+RUN echo '#!/bin/bash' > /app/start.sh && \
+    echo 'set -e' >> /app/start.sh && \
+    echo 'ollama serve &' >> /app/start.sh && \
+    echo 'sleep 5' >> /app/start.sh && \
+    echo 'ollama pull phi3:3.8b-mini-4k-instruct-q4_0 &' >> /app/start.sh && \
+    echo 'python manage.py migrate' >> /app/start.sh && \
+    echo 'gunicorn saker.wsgi:application --bind 0.0.0.0:8000' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+# 11. Set the startup script as the main command for the container
+CMD ["/app/start.sh"]
