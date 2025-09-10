@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED 1
 
 # 3. Set Working Directory:
 # This is where your application's code will live inside the container.
-WORKDIR /django_test
+WORKDIR /app
 
 # 4. Install System Dependencies (if any):
 # This step is often needed for libraries that have C extensions, like psycopg2 for PostgreSQL.
@@ -27,7 +27,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 6. Copy Project Code:
 # Copy the rest of your application's code into the working directory.
-COPY . /django_test/
+COPY . /app/
 
 # 7. Expose Port:
 # Tell Docker that the container will listen on port 8000 at runtime.
