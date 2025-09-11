@@ -1,14 +1,3 @@
----
-title: Sakr Manning Agency
-emoji: 🚢
-colorFrom: blue
-colorTo: green
-sdk: docker
-dockerfile: Dockerfile.hf
-app_file: wsgi.py
-app_port: 8000
-pinned: false
----
 
 
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white )
