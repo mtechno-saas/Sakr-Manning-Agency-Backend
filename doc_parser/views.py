@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import ParsedDocument
 from .serializers import ParsedDocumentSerializer
-from .ai_parser_service import read_docx_text, extract_data_from_document
+from .ai_parser_service import extract_document_features
 
 class DocumentUploadViewSet(viewsets.ModelViewSet):
     """
@@ -29,18 +29,16 @@ class DocumentUploadViewSet(viewsets.ModelViewSet):
 
         try:
             # --- AI Processing Step ---
-            # 1. Read the text from the uploaded .docx file
-            document_text = read_docx_text(instance.source_file.path)
-            if not document_text:
+            # 1. Extract data from the uploaded document using the AI service
+            extracted_yaml = extract_document_features(instance.source_file.path)
+            if not extracted_yaml:
                 instance.status = 'FAILED'
                 instance.save()
                 return Response(
-                    {"error": "Could not read text from the document."},
+                    {"error": "Could not extract data from the document."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # 2. Send the text to the AI service for extraction
-            extracted_yaml = extract_data_from_document(document_text)
 
             # 3. Save the result and update the status
             instance.extracted_data_yaml = extracted_yaml

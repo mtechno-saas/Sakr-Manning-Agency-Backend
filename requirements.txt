@@ -5,9 +5,11 @@ django-filter>=23.0  # For filtering in DRF
 djangorestframework-simplejwt>=5.3  # For JWT auth
 django-multiselectfield
 django-filter
+langchain_ollama
 langchain
 langchain-community
 python-docx
+docx2txt
 ollama
 gunicorn
 whitenoise
