@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'ships',
     'core',
     'doc_parser', 
+    'finance',
 
 ]
 
@@ -141,15 +142,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Add this configuration for Django REST Framework
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        # This line tells DRF to use JWT for authentication
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [
-        # This keeps all endpoints protected by default
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
 }
+
 
 # --- Add this new configuration block for Simple JWT ---
 SIMPLE_JWT = {

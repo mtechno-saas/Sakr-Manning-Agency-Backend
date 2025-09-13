@@ -36,6 +36,7 @@ urlpatterns = [
     path('api/login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("api/core/", include("core.urls")),
     path("api/parser/", include("doc_parser.urls")),
+   path('api/finance/', include('finance.urls')),
 ]
 
 if settings.DEBUG:
