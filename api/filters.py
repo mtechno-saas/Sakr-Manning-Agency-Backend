@@ -61,4 +61,3 @@ class UsersFilter(django_filters.FilterSet):
             # direct fields on the Users model. The filter still works because they are
             # defined explicitly above.
         ]
-

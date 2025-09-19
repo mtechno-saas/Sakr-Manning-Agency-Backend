@@ -1,17 +1,15 @@
 
-
-
 # api/views.py
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status , viewsets
-from .models import Users, Rank, UserRank , Contract
-from .serializer import UsersSerializer, UserRankSerializer , ContractSerializer
+from .models import Users, Rank, UserRank , Contract, Reference, SeaService, Certificate
+from .serializer import UsersSerializer, UserRankSerializer , ContractSerializer, ReferenceSerializer, SeaServiceSerializer, CertificateSerializer, RankSerializer
 from .filters import UsersFilter
 from .permissions import IsHROrReadOnly # <-- Import the permission
-from rest_framework.parsers import MultiPartParser, FormParser 
+from rest_framework.parsers import MultiPartParser, FormParser , JSONParser
 from rest_framework.permissions import AllowAny # <-- Import AllowAny
 from .serializer import RegisterSerializer # <-- Import your new serializer
 from rest_framework import generics
@@ -33,7 +31,7 @@ class UserViewSet(viewsets.ModelViewSet): # <-- I'm assuming you have a UserView
 class UserViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all()
     serializer_class = UsersSerializer
-
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
 # --- List and Create Views ---
 
 @api_view(['GET'])
@@ -108,3 +106,161 @@ class ContractViewSet(viewsets.ModelViewSet):
     serializer_class = ContractSerializer
     # Add permissions, e.g., only HR or Admins can create/edit contracts
     # permission_classes = [IsAdminUser] 
+
+class ReferenceViewSet(viewsets.ModelViewSet):
+    queryset = Reference.objects.all()
+    serializer_class = ReferenceSerializer
+
+class SeaServiceViewSet(viewsets.ModelViewSet):
+    queryset = SeaService.objects.all()
+    serializer_class = SeaServiceSerializer
+
+class CertificateViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for managing certificates.
+    """
+    queryset = Certificate.objects.all()
+    serializer_class = CertificateSerializer
+
+class RankViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for managing ranks.
+    """
+    queryset = Rank.objects.all()
+    serializer_class = RankSerializer
+
+# --- User-specific Certificate and Rank Endpoints ---
+
+@api_view(['GET'])
+def get_user_certificates(request, user_id):
+    """
+    Get all certificates that a specific user has taken.
+    """
+    try:
+        user = Users.objects.get(pk=user_id)
+    except Users.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    certificates = user.certificates.all()
+    serializer = CertificateSerializer(certificates, many=True)
+    return Response({
+        "user_id": user_id,
+        "user_name": f"{user.first_name} {user.last_name}",
+        "certificates": serializer.data
+    })
+
+@api_view(['GET'])
+def get_user_ranks(request, user_id):
+    """
+    Get all ranks that a specific user wants to apply for (has been assigned).
+    """
+    try:
+        user = Users.objects.get(pk=user_id)
+    except Users.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    user_ranks = UserRank.objects.filter(user=user).select_related('rank')
+    serializer = UserRankSerializer(user_ranks, many=True)
+    return Response({
+        "user_id": user_id,
+        "user_name": f"{user.first_name} {user.last_name}",
+        "ranks": serializer.data
+    })
+
+@api_view(['POST'])
+def add_user_certificate(request, user_id):
+    """
+    Add a certificate to a user.
+    Expected payload: {"certificate_id": 1}
+    """
+    try:
+        user = Users.objects.get(pk=user_id)
+    except Users.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    certificate_id = request.data.get('certificate_id')
+    if not certificate_id:
+        return Response({"error": "certificate_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        certificate = Certificate.objects.get(pk=certificate_id)
+    except Certificate.DoesNotExist:
+        return Response({"error": "Certificate not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    user.certificates.add(certificate)
+    return Response({
+        "message": f"Certificate '{certificate.name}' added to user {user.first_name} {user.last_name}",
+        "certificate": CertificateSerializer(certificate).data
+    }, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+def add_user_rank(request, user_id):
+    """
+    Add a rank to a user (rank they want to apply for).
+    Expected payload: {"rank_id": 1}
+    """
+    try:
+        user = Users.objects.get(pk=user_id)
+    except Users.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    rank_id = request.data.get('rank_id')
+    if not rank_id:
+        return Response({"error": "rank_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        rank = Rank.objects.get(pk=rank_id)
+    except Rank.DoesNotExist:
+        return Response({"error": "Rank not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Check if user already has this rank
+    if UserRank.objects.filter(user=user, rank=rank).exists():
+        return Response({"error": "User already has this rank"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user_rank = UserRank.objects.create(user=user, rank=rank)
+    serializer = UserRankSerializer(user_rank)
+    return Response({
+        "message": f"Rank '{rank.name}' added to user {user.first_name} {user.last_name}",
+        "user_rank": serializer.data
+    }, status=status.HTTP_201_CREATED)
+
+@api_view(['DELETE'])
+def remove_user_certificate(request, user_id, certificate_id):
+    """
+    Remove a certificate from a user.
+    """
+    try:
+        user = Users.objects.get(pk=user_id)
+        certificate = Certificate.objects.get(pk=certificate_id)
+    except Users.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Certificate.DoesNotExist:
+        return Response({"error": "Certificate not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    user.certificates.remove(certificate)
+    return Response({
+        "message": f"Certificate '{certificate.name}' removed from user {user.first_name} {user.last_name}"
+    }, status=status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+def remove_user_rank(request, user_id, rank_id):
+    """
+    Remove a rank from a user.
+    """
+    try:
+        user = Users.objects.get(pk=user_id)
+        rank = Rank.objects.get(pk=rank_id)
+    except Users.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Rank.DoesNotExist:
+        return Response({"error": "Rank not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        user_rank = UserRank.objects.get(user=user, rank=rank)
+        user_rank.delete()
+        return Response({
+            "message": f"Rank '{rank.name}' removed from user {user.first_name} {user.last_name}"
+        }, status=status.HTTP_200_OK)
+    except UserRank.DoesNotExist:
+        return Response({"error": "User does not have this rank"}, status=status.HTTP_404_NOT_FOUND)
+

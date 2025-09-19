@@ -208,9 +208,10 @@
 
 
 
+
 # api/serializers.py
 from rest_framework import serializers
-from .models import Users, UserRank, Certificate, Rank, Contract
+from .models import Users, UserRank, Certificate, Rank, Contract, Reference, SeaService
 from tickets_papers.models import Ticket, TravelingPaper
 from django.contrib.auth.models import User
 from rest_framework import serializers, validators
@@ -232,7 +233,7 @@ class TravelingPaperSerializer(serializers.ModelSerializer):
 class RankSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rank
-        fields = ["name"]
+        fields = ["id", "code", "name"]
 
 
 class CertificateSerializer(serializers.ModelSerializer):
@@ -249,11 +250,23 @@ class UserRankSerializer(serializers.ModelSerializer):
         model = UserRank
         fields = ["assigned_code", "code", "rank"]
 
+class ReferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reference
+        fields = '__all__'
+
+class SeaServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SeaService
+        fields = '__all__'
+
 
 class UsersSerializer(serializers.ModelSerializer):
     # Read-only nested serializers for detailed representation
     ranks = UserRankSerializer(source='user_ranks', many=True, read_only=True)
     certificates = CertificateSerializer(many=True, read_only=True)
+    references = ReferenceSerializer(many=True, read_only=True)
+    sea_services = SeaServiceSerializer(many=True, read_only=True)
 
     # Write-only fields for accepting lists of IDs during create/update
     rank_ids = serializers.PrimaryKeyRelatedField(
@@ -282,7 +295,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'nationality', 'Place_Of_Birth', 'Nearest_Port', 'Height_Cm', 'Weight_Kg',
             'college_or_school', 'marlins_test_issued_date', 'marlins_test_result',
             'marlins_test_issued_by', 'marlins_test_issued_at', 'salary', 'address',
-            'phone_number', 'created_at', 'updated_at',
+            'phone_number', 'tel_number', 'created_at', 'updated_at',
             # Travel Documents
             'passport_no', 'passport_issue_date', 'passport_expiry_date',
             'passport_issued_by', 'passport_place_of_issue',
@@ -306,8 +319,14 @@ class UsersSerializer(serializers.ModelSerializer):
             'cholera_number', 'cholera_issue_date', 'cholera_expiry_date',
             'covid_vaccine_name', 'covid_first_dose', 'covid_second_dose',
             'covid_other_doses_or_remarks',
+            # New fields from Word document
+            'overall_size', 'shirt_size', 'trouser_size', 'shoes_size',
+            'english_language_level', 'other_language', 'other_language_level',
+            'disease_history', 'accident_history', 'psychiatric_treatment_history', 'addiction_history',
+            'declaration_consent', 'declaration_date', 'declaration_place',
+            'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
             # Relationships
-            'ranks', 'certificates', 'rank_ids', 'certificate_ids'
+            'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services'
         ]
         extra_kwargs = {
             'profile_image': {'required': False},
@@ -318,6 +337,8 @@ class UsersSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['ranks'] = UserRankSerializer(instance.user_ranks.all(), many=True).data
         representation['certificates'] = CertificateSerializer(instance.certificates.all(), many=True).data
+        representation['references'] = ReferenceSerializer(instance.references.all(), many=True).data
+        representation['sea_services'] = SeaServiceSerializer(instance.sea_services.all(), many=True).data
         representation.pop('codes', None)
         return representation
 
@@ -325,6 +346,8 @@ class UsersSerializer(serializers.ModelSerializer):
         # Pop the relationship data first
         codes_data = validated_data.pop('codes', [])
         certificates_data = validated_data.pop('certificates', [])
+        references_data = validated_data.pop('references', [])
+        sea_services_data = validated_data.pop('sea_services', [])
         profile_image_data = validated_data.pop('profile_image', None)
 
         # Create the user instance with the remaining standard fields
@@ -340,6 +363,12 @@ class UsersSerializer(serializers.ModelSerializer):
             UserRank.objects.create(user=user, rank=rank)
         if certificates_data:
             user.certificates.set(certificates_data)
+        if references_data:
+            for reference_data in references_data:
+                Reference.objects.create(user=user, **reference_data)
+        if sea_services_data:
+            for sea_service_data in sea_services_data:
+                SeaService.objects.create(user=user, **sea_service_data)
 
         return user
 
@@ -347,6 +376,8 @@ class UsersSerializer(serializers.ModelSerializer):
         # Pop relationship and file data
         codes_data = validated_data.pop('codes', None)
         certificates_data = validated_data.pop('certificates', None)
+        references_data = validated_data.pop('references', None)
+        sea_services_data = validated_data.pop('sea_services', None)
         profile_image_data = validated_data.pop('profile_image', None)
 
         # Update standard fields using the default DRF update method
@@ -364,6 +395,14 @@ class UsersSerializer(serializers.ModelSerializer):
                 UserRank.objects.create(user=instance, rank=rank)
         if certificates_data is not None:
             instance.certificates.set(certificates_data)
+        if references_data is not None:
+            instance.references.all().delete()
+            for reference_data in references_data:
+                Reference.objects.create(user=instance, **reference_data)
+        if sea_services_data is not None:
+            instance.sea_services.all().delete()
+            for sea_service_data in sea_services_data:
+                SeaService.objects.create(user=instance, **sea_service_data)
 
         return instance
 
@@ -419,3 +458,4 @@ class ContractSerializer(serializers.ModelSerializer):
             'sign_on_date', 'sign_off_date', 'salary', 'status',
             'created_at', 'updated_at'
         ]
+
