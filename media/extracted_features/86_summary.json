@@ -1,0 +1,54 @@
+{
+  "document_id": 86,
+  "extraction_date": "2025-09-20T17:29:13.580007",
+  "total_categories": 7,
+  "total_features_saved": 21,
+  "file_locations": {
+    "json": "media/extracted_features/86_features.json",
+    "yaml": "media/extracted_features/86_features.yaml"
+  },
+  "feature_breakdown": {
+    "travel_documents": {
+      "type": "dictionary",
+      "total_fields": 6,
+      "filled_fields": 6,
+      "completeness_percentage": 100.0
+    },
+    "personal_information": {
+      "type": "dictionary",
+      "total_fields": 5,
+      "filled_fields": 5,
+      "completeness_percentage": 100.0
+    },
+    "stcw_training": {
+      "type": "dictionary",
+      "total_fields": 0,
+      "filled_fields": 0,
+      "completeness_percentage": 0
+    },
+    "contact_information": {
+      "type": "dictionary",
+      "total_fields": 4,
+      "filled_fields": 3,
+      "completeness_percentage": 75.0
+    },
+    "medical_information": {
+      "type": "dictionary",
+      "total_fields": 4,
+      "filled_fields": 4,
+      "completeness_percentage": 100.0
+    },
+    "sea_service": {
+      "type": "dictionary",
+      "total_fields": 3,
+      "filled_fields": 3,
+      "completeness_percentage": 100.0
+    },
+    "qualifications": {
+      "type": "dictionary",
+      "total_fields": 0,
+      "filled_fields": 0,
+      "completeness_percentage": 0
+    }
+  }
+}

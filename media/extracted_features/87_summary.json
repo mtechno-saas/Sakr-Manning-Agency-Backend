@@ -1,0 +1,60 @@
+{
+  "document_id": 87,
+  "extraction_date": "2025-09-21T17:49:36.790744",
+  "total_categories": 8,
+  "total_features_saved": 23,
+  "file_locations": {
+    "json": "media/extracted_features/87_features.json",
+    "yaml": "media/extracted_features/87_features.yaml"
+  },
+  "feature_breakdown": {
+    "next_of_kin": {
+      "type": "dictionary",
+      "total_fields": 2,
+      "filled_fields": 2,
+      "completeness_percentage": 100.0
+    },
+    "stcw_training": {
+      "type": "dictionary",
+      "total_fields": 0,
+      "filled_fields": 0,
+      "completeness_percentage": 0
+    },
+    "qualifications": {
+      "type": "dictionary",
+      "total_fields": 0,
+      "filled_fields": 0,
+      "completeness_percentage": 0
+    },
+    "sea_service": {
+      "type": "dictionary",
+      "total_fields": 3,
+      "filled_fields": 3,
+      "completeness_percentage": 100.0
+    },
+    "contact_information": {
+      "type": "dictionary",
+      "total_fields": 4,
+      "filled_fields": 3,
+      "completeness_percentage": 75.0
+    },
+    "travel_documents": {
+      "type": "dictionary",
+      "total_fields": 6,
+      "filled_fields": 6,
+      "completeness_percentage": 100.0
+    },
+    "medical_information": {
+      "type": "dictionary",
+      "total_fields": 4,
+      "filled_fields": 4,
+      "completeness_percentage": 100.0
+    },
+    "personal_information": {
+      "type": "dictionary",
+      "total_fields": 5,
+      "filled_fields": 5,
+      "completeness_percentage": 100.0
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "next_of_kin": {
+    "full_name": "None",
+    "relationship": "None"
+  },
+  "stcw_training": {},
+  "qualifications": {},
+  "sea_service": {
+    "last_vessel_name": "None",
+    "last_company": "None",
+    "total_experience_years": "None"
+  },
+  "contact_information": {
+    "address": "",
+    "phone_number": "002010909462",
+    "email": "MOHASHEHATA1995@GMAIL.COM",
+    "phone_number_2": "002010909462"
+  },
+  "travel_documents": {
+    "passport_number": "A27533066",
+    "passport_issue_date": "16/12/2020",
+    "passport_expiry_date": "16/12/2020",
+    "seaman_book_number": "S00053132",
+    "seaman_book_issue_date": "30/04/2025",
+    "seaman_book_expiry_date": "30/04/2025"
+  },
+  "medical_information": {
+    "medical_certificate_number": "45319",
+    "medical_issue_date": "11/11/2021",
+    "medical_expiry_date": "11/11/2021",
+    "yellow_fever_vaccination": "11/11/2021"
+  },
+  "personal_information": {
+    "full_name": "MOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nMOHAMED SHEHATA RAMADAN ABDEL BASSET\n\nDate Of Birth",
+    "date_of_birth": "28/02/1995",
+    "place_of_birth": "Qena",
+    "nationality": "Egyptian",
+    "marital_status": "Married"
+  }
+}

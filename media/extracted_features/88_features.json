@@ -1,0 +1,37 @@
+{
+  "sea_service": {
+    "last_vessel_name": "Sohag,juhaynah,egypt",
+    "last_company": "Not Available",
+    "total_experience_years": "Not Available"
+  },
+  "personal_information": {
+    "full_name": "ABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nABD ELREHIM ALI ABD ELREHIM\n\nDate Of Birth",
+    "date_of_birth": "12.09.1992",
+    "place_of_birth": "Sohag",
+    "nationality": "Egypt",
+    "marital_status": "Married"
+  },
+  "travel_documents": {
+    "passport_number": "A32162508",
+    "passport_issue_date": "",
+    "passport_expiry_date": "",
+    "seaman_book_number": "S00041420",
+    "seaman_book_issue_date": "",
+    "seaman_book_expiry_date": ""
+  },
+  "stcw_training": {},
+  "contact_information": {
+    "address": "",
+    "phone_number": "+201289631413",
+    "email": "ABDOELRHAEEM@GMAIL.COM",
+    "phone_number_2": "+201289631413"
+  },
+  "qualifications": {},
+  "medical_information": {
+    "medical_certificate_number": "2024"
+  },
+  "next_of_kin": {
+    "full_name": "ABD ELREHIM ALI ABD ELREHIM",
+    "relationship": "Single     ☐"
+  }
+}
