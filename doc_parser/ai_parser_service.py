@@ -830,7 +830,7 @@ class EnhancedSeafarerFieldExtractor:
     Enhanced field extractor that combines AI extraction with rule-based pattern matching.
     """
     
-    def __init__(self, model_name: str = "gemma3:1b"):
+    def __init__(self, model_name: str = "phi3:3.8b-mini-4k-instruct-q4_0"):
         """Initialize the field extractor."""
         self.model_name = model_name
         self.llm = None
