@@ -52,9 +52,9 @@ INSTALLED_APPS = [
     'companies',
     'ships',
     'core',
-    'doc_parser', 
     'finance',
     'ai_agents',
+    'ai_document',
 
 ]
 
@@ -66,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+     
 ]
 
 ROOT_URLCONF = 'saker.urls'
