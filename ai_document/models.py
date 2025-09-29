@@ -12,6 +12,30 @@ from django.core.validators import FileExtensionValidator
 import os
 
 
+
+class Applicant(models.Model):
+    personal_details = models.JSONField(default=dict, blank=True, null=True)
+    education = models.JSONField(default=dict, blank=True, null=True)
+    contact_details = models.JSONField(default=dict, blank=True, null=True)
+    travel_documents = models.JSONField(default=dict, blank=True, null=True)
+    professional_qualifications = models.JSONField(default=dict, blank=True, null=True)
+    next_of_kin_emergency_contact = models.JSONField(default=dict, blank=True, null=True)
+    health_certificates_vaccinations = models.JSONField(default=dict, blank=True, null=True)
+    covid_19_vaccination = models.JSONField(default=dict, blank=True, null=True)
+    marine_courses = models.JSONField(default=dict, blank=True, null=True)
+    sea_service_details = models.JSONField(default=dict, blank=True, null=True)
+    specialised_experience = models.JSONField(default=dict, blank=True, null=True)
+    references = models.JSONField(default=dict, blank=True, null=True)
+    declaration = models.JSONField(default=dict, blank=True, null=True)
+    office_use_only = models.JSONField(default=dict, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Applicant {self.id}"
+
+
 def document_upload_path(instance, filename):
     """
     Generate upload path for documents.
