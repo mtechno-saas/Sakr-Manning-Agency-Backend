@@ -1,5 +1,3 @@
-
-
 import json
 import re
 from langchain.prompts import PromptTemplate
@@ -32,9 +30,8 @@ format_instructions = output_parser.get_format_instructions()
 
 
 def repair_json_string(text: str) -> str:
-    """Try to fix common JSON formatting errors from LLM output."""
+    """Fix common JSON formatting errors from LLM output."""
     
-    # Handle different response types
     if hasattr(text, 'content'):
         text = text.content
     else:
@@ -43,45 +40,32 @@ def repair_json_string(text: str) -> str:
     # Remove markdown code fences
     text = re.sub(r"^```json|```$", "", text.strip(), flags=re.MULTILINE)
     
-    # Fix the specific issue: remove extra quotes around values like '"value"'
-    text = re.sub(r"'\"([^\"]*?)\"'", r'"\1"', text)
+    # Remove any control characters that cause parsing issues
+    text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)
     
-    # Replace single quotes with double quotes for values
-    text = re.sub(r":\s*'([^']*?)'", r': "\1"', text)
+    # Fix broken syntax - ensure proper JSON structure
+    # Remove any trailing incomplete parts
+    brace_count = 0
+    last_complete_pos = 0
     
-    # Fix standalone single quotes that should be double quotes
-    text = re.sub(r"(?<!\\)'", '"', text)
+    for i, char in enumerate(text):
+        if char == '{':
+            brace_count += 1
+        elif char == '}':
+            brace_count -= 1
+            if brace_count == 0:
+                last_complete_pos = i + 1
     
-    # Remove broken }: artifacts
-    text = re.sub(r'"}:\s*', '", ', text)
-    text = re.sub(r'"}\s*:', '", ', text)
+    # Truncate to last complete JSON object
+    if last_complete_pos > 0:
+        text = text[:last_complete_pos]
     
-    # Ensure keys are quoted (but don't double-quote already quoted keys)
-    text = re.sub(r'(?<!")(\w+)(?=\s*:)', r'"\1"', text)
-    
-    # Fix arrays with mixed quotes - convert to proper JSON array
-    # Handle cases like 'value1', 'value2' -> ["value1", "value2"]
-    def fix_array_content(match):
-        content = match.group(1)
-        # Split by comma and clean each item
-        items = [item.strip().strip("'\"") for item in content.split(',')]
-        return '"' + ' | '.join(items) + '"'  # Join as single string for now
-    
-    # Apply array fixing to content between quotes
-    text = re.sub(r'"([^"]*(?:\'[^\']*\'[^"]*)+)"', fix_array_content, text)
-    
-    # Collapse multiple commas
-    text = re.sub(r',\s*,+', ',', text)
-    
-    # Replace ellipses with empty strings
-    text = text.replace("...", '""')
-    
-    # Fix trailing commas before closing braces/brackets
+    # Fix trailing commas
     text = re.sub(r',\s*}', '}', text)
     text = re.sub(r',\s*]', ']', text)
     
-    # Remove any remaining single quotes that might cause issues
-    text = re.sub(r"(?<![\w])'(?![\w])", '"', text)
+    # Fix multiple commas
+    text = re.sub(r',\s*,+', ',', text)
     
     return text
 
@@ -100,81 +84,164 @@ def extract_json_data_manually(text: str) -> dict:
     ]
     
     for key in expected_keys:
-        # Look for the pattern "key": 'value' or "key": "value"
-        pattern = rf'"{key}":\s*[\'"]([^\'"]*)[\'"[^,}}]*'
-        match = re.search(pattern, text, re.DOTALL)
-        if match:
-            result[key] = match.group(1).strip()
-        else:
-            result[key] = ""
+        result[key] = {}
+    
+    # Extract personal details
+    name_match = re.search(r'"name":\s*"([^"]*)"', text, re.IGNORECASE)
+    if name_match:
+        result["Personal_Details"]["name"] = name_match.group(1)
+    
+    email_match = re.search(r'"email":\s*"([^"]*@[^"]*)"', text, re.IGNORECASE)
+    if email_match:
+        result["Personal_Details"]["email"] = email_match.group(1)
+        result["Contact_Details"]["email"] = email_match.group(1)
+    
+    phone_match = re.search(r'"phone":\s*"([^"]*)"', text, re.IGNORECASE)
+    if phone_match:
+        result["Personal_Details"]["phone"] = phone_match.group(1)
+        result["Contact_Details"]["phone"] = phone_match.group(1)
+    
+    nationality_match = re.search(r'"nationality":\s*"([^"]*)"', text, re.IGNORECASE)
+    if nationality_match:
+        result["Personal_Details"]["nationality"] = nationality_match.group(1)
+    
+    birth_date_match = re.search(r'"birth_date":\s*"([^"]*)"', text, re.IGNORECASE)
+    if birth_date_match:
+        result["Personal_Details"]["birth_date"] = birth_date_match.group(1)
+    
+    address_match = re.search(r'"address":\s*"([^"]*)"', text, re.IGNORECASE)
+    if address_match:
+        result["Personal_Details"]["address"] = address_match.group(1)
+        result["Contact_Details"]["address"] = address_match.group(1)
     
     return result
 
 
 def convert_text_to_json(extracted_text: str) -> dict:
     """
-    Convert extracted document text into structured JSON using Ollama + StructuredOutputParser.
+    Convert extracted document text into structured JSON using Ollama.
+    Returns a dictionary, not a string.
     """
+    llm = OllamaLLM(model="llama3.2:1b", temperature=0)
 
-    llm = OllamaLLM(model="llama3.2:1b")  # change to llama2, gemma, etc. if installed
+    # Truncate text if too long
+    max_chars = 3000
+    truncated_text = extracted_text[:max_chars] if len(extracted_text) > max_chars else extracted_text
 
     prompt = PromptTemplate(
-        template="""
-You are an expert information extraction system.
+        template="""You are a JSON generator. Extract information from this CV text and return ONLY valid JSON.
 
-Extract structured data from the following CV text.
-
-Text:
+CV Text:
 {document}
 
-IMPORTANT: Return ONLY valid JSON with double quotes for all strings. Example format:
-{{
-    "Personal_Details": "John Doe, Egyptian, Born 1990",
-    "Education": "University degree",
-    "Contact_Details": "email@example.com, +123456789"
-}}
+Return a JSON object with these keys (use empty object {{}} if no data found):
+- Personal_Details (name, birth_date, nationality, address, email, phone)
+- Education (schools, languages)
+- Contact_Details (email, phone, address)
+- Travel_Documents (passport details)
+- Professional_Qualifications (certificates)
+- Sea_Service_Details (ship experience)
+- Marine_Courses (training)
 
-Do NOT use single quotes. Do NOT add extra quotes around values.
-{format_instructions}
+CRITICAL RULES:
+1. Return ONLY the JSON object, no explanations
+2. Use double quotes for all strings
+3. Do NOT escape quotes inside values
+4. Do NOT use parentheses in JSON
+5. Use simple strings, not nested quotes
+
+Example format:
+{{
+  "Personal_Details": {{
+    "name": "John Doe",
+    "birth_date": "01/01/1990"
+  }},
+  "Education": {{}}
+}}
 """,
         input_variables=["document"],
-        partial_variables={"format_instructions": format_instructions},
     )
 
-    # Updated syntax: Use pipe operator instead of LLMChain
     chain = prompt | llm
-    raw_result = chain.invoke({"document": extracted_text})
-
-    # Multiple parsing strategies
-    parsing_strategies = [
-        # Strategy 1: Try structured parser directly
-        lambda x: output_parser.parse(x),
-        # Strategy 2: Try JSON parsing after repair
-        lambda x: json.loads(repair_json_string(x)),
-        # Strategy 3: Manual extraction
-        lambda x: extract_json_data_manually(repair_json_string(x)),
-    ]
-
-    for i, strategy in enumerate(parsing_strategies):
+    raw_result = chain.invoke({"document": truncated_text})
+    
+    print("=" * 80)
+    print("RAW LLM OUTPUT:")
+    print(raw_result)
+    print("=" * 80)
+    
+    # Handle the case where raw_result might already be a dict
+    if isinstance(raw_result, dict):
+        print("LLM returned a dictionary directly")
+        result = raw_result
+    else:
+        # More aggressive cleaning
         try:
-            result = strategy(raw_result)
-            if isinstance(result, dict) and len(result) > 0:
-                return result
+            # Extract just the JSON part if there's extra text
+            json_match = re.search(r'\{.*\}', str(raw_result), re.DOTALL)
+            if json_match:
+                raw_result = json_match.group(0)
+            
+            cleaned = repair_json_string(str(raw_result))
+            print(f"Cleaned JSON length: {len(cleaned)}")
+            print(f"Cleaned text preview: {cleaned[:200]}...")
+            
+            result = json.loads(cleaned)
+            print("Successfully parsed JSON")
+            
         except Exception as e:
-            if i == len(parsing_strategies) - 1:  # Last strategy
-                return {
-                    "error": f"All parsing strategies failed. Last error: {str(e)}", 
-                    "raw_output": repair_json_string(raw_result)
+            print(f"Parsing failed: {e}")
+            print(f"Attempting manual extraction...")
+            
+            # Try manual extraction as fallback
+            try:
+                result = extract_json_data_manually(str(raw_result))
+                print("Manual extraction successful")
+            except Exception as manual_error:
+                print(f"Manual extraction also failed: {manual_error}")
+                result = {
+                    "Personal_Details": {},
+                    "Education": {},
+                    "Contact_Details": {},
+                    "Travel_Documents": {},
+                    "Professional_Qualifications": {},
+                    "Next_of_Kin_Emergency_Contact": {},
+                    "Health_Certificates_Vaccinations": {},
+                    "Covid_19_Vaccination": {},
+                    "Marine_Courses": {},
+                    "Sea_Service_Details": {},
+                    "Specialised_Experience": {},
+                    "References": {},
+                    "Declaration": {},
+                    "Office_Use_Only": {},
+                    "error": str(e),
+                    "raw_output": str(raw_result)[:500]
                 }
-            continue
-
-    return {"error": "No valid parsing strategy found", "raw_output": str(raw_result)}
+    
+    # Ensure all expected keys exist
+    expected_keys = [
+        "Personal_Details", "Education", "Contact_Details", "Travel_Documents",
+        "Professional_Qualifications", "Next_of_Kin_Emergency_Contact",
+        "Health_Certificates_Vaccinations", "Covid_19_Vaccination", "Marine_Courses",
+        "Sea_Service_Details", "Specialised_Experience", "References",
+        "Declaration", "Office_Use_Only"
+    ]
+    
+    for key in expected_keys:
+        if key not in result:
+            result[key] = {}
+    
+    print(f"Final result type: {type(result)}")
+    print(f"Final result keys: {list(result.keys())}")
+    
+    return result
 
 
 # Alternative function with more aggressive JSON cleaning
 def convert_text_to_json_robust(extracted_text: str) -> dict:
     """
     More robust version with additional JSON repair strategies.
+    Always returns a dictionary.
     """
     
     llm = OllamaLLM(model="llama3.2:1b")
@@ -214,11 +281,15 @@ Use empty strings "" for missing information.
     chain = prompt | llm
     raw_result = chain.invoke({"document": extracted_text})
     
+    # Handle different result types
+    if isinstance(raw_result, dict):
+        return raw_result
+    
     # Multiple parsing attempts
     parsing_attempts = [
-        lambda x: json.loads(x),
-        lambda x: json.loads(repair_json_string(x)),
-        lambda x: output_parser.parse(x),
+        lambda x: json.loads(str(x)),
+        lambda x: json.loads(repair_json_string(str(x))),
+        lambda x: extract_json_data_manually(str(x)),
     ]
     
     for attempt in parsing_attempts:
@@ -229,9 +300,22 @@ Use empty strings "" for missing information.
         except Exception:
             continue
     
-    # Final fallback
+    # Final fallback - always return a dict
     return {
+        "Personal_Details": {},
+        "Education": {},
+        "Contact_Details": {},
+        "Travel_Documents": {},
+        "Professional_Qualifications": {},
+        "Next_of_Kin_Emergency_Contact": {},
+        "Health_Certificates_Vaccinations": {},
+        "Covid_19_Vaccination": {},
+        "Marine_Courses": {},
+        "Sea_Service_Details": {},
+        "Specialised_Experience": {},
+        "References": {},
+        "Declaration": {},
+        "Office_Use_Only": {},
         "error": "All parsing methods failed", 
-        "raw_output": repair_json_string(raw_result)
+        "raw_output": str(raw_result)[:500]
     }
-    
