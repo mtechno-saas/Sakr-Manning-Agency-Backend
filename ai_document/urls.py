@@ -35,17 +35,80 @@ URL configuration for documents app.
 
 
 
+# from django.urls import path
+# from .views import DirectUsersUploadView
+
+# urlpatterns = [
+#     path("upload/", DirectUsersUploadView.as_view(), name="direct-users-upload"),
+# ]
+
+
+
+
+
+
+# from django.urls import path
+# from .views import DirectUsersUploadView, ApplicantListAPIView, ApplicantDetailAPIView
+
+# urlpatterns = [
+#     path("upload/", DirectUsersUploadView.as_view(), name="direct-users-upload"),
+#     path("applicants/", ApplicantListAPIView.as_view(), name="applicants-list-api"),
+#     path("applicants/<int:applicant_id>/", ApplicantDetailAPIView.as_view(), name="applicant-detail-api"),
+# ]
+
+
+
+
+
+
+
+
+
+# ai_document/urls.py
+
 from django.urls import path
-from .views import DirectUsersUploadView
+from .views import (
+    DocumentUploadView,
+    ApplicantListView,
+    ApplicantDetailView,
+    ConvertApplicantToUserView,
+    BatchConvertApplicantsView,
+    SyncStatusView,
+)
 
 urlpatterns = [
-    path("upload/", DirectUsersUploadView.as_view(), name="direct-users-upload"),
+    # Main document upload endpoint - saves to both Applicant and Users models
+    path("upload/", DocumentUploadView.as_view(), name="document-upload"),
+    
+    # Applicant management endpoints
+    path("applicants/", ApplicantListView.as_view(), name="applicant-list"),
+    path("applicants/<int:applicant_id>/", ApplicantDetailView.as_view(), name="applicant-detail"),
+    
+    # Conversion endpoints
+    path("convert/", ConvertApplicantToUserView.as_view(), name="convert-applicant-to-user"),
+    path("batch-convert/", BatchConvertApplicantsView.as_view(), name="batch-convert-applicants"),
+    
+    # Sync status endpoint
+    path("sync-status/", SyncStatusView.as_view(), name="sync-status"),
 ]
 
 
 
 
 
+
+
+
+
+
+
+
+# from django.urls import path
+# from .views import DirectUsersUploadView
+
+# urlpatterns = [
+#     path("upload/", DirectUsersUploadView.as_view(), name="direct-users-upload"),
+# ]
 
 
 
