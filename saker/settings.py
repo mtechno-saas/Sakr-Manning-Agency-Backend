@@ -156,13 +156,13 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [],
-     'DEFAULT_PERMISSION_CLASSES': [
-         'rest_framework.permissions.AllowAny',
-     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
-
-
 # --- Add this new configuration block for Simple JWT ---
 SIMPLE_JWT = {
     # This is the lifetime of the short-lived access token.

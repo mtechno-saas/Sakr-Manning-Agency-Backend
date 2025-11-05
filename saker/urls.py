@@ -23,8 +23,12 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-
-
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+class CustomTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [AllowAny]
+    serializer_class = TokenObtainPairSerializer
+    
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/users/", include("api.urls")),  # users API
@@ -32,7 +36,7 @@ urlpatterns = [
     path("api/tickets-papers/", include("tickets_papers.urls")),  # ✅ tickets & papers API
     path("api/companies/", include("companies.urls")),
     path("api/ships/", include("ships.urls")),
-    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("api/core/", include("core.urls")),
    path('api/finance/', include('finance.urls')),
