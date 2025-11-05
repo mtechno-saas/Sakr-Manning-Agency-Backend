@@ -1,6 +1,14 @@
 from django.db import models
 from django import forms
+from django.core.management.base import BaseCommand
 from multiselectfield import MultiSelectField
+from django.utils.text import slugify
+from django.db.models import Max
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin
+)
 
 class Marital_Status(models.TextChoices):
     SINGLE = 'SINGLE'
@@ -95,12 +103,58 @@ CERTIFICATES = [
 
 
 
+# class Rank(models.Model):
+#     code = models.CharField(max_length=780, unique=True)
+#     name = models.CharField(max_length=780)
+
+#     def __str__(self):
+#         return f\"{self.code} - {self.name}\"
+
 class Rank(models.Model):
-    code = models.CharField(max_length=780, unique=True)
+    code = models.CharField(max_length=780, unique=True)  # e.g. DO-1.000
     name = models.CharField(max_length=780)
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+    
+
+class UserRank(models.Model):
+    user = models.ForeignKey("Users", on_delete=models.CASCADE, related_name="user_ranks")
+    rank = models.ForeignKey("Rank", on_delete=models.CASCADE)
+    assigned_code = models.CharField(max_length=20, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.assigned_code:  # Only auto-generate if not provided
+            # Use the rank code prefix (e.g. \"DO-1\", \"ER-4\", etc.)
+            prefix = self.rank.code.split(".")[0]  
+
+            # Find last assigned_code with same prefix
+            last_ur = (
+                UserRank.objects
+                .filter(rank__code__startswith=prefix)
+                .order_by("-assigned_code")
+                .first()
+            )
+
+            if last_ur:
+                # Extract last number part after the dot
+                last_num = int(last_ur.assigned_code.split(".")[-1])
+                next_code = f"{prefix}.{last_num+1:03d}"
+            else:
+                # Start sequence
+                next_code = f"{prefix}.001"
+
+            self.assigned_code = next_code
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.assigned_code} - {self.rank.name}"
+
+
+
+
+
     
 
 
@@ -111,80 +165,82 @@ class Certificate(models.Model):
 
     def __str__(self):
         return self.name
+    
 
 
 
 
 
 
-# Create your models here.
-class Users(models.Model):
+
+
+
+
+
+# -------------------
+# Custom Manager
+# -------------------
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("The Email field must be set")
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        return self.create_user(email, password, **extra_fields)
+
+
+# -------------------
+# Custom User Model
+# -------------------
+class Users(AbstractBaseUser, PermissionsMixin):
+    # Authentication
+    email = models.EmailField(max_length=100, unique=True)
     first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    profile_image = models.ImageField(
-        upload_to="users/",  # saves images in MEDIA_ROOT/users/
-        blank=True,
-        null=True
-    )
-    age = models.IntegerField()
+    middle_name = models.CharField(max_length=100, blank=True)
+    profile_image = models.ImageField(upload_to="users/", blank=True, null=True)
 
-    date_of_birth = models.DateField(
-    auto_now=False,        # automatically set to current date on each save (use for created/updated dates, not birthdays)
-    auto_now_add=False,    # automatically set only when object is first created
-    null=True,             # allow storing NULL in DB
-    blank=True,            # allow leaving it empty in forms/admin
-    help_text="YYYY-MM-DD format",  # helper text in admin/forms
-    verbose_name="Date of Birth"    # human-readable field name
-)
-    marital_status = models.CharField(max_length=40 , choices=Marital_Status.choices , default="Single")
-    user_status = models.CharField(max_length=40 , choices=User_Status.choices , default="On Site")
-    nationality = models.CharField(max_length=50 , null=True)
-    Place_Of_Birth = models.CharField(max_length=100 ,null=True, blank=True)
-    Nearest_Port = models.CharField(max_length=200 , null=True)
+    # Personal Info
+    age = models.IntegerField(null=True, blank=True)
+    blood_type = models.CharField(max_length=5, blank=True)
+    smoker = models.BooleanField(default=False)
+    us_visa_status = models.CharField(max_length=50, blank=True)
+    schengen_visa_status = models.CharField(max_length=50, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    marital_status = models.CharField(max_length=40, default="Single")
+    user_status = models.CharField(max_length=40, default="On Site")
+    nationality = models.CharField(max_length=50, null=True)
+    Place_Of_Birth = models.CharField(max_length=100, null=True, blank=True)
+    Nearest_Port = models.CharField(max_length=200, null=True)
     Height_Cm = models.IntegerField(default=0)
     Weight_Kg = models.IntegerField(default=0)
 
+    # Education
+    college_or_school = models.CharField(max_length=200, null=True, blank=True)
 
-    college_or_school = models.CharField(
-    max_length=200,
-    null=True,
-    blank=True,
-    verbose_name="College Or School"
-    )
-
-    codes = models.ManyToManyField(Rank , blank=True)
-
-        # Marlins Test fields
-    marlins_test_issued_date = models.DateField(
-        null=True, blank=True,
-        verbose_name="Marlins Test Issued Date"
-    )
-    marlins_test_result = models.DecimalField(
-        max_digits=5, decimal_places=2,
-        null=True, blank=True,
-        verbose_name="Marlins Test Result (%)",
-        help_text="Enter percentage score, e.g., 85.50"
-    )
-    marlins_test_issued_by = models.CharField(
-        max_length=150,
-        null=True, blank=True,
-        verbose_name="Marlins Test Issued By (Authority)"
-    )
-    marlins_test_issued_at = models.CharField(
-        max_length=150,
-        null=True, blank=True,
-        verbose_name="Marlins Test Issued At (Location)"
-    )
-
-
-    salary = models.DecimalField(max_digits=7,decimal_places=2)
-    address = models.CharField(max_length=100 , null=True)
+    # Contact
+    address = models.CharField(max_length=100, null=True)
     phone_number = models.CharField(max_length=20)
-    email = models.EmailField(max_length=100)
+    tel_number = models.CharField(max_length=20, blank=True, null=True)
+
+    # Admin/Tracking
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-        # --- Travel Documents ---
+    # Travel Documents
     passport_no = models.CharField(max_length=50, null=True, blank=True)
     passport_issue_date = models.DateField(null=True, blank=True)
     passport_expiry_date = models.DateField(null=True, blank=True)
@@ -203,10 +259,7 @@ class Users(models.Model):
     other_seaman_book_issued_by = models.CharField(max_length=100, null=True, blank=True)
     other_seaman_book_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
 
-
-        # ... existing fields ...
-
-    # === Professional Qualification / Certificate of Competency ===
+    # Professional Qualification / Certificate of Competency
     coc_certificate_name = models.CharField(max_length=100, blank=True, null=True)
     coc_certificate_number = models.CharField(max_length=50, blank=True, null=True)
     coc_issue_date = models.DateField(blank=True, null=True)
@@ -220,14 +273,12 @@ class Users(models.Model):
     goc_issued_by = models.CharField(max_length=100, default="NTRA")
     goc_issued_at = models.CharField(max_length=100, default="Cairo")
 
-
     # Next of Kin / Emergency Contact
     next_of_kin_full_name = models.CharField(max_length=255, blank=True, null=True)
     next_of_kin_relationship = models.CharField(max_length=100, blank=True, null=True)
     next_of_kin_address_country = models.CharField(max_length=255, blank=True, null=True)
     next_of_kin_phone = models.CharField(max_length=50, blank=True, null=True)
     next_of_kin_email = models.EmailField(blank=True, null=True)
-
 
     # Health Certificates & Vaccinations
     health_flag_state = models.CharField(max_length=100, blank=True, null=True)
@@ -237,7 +288,6 @@ class Users(models.Model):
     health_issued_by = models.CharField(max_length=255, blank=True, null=True)
     health_issued_at = models.CharField(max_length=255, blank=True, null=True)
 
-    # Specific certificates
     international_medical_number = models.CharField(max_length=100, blank=True, null=True)
     international_medical_issue_date = models.DateField(blank=True, null=True)
     international_medical_expiry_date = models.DateField(blank=True, null=True)
@@ -256,22 +306,106 @@ class Users(models.Model):
     covid_second_dose = models.DateField(blank=True, null=True)
     covid_other_doses_or_remarks = models.TextField(blank=True, null=True)
 
+    # New fields from Word document
+    overall_size = models.CharField(max_length=50, blank=True, null=True)
+    shirt_size = models.CharField(max_length=50, blank=True, null=True)
+    trouser_size = models.CharField(max_length=50, blank=True, null=True)
+    shoes_size = models.CharField(max_length=50, blank=True, null=True)
+    english_language_level = models.CharField(max_length=50, blank=True, null=True)
+    other_language = models.CharField(max_length=50, blank=True, null=True)
+    other_language_level = models.CharField(max_length=50, blank=True, null=True)
+    disease_history = models.TextField(blank=True, null=True)
+    accident_history = models.TextField(blank=True, null=True)
+    psychiatric_treatment_history = models.TextField(blank=True, null=True)
+    addiction_history = models.TextField(blank=True, null=True)
+    declaration_consent = models.BooleanField(default=False)
+    declaration_date = models.DateField(blank=True, null=True)
+    declaration_place = models.CharField(max_length=100, blank=True, null=True)
+    initial_assessment_comments = models.TextField(blank=True, null=True)
+    responsible_person_name = models.CharField(max_length=100, blank=True, null=True)
+    assessment_date = models.DateField(blank=True, null=True)
 
-    
 
 
-    #certificates = MultiSelectField(choices=CERTIFICATES, blank=True, null=True)
-    certificates = models.ManyToManyField(Certificate , blank=True)
-    
-    # codes = MultiSelectField(choices=RANKS, blank=True, null=True)\
-    #codes = MultiSelectField(max_length=780 , choices=RANKS , default="Select Any Job" )
-
-
+    salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    marlins_test_result = models.CharField(max_length=100, blank=True, null=True)
+    marlins_test_issued_date = models.DateField(null=True, blank=True)
+    marlins_test_issued_at = models.CharField(max_length=100, blank=True, null=True)
+    marlins_test_issued_by = models.CharField(max_length=100, blank=True, null=True)
 
 
 
+    certificates = models.ManyToManyField(Certificate, blank=True)
+    codes = models.ManyToManyField(Rank, blank=True)
 
-    
+    # Auth & Permissions
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    # Manager
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["first_name"]
 
     def __str__(self):
-        return self.first_name
+        return self.email
+
+
+# --- New Contract Model ---
+class Contract(models.Model):
+    """
+    Represents a specific work assignment for a user on a ship.
+    This is the most important new model for tracking employment history.
+    """
+    CONTRACT_STATUS = [
+        ('Active', 'Active'),
+        ('Completed', 'Completed'),
+        ('Pending', 'Pending'),
+    ]
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='contracts')
+    ship = models.ForeignKey('ships.Ship', on_delete=models.CASCADE, related_name='contracts')
+    rank = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True, help_text="The rank for this specific contract.")
+    
+    sign_on_date = models.DateField()
+    sign_off_date = models.DateField(null=True, blank=True)
+    salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=CONTRACT_STATUS, default='Pending')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-sign_on_date']
+
+    def __str__(self):
+        return f"{self.user.email} on {self.ship.ship_name} ({self.sign_on_date})"
+
+class Reference(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='references')
+    company_name = models.CharField(max_length=255)
+    position = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    tel = models.CharField(max_length=50)
+    email = models.EmailField()
+
+    def __str__(self):
+        return f"Reference for {self.user.email} from {self.company_name}"
+
+class SeaService(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='sea_services')
+    company_name = models.CharField(max_length=255)
+    rank = models.CharField(max_length=255)
+    vessel_name_imo = models.CharField(max_length=255)
+    flag = models.CharField(max_length=100)
+    signed_on = models.DateField()
+    signed_off = models.DateField()
+    period = models.CharField(max_length=100)
+    vessel_type = models.CharField(max_length=100)
+    dwt_grt = models.CharField(max_length=100)
+    engine_type_bh_kw = models.CharField(max_length=100)
+    reason_for_sign_off = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"Sea service for {self.user.email} on {self.vessel_name_imo}"
+
