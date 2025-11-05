@@ -3562,18 +3562,167 @@ class DocumentUploadView(APIView):
                     applied_position_info=structured_json.get("Applied_Position_Info", {}),
                 )
 
+                # logger.info(f"Successfully created applicant with ID: {applicant.id}")
+
+                # # Step 5: Convert and save to Users model
+                # user = None
+                # user_error = None
+                # try:
+                #     logger.info("Converting applicant to Users model")
+                #     user = DataMapperService.save_applicant_as_user(applicant)
+                #     logger.info(f"Successfully created/updated user: {user.email} (ID: {user.id})")
+                # except Exception as ue:
+                #     user_error = f"User creation error: {str(ue)}"
+                #     logger.error(f"Failed to create user: {ue}")
+
+                # # Clean up file
+                # try:
+                #     default_storage.delete(file_path)
+                # except Exception as e:
+                #     logger.warning(f"Failed to delete temporary file: {e}")
+
+                # # Response with serialized applicant data
+                # response_status = status.HTTP_201_CREATED
+                # message = "Data saved successfully to both databases"
+
+                # if "error" in structured_json:
+                #     response_status = status.HTTP_206_PARTIAL_CONTENT
+                #     message = "Data saved with parsing issues"
+
+                # if not user:
+                #     response_status = status.HTTP_206_PARTIAL_CONTENT
+                #     message = "Data saved to Applicant database, but failed to save to Users database"
+
+                # # Use serializer for consistent response format
+                # applicant_serializer = ApplicantToUsersSerializer(applicant)
+
+                # return Response({
+                #     "success": True,
+                #     "message": message,
+                #     "applicant_id": applicant.id,
+                #     "user_id": user.id if user else None,
+                #     "user_email": user.email if user else None,
+                #     "file_name": file.name,
+                #     "applicant_data": applicant_serializer.data,
+                #     "structured_data": structured_json,
+                #     "page_count": result.get("page_count"),
+                #     "word_count": len(cleaned_text.split()),
+                #     "parsing_quality": "low" if "error" in structured_json else "high",
+                #     "user_creation_status": "success" if user else "failed",
+                #     "user_error": user_error,
+                # }, status=response_status)
+                # UPDATED SECTION FOR views.py
+# Replace lines 3565-3577 with this code
+
+# ULTIMATE FINAL FIX FOR views.py
+# This version handles date format conversion
+# Replace the user creation section with this code
+
                 logger.info(f"Successfully created applicant with ID: {applicant.id}")
+
+                # Use serializer BEFORE user creation
+                applicant_serializer = ApplicantToUsersSerializer(applicant)
 
                 # Step 5: Convert and save to Users model
                 user = None
                 user_error = None
                 try:
                     logger.info("Converting applicant to Users model")
-                    user = DataMapperService.save_applicant_as_user(applicant)
-                    logger.info(f"Successfully created/updated user: {user.email} (ID: {user.id})")
+                    
+                    # FIXED: Create user with proper type and date handling
+                    from api.models import Users
+                    from django.db import models
+                    from datetime import datetime
+                    
+                    serializer_data = applicant_serializer.data
+
+                    email = serializer_data.get('email')
+                    if not email:
+                        raise ValueError(['Email is required'])
+                    
+                    def convert_date(date_str):
+                        """Convert various date formats to YYYY-MM-DD."""
+                        if not date_str or not str(date_str).strip():
+                            return None
+                        
+                        date_str = str(date_str).strip()
+                        
+                        # Try different date formats
+                        formats = [
+                            '%d/%m/%Y',  # 18/6/1994
+                            '%d-%m-%Y',  # 18-6-1994
+                            '%Y-%m-%d',  # 1994-06-18 (already correct)
+                            '%d/%m/%y',  # 18/6/94
+                            '%d-%m-%y',  # 18-6-94
+                            '%Y/%m/%d',  # 1994/6/18
+                        ]
+                        
+                        for fmt in formats:
+                            try:
+                                dt = datetime.strptime(date_str, fmt)
+                                return dt.strftime('%Y-%m-%d')
+                            except ValueError:
+                                continue
+                        
+                        # If no format works, return None
+                        logger.warning(f"Could not parse date: {date_str}")
+                        return None
+                    
+                    # Get all fields from Users model with their types
+                    user_model_fields = {f.name: f for f in Users._meta.get_fields()}
+                    
+                    # Build defaults dict with proper type handling
+                    defaults = {}
+                    for field_name, value in serializer_data.items():
+                        # Skip special fields
+                        if field_name in ['id', 'email', 'created_at', 'updated_at', 'ranks', 'certificates', 'references', 'sea_services']:
+                            continue
+                        
+                        # Only process if field exists in Users model
+                        if field_name not in user_model_fields:
+                            continue
+                        
+                        field = user_model_fields[field_name]
+                        
+                        # Handle different field types
+                        if isinstance(field, (models.DateField, models.DateTimeField)):
+                            # Date fields: convert format
+                            defaults[field_name] = convert_date(value)
+                        elif isinstance(field, (models.IntegerField, models.BigIntegerField, models.SmallIntegerField)):
+                            # Integer fields: use None if empty
+                            try:
+                                defaults[field_name] = int(value) if value and str(value).strip() else None
+                            except (ValueError, TypeError):
+                                defaults[field_name] = None
+                        elif isinstance(field, (models.FloatField, models.DecimalField)):
+                            # Float/Decimal fields: use None if empty
+                            try:
+                                defaults[field_name] = float(value) if value and str(value).strip() else None
+                            except (ValueError, TypeError):
+                                defaults[field_name] = None
+                        elif isinstance(field, models.BooleanField):
+                            # Boolean fields: use False if empty
+                            defaults[field_name] = bool(value) if value else False
+                        elif isinstance(field, models.JSONField):
+                            # JSON fields: use empty dict/list if empty
+                            defaults[field_name] = value if value else {}
+                        else:
+                            # String fields and others: use empty string if empty
+                            defaults[field_name] = value if value else ''
+                    
+                    user, created = Users.objects.update_or_create(
+                        email=email,
+                        defaults=defaults
+                    )
+                    
+                    action = "Created" if created else "Updated"
+                    logger.info(f"{action} user: {user.email} (ID: {user.id})")
+                    
                 except Exception as ue:
                     user_error = f"User creation error: {str(ue)}"
                     logger.error(f"Failed to create user: {ue}")
+                    import traceback
+                    logger.error(traceback.format_exc())
 
                 # Clean up file
                 try:
@@ -3593,9 +3742,8 @@ class DocumentUploadView(APIView):
                     response_status = status.HTTP_206_PARTIAL_CONTENT
                     message = "Data saved to Applicant database, but failed to save to Users database"
 
-                # Use serializer for consistent response format
-                applicant_serializer = ApplicantToUsersSerializer(applicant)
-
+                # applicant_serializer already created above
+                
                 return Response({
                     "success": True,
                     "message": message,
@@ -3611,6 +3759,9 @@ class DocumentUploadView(APIView):
                     "user_creation_status": "success" if user else "failed",
                     "user_error": user_error,
                 }, status=response_status)
+
+
+
 
         except DocumentProcessingError as e:
             try:
