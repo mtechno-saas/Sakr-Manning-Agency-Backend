@@ -55,10 +55,12 @@ INSTALLED_APPS = [
     'finance',
     'ai_agents',
     'ai_document',
+    'corsheaders',
 
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -213,3 +215,11 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'api.Users'
+
+CORS_ALLOWED_ORIGINS = [
+    #"https://test.yourdomain.com",
+    "http://localhost:5173",
+]
+
+
+CORS_ALLOW_CREDENTIALS = True

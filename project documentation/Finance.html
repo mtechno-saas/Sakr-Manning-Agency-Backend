@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance API Documentation</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Prism.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d47a1;
+            --secondary-color: #1976d2;
+            --accent-color: #00bcd4;
+            --text-color: #333333;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --success-color: #2e7d32;
+            --warning-color: #ed6c02;
+            --danger-color: #d32f2f;
+            --code-bg: #1e1e1e;
+            --nav-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        header p {
+            opacity: 0.85;
+            margin-top: 0.5rem;
+        }
+
+        /* Navigation */
+        nav {
+            width: var(--nav-width);
+            background: var(--card-bg);
+            position: fixed;
+            left: 0;
+            top: 120px;
+            bottom: 0;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav li {
+            margin: 0.25rem 0;
+        }
+
+        nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(25, 118, 210, 0.05);
+            border-left-color: var(--secondary-color);
+        }
+
+        nav a i {
+            width: 20px;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        /* Main Content */
+        main {
+            margin-left: var(--nav-width);
+            margin-top: 120px;
+            padding: 2rem;
+            flex: 1;
+            max-width: 1200px;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        section h2 {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        section h3 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody tr:hover {
+            background: rgba(25, 118, 210, 0.03);
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f9fbfd;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            color: #f8f8f2;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Courier New', monospace;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .info-box.info {
+            background: #e3f2fd;
+            border-color: var(--secondary-color);
+            color: #0d47a1;
+        }
+
+        .info-box.success {
+            background: #e8f5e9;
+            border-color: var(--success-color);
+            color: #1b5e20;
+        }
+
+        .info-box.warning {
+            background: #fff3e0;
+            border-color: var(--warning-color);
+            color: #e65100;
+        }
+
+        .info-box.danger {
+            background: #ffebee;
+            border-color: var(--danger-color);
+            color: #b71c1c;
+        }
+
+        /* Method Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .badge.get { background: var(--success-color); }
+        .badge.post { background: var(--secondary-color); }
+        .badge.put { background: var(--warning-color); }
+        .badge.patch { background: var(--accent-color); }
+        .badge.delete { background: var(--danger-color); }
+        .badge.public { background: #6c757d; }
+
+        /* Footer */
+        footer {
+            margin-left: var(--nav-width);
+            padding: 2rem;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+            
+            main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            header {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.4rem;
+            }
+            
+            section {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-calculator"></i> Finance API Documentation</h1>
+        <p>Django REST Framework Module for Financial Record Management</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview"><i class="fas fa-info-circle"></i> Module Overview</a></li>
+            <li><a href="#installation"><i class="fas fa-download"></i> Installation</a></li>
+            <li><a href="#models"><i class="fas fa-database"></i> Models</a></li>
+            <li><a href="#endpoints"><i class="fas fa-plug"></i> API Endpoints</a></li>
+            <li><a href="#admin"><i class="fas fa-cog"></i> Admin Interface</a></li>
+            <li><a href="#features"><i class="fas fa-star"></i> Key Features</a></li>
+            <li><a href="#examples"><i class="fas fa-code"></i> Usage Examples</a></li>
+            <li><a href="#integration"><i class="fas fa-link"></i> Integration Notes</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="overview">
+            <h2><i class="fas fa-info-circle"></i> Module Overview</h2>
+            <div class="info-box info">
+                <strong>Finance API</strong> is a Django REST Framework module for tracking financial records, calculating payments, and managing user-company financial relationships.
+            </div>
+            
+            <h3><i class="fas fa-check-circle"></i> Core Capabilities</h3>
+            <ul>
+                <li><strong>Financial Record Tracking</strong>: Track work periods and payment calculations</li>
+                <li><strong>Automatic Calculations</strong>: Days worked, daily rates, and total payments</li>
+                <li><strong>Company Integration</strong>: Links users with companies for payroll processing</li>
+                <li><strong>Preview Calculations</strong>: Calculate payments without saving records</li>
+                <li><strong>Admin Management</strong>: Comprehensive admin interface with calculated fields</li>
+            </ul>
+
+            <div class="info-box success">
+                <strong>Tech Stack:</strong> Django 4+, Django REST Framework, Python 3.8+
+            </div>
+        </section>
+
+        <section id="installation">
+            <h2><i class="fas fa-download"></i> Installation & Setup</h2>
+            
+            <h3><i class="fas fa-cog"></i> Add to Installed Apps</h3>
+            <pre><code class="language-python">INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    # ...
+    'rest_framework',
+    'finance',  # Add this
+    'api',      # Required for Users model
+    'companies', # Required for Company model
+]</code></pre>
+
+            <h3><i class="fas fa-terminal"></i> Run Migrations</h3>
+            <pre><code class="language-bash">python manage.py makemigrations finance
+python manage.py migrate</code></pre>
+
+            <div class="info-box warning">
+                <strong>Dependencies:</strong> This module requires the <code>api</code> and <code>companies</code> apps to be installed.
+            </div>
+        </section>
+
+        <section id="models">
+            <h2><i class="fas fa-database"></i> Models Documentation</h2>
+
+            <h3><i class="fas fa-money-bill-wave"></i> FinanceRecord</h3>
+            <p>Core model for tracking financial records and calculating payments.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>user</code></td><td>ForeignKey(Users)</td><td>Related seafarer/worker</td></tr>
+                    <tr><td><code>company</code></td><td>ForeignKey(Company)</td><td>Employer company</td></tr>
+                    <tr><td><code>start_date</code></td><td>DateField</td><td>Work period start date</td></tr>
+                    <tr><td><code>end_date</code></td><td>DateField</td><td>Work period end date</td></tr>
+                    <tr><td><code>created_at</code></td><td>DateTimeField</td><td>Auto-set on creation</td></tr>
+                    <tr><td><code>updated_at</code></td><td>DateTimeField</td><td>Auto-set on update</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-calculator"></i> Calculated Properties</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Description</th>
+                        <th>Calculation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>total_days</code></td>
+                        <td>Total days worked</td>
+                        <td><code>(end_date - start_date).days + 1</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>daily_rate</code></td>
+                        <td>Daily wage rate</td>
+                        <td><code>company.hourly_rate * 8</code> (assumes 8 hrs/day)</td>
+                    </tr>
+                    <tr>
+                        <td><code>total_money</code></td>
+                        <td>Total payment amount</td>
+                        <td><code>total_days * daily_rate</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-box info">
+                <strong>String Representation:</strong> <code>"{first_name} @ {company_name} ({start_date} → {end_date})"</code>
+            </div>
+        </section>
+
+        <section id="endpoints">
+            <h2><i class="fas fa-plug"></i> API Endpoints</h2>
+            <div class="info-box info">
+                <strong>Base URL:</strong> <code>/api/finance-records/</code>
+            </div>
+
+            <h3><i class="fas fa-list"></i> Standard CRUD Operations</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                        <th>Auth</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/</code></td>
+                        <td>List all finance records (paginated)</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/</code></td>
+                        <td>Create new finance record</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/{id}/</code></td>
+                        <td>Get specific record details</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge put">PUT</span></td>
+                        <td><code>/{id}/</code></td>
+                        <td>Update entire record</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge patch">PATCH</span></td>
+                        <td><code>/{id}/</code></td>
+                        <td>Partial update record</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge delete">DELETE</span></td>
+                        <td><code>/{id}/</code></td>
+                        <td>Delete finance record</td>
+                        <td>Authenticated</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-magic"></i> Custom Action</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/calculate/</code></td>
+                        <td>Calculate payment without saving to database</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-calculator"></i> Calculate Endpoint Details</h3>
+            <div class="info-box success">
+                This endpoint performs all calculations without persisting data to the database.
+            </div>
+
+            <h4>Request Example:</h4>
+            <pre><code class="language-http">POST /api/finance-records/calculate/
+Content-Type: application/json
+
+{
+  "user": 1,
+  "company": 2,
+  "start_date": "2025-09-01",
+  "end_date": "2025-09-10"
+}</code></pre>
+
+            <h4>Response Example:</h4>
+            <pre><code class="language-json">{
+  "total_days": 10,
+  "daily_rate": 160.00,
+  "total_money": 1600.00
+}</code></pre>
+        </section>
+
+        <section id="admin">
+            <h2><i class="fas fa-cog"></i> Django Admin Interface</h2>
+            <div class="info-box info">
+                <strong>URL:</strong> <code>/admin/finance/financerecord/</code>
+            </div>
+
+            <h3><i class="fas fa-columns"></i> List Display</h3>
+            <p>The admin interface shows calculated fields directly in the list view:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Admin Column</th>
+                        <th>Source</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>get_total_days</code></td><td><code>total_days</code> property</td><td>Total days worked</td></tr>
+                    <tr><td><code>get_daily_rate</code></td><td><code>daily_rate</code> property</td><td>Daily wage rate</td></tr>
+                    <tr><td><code>get_total_money</code></td><td><code>total_money</code> property</td><td>Total payment amount</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-filter"></i> Filters & Search</h3>
+            <ul>
+                <li><strong>Filters:</strong> company, user, start_date, end_date</li>
+                <li><strong>Search:</strong> user first_name, last_name, company company_name</li>
+            </ul>
+
+            <div class="info-box success">
+                All calculated fields appear as read-only fields in the admin detail view.
+            </div>
+        </section>
+
+        <section id="features">
+            <h2><i class="fas fa-star"></i> Key Features</h2>
+
+            <h3><i class="fas fa-brain"></i> Smart Calculations</h3>
+            <ul>
+                <li><strong>Automatic Day Calculation:</strong> Includes both start and end dates</li>
+                <li><strong>Dynamic Rate Lookup:</strong> Pulls hourly_rate from Company model</li>
+                <li><strong>Zero Dependencies:</strong> Works even if company rate is not set</li>
+            </ul>
+
+            <h3><i class="fas fa-bolt"></i> Performance Optimized</h3>
+            <ul>
+                <li><strong>Properties:</strong> Calculated on-demand, no database queries</li>
+                <li><strong>Serializer:</strong> Uses <code>ReadOnlyField</code> for calculated values</li>
+                <li><strong>Admin:</strong> Custom methods for list display optimization</li>
+            </ul>
+
+            <h3><i class="fas fa-shield-alt"></i> Data Integrity</h3>
+            <ul>
+                <li><strong>Date Validation:</strong> Ensures end_date >= start_date (via model validation)</li>
+                <li><strong>Cascading Deletes:</strong> Records deleted when user or company is removed</li>
+                <li><strong>Audit Trail:</strong> <code>created_at</code> and <code>updated_at</code> timestamps</li>
+            </ul>
+        </section>
+
+        <section id="examples">
+            <h2><i class="fas fa-code"></i> Usage Examples</h2>
+
+            <h3><i class="fas fa-plus-circle"></i> Create Finance Record</h3>
+            <pre><code class="language-http">POST /api/finance-records/
+Content-Type: application/json
+Authorization: Token your-token-here
+
+{
+  "user": 5,
+  "company": 2,
+  "start_date": "2025-09-15",
+  "end_date": "2025-09-30"
+}</code></pre>
+
+            <h3><i class="fas fa-list-alt"></i> Response</h3>
+            <pre><code class="language-json">{
+  "id": 12,
+  "user": 5,
+  "company": 2,
+  "start_date": "2025-09-15",
+  "end_date": "2025-09-30",
+  "created_at": "2025-11-10T10:30:00Z",
+  "updated_at": "2025-11-10T10:30:00Z",
+  "total_days": 16,
+  "daily_rate": 160.00,
+  "total_money": 2560.00
+}</code></pre>
+
+            <h3><i class="fas fa-calculator"></i> Preview Calculation Without Saving</h3>
+            <pre><code class="language-http">POST /api/finance-records/calculate/
+Content-Type: application/json
+Authorization: Token your-token-here
+
+{
+  "user": 3,
+  "company": 1,
+  "start_date": "2025-10-01",
+  "end_date": "2025-10-31"
+}</code></pre>
+
+            <h3><i class="fas fa-eye"></i> Calculation Response</h3>
+            <pre><code class="language-json">{
+  "total_days": 31,
+  "daily_rate": 180.00,
+  "total_money": 5580.00
+}</code></pre>
+
+            <h3><i class="fas fa-edit"></i> Update Record</h3>
+            <pre><code class="language-http">PATCH /api/finance-records/12/
+Content-Type: application/json
+Authorization: Token your-token-here
+
+{
+  "end_date": "2025-10-05"
+}</code></pre>
+
+            <h3><i class="fas fa-trash"></i> Delete Record</h3>
+            <pre><code class="language-http">DELETE /api/finance-records/12/
+Authorization: Token your-token-here</code></pre>
+        </section>
+
+        <section id="integration">
+            <h2><i class="fas fa-link"></i> Integration Notes</h2>
+
+            <h3><i class="fas fa-project-diagram"></i> Required Dependencies</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>App</th>
+                        <th>Model</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>api</code></td>
+                        <td><code>Users</code></td>
+                        <td>Worker/employee information</td>
+                    </tr>
+                    <tr>
+                        <td><code>companies</code></td>
+                        <td><code>Company</code></td>
+                        <td>Employer information and hourly_rate</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-exclamation-triangle"></i> Assumptions</h3>
+            <div class="info-box warning">
+                <ul>
+                    <li>The <code>Company</code> model must have an <code>hourly_rate</code> field</li>
+                    <li>Hourly rate is multiplied by 8 to get daily rate</li>
+                    <li>Date calculations are inclusive of both start and end dates</li>
+                </ul>
+            </div>
+
+            <h3><i class="fas fa-plug"></i> Include URLs</h3>
+            <pre><code class="language-python"># In main urls.py
+urlpatterns = [
+    # ...
+    path('api/', include('finance.urls')),
+]</code></pre>
+        </section>
+    </main>
+
+    <footer>
+        <p><i class="fas fa-calculator"></i> <strong>Documentation Version:</strong> 1.0 | <strong>Last Updated:</strong> November 2025 | <strong>Module:</strong> Finance Management</p>
+    </footer>
+
+    <!-- Prism.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-http.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+</body>
+</html>

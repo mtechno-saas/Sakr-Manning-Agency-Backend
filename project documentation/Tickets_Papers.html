@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets & Papers API Documentation</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Prism.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d47a1;
+            --secondary-color: #1976d2;
+            --accent-color: #00bcd4;
+            --text-color: #333333;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --success-color: #2e7d32;
+            --warning-color: #ed6c02;
+            --danger-color: #d32f2f;
+            --code-bg: #1e1e1e;
+            --nav-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        header p {
+            opacity: 0.85;
+            margin-top: 0.5rem;
+        }
+
+        /* Navigation */
+        nav {
+            width: var(--nav-width);
+            background: var(--card-bg);
+            position: fixed;
+            left: 0;
+            top: 120px;
+            bottom: 0;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav li {
+            margin: 0.25rem 0;
+        }
+
+        nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(25, 118, 210, 0.05);
+            border-left-color: var(--secondary-color);
+        }
+
+        nav a i {
+            width: 20px;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        /* Main Content */
+        main {
+            margin-left: var(--nav-width);
+            margin-top: 120px;
+            padding: 2rem;
+            flex: 1;
+            max-width: 1200px;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        section h2 {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        section h3 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody tr:hover {
+            background: rgba(25, 118, 210, 0.03);
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f9fbfd;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            color: #f8f8f2;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Courier New', monospace;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .info-box.info {
+            background: #e3f2fd;
+            border-color: var(--secondary-color);
+            color: #0d47a1;
+        }
+
+        .info-box.success {
+            background: #e8f5e9;
+            border-color: var(--success-color);
+            color: #1b5e20;
+        }
+
+        .info-box.warning {
+            background: #fff3e0;
+            border-color: var(--warning-color);
+            color: #e65100;
+        }
+
+        .info-box.danger {
+            background: #ffebee;
+            border-color: var(--danger-color);
+            color: #b71c1c;
+        }
+
+        /* Method Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .badge.get { background: var(--success-color); }
+        .badge.post { background: var(--secondary-color); }
+        .badge.put { background: var(--warning-color); }
+        .badge.patch { background: var(--accent-color); }
+        .badge.delete { background: var(--danger-color); }
+        .badge.public { background: #6c757d; }
+
+        /* Footer */
+        footer {
+            margin-left: var(--nav-width);
+            padding: 2rem;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+            
+            main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            header {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.4rem;
+            }
+            
+            section {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-ticket-alt"></i> Tickets & Papers API Documentation</h1>
+        <p>Django REST Framework Module for Travel Document Management</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview"><i class="fas fa-info-circle"></i> Module Overview</a></li>
+            <li><a href="#installation"><i class="fas fa-download"></i> Installation</a></li>
+            <li><a href="#models"><i class="fas fa-database"></i> Models</a></li>
+            <li><a href="#endpoints"><i class="fas fa-plug"></i> API Endpoints</a></li>
+            <li><a href="#admin"><i class="fas fa-cog"></i> Admin Interface</a></li>
+            <li><a href="#features"><i class="fas fa-star"></i> Key Features</a></li>
+            <li><a href="#examples"><i class="fas fa-code"></i> Usage Examples</a></li>
+            <li><a href="#integration"><i class="fas fa-link"></i> Integration Notes</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="overview">
+            <h2><i class="fas fa-info-circle"></i> Module Overview</h2>
+            <div class="info-box info">
+                <strong>Tickets & Papers API</strong> is a Django REST Framework module for managing travel documents including flight tickets and traveling papers (visas, travel permits) for seafarers.
+            </div>
+            
+            <h3><i class="fas fa-check-circle"></i> Core Capabilities</h3>
+            <ul>
+                <li><strong>Flight Ticket Management</strong>: Store and retrieve flight tickets with file uploads</li>
+                <li><strong>Travel Paper Management</strong>: Handle visas, travel permits with issue dates</li>
+                <li><strong>File Upload Support</strong>: Document storage with automatic URL generation</li>
+                <li><strong>User-Scoped Access</strong>: Documents are automatically filtered by user</li>
+                <li><strong>Full CRUD Operations</strong>: Complete REST API with ViewSets</li>
+                <li><strong>Multipart Form Support</strong>: Handles file uploads via API</li>
+            </ul>
+
+            <div class="info-box success">
+                <strong>Tech Stack:</strong> Django 4+, Django REST Framework, Python 3.8+
+            </div>
+        </section>
+
+        <section id="installation">
+            <h2><i class="fas fa-download"></i> Installation & Setup</h2>
+            
+            <h3><i class="fas fa-cog"></i> Add to Installed Apps</h3>
+            <pre><code class="language-python">INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    # ...
+    'rest_framework',
+    'tickets_papers',  # Add this
+    'api',             # Required for Users model
+]</code></pre>
+
+            <h3><i class="fas fa-code-branch"></i> Include URLs</h3>
+            <pre><code class="language-python"># In main urls.py (using nested routing)
+from rest_framework_nested import routers
+
+# Main router
+router = routers.DefaultRouter()
+router.register(r'users', UserViewSet, basename='user')
+
+# Nested router for tickets/papers
+users_router = routers.NestedDefaultRouter(router, r'users', lookup='user')
+users_router.register(r'tickets', TicketViewSet, basename='user-tickets')
+users_router.register(r'traveling-papers', TravelingPaperViewSet, basename='user-papers')
+
+urlpatterns = [
+    # ...
+    path('api/', include(router.urls)),
+    path('api/', include(users_router.urls)),
+]</code></pre>
+
+            <div class="info-box warning">
+                <strong>Nested Routing:</strong> This module is designed to work with nested URLs under users (e.g., <code>/api/users/{user_id}/tickets/</code>)
+            </div>
+
+            <h3><i class="fas fa-terminal"></i> Run Migrations</h3>
+            <pre><code class="language-bash">python manage.py makemigrations tickets_papers
+python manage.py migrate</code></pre>
+
+            <h3><i class="fas fa-folder-open"></i> Media Configuration</h3>
+            <p>Ensure MEDIA_URL and MEDIA_ROOT are configured:</p>
+            <pre><code class="language-python"># settings.py
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')</code></pre>
+        </section>
+
+        <section id="models">
+            <h2><i class="fas fa-database"></i> Models Documentation</h2>
+
+            <h3><i class="fas fa-ticket-alt"></i> Ticket Model</h3>
+            <p>Stores flight tickets and travel bookings for users.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Options</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td>BigAutoField</td><td>Primary Key</td><td>Auto-incrementing ID</td></tr>
+                    <tr><td><code>user</code></td><td>ForeignKey</td><td>Users, CASCADE, related_name="tickets"</td><td>Ticket owner</td></tr>
+                    <tr><td><code>ticket_number</code></td><td>CharField</td><td>max_length=100</td><td>Flight ticket number</td></tr>
+                    <tr><td><code>file</code></td><td>FileField</td><td>upload_to="tickets/"</td><td>Ticket PDF/document</td></tr>
+                    <tr><td><code>created_at</code></td><td>DateTimeField</td><td>auto_now_add=True</td><td>Creation timestamp</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-file-alt"></i> TravelingPaper Model</h3>
+            <p>Manages travel documents like visas, permits, and travel authorizations.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Options</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td>BigAutoField</td><td>Primary Key</td><td>Auto-incrementing ID</td></tr>
+                    <tr><td><code>user</code></td><td>ForeignKey</td><td>Users, CASCADE, related_name="traveling_papers"</td><td>Document owner</td></tr>
+                    <tr><td><code>title</code></td><td>CharField</td><td>max_length=255</td><td>Document title (e.g., "Schengen Visa")</td></tr>
+                    <tr><td><code>issued_date</code></td><td>DateField</code></td><td>-</td><td>Date document was issued</td></tr>
+                    <tr><td><code>file</code></td><td>FileField</td><td>upload_to="traveling_papers/"</td><td>Document PDF/image</td></tr>
+                    <tr><td><code>created_at</code></td><td>DateTimeField</td><td>auto_now_add=True</td><td>Creation timestamp</td></tr>
+                </tbody>
+            </table>
+
+            <div class="info-box info">
+                <strong>File Storage:</strong> Documents are stored in separate subdirectories under <code>MEDIA_ROOT</code>
+            </div>
+
+            <div class="info-box warning">
+                <strong>CASCADE Delete:</strong> When a user is deleted, all their tickets and papers are automatically removed
+            </div>
+        </section>
+
+        <section id="endpoints">
+            <h2><i class="fas fa-plug"></i> API Endpoints</h2>
+            <div class="info-box info">
+                <strong>Base URL Pattern:</strong> <code>/api/users/{user_id}/</code>
+            </div>
+
+            <h3><i class="fas fa-ticket-alt"></i> Ticket Endpoints</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                        <th>Auth</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/tickets/</code></td>
+                        <td>List all tickets for a specific user</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/tickets/</code></td>
+                        <td>Upload new ticket (multipart form)</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/tickets/{id}/</code></td>
+                        <td>Retrieve specific ticket details</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge put">PUT</span></td>
+                        <td><code>/tickets/{id}/</code></td>
+                        <td>Update entire ticket</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge patch">PATCH</span></td>
+                        <td><code>/tickets/{id}/</code></td>
+                        <td>Partial update ticket</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge delete">DELETE</span></td>
+                        <td><code>/tickets/{id}/</code></td>
+                        <td>Delete ticket</td>
+                        <td>Authenticated</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-file-alt"></i> Traveling Paper Endpoints</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                        <th>Auth</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/traveling-papers/</code></td>
+                        <td>List all papers for a specific user</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/traveling-papers/</code></td>
+                        <td>Upload new travel document</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/traveling-papers/{id}/</code></td>
+                        <td>Retrieve specific paper details</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge put">PUT</span></td>
+                        <td><code>/traveling-papers/{id}/</code></td>
+                        <td>Update entire paper</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge patch">PATCH</span></td>
+                        <td><code>/traveling-papers/{id}/</code></td>
+                        <td>Partial update paper</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge delete">DELETE</span></td>
+                        <td><code>/traveling-papers/{id}/</code></td>
+                        <td>Delete paper</td>
+                        <td>Authenticated</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-box"></i> Serialized Fields</h3>
+            <p>Both serializers provide special handling for file uploads:</p>
+            <ul>
+                <li><strong>file</strong>: Write-only field for uploading documents</li>
+                <li><strong>file_url</strong>: Read-only field returning absolute URL for downloads</li>
+                <li><strong>user</strong>: Set automatically from URL, read-only in API</li>
+            </ul>
+        </section>
+
+        <section id="admin">
+            <h2><i class="fas fa-cog"></i> Django Admin Interface</h2>
+            <div class="info-box info">
+                <strong>URLs:</strong> 
+                <code>/admin/tickets_papers/ticket/</code> and 
+                <code>/admin/tickets_papers/travelingpaper/</code>
+            </div>
+
+            <h3><i class="fas fa-columns"></i> Ticket Admin Configuration</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Admin Setting</th>
+                        <th>Fields</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>list_display</strong></td><td>ticket_number, user, created_at</td><td>Columns shown in list view</td></tr>
+                    <tr><td><strong>search_fields</strong></td><td>ticket_number, user__first_name, user__last_name</td><td>Searchable fields</td></tr>
+                    <tr><td><strong>list_filter</strong></td><td>created_at</td><td>Filterable fields</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-file-alt"></i> TravelingPaper Admin Configuration</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Admin Setting</th>
+                        <th>Fields</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>list_display</strong></td><td>title, user, issued_date, created_at</td><td>Columns shown in list view</td></tr>
+                    <tr><td><strong>search_fields</strong></td><td>title, user__first_name, user__last_name</td><td>Searchable fields</td></tr>
+                    <tr><td><strong>list_filter</strong></td><td>issued_date, created_at</td><td>Filterable fields</td></tr>
+                </tbody>
+            </table>
+
+            <div class="info-box success">
+                Both admin interfaces support searching by crew member first/last name and the document identifier
+            </div>
+        </section>
+
+        <section id="features">
+            <h2><i class="fas fa-star"></i> Key Features</h2>
+
+            <h3><i class="fas fa-file-upload"></i> File Management</h3>
+            <ul>
+                <li><strong>Automatic URL Generation:</strong> <code>file_url</code> field provides absolute URLs</li>
+                <li><strong>Organized Storage:</strong> Files stored in separate <code>tickets/</code> and <code>traveling_papers/</code> directories</li>
+                <li><strong>Multipart Form Support:</strong> ViewSets configured to handle <code>multipart/form-data</code></li>
+            </ul>
+
+            <h3><i class="fas fa-user-shield"></i> User-Scoped Access</h3>
+            <ul>
+                <li><strong>Automatic Filtering:</strong> Documents filtered by <code>user_id</code> from URL</li>
+                <li><strong>User Assignment:</strong> <code>perform_create</code> automatically associates document with user</li>
+                <li><strong>No Manual User ID:</strong> User field is read-only in serializer, set from URL path</li>
+            </ul>
+
+            <h3><i class="fas fa-plug"></i> Nested Routing</h3>
+            <ul>
+                <li><strong>RESTful Structure:</strong> Documents accessed under <code>/users/{id}/</code> path</li>
+                <li><strong>Clean URLs:</strong> Logical hierarchy: User → Documents</li>
+                <li><strong>DRY Principle:</strong> No need to pass user_id in request body</li>
+            </ul>
+
+            <h3><i class="fas fa-search"></i> Admin Integration</h3>
+            <ul>
+                <li><strong>Search by User:</strong> Search documents by crew member name</li>
+                <li><strong>Date Filtering:</strong> Filter by creation/issued dates</li>
+                <li><strong>Quick Access:</strong> Direct links from user records in admin</li>
+            </ul>
+        </section>
+
+        <section id="examples">
+            <h2><i class="fas fa-code"></i> Usage Examples</h2>
+
+            <h3><i class="fas fa-upload"></i> Upload Ticket (Multipart Form)</h3>
+            <pre><code class="language-http">POST /api/users/5/tickets/
+Content-Type: multipart/form-data
+Authorization: Token your-token-here
+
+ticket_number: TK-2025-98765
+file: &lt;select ticket.pdf&gt;</code></pre>
+
+            <h3><i class="fas fa-reply"></i> Response with File URL</h3>
+            <pre><code class="language-json">{
+  "id": 12,
+  "user": 5,
+  "ticket_number": "TK-2025-98765",
+  "file": "/media/tickets/ticket_98765.pdf",
+  "file_url": "https://api.example.com/media/tickets/ticket_98765.pdf",
+  "created_at": "2025-11-10T14:30:00Z"
+}</code></pre>
+
+            <h3><i class="fas fa-list"></i> List User's Traveling Papers</h3>
+            <pre><code class="language-http">GET /api/users/5/traveling-papers/
+Authorization: Token your-token-here</code></pre>
+
+            <h3><i class="fas fa-reply"></i> Response</h3>
+            <pre><code class="language-json">[
+  {
+    "id": 3,
+    "user": 5,
+    "title": "Schengen Visa",
+    "issued_date": "2025-10-15",
+    "file": "/media/traveling_papers/visa_001.pdf",
+    "file_url": "https://api.example.com/media/traveling_papers/visa_001.pdf",
+    "created_at": "2025-11-10T14:30:00Z"
+  },
+  {
+    "id": 4,
+    "user": 5,
+    "title": "US Transit Visa",
+    "issued_date": "2025-11-01",
+    "file": "/media/traveling_papers/visa_us_002.pdf",
+    "file_url": "https://api.example.com/media/traveling_papers/visa_us_002.pdf",
+    "created_at": "2025-11-10T14:35:00Z"
+  }
+]</code></pre>
+
+            <h3><i class="fas fa-plus-circle"></i> Create Travel Document</h3>
+            <pre><code class="language-http">POST /api/users/8/traveling-papers/
+Content-Type: multipart/form-data
+Authorization: Token your-token-here
+
+title: Work Permit - UAE
+issued_date: 2025-12-01
+file: &lt;select permit.pdf&gt;</code></pre>
+
+            <h3><i class="fas fa-edit"></i> Update Ticket Number</h3>
+            <pre><code class="language-http">PATCH /api/users/5/tickets/12/
+Content-Type: application/json
+Authorization: Token your-token-here
+
+{
+  "ticket_number": "TK-2025-99999"
+}</code></pre>
+
+            <h3><i class="fas fa-trash"></i> Delete Document</h3>
+            <pre><code class="language-http">DELETE /api/users/5/traveling-papers/3/
+Authorization: Token your-token-here</code></pre>
+        </section>
+
+        <section id="integration">
+            <h2><i class="fas fa-link"></i> Integration Notes</h2>
+
+            <h3><i class="fas fa-project-diagram"></i> Nested Router Setup</h3>
+            <p>Complete URL configuration example:</p>
+            <pre><code class="language-python"># main urls.py
+from django.urls import path, include
+from rest_framework_nested import routers
+from api.views import UserViewSet
+from tickets_papers.views import TicketViewSet, TravelingPaperViewSet
+
+# Main router for users
+router = routers.DefaultRouter()
+router.register(r'users', UserViewSet, basename='user')
+
+# Nested router for user documents
+users_router = routers.NestedDefaultRouter(router, r'users', lookup='user')
+users_router.register(r'tickets', TicketViewSet, basename='user-tickets')
+users_router.register(r'traveling-papers', TravelingPaperViewSet, basename='user-papers')
+
+urlpatterns = [
+    path('api/', include(router.urls)),
+    path('api/', include(users_router.urls)),
+]</code></pre>
+
+            <h3><i class="fas fa-cog"></i> Media Serving in Development</h3>
+            <pre><code class="language-python"># main urls.py (development only)
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = [
+    # ... other urls
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)</code></pre>
+
+            <h3><i class="fas fa-database"></i> Database Relations</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Relation</th>
+                        <th>Reverse Accessor</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Users</code></td>
+                        <td>One-to-Many</td>
+                        <td><code>user.tickets.all()</code></td>
+                        <td>Access all tickets for user</td>
+                    </tr>
+                    <tr>
+                        <td><code>Users</code></td>
+                        <td>One-to-Many</td>
+                        <td><code>user.traveling_papers.all()</code></td>
+                        <td>Access all papers for user</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-shield-alt"></i> Security Considerations</h3>
+            <div class="info-box warning">
+                <ul>
+                    <li>User can only access their own documents (filtered by <code>user_id</code> in URL)</li>
+                    <li>Superusers can access any user's documents via admin interface</li>
+                    <li>Files are stored with original filenames - consider adding UUID prefixes for security</li>
+                    <li>Implement file size limits and MIME type validation in production</li>
+                </ul>
+            </div>
+
+            <h3><i class="fas fa-magic"></i> Frontend Integration</h3>
+            <pre><code class="language-javascript">// JavaScript example: Upload ticket
+const formData = new FormData();
+formData.append('ticket_number', 'TK-12345');
+formData.append('file', fileInput.files[0]);
+
+fetch('/api/users/5/tickets/', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Token ${token}`,
+  },
+  body: formData
+})
+.then(response => response.json())
+.then(data => {
+  console.log('File URL:', data.file_url);
+});</code></pre>
+        </section>
+    </main>
+
+    <footer>
+        <p><i class="fas fa-ticket-alt"></i> <strong>Documentation Version:</strong> 1.0 | <strong>Last Updated:</strong> November 2025 | <strong>Module:</strong> Tickets & Papers Management</p>
+    </footer>
+
+    <!-- Prism.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-http.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+</body>
+</html>
