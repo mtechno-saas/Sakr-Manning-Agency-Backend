@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRF Document Processing App Documentation</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Prism.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d47a1;
+            --secondary-color: #1976d2;
+            --accent-color: #00bcd4;
+            --text-color: #333333;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --success-color: #2e7d32;
+            --warning-color: #ed6c02;
+            --danger-color: #d32f2f;
+            --code-bg: #1e1e1e;
+            --nav-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        header p {
+            opacity: 0.85;
+            margin-top: 0.5rem;
+        }
+
+        /* Navigation */
+        nav {
+            width: var(--nav-width);
+            background: var(--card-bg);
+            position: fixed;
+            left: 0;
+            top: 120px;
+            bottom: 0;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav li {
+            margin: 0.25rem 0;
+        }
+
+        nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(25, 118, 210, 0.05);
+            border-left-color: var(--secondary-color);
+        }
+
+        nav a i {
+            width: 20px;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        /* Main Content */
+        main {
+            margin-left: var(--nav-width);
+            margin-top: 120px;
+            padding: 2rem;
+            flex: 1;
+            max-width: 1200px;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        section h2 {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        section h3 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody tr:hover {
+            background: rgba(25, 118, 210, 0.03);
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f9fbfd;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            color: #f8f8f2;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Courier New', monospace;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .info-box.info {
+            background: #e3f2fd;
+            border-color: var(--secondary-color);
+            color: #0d47a1;
+        }
+
+        .info-box.success {
+            background: #e8f5e9;
+            border-color: var(--success-color);
+            color: #1b5e20;
+        }
+
+        .info-box.warning {
+            background: #fff3e0;
+            border-color: var(--warning-color);
+            color: #e65100;
+        }
+
+        .info-box.danger {
+            background: #ffebee;
+            border-color: var(--danger-color);
+            color: #b71c1c;
+        }
+
+        /* Method Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .badge.get { background: var(--success-color); }
+        .badge.post { background: var(--secondary-color); }
+        .badge.put { background: var(--warning-color); }
+        .badge.patch { background: var(--accent-color); }
+        .badge.delete { background: var(--danger-color); }
+        .badge.public { background: #6c757d; }
+
+        /* Footer */
+        footer {
+            margin-left: var(--nav-width);
+            padding: 2rem;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+            
+            main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            header {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.4rem;
+            }
+            
+            section {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-file-alt"></i> DRF Document Processing App</h1>
+        <p>Comprehensive documentation for the Django REST Framework application</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#models"><i class="fas fa-database"></i> Models</a></li>
+            <li><a href="#views"><i class="fas fa-eye"></i> Views</a></li>
+            <li><a href="#serializers"><i class="fas fa-exchange-alt"></i> Serializers</a></li>
+            <li><a href="#document-processing"><i class="fas fa-file-pdf"></i> Document Processing</a></li>
+            <li><a href="#json-conversion"><i class="fas fa-code"></i> JSON Conversion</a></li>
+            <li><a href="#data-mapper-service"><i class="fas fa-exchange-alt"></i> Data Mapper Service</a></li>
+            <li><a href="#api-endpoints"><i class="fas fa-plug"></i> API Endpoints</a></li>
+            <li><a href="#usage-examples"><i class="fas fa-terminal"></i> Usage Examples</a></li>
+            <li><a href="#architecture-overview"><i class="fas fa-sitemap"></i> Architecture Overview</a></li>
+            <li><a href="#installation-and-setup"><i class="fas fa-cogs"></i> Installation & Setup</a></li>
+            <li><a href="#error-handling"><i class="fas fa-exclamation-triangle"></i> Error Handling</a></li>
+            <li><a href="#security-considerations"><i class="fas fa-shield-alt"></i> Security</a></li>
+            <li><a href="#performance-optimization"><i class="fas fa-tachometer-alt"></i> Performance</a></li>
+            <li><a href="#testing"><i class="fas fa-vial"></i> Testing</a></li>
+            <li><a href="#future-enhancements"><i class="fas fa-rocket"></i> Future Enhancements</a></li>
+            <li><a href="#conclusion"><i class="fas fa-flag-checkered"></i> Conclusion</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="models">
+            <h2><i class="fas fa-database"></i> Models</h2>
+            <p>The application utilizes several Django models to manage data. These models are defined in <code>models.py</code>.</p>
+            
+            <h3><i class="fas fa-user"></i> Applicant Model</h3>
+            <p>The <code>Applicant</code> model stores the extracted data from uploaded documents. It uses JSON fields to flexibly store structured information.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>personal_details</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores personal details of the applicant.</td>
+                    </tr>
+                    <tr>
+                        <td><code>education</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores education and language skills.</td>
+                    </tr>
+                    <tr>
+                        <td><code>contact_details</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores contact information.</td>
+                    </tr>
+                    <tr>
+                        <td><code>travel_documents</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores passport, seaman book, etc.</td>
+                    </tr>
+                    <tr>
+                        <td><code>professional_qualifications</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores certificates of competency and qualifications.</td>
+                    </tr>
+                    <tr>
+                        <td><code>next_of_kin_emergency_contact</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores next of kin or emergency contacts.</td>
+                    </tr>
+                    <tr>
+                        <td><code>health_certificates_vaccinations</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores health certificates and vaccinations.</td>
+                    </tr>
+                    <tr>
+                        <td><code>covid_19_vaccination</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores Covid-19 vaccination details.</td>
+                    </tr>
+                    <tr>
+                        <td><code>marine_courses</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores marine and safety training courses.</td>
+                    </tr>
+                    <tr>
+                        <td><code>sea_service_details</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores details of sea service records.</td>
+                    </tr>
+                    <tr>
+                        <td><code>specialised_experience</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores specialised experiences if any.</td>
+                    </tr>
+                    <tr>
+                        <td><code>references</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores references provided by the applicant.</td>
+                    </tr>
+                    <tr>
+                        <td><code>declaration</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores declaration, health questions, signature, date.</td>
+                    </tr>
+                    <tr>
+                        <td><code>office_use_only</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores office assessment and signature.</td>
+                    </tr>
+                    <tr>
+                        <td><code>physical_measurements</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores physical measurements.</td>
+                    </tr>
+                    <tr>
+                        <td><code>language_skills</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores language skills.</td>
+                    </tr>
+                    <tr>
+                        <td><code>medical_history</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores medical history.</td>
+                    </tr>
+                    <tr>
+                        <td><code>assessments</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores assessments.</td>
+                    </tr>
+                    <tr>
+                        <td><code>competency_tests</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>Stores competency tests.</td>
+                    </tr>
+                    <tr>
+                        <td><code>created_at</code></td>
+                        <td><code>DateTimeField</code></td>
+                        <td>Timestamp when the record was created.</td>
+                    </tr>
+                    <tr>
+                        <td><code>updated_at</code></td>
+                        <td><code>DateTimeField</code></td>
+                        <td>Timestamp when the record was last updated.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-file-alt"></i> Document Model</h3>
+            <p>The <code>Document</code> model stores metadata about the uploaded files.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>title</code></td>
+                        <td><code>CharField</code></td>
+                        <td>Document title or name.</td>
+                    </tr>
+                    <tr>
+                        <td><code>description</code></td>
+                        <td><code>TextField</code></td>
+                        <td>Optional description of the document.</td>
+                    </tr>
+                    <tr>
+                        <td><code>file</code></td>
+                        <td><code>FileField</code></td>
+                        <td>The uploaded PDF or DOCX file.</td>
+                    </tr>
+                    <tr>
+                        <td><code>document_type</code></td>
+                        <td><code>CharField</code></td>
+                        <td>Type of document (pdf or docx).</td>
+                    </tr>
+                    <tr>
+                        <td><code>file_size</code></td>
+                        <td><code>PositiveIntegerField</code></td>
+                        <td>File size in bytes.</td>
+                    </tr>
+                    <tr>
+                        <td><code>status</code></td>
+                        <td><code>CharField</code></td>
+                        <td>Processing status of the document.</td>
+                    </tr>
+                    <tr>
+                        <td><code>extracted_text</code></td>
+                        <td><code>TextField</code></td>
+                        <td>Text content extracted from the document.</td>
+                    </tr>
+                    <tr>
+                        <td><code>page_count</code></td>
+                        <td><code>PositiveIntegerField</code></td>
+                        <td>Number of pages in the document.</td>
+                    </tr>
+                    <tr>
+                        <td><code>word_count</code></td>
+                        <td><code>PositiveIntegerField</code></td>
+                        <td>Number of words in the document.</td>
+                    </tr>
+                    <tr>
+                        <td><code>processing_error</code></td>
+                        <td><code>TextField</code></td>
+                        <td>Error message if processing failed.</td>
+                    </tr>
+                    <tr>
+                        <td><code>created_at</code></td>
+                        <td><code>DateTimeField</code></td>
+                        <td>Timestamp when the document was uploaded.</td>
+                    </tr>
+                    <tr>
+                        <td><code>updated_at</code></td>
+                        <td><code>DateTimeField</code></td>
+                        <td>Timestamp when the document was last updated.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-history"></i> APIResponseLog Model</h3>
+            <p>The <code>APIResponseLog</code> model is used to log API responses.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>endpoint</code></td>
+                        <td><code>CharField</code></td>
+                        <td>API endpoint path.</td>
+                    </tr>
+                    <tr>
+                        <td><code>method</code></td>
+                        <td><code>CharField</code></td>
+                        <td>HTTP method (GET, POST, etc.).</td>
+                    </tr>
+                    <tr>
+                        <td><code>user</code></td>
+                        <td><code>ForeignKey</code></td>
+                        <td>The user who made the request.</td>
+                    </tr>
+                    <tr>
+                        <td><code>ip_address</code></td>
+                        <td><code>GenericIPAddressField</code></td>
+                        <td>Client IP address.</td>
+                    </tr>
+                    <tr>
+                        <td><code>user_agent</code></td>
+                        <td><code>TextField</code></td>
+                        <td>User agent string.</td>
+                    </tr>
+                    <tr>
+                        <td><code>status_code</code></td>
+                        <td><code>IntegerField</code></td>
+                        <td>HTTP status code.</td>
+                    </tr>
+                    <tr>
+                        <td><code>response_data</code></td>
+                        <td><code>JSONField</code></td>
+                        <td>JSON response data.</td>
+                    </tr>
+                    <tr>
+                        <td><code>response_size_bytes</code></td>
+                        <td><code>PositiveIntegerField</code></td>
+                        <td>Response size in bytes.</td>
+                    </tr>
+                    <tr>
+                        <td><code>processing_time_ms</code></td>
+                        <td><code>PositiveIntegerField</code></td>
+                        <td>Processing time in milliseconds.</td>
+                    </tr>
+                    <tr>
+                        <td><code>document_id</code></td>
+                        <td><code>CharField</code></td>
+                        <td>Document ID from the response.</td>
+                    </tr>
+                    <tr>
+                        <td><code>seafarer_name</code></td>
+                        <td><code>CharField</code></td>
+                        <td>Seafarer full name.</td>
+                    </tr>
+                    <tr>
+                        <td><code>seafarer_email</code></td>
+                        <td><code>EmailField</code></td>
+                        <td>Seafarer email address.</td>
+                    </tr>
+                    <tr>
+                        <td><code>seafarer_nationality</code></td>
+                        <td><code>CharField</code></td>
+                        <td>Seafarer nationality.</td>
+                    </tr>
+                    <tr>
+                        <td><code>quality_score</code></td>
+                        <td><code>FloatField</code></td>
+                        <td>Data quality score from response.</td>
+                    </tr>
+                    <tr>
+                        <td><code>timestamp</code></td>
+                        <td><code>DateTimeField</code></td>
+                        <td>When the log entry was created.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-chart-bar"></i> EndpointStats Model</h3>
+            <p>The <code>EndpointStats</code> model tracks statistics for each API endpoint.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>endpoint</code></td>
+                        <td><code>CharField</code></td>
+                        <td>API endpoint path.</td>
+                    </tr>
+                    <tr>
+                        <td><code>total_requests</code></td>
+                        <td><code>PositiveIntegerField</code></td>
+                        <td>Total number of requests.</td>
+                    </tr>
+                    <tr>
+                        <td><code>successful_requests</code></td>
+                        <td><code>PositiveIntegerField</code></td>
+                        <td>Number of successful requests (2xx).</td>
+                    </tr>
+                    <tr>
+                        <td><code>error_requests</code></td>
+                        <td><code>PositiveIntegerField</code></td>
+                        <td>Number of error requests (4xx or 5xx).</td>
+                    </tr>
+                    <tr>
+                        <td><code>average_processing_time_ms</code></td>
+                        <td><code>FloatField</code></td>
+                        <td>Average processing time in milliseconds.</td>
+                    </tr>
+                    <tr>
+                        <td><code>last_request_timestamp</code></td>
+                        <td><code>DateTimeField</code></td>
+                        <td>Timestamp of the last request.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-user-circle"></i> SeafarerProfileSummary Model</h3>
+            <p>The <code>SeafarerProfileSummary</code> model tracks seafarer profiles extracted from documents.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>seafarer_email</code></td>
+                        <td><code>EmailField</code></td>
+                        <td>Seafarer email address (unique identifier).</td>
+                    </tr>
+                    <tr>
+                        <td><code>seafarer_name</code></td>
+                        <td><code>CharField</code></td>
+                        <td>Seafarer full name.</td>
+                    </tr>
+                    <tr>
+                        <td><code>last_document_id</code></td>
+                        <td><code>CharField</code></td>
+                        <td>ID of the last document processed for this seafarer.</td>
+                    </tr>
+                    <tr>
+                        <td><code>total_documents_processed</code></td>
+                        <td><code>PositiveIntegerField</code></td>
+                        <td>Total number of documents processed for this seafarer.</td>
+                    </tr>
+                    <tr>
+                        <td><code>average_quality_score</code></td>
+                        <td><code>FloatField</code></td>
+                        <td>Average data quality score across all documents.</td>
+                    </tr>
+                    <tr>
+                        <td><code>last_updated</code></td>
+                        <td><code>DateTimeField</code></td>
+                        <td>When the summary was last updated.</td>
+                    </tr>
+                    <tr>
+                        <td><code>created_at</code></td>
+                        <td><code>DateTimeField</code></td>
+                        <td>When the summary was first created.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="views">
+            <h2><i class="fas fa-eye"></i> Views</h2>
+            <p>The application's views handle the API logic. They are defined in <code>views.py</code>.</p>
+            
+            <h3><i class="fas fa-upload"></i> DocumentUploadView</h3>
+            <p>This view handles the uploading and processing of documents.</p>
+            
+            <h4><i class="fas fa-list"></i> Methods:</h4>
+            <ul>
+                <li><code>post(self, request, *args, **kwargs)</code>: Handles the POST request for uploading a document. It performs the following steps:
+                    <ol>
+                        <li>Receives the uploaded file.</li>
+                        <li>Saves the file temporarily.</li>
+                        <li>Uses <code>DocumentProcessor</code> to extract text from the document.</li>
+                        <li>Cleans the extracted text.</li>
+                        <li>Uses <code>convert_text_to_json</code> to convert the cleaned text to structured JSON.</li>
+                        <li>Saves the structured data into the <code>Applicant</code> model.</li>
+                        <li>Deletes the temporary file.</li>
+                        <li>Returns a response with the processing results.</li>
+                    </ol>
+                </li>
+            </ul>
+
+            <h3><i class="fas fa-users"></i> ApplicantListView</h3>
+            <p>This view lists all the applicants.</p>
+            
+            <h4><i class="fas fa-list"></i> Methods:</h4>
+            <ul>
+                <li><code>get(self, request, *args, **kwargs)</code>: Handles the GET request to retrieve a list of all applicants. It returns a summary of each applicant's data.</li>
+            </ul>
+
+            <h3><i class="fas fa-user"></i> ApplicantDetailView</h3>
+            <p>This view retrieves the detailed information of a specific applicant.</p>
+            
+            <h4><i class="fas fa-list"></i> Methods:</h4>
+            <ul>
+                <li><code>get(self, request, applicant_id, *args, **kwargs)</code>: Handles the GET request to retrieve the full details of a single applicant, identified by <code>applicant_id</code>.</li>
+            </ul>
+
+            <h3><i class="fas fa-exchange-alt"></i> ConvertApplicantToUserView</h3>
+            <p>This view converts an existing <code>Applicant</code> instance into a <code>Users</code> instance.</p>
+            
+            <h4><i class="fas fa-list"></i> Methods:</h4>
+            <ul>
+                <li><code>post(self, request, *args, **kwargs)</code>: Handles the POST request to convert an applicant to a user. It takes an <code>applicant_id</code> as input.</li>
+            </ul>
+
+            <h3><i class="fas fa-layer-group"></i> BatchConvertApplicantsView</h3>
+            <p>This view converts multiple applicants to users in a batch operation.</p>
+            
+            <h4><i class="fas fa-list"></i> Methods:</h4>
+            <ul>
+                <li><code>post(self, request, *args, **kwargs)</code>: Handles the POST request for batch conversion. It accepts a list of <code>applicant_ids</code>.</li>
+            </ul>
+
+            <h3><i class="fas fa-sync"></i> SyncStatusView</h3>
+            <p>This view checks the synchronization status between the <code>Applicant</code> and <code>Users</code> models.</p>
+            
+            <h4><i class="fas fa-list"></i> Methods:</h4>
+            <ul>
+                <li><code>get(self, request, *args, **kwargs)</code>: Handles the GET request to check the sync status. It takes an <code>applicant_id</code> as a query parameter.</li>
+            </ul>
+        </section>
+
+        <section id="serializers">
+            <h2><i class="fas fa-exchange-alt"></i> Serializers</h2>
+            <p>The serializers in this application handle the validation and serialization of data. They are defined in <code>serializers.py</code>.</p>
+            
+            <h3><i class="fas fa-file-upload"></i> DocumentUploadSerializer</h3>
+            <p>This serializer is used to validate file uploads.</p>
+            
+            <h4><i class="fas fa-list"></i> Fields:</h4>
+            <ul>
+                <li><code>file</code>: A <code>FileField</code> for the uploaded document.</li>
+            </ul>
+            
+            <h4><i class="fas fa-check"></i> Validation:</h4>
+            <ul>
+                <li><code>validate_file(self, value)</code>: Validates the file type (allowing PDF and DOCX) and size (with a 50MB limit).</li>
+            </ul>
+
+            <h3><i class="fas fa-user-cog"></i> ConvertApplicantRequestSerializer</h3>
+            <p>This serializer validates the request for converting a single applicant to a user.</p>
+            
+            <h4><i class="fas fa-list"></i> Fields:</h4>
+            <ul>
+                <li><code>applicant_id</code>: An <code>IntegerField</code> for the ID of the applicant to be converted.</li>
+            </ul>
+            
+            <h4><i class="fas fa-check"></i> Validation:</h4>
+            <ul>
+                <li><code>validate_applicant_id(self, value)</code>: Checks if an applicant with the given ID exists.</li>
+            </ul>
+
+            <h3><i class="fas fa-layer-group"></i> BatchConvertRequestSerializer</h3>
+            <p>This serializer validates the request for batch conversion of applicants.</p>
+            
+            <h4><i class="fas fa-list"></i> Fields:</h4>
+            <ul>
+                <li><code>applicant_ids</code>: A <code>ListField</code> of <code>IntegerField</code> for the IDs of the applicants to be converted.</li>
+            </ul>
+
+            <h3><i class="fas fa-list-ul"></i> ApplicantListSerializer</h3>
+            <p>This is a lightweight serializer for listing applicants.</p>
+            
+            <h4><i class="fas fa-list"></i> Fields:</h4>
+            <ul>
+                <li><code>id</code>: The applicant's ID.</li>
+                <li><code>name</code>: The applicant's name.</li>
+                <li><code>email</code>: The applicant's email.</li>
+                <li><code>nationality</code>: The applicant's nationality.</li>
+                <li><code>created_at</code>: The timestamp of creation.</li>
+            </ul>
+
+            <h3><i class="fas fa-user-tag"></i> ApplicantToUsersSerializer</h3>
+            <p>This is a comprehensive serializer for converting an <code>Applicant</code> instance to a <code>Users</code> instance. It handles the mapping of all 88 fields, supporting both dictionary and list formats for the input data.</p>
+        </section>
+
+        <section id="document-processing">
+            <h2><i class="fas fa-file-pdf"></i> Document Processing</h2>
+            <p>The application includes a robust document processing pipeline to handle PDF and DOCX files. This functionality is primarily managed by the <code>DocumentProcessor</code> class in <code>document_processor.py</code>.</p>
+            
+            <h3><i class="fas fa-cogs"></i> DocumentProcessor</h3>
+            <p>The <code>DocumentProcessor</code> class is responsible for extracting text and metadata from documents.</p>
+            
+            <h4><i class="fas fa-star"></i> Key Features:</h4>
+            <ul>
+                <li><strong>Support for Multiple Formats:</strong> It can process both PDF and DOCX files.</li>
+                <li><strong>Resilient PDF Processing:</strong> For PDFs, it first tries to use <code>PyMuPDF</code> (fitz) for its robustness. If that fails, it falls back to <code>PyPDF2</code>, and as a last resort, it uses <code>pdfplumber</code>.</li>
+                <li><strong>Comprehensive DOCX Processing:</strong> For DOCX files, it extracts text from both paragraphs and tables.</li>
+                <li><strong>Metadata Extraction:</strong> It extracts metadata such as page count and word count.</li>
+            </ul>
+            
+            <h4><i class="fas fa-list"></i> Methods:</h4>
+            <ul>
+                <li><code>process_document(self, file_path, document_type=None)</code>: The main method that takes a file path and an optional document type, and returns a dictionary with the extracted text and metadata.</li>
+                <li><code>_detect_document_type(self, file_path)</code>: Detects the document type based on the file extension.</li>
+                <li><code>_process_pdf(self, file_path)</code>: The internal method for processing PDF files.</li>
+                <li><code>_process_docx(self, file_path)</code>: The internal method for processing DOCX files.</li>
+                <li><code>get_document_info(self, file_path)</code>: A utility method to get basic information about a document without full processing.</li>
+            </ul>
+
+            <h3><i class="fas fa-sync-alt"></i> AsyncDocumentProcessor</h3>
+            <p>To handle large documents without blocking the main thread, the application provides an <code>AsyncDocumentProcessor</code> class. This class wraps the synchronous <code>DocumentProcessor</code> and runs its methods in a thread pool, making the processing non-blocking.</p>
+        </section>
+
+        <section id="json-conversion">
+            <h2><i class="fas fa-code"></i> JSON Conversion</h2>
+            <p>The <code>document_to_json.py</code> module is responsible for converting the raw text extracted from documents into a structured JSON format. This is a crucial step in the data processing pipeline, as it transforms unstructured text into a machine-readable format that can be saved in the database.</p>
+            
+            <h3><i class="fas fa-exchange-alt"></i> convert_text_to_json</h3>
+            <p>This is the primary function that orchestrates the JSON conversion process.</p>
+            
+            <h4><i class="fas fa-star"></i> Key Features:</h4>
+            <ul>
+                <li><strong>LLM-Powered Extraction:</strong> It uses a Large Language Model (LLM) to understand the context of the extracted text and map it to a predefined JSON schema.</li>
+                <li><strong>Robust JSON Repair:</strong> It includes a <code>repair_json_string</code> function to fix common JSON formatting errors that can occur in the LLM's output.</li>
+                <li><strong>Manual Extraction Fallback:</strong> In cases where the JSON output is severely malformed and cannot be repaired, it falls back to a <code>extract_json_data_manually</code> function that uses regular expressions to extract key information.</li>
+            </ul>
+            
+            <h4><i class="fas fa-list-ol"></i> Process:</h4>
+            <ol>
+                <li>The function takes the cleaned, extracted text as input.</li>
+                <li>It sends the text to the LLM with a prompt that specifies the desired JSON structure.</li>
+                <li>The LLM's raw output is then cleaned and parsed.</li>
+                <li>If parsing fails, it attempts to repair the JSON string.</li>
+                <li>If repair fails, it uses manual extraction as a fallback.</li>
+                <li>The final, structured JSON data is returned as a Python dictionary.</li>
+            </ol>
+        </section>
+
+        <section id="data-mapper-service">
+            <h2><i class="fas fa-exchange-alt"></i> Data Mapper Service</h2>
+            <p>The <code>data_mapper_service.py</code> module provides the logic for converting the JSON data extracted from documents into the format required by the <code>Users</code> model in the <code>api</code> app. This service is essential for integrating the document processing functionality with the main user management system.</p>
+            
+            <h3><i class="fas fa-server"></i> DataMapperService</h3>
+            <p>This class contains a collection of static methods that handle the data mapping and transformation.</p>
+            
+            <h4><i class="fas fa-tasks"></i> Key Responsibilities:</h4>
+            <ul>
+                <li><strong>Date Parsing:</strong> The <code>parse_date_string</code> method can parse various date formats commonly found in documents, ensuring that date information is correctly stored.</li>
+                <li><strong>Certificate Extraction:</strong> The <code>extract_certificates_from_data</code> method intelligently extracts certificate names from multiple sections of the structured data.</li>
+                <li><strong>Reference and Sea Service Extraction:</strong> The <code>extract_references_from_data</code> and <code>extract_sea_services_from_data</code> methods extract and format the applicant's references and sea service history.</li>
+                <li><strong>Applicant to User Mapping:</strong> The core logic resides in the <code>map_applicant_to_users</code> method, which takes an <code>Applicant</code> instance and maps its data to a new <code>Users</code> instance. This method handles the complex task of flattening the JSON data and assigning it to the appropriate fields in the <code>Users</code> model.</li>
+                <li><strong>Batch Processing:</strong> The <code>convert_and_save_applicant</code> and <code>batch_convert_applicants</code> methods provide the functionality to convert and save single or multiple applicants to the <code>Users</code> model, ensuring data consistency through the use of database transactions.</li>
+            </ul>
+        </section>
+
+        <section id="api-endpoints">
+            <h2><i class="fas fa-plug"></i> API Endpoints</h2>
+            <p>The API endpoints for this application are defined in <code>urls.py</code>. They provide the entry points for interacting with the document processing and data management features.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>View</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/upload/</code></td>
+                        <td><code>DocumentUploadView</code></td>
+                        <td><code>document-upload</code></td>
+                        <td>Upload a document for processing and save the extracted data.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/applicants/</code></td>
+                        <td><code>ApplicantListView</code></td>
+                        <td><code>applicant-list</code></td>
+                        <td>Retrieve a list of all applicants.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/applicants/<int:applicant_id>/</code></td>
+                        <td><code>ApplicantDetailView</code></td>
+                        <td><code>applicant-detail</code></td>
+                        <td>Retrieve the detailed information for a specific applicant.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/convert/</code></td>
+                        <td><code>ConvertApplicantToUserView</code></td>
+                        <td><code>convert-applicant-to-user</code></td>
+                        <td>Convert a single applicant to a user.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/batch-convert/</code></td>
+                        <td><code>BatchConvertApplicantsView</code></td>
+                        <td><code>batch-convert-applicants</code></td>
+                        <td>Convert multiple applicants to users in a batch operation.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/sync-status/</code></td>
+                        <td><code>SyncStatusView</code></td>
+                        <td><code>sync-status</code></td>
+                        <td>Check the synchronization status of an applicant.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="usage-examples">
+            <h2><i class="fas fa-terminal"></i> Usage Examples</h2>
+            <p>This section provides practical examples of how to interact with the API endpoints.</p>
+            
+            <h3><i class="fas fa-upload"></i> Uploading a Document</h3>
+            <p>To upload a document for processing, send a <code>POST</code> request to the <code>/upload/</code> endpoint with the file in the request body.</p>
+            
+            <h4><i class="fas fa-terminal"></i> Example using cURL:</h4>
+            <pre><code class="language-bash">curl -X POST \
+  http://your-domain.com/ai_document/upload/ \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'file=@/path/to/your/document.pdf'</code></pre>
+            
+            <h4><i class="fas fa-reply"></i> Example Response:</h4>
+            <pre><code class="language-json">{
+  "message": "Data saved successfully",
+  "applicant_id": 123,
+  "file_name": "document.pdf",
+  "structured_data": {
+    "Personal_Details": {
+      "name": "John Doe",
+      "birth_date": "01/01/1990",
+      "nationality": "USA"
+    },
+    "Education": {
+      "schools": ["University of Example"],
+      "languages": ["English", "Spanish"]
+    },
+    "Contact_Details": {
+      "email": "john.doe@example.com",
+      "phone": "+1234567890"
+    }
+  },
+  "page_count": 5,
+  "word_count": 1250,
+  "parsing_quality": "high"
+}</code></pre>
+
+            <h3><i class="fas fa-list"></i> Listing All Applicants</h3>
+            <p>To retrieve a list of all applicants, send a <code>GET</code> request to the <code>/applicants/</code> endpoint.</p>
+            
+            <h4><i class="fas fa-terminal"></i> Example using cURL:</h4>
+            <pre><code class="language-bash">curl -X GET http://your-domain.com/ai_document/applicants/</code></pre>
+            
+            <h4><i class="fas fa-reply"></i> Example Response:</h4>
+            <pre><code class="language-json">{
+  "count": 2,
+  "applicants": [
+    {
+      "id": 123,
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "nationality": "USA",
+      "created_at": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": 124,
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "nationality": "UK",
+      "created_at": "2024-01-16T14:20:00Z"
+    }
+  ]
+}</code></pre>
+
+            <h3><i class="fas fa-user"></i> Getting Applicant Details</h3>
+            <p>To retrieve the full details of a specific applicant, send a <code>GET</code> request to the <code>/applicants/<applicant_id>/</code> endpoint.</p>
+            
+            <h4><i class="fas fa-terminal"></i> Example using cURL:</h4>
+            <pre><code class="language-bash">curl -X GET http://your-domain.com/ai_document/applicants/123/</code></pre>
+            
+            <h4><i class="fas fa-reply"></i> Example Response:</h4>
+            <pre><code class="language-json">{
+  "id": 123,
+  "personal_details": {
+    "name": "John Doe",
+    "birth_date": "01/01/1990",
+    "nationality": "USA",
+    "address": "123 Main St, Anytown, USA"
+  },
+  "education": {
+    "schools": ["University of Example"],
+    "languages": ["English", "Spanish"]
+  },
+  "contact_details": {
+    "email": "john.doe@example.com",
+    "phone": "+1234567890"
+  },
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-15T10:30:00Z"
+}</code></pre>
+
+            <h3><i class="fas fa-exchange-alt"></i> Converting an Applicant to a User</h3>
+            <p>To convert an applicant to a user in the <code>api</code> app, send a <code>POST</code> request to the <code>/convert/</code> endpoint with the <code>applicant_id</code>.</p>
+            
+            <h4><i class="fas fa-terminal"></i> Example using cURL:</h4>
+            <pre><code class="language-bash">curl -X POST \
+  http://your-domain.com/ai_document/convert/ \
+  -H 'Content-Type: application/json' \
+  -d '{"applicant_id": 123}'</code></pre>
+            
+            <h4><i class="fas fa-reply"></i> Example Response:</h4>
+            <pre><code class="language-json">{
+  "success": true,
+  "message": "Applicant 123 successfully converted to user",
+  "user_id": 456
+}</code></pre>
+
+            <h3><i class="fas fa-layer-group"></i> Batch Converting Applicants</h3>
+            <p>To convert multiple applicants in a batch, send a <code>POST</code> request to the <code>/batch-convert/</code> endpoint with a list of <code>applicant_ids</code>.</p>
+            
+            <h4><i class="fas fa-terminal"></i> Example using cURL:</h4>
+            <pre><code class="language-bash">curl -X POST \
+  http://your-domain.com/ai_document/batch-convert/ \
+  -H 'Content-Type: application/json' \
+  -d '{"applicant_ids": [123, 124, 125]}'</code></pre>
+            
+            <h4><i class="fas fa-reply"></i> Example Response:</h4>
+            <pre><code class="language-json">{
+  "success": true,
+  "message": "Batch conversion completed",
+  "converted": 3,
+  "failed": 0,
+  "results": [
+    {"applicant_id": 123, "user_id": 456, "status": "success"},
+    {"applicant_id": 124, "user_id": 457, "status": "success"},
+    {"applicant_id": 125, "user_id": 458, "status": "success"}
+  ]
+}</code></pre>
+
+            <h3><i class="fas fa-sync"></i> Checking Sync Status</h3>
+            <p>To check if an applicant has been synced to the <code>Users</code> model, send a <code>GET</code> request to the <code>/sync-status/</code> endpoint with the <code>applicant_id</code> as a query parameter.</p>
+            
+            <h4><i class="fas fa-terminal"></i> Example using cURL:</h4>
+            <pre><code class="language-bash">curl -X GET http://your-domain.com/ai_document/sync-status/?applicant_id=123</code></pre>
+            
+            <h4><i class="fas fa-reply"></i> Example Response:</h4>
+            <pre><code class="language-json">{
+  "synced": true,
+  "applicant_id": 123,
+  "user_id": 456,
+  "sync_date": "2024-01-15T11:00:00Z"
+}</code></pre>
+        </section>
+
+        <section id="architecture-overview">
+            <h2><i class="fas fa-sitemap"></i> Architecture Overview</h2>
+            <p>This Django REST Framework application is designed to process documents, extract structured data, and integrate that data with a user management system. The architecture follows a modular design, with clear separation of concerns across different components.</p>
+            
+            <h3><i class="fas fa-project-diagram"></i> High-Level Architecture</h3>
+            <p>The application operates through a multi-stage pipeline that transforms uploaded documents into structured database records. When a user uploads a document, the system first validates the file format and size through the serializer layer. The validated file is then passed to the document processor, which extracts raw text from PDF or DOCX files using multiple fallback strategies to ensure robustness.</p>
+            
+            <p>Once the text is extracted, the system employs a cleaning mechanism to remove duplicate lines, boilerplate content, and other noise that might have been introduced during the extraction process. The cleaned text is then fed into a Large Language Model that has been specifically prompted to extract structured information according to a predefined schema. This schema maps to the various sections of a typical seafarer application form, including personal details, education, professional qualifications, and sea service history.</p>
+            
+            <p>The structured data is stored in the <code>Applicant</code> model using JSON fields, which provides flexibility for handling varying data structures. The application also includes a data mapping service that can transform the JSON-based applicant data into a more rigid, field-based structure in the <code>Users</code> model of a separate API application. This dual-storage approach allows the system to maintain both the raw extracted data and a normalized representation suitable for integration with other systems.</p>
+            
+            <h3><i class="fas fa-puzzle-piece"></i> Component Interaction</h3>
+            <p>The views serve as the entry points for all API operations. The <code>DocumentUploadView</code> orchestrates the entire document processing pipeline, coordinating between the document processor, the JSON converter, and the database models. The applicant management views provide CRUD operations for accessing and managing the extracted data. The conversion views handle the transformation of applicant data into user records, utilizing the data mapper service to ensure accurate field mapping.</p>
+            
+            <p>The serializers act as a validation and transformation layer between the HTTP requests and the internal business logic. They ensure that incoming data meets the required format and constraints before it reaches the views. The serializers also format the outgoing responses, providing a consistent API interface to clients.</p>
+            
+            <p>The document processor is designed with resilience in mind, implementing multiple fallback strategies for PDF processing. This ensures that the system can handle a wide variety of document formats and structures, even when individual processing libraries fail. The asynchronous wrapper allows the system to handle large documents without blocking the main request thread, improving overall system responsiveness.</p>
+            
+            <h3><i class="fas fa-route"></i> Data Flow</h3>
+            <p>The typical data flow for a document upload operation follows this sequence:</p>
+            <ol>
+                <li>A client sends a POST request to the <code>/upload/</code> endpoint with a document file.</li>
+                <li>The <code>DocumentUploadSerializer</code> validates the file format and size.</li>
+                <li>The <code>DocumentUploadView</code> saves the file temporarily and invokes the <code>DocumentProcessor</code>.</li>
+                <li>The <code>DocumentProcessor</code> extracts raw text from the document using the appropriate library.</li>
+                <li>The extracted text is cleaned to remove duplicates and boilerplate content.</li>
+                <li>The cleaned text is passed to the <code>convert_text_to_json</code> function, which uses an LLM to structure the data.</li>
+                <li>The structured JSON is validated and saved to the <code>Applicant</code> model.</li>
+                <li>The temporary file is deleted, and a response is returned to the client with the processing results.</li>
+            </ol>
+            
+            <p>For conversion operations, the data flow is:</p>
+            <ol>
+                <li>A client sends a POST request to the <code>/convert/</code> endpoint with an applicant ID.</li>
+                <li>The <code>ConvertApplicantRequestSerializer</code> validates the request.</li>
+                <li>The <code>ConvertApplicantToUserView</code> retrieves the <code>Applicant</code> instance from the database.</li>
+                <li>The <code>DataMapperService</code> maps the applicant's JSON data to the <code>Users</code> model fields.</li>
+                <li>A new <code>Users</code> instance is created and saved to the database.</li>
+                <li>A success response is returned to the client.</li>
+            </ol>
+            
+            <h3><i class="fas fa-cogs"></i> Design Patterns</h3>
+            <p>The application employs several design patterns to maintain code quality and extensibility. The <strong>Service Layer</strong> pattern is evident in the <code>DataMapperService</code> and the document processing logic, which encapsulates complex business logic outside of the views. The <strong>Strategy Pattern</strong> is implemented in the PDF processing, where multiple extraction strategies are tried in sequence until one succeeds. The <strong>Template Method</strong> pattern is used in the document processor, where the main processing flow is defined but specific steps are delegated to format-specific methods.</p>
+        </section>
+
+        <section id="installation-and-setup">
+            <h2><i class="fas fa-cogs"></i> Installation and Setup</h2>
+            <p>This section provides instructions for setting up the application in a development environment.</p>
+            
+            <h3><i class="fas fa-list-check"></i> Prerequisites</h3>
+            <p>Before installing the application, ensure that you have the following prerequisites:</p>
+            <ul>
+                <li>Python 3.8 or higher</li>
+                <li>Django 4.0 or higher</li>
+                <li>Django REST Framework 3.14 or higher</li>
+                <li>PostgreSQL or another database supported by Django</li>
+            </ul>
+            
+            <h3><i class="fas fa-download"></i> Installing Dependencies</h3>
+            <p>The application requires several Python packages for document processing and LLM integration. Install these dependencies using pip:</p>
+            <pre><code class="language-bash">pip install PyPDF2 PyMuPDF python-docx pdfplumber langchain langchain-ollama</code></pre>
+            
+            <h3><i class="fas fa-database"></i> Database Configuration</h3>
+            <p>Configure your database settings in the Django <code>settings.py</code> file. The application uses standard Django models, so any database supported by Django will work. For production environments, PostgreSQL is recommended.</p>
+            <pre><code class="language-python">DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'your_database_name',
+        'USER': 'your_database_user',
+        'PASSWORD': 'your_database_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}</code></pre>
+            
+            <h3><i class="fas fa-arrows-alt"></i> Running Migrations</h3>
+            <p>After configuring the database, run the Django migrations to create the necessary tables:</p>
+            <pre><code class="language-bash">python manage.py makemigrations ai_document
+python manage.py migrate</code></pre>
+            
+            <h3><i class="fas fa-robot"></i> LLM Configuration</h3>
+            <p>The application uses Ollama for LLM-powered JSON extraction. Ensure that you have Ollama installed and running on your system. The default model used is <code>llama3.2:1b</code>, but this can be changed in the <code>document_to_json.py</code> file.</p>
+            
+            <p>To install Ollama, follow the instructions at the <a href="https://ollama.ai/">official Ollama website</a>.</p>
+            
+            <p>Once installed, pull the required model:</p>
+            <pre><code class="language-bash">ollama pull llama3.2:1b</code></pre>
+            
+            <h3><i class="fas fa-folder-open"></i> Media Files Configuration</h3>
+            <p>The application handles file uploads, so you need to configure the media files settings in <code>settings.py</code>:</p>
+            <pre><code class="language-python">MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')</code></pre>
+            
+            <p>Ensure that the media directory exists and is writable by the Django application.</p>
+            
+            <h3><i class="fas fa-link"></i> URL Configuration</h3>
+            <p>Include the application's URLs in your main Django project's <code>urls.py</code> file:</p>
+            <pre><code class="language-python">from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('ai_document/', include('ai_document.urls')),
+    # ... other URL patterns
+]</code></pre>
+            
+            <h3><i class="fas fa-play"></i> Running the Development Server</h3>
+            <p>Start the Django development server:</p>
+            <pre><code class="language-bash">python manage.py runserver</code></pre>
+            
+            <p>The application will be accessible at <code>http://localhost:8000/ai_document/</code>.</p>
+        </section>
+
+        <section id="error-handling">
+            <h2><i class="fas fa-exclamation-triangle"></i> Error Handling and Troubleshooting</h2>
+            <p>The application includes comprehensive error handling to manage various failure scenarios gracefully.</p>
+            
+            <h3><i class="fas fa-bug"></i> Common Errors and Solutions</h3>
+            
+            <h4><i class="fas fa-file-upload"></i> File Upload Errors</h4>
+            <p>If you encounter errors during file upload, check the following:</p>
+            <ul>
+                <li><strong>File Size:</strong> Ensure that the file size does not exceed 50MB, as this is the maximum allowed size.</li>
+                <li><strong>File Format:</strong> Only PDF and DOCX files are supported. Other formats will be rejected.</li>
+                <li><strong>File Permissions:</strong> Ensure that the Django application has write permissions to the media directory.</li>
+            </ul>
+            
+            <h4><i class="fas fa-file-pdf"></i> Document Processing Errors</h4>
+            <p>Document processing can fail for various reasons:</p>
+            <ul>
+                <li><strong>Corrupted Files:</strong> If a file is corrupted or malformed, the document processor may fail to extract text. The application will log the error and return a detailed error message.</li>
+                <li><strong>Missing Dependencies:</strong> If the required PDF or DOCX processing libraries are not installed, the processor will raise a <code>DocumentProcessingError</code>. Ensure that all dependencies are installed correctly.</li>
+                <li><strong>Unsupported Document Structure:</strong> Some documents may have complex structures that are difficult to parse. In such cases, the extracted text may be incomplete or contain errors.</li>
+            </ul>
+            
+            <h4><i class="fas fa-code"></i> JSON Conversion Errors</h4>
+            <p>The JSON conversion process relies on an LLM, which can sometimes produce malformed output:</p>
+            <ul>
+                <li><strong>LLM Unavailable:</strong> If the Ollama service is not running, the conversion will fail. Ensure that Ollama is installed and running on your system.</li>
+                <li><strong>Malformed JSON:</strong> The application includes robust JSON repair mechanisms, but in extreme cases, the output may still be unparseable. In such situations, the system will fall back to manual extraction using regular expressions.</li>
+                <li><strong>Incomplete Data:</strong> The LLM may not always extract all the information from the document, especially if the document structure is unusual or the text quality is poor.</li>
+            </ul>
+            
+            <h4><i class="fas fa-database"></i> Database Errors</h4>
+            <p>Database errors can occur during the saving of applicant or user data:</p>
+            <ul>
+                <li><strong>Connection Errors:</strong> Ensure that the database server is running and accessible.</li>
+                <li><strong>Constraint Violations:</strong> If the data violates database constraints (e.g., unique constraints), the save operation will fail. Check the error message for details.</li>
+                <li><strong>Transaction Errors:</strong> The application uses database transactions to ensure data consistency. If a transaction fails, all changes within that transaction will be rolled back.</li>
+            </ul>
+            
+            <h3><i class="fas fa-clipboard-list"></i> Logging</h3>
+            <p>The application uses Python's built-in logging module to record errors and important events. Logs are written to the console by default, but you can configure Django's logging settings to write logs to a file or a logging service.</p>
+            
+            <p>To enable detailed logging, add the following to your <code>settings.py</code>:</p>
+            <pre><code class="language-python">LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'ai_document.log',
+        },
+    },
+    'loggers': {
+        'ai_document': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+    },
+}</code></pre>
+            
+            <h3><i class="fas fa-tools"></i> Debugging Tips</h3>
+            <ul>
+                <li><strong>Enable Debug Mode:</strong> Set <code>DEBUG = True</code> in your <code>settings.py</code> during development to see detailed error messages.</li>
+                <li><strong>Check the Logs:</strong> Review the application logs for error messages and stack traces.</li>
+                <li><strong>Test with Simple Documents:</strong> If processing fails, try testing with a simple, well-structured document to isolate the issue.</li>
+                <li><strong>Verify Dependencies:</strong> Ensure that all required Python packages are installed and up to date.</li>
+                <li><strong>Test the LLM:</strong> Verify that the Ollama service is running and that the specified model is available.</li>
+            </ul>
+        </section>
+
+        <section id="security-considerations">
+            <h2><i class="fas fa-shield-alt"></i> Security Considerations</h2>
+            <p>When deploying this application in a production environment, it is essential to consider several security aspects to protect sensitive data and prevent unauthorized access.</p>
+            
+            <h3><i class="fas fa-file-upload"></i> File Upload Security</h3>
+            <p>File uploads can be a significant security risk if not handled properly. The application implements several measures to mitigate these risks:</p>
+            <ul>
+                <li><strong>File Type Validation:</strong> Only PDF and DOCX files are allowed. The application validates the file extension and rejects other file types.</li>
+                <li><strong>File Size Limits:</strong> A maximum file size of 50MB is enforced to prevent denial-of-service attacks through large file uploads.</li>
+                <li><strong>Temporary File Storage:</strong> Uploaded files are stored temporarily and deleted after processing to minimize the risk of unauthorized access.</li>
+            </ul>
+            
+            <div class="info-box warning">
+                <strong>Additional Security Measures:</strong> Consider implementing virus scanning, content type verification, and secure file storage for production environments.
+            </div>
+            
+            <h3><i class="fas fa-lock"></i> Data Protection</h3>
+            <p>The application processes and stores sensitive personal information, including names, addresses, passport numbers, and health records. It is crucial to protect this data:</p>
+            <ul>
+                <li><strong>Encryption at Rest:</strong> Encrypt the database to protect data at rest. Most modern database systems support transparent data encryption.</li>
+                <li><strong>Encryption in Transit:</strong> Use HTTPS to encrypt data transmitted between the client and the server. Ensure that your web server is configured with a valid SSL/TLS certificate.</li>
+                <li><strong>Access Control:</strong> Implement robust authentication and authorization mechanisms to ensure that only authorized users can access the API endpoints. Django REST Framework provides several authentication classes that can be used for this purpose.</li>
+                <li><strong>Data Minimization:</strong> Only collect and store the data that is necessary for the application's functionality. Avoid storing sensitive data that is not required.</li>
+            </ul>
+            
+            <h3><i class="fas fa-key"></i> Authentication and Authorization</h3>
+            <p>The current implementation does not include authentication or authorization mechanisms. In a production environment, you should implement these features to protect the API endpoints:</p>
+            <ul>
+                <li><strong>Token-Based Authentication:</strong> Use token-based authentication (e.g., JWT) to authenticate API requests. Django REST Framework provides built-in support for token authentication.</li>
+                <li><strong>Role-Based Access Control:</strong> Implement role-based access control to restrict access to certain endpoints based on the user's role. For example, only administrators should be able to access the batch conversion endpoint.</li>
+                <li><strong>Rate Limiting:</strong> Implement rate limiting to prevent abuse of the API endpoints. Django REST Framework provides throttling classes that can be used for this purpose.</li>
+            </ul>
+            
+            <h3><i class="fas fa-shield-virus"></i> Input Validation</h3>
+            <p>The application uses serializers to validate input data, but additional validation should be performed to prevent injection attacks:</p>
+            <ul>
+                <li><strong>SQL Injection:</strong> Django's ORM provides protection against SQL injection attacks by using parameterized queries. Avoid using raw SQL queries unless absolutely necessary.</li>
+                <li><strong>Cross-Site Scripting (XSS):</strong> Sanitize user input to prevent XSS attacks. Django's template system automatically escapes output, but you should be careful when rendering user-generated content.</li>
+                <li><strong>Command Injection:</strong> Avoid executing shell commands with user-provided input. If you must execute shell commands, use parameterized commands and validate the input carefully.</li>
+            </ul>
+            
+            <h3><i class="fas fa-chart-line"></i> Logging and Monitoring</h3>
+            <p>Implement comprehensive logging and monitoring to detect and respond to security incidents:</p>
+            <ul>
+                <li><strong>Audit Logs:</strong> Log all API requests, including the user, timestamp, endpoint, and response status. This information can be used to investigate security incidents.</li>
+                <li><strong>Security Monitoring:</strong> Monitor the logs for suspicious activity, such as repeated failed login attempts or unusual API usage patterns.</li>
+                <li><strong>Alerting:</strong> Set up alerts to notify administrators of potential security incidents in real-time.</li>
+            </ul>
+            
+            <h3><i class="fas fa-sync-alt"></i> Dependency Management</h3>
+            <p>Keep all dependencies up to date to ensure that security vulnerabilities are patched:</p>
+            <ul>
+                <li><strong>Regular Updates:</strong> Regularly update Django, Django REST Framework, and all other dependencies to the latest versions.</li>
+                <li><strong>Vulnerability Scanning:</strong> Use tools like <code>pip-audit</code> or <code>safety</code> to scan your dependencies for known security vulnerabilities.</li>
+            </ul>
+        </section>
+
+        <section id="performance-optimization">
+            <h2><i class="fas fa-tachometer-alt"></i> Performance Optimization</h2>
+            <p>For production deployments, several optimizations can improve the application's performance and scalability.</p>
+            
+            <h3><i class="fas fa-sync-alt"></i> Asynchronous Processing</h3>
+            <p>The document processing pipeline can be time-consuming, especially for large documents. To avoid blocking the main request thread and improve responsiveness, consider implementing asynchronous task processing using a task queue such as Celery. With Celery, the document upload endpoint can immediately return a response to the client, while the actual processing happens in the background. The client can then poll a status endpoint to check the processing status.</p>
+            
+            <h3><i class="fas fa-memory"></i> Caching</h3>
+            <p>Implement caching to reduce database queries and improve response times for frequently accessed data. Django provides a flexible caching framework that supports multiple cache backends, including Redis and Memcached. Consider caching the results of expensive queries, such as the applicant list, and invalidating the cache when the data changes.</p>
+            
+            <h3><i class="fas fa-database"></i> Database Optimization</h3>
+            <p>Optimize database queries to reduce the load on the database server. Use Django's <code>select_related</code> and <code>prefetch_related</code> methods to reduce the number of database queries when accessing related objects. Create database indexes on frequently queried fields to speed up lookups. For the <code>APIResponseLog</code> model, indexes are already defined on key fields such as <code>endpoint</code>, <code>user</code>, and <code>status_code</code>.</p>
+            
+            <h3><i class="fas fa-cloud-upload-alt"></i> File Storage</h3>
+            <p>For production environments, consider using a cloud-based file storage service such as Amazon S3 or Google Cloud Storage instead of storing files on the local filesystem. This provides better scalability, reliability, and security. Django's storage backend system makes it easy to switch between different storage providers.</p>
+            
+            <h3><i class="fas fa-balance-scale"></i> Load Balancing</h3>
+            <p>For high-traffic applications, deploy multiple instances of the application behind a load balancer to distribute the load across multiple servers. This improves both performance and reliability by ensuring that the application remains available even if one server fails.</p>
+            
+            <h3><i class="fas fa-chart-area"></i> Monitoring and Profiling</h3>
+            <p>Implement monitoring and profiling tools to identify performance bottlenecks. Use tools like Django Debug Toolbar during development to analyze database queries and identify slow operations. In production, use application performance monitoring (APM) tools such as New Relic or Datadog to track performance metrics and identify issues in real-time.</p>
+        </section>
+
+        <section id="testing">
+            <h2><i class="fas fa-vial"></i> Testing</h2>
+            <p>A comprehensive testing strategy is essential to ensure the reliability and correctness of the application.</p>
+            
+            <h3><i class="fas fa-flask"></i> Unit Tests</h3>
+            <p>Unit tests should be written for individual components, such as the document processor, the JSON converter, and the data mapper service. Django provides a built-in testing framework based on Python's <code>unittest</code> module. Tests should cover both successful operations and error conditions to ensure that the application handles failures gracefully.</p>
+            
+            <h4><i class="fas fa-code"></i> Example unit test for the document processor:</h4>
+            <pre><code class="language-python">from django.test import TestCase
+from ai_document.document_processor import DocumentProcessor, DocumentProcessingError
+import os
+
+class DocumentProcessorTestCase(TestCase):
+    def setUp(self):
+        self.processor = DocumentProcessor()
+    
+    def test_process_pdf(self):
+        """Test PDF processing with a valid file."""
+        file_path = 'path/to/test.pdf'
+        result = self.processor.process_document(file_path)
+        self.assertIn('extracted_text', result)
+        self.assertGreater(len(result['extracted_text']), 0)
+    
+    def test_process_invalid_file(self):
+        """Test processing with an invalid file."""
+        with self.assertRaises(DocumentProcessingError):
+            self.processor.process_document('nonexistent.pdf')</code></pre>
+            
+            <h3><i class="fas fa-link"></i> Integration Tests</h3>
+            <p>Integration tests verify that different components of the application work together correctly. These tests should cover the entire document processing pipeline, from file upload to database storage. Django's test client can be used to simulate HTTP requests to the API endpoints.</p>
+            
+            <h4><i class="fas fa-code"></i> Example integration test:</h4>
+            <pre><code class="language-python">from django.test import TestCase, Client
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+class DocumentUploadIntegrationTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+    
+    def test_document_upload_flow(self):
+        """Test the complete document upload and processing flow."""
+        with open('path/to/test.pdf', 'rb') as f:
+            file_content = f.read()
+        
+        file = SimpleUploadedFile('test.pdf', file_content, content_type='application/pdf')
+        response = self.client.post('/ai_document/upload/', {'file': file})
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('applicant_id', response.json())</code></pre>
+            
+            <h3><i class="fas fa-plug"></i> API Tests</h3>
+            <p>API tests verify that the API endpoints return the correct responses for various inputs. These tests should cover successful requests, validation errors, and error conditions. Use Django REST Framework's <code>APITestCase</code> class for API testing.</p>
+            
+            <h3><i class="fas fa-percentage"></i> Test Coverage</h3>
+            <p>Aim for high test coverage to ensure that most of the code is tested. Use tools like <code>coverage.py</code> to measure test coverage and identify untested code paths. Run the coverage tool with your tests:</p>
+            <pre><code class="language-bash">coverage run --source='.' manage.py test ai_document
+coverage report</code></pre>
+            
+            <h3><i class="fas fa-sync"></i> Continuous Integration</h3>
+            <p>Set up a continuous integration (CI) pipeline to automatically run tests whenever code is pushed to the repository. Popular CI services include GitHub Actions, GitLab CI, and Jenkins. The CI pipeline should run all tests, check code quality, and report any failures.</p>
+        </section>
+
+        <section id="future-enhancements">
+            <h2><i class="fas fa-rocket"></i> Future Enhancements</h2>
+            <p>This section outlines potential improvements and features that could be added to the application in future iterations.</p>
+            
+            <h3><i class="fas fa-file-alt"></i> Enhanced Document Support</h3>
+            <p>Currently, the application supports PDF and DOCX files. Future versions could add support for additional document formats, such as plain text files, images (using OCR), and HTML documents. This would make the application more versatile and capable of handling a wider range of input sources.</p>
+            
+            <h3><i class="fas fa-brain"></i> Improved Data Extraction</h3>
+            <p>The current LLM-based extraction approach works well for structured documents but may struggle with highly unstructured or poorly formatted documents. Future enhancements could include:</p>
+            <ul>
+                <li><strong>Fine-tuned Models:</strong> Train or fine-tune LLMs specifically for seafarer application forms to improve extraction accuracy.</li>
+                <li><strong>Multi-modal Models:</strong> Use multi-modal models that can process both text and images, allowing the system to extract information from scanned documents and forms with complex layouts.</li>
+                <li><strong>Template Matching:</strong> Implement template matching algorithms to identify known document structures and extract data more reliably.</li>
+            </ul>
+            
+            <h3><i class="fas fa-sync-alt"></i> Real-time Processing Status</h3>
+            <p>Implement a real-time status update mechanism using WebSockets or Server-Sent Events (SSE) to provide clients with live updates on the document processing status. This would improve the user experience by eliminating the need for polling.</p>
+            
+            <h3><i class="fas fa-history"></i> Document Versioning</h3>
+            <p>Add support for document versioning, allowing users to upload multiple versions of the same document and track changes over time. This would be useful for maintaining a history of applicant information and tracking updates.</p>
+            
+            <h3><i class="fas fa-search"></i> Advanced Search and Filtering</h3>
+            <p>Enhance the applicant list endpoint with advanced search and filtering capabilities. Allow users to search by name, email, nationality, or any other field, and filter results based on multiple criteria. Implement full-text search using a search engine like Elasticsearch for more powerful search capabilities.</p>
+            
+            <h3><i class="fas fa-check-double"></i> Data Validation and Quality Checks</h3>
+            <p>Implement automated data validation and quality checks to identify potential errors or inconsistencies in the extracted data. For example, check that dates are in the correct format, email addresses are valid, and required fields are not empty. Provide a quality score for each extracted document to help users identify records that may need manual review.</p>
+            
+            <h3><i class="fas fa-history"></i> Audit Trail</h3>
+            <p>Implement a comprehensive audit trail to track all changes to applicant and user records. Record who made the change, when it was made, and what was changed. This is important for compliance and accountability in production systems.</p>
+            
+            <h3><i class="fas fa-book"></i> API Documentation</h3>
+            <p>Generate interactive API documentation using tools like Swagger or ReDoc. This would make it easier for developers to understand and use the API endpoints. Django REST Framework provides built-in support for generating OpenAPI schemas, which can be used with these documentation tools.</p>
+            
+            <h3><i class="fas fa-globe"></i> Internationalization</h3>
+            <p>Add support for multiple languages to make the application accessible to users in different regions. Django provides a robust internationalization framework that makes it easy to translate the application's user interface and messages.</p>
+            
+            <h3><i class="fas fa-robot"></i> Machine Learning Model Management</h3>
+            <p>Implement a model management system to track different versions of the LLM and other machine learning models used in the application. This would make it easier to experiment with different models, roll back to previous versions if needed, and ensure reproducibility.</p>
+        </section>
+
+        <section id="conclusion">
+            <h2><i class="fas fa-flag-checkered"></i> Conclusion</h2>
+            <p>This Django REST Framework application provides a robust and flexible solution for processing documents and extracting structured data. By combining traditional document processing techniques with modern LLM-powered extraction, the application can handle a wide variety of document formats and structures. The modular architecture makes it easy to extend and customize the application to meet specific requirements.</p>
+            
+            <p>The application demonstrates several best practices in software development, including clear separation of concerns, comprehensive error handling, and a focus on data quality and reliability. The integration with the <code>Users</code> model in the <code>api</code> app showcases how the extracted data can be seamlessly integrated with existing systems.</p>
+            
+            <p>For production deployments, it is essential to consider security, performance, and scalability. Implementing the recommendations outlined in this documentation will help ensure that the application is secure, reliable, and capable of handling high volumes of traffic.</p>
+            
+            <p>As the application evolves, the future enhancements outlined in this document can be implemented to add new features and improve the overall user experience. With a solid foundation in place, the application is well-positioned to grow and adapt to changing requirements.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p><i class="fas fa-file-alt"></i> <strong>Documentation Version:</strong> 1.0 | <strong>Last Updated:</strong> November 2025 | <strong>Module:</strong> DRF Document Processing App</p>
+    </footer>
+
+    <!-- Prism.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-http.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+</body>
+</html>

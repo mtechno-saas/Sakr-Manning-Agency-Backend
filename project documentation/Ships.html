@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ships API Documentation</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Prism.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d47a1;
+            --secondary-color: #1976d2;
+            --accent-color: #00bcd4;
+            --text-color: #333333;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --success-color: #2e7d32;
+            --warning-color: #ed6c02;
+            --danger-color: #d32f2f;
+            --code-bg: #1e1e1e;
+            --nav-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        header p {
+            opacity: 0.85;
+            margin-top: 0.5rem;
+        }
+
+        /* Navigation */
+        nav {
+            width: var(--nav-width);
+            background: var(--card-bg);
+            position: fixed;
+            left: 0;
+            top: 120px;
+            bottom: 0;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav li {
+            margin: 0.25rem 0;
+        }
+
+        nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(25, 118, 210, 0.05);
+            border-left-color: var(--secondary-color);
+        }
+
+        nav a i {
+            width: 20px;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        /* Main Content */
+        main {
+            margin-left: var(--nav-width);
+            margin-top: 120px;
+            padding: 2rem;
+            flex: 1;
+            max-width: 1200px;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        section h2 {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        section h3 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody tr:hover {
+            background: rgba(25, 118, 210, 0.03);
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f9fbfd;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            color: #f8f8f2;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Courier New', monospace;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .info-box.info {
+            background: #e3f2fd;
+            border-color: var(--secondary-color);
+            color: #0d47a1;
+        }
+
+        .info-box.success {
+            background: #e8f5e9;
+            border-color: var(--success-color);
+            color: #1b5e20;
+        }
+
+        .info-box.warning {
+            background: #fff3e0;
+            border-color: var(--warning-color);
+            color: #e65100;
+        }
+
+        .info-box.danger {
+            background: #ffebee;
+            border-color: var(--danger-color);
+            color: #b71c1c;
+        }
+
+        /* Method Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .badge.get { background: var(--success-color); }
+        .badge.post { background: var(--secondary-color); }
+        .badge.put { background: var(--warning-color); }
+        .badge.patch { background: var(--accent-color); }
+        .badge.delete { background: var(--danger-color); }
+        .badge.public { background: #6c757d; }
+
+        /* Footer */
+        footer {
+            margin-left: var(--nav-width);
+            padding: 2rem;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+            
+            main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            header {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.4rem;
+            }
+            
+            section {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-ship"></i> Ships API Documentation</h1>
+        <p>Django REST Framework Module for Vessel & Crew Management</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview"><i class="fas fa-info-circle"></i> Module Overview</a></li>
+            <li><a href="#installation"><i class="fas fa-download"></i> Installation</a></li>
+            <li><a href="#models"><i class="fas fa-database"></i> Models</a></li>
+            <li><a href="#endpoints"><i class="fas fa-plug"></i> API Endpoints</a></li>
+            <li><a href="#admin"><i class="fas fa-cog"></i> Admin Interface</a></li>
+            <li><a href="#features"><i class="fas fa-star"></i> Key Features</a></li>
+            <li><a href="#examples"><i class="fas fa-code"></i> Usage Examples</a></li>
+            <li><a href="#integration"><i class="fas fa-link"></i> Integration Notes</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="overview">
+            <h2><i class="fas fa-info-circle"></i> Module Overview</h2>
+            <div class="info-box info">
+                <strong>Ships API</strong> is a Django REST Framework module for managing vessels, crew assignments, and maritime operations in crew management systems.
+            </div>
+            
+            <h3><i class="fas fa-check-circle"></i> Core Capabilities</h3>
+            <ul>
+                <li><strong>Vessel Management</strong>: CRUD operations for ship records with IMO registration</li>
+                <li><strong>Crew Assignment</strong>: Many-to-many relationships between ships and seafarers</li>
+                <li><strong>Company Integration</strong>: Ships belong to specific maritime companies</li>
+                <li><strong>Technical Specifications</strong>: Track tonnage, engine details, build year</li>
+                <li><strong>Flag Registry</strong>: Support for vessel flag state registration</li>
+                <li><strong>Dynamic Crew Management</strong>: Add/remove crew via dedicated API endpoints</li>
+                <li><strong>DRF Admin Integration</strong>: User-friendly crew assignment interface</li>
+            </ul>
+
+            <div class="info-box success">
+                <strong>Tech Stack:</strong> Django 4+, Django REST Framework, Python 3.8+
+            </div>
+        </section>
+
+        <section id="installation">
+            <h2><i class="fas fa-download"></i> Installation & Setup</h2>
+            
+            <h3><i class="fas fa-cog"></i> Add to Installed Apps</h3>
+            <pre><code class="language-python">INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    # ...
+    'rest_framework',
+    'ships',      # Add this
+    'api',        # Required for Users model
+    'companies',  # Required for Company model
+    'core',       # Required for Flag/VesselType models
+]</code></pre>
+
+            <h3><i class="fas fa-code-branch"></i> Include URLs</h3>
+            <pre><code class="language-python"># In main urls.py
+urlpatterns = [
+    # ...
+    path('api/ships/', include('ships.urls')),
+]</code></pre>
+
+            <h3><i class="fas fa-terminal"></i> Run Migrations</h3>
+            <pre><code class="language-bash">python manage.py makemigrations ships
+python manage.py migrate</code></pre>
+
+            <div class="info-box warning">
+                <strong>Dependencies:</strong> This module requires <code>api</code>, <code>companies</code>, and <code>core</code> apps.
+            </div>
+        </section>
+
+        <section id="models">
+            <h2><i class="fas fa-database"></i> Models Documentation</h2>
+
+            <h3><i class="fas fa-ship"></i> Ship Model</h3>
+            <p>Core model for managing vessel information and crew assignments.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Options</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>id</code></td><td>BigAutoField</td><td>Primary Key</td><td>Auto-incrementing ID</td></tr>
+                    <tr><td><code>ship_name</code></td><td>CharField</td><td>max_length=200</td><td>Vessel name</td></tr>
+                    <tr><td><code>imo_number</code></td><td>CharField</td><td>max_length=10, unique=True</td><td>IMO number (unique)</td></tr>
+                    <tr><td><code>ship_type</code></td><td>ForeignKey</td><td>VesselType, SET_NULL, null=True</td><td>Vessel type category</td></tr>
+                    <tr><td><code>flag</code></td><td>ForeignKey</td><td>Flag, SET_NULL, null=True</td><td>Flag state registry</td></tr>
+                    <tr><td><code>company</code></td><td>ForeignKey</td><td>Company, CASCADE</td><td>Owner company</td></tr>
+                    <tr><td><code>crew</code></td><td>ManyToManyField</td><td>Users, related_name='ships', blank=True</td><td>Assigned crew members</td></tr>
+                    <tr><td><code>official_no</code></td><td>CharField</td><td>max_length=50, blank=True</td><td>Official number</td></tr>
+                    <tr><td><code>call_sign</code></td><td>CharField</td><td>max_length=20, blank=True</td><td>Call sign</td></tr>
+                    <tr><td><code>mmsi_no</code></td><td>CharField</td><td>max_length=50, blank=True</td><td>MMSI number</td></tr>
+                    <tr><td><code>port_of_registry</code></td><td>CharField</td><td>max_length=100, blank=True</td><td>Port of registry</td></tr>
+                    <tr><td><code>gross_tonnage</code></td><td>PositiveIntegerField</td><td>default=0</td><td>Gross tonnage</td></tr>
+                    <tr><td><code>deadweight</code></td><td>PositiveIntegerField</td><td>default=0, help_text="in metric tons"</td><td>Deadweight tonnage</td></tr>
+                    <tr><td><code>year_built</code></td><td>PositiveIntegerField</td><td>null=True, blank=True</td><td>Year vessel was built</td></tr>
+                    <tr><td><code>builder</code></td><td>CharField</td><td>max_length=200, blank=True</td><td>Ship builder name</td></tr>
+                    <tr><td><code>engine_type</code></td><td>CharField</td><td>max_length=100, blank=True</td><td>Engine specifications</td></tr>
+                    <tr><td><code>engine_power_kw</code></td><td>PositiveIntegerField</td><td>default=0, verbose_name="Engine Power (KW)"</td><td>Engine power in kilowatts</td></tr>
+                    <tr><td><code>status</code></td><td>CharField</td><td>max_length=20, choices=SHIP_STATUS, default='Active'</td><td>Vessel operational status</td></tr>
+                    <tr><td><code>created_at</code></td><td>DateTimeField</td><td>auto_now_add=True</td><td>Creation timestamp</td></tr>
+                    <tr><td><code>updated_at</code></td><td>DateTimeField</td><td>auto_now=True</td><td>Last update timestamp</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-flag"></i> Ship Status Choices</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Value</th>
+                        <th>Display Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>Active</code></td><td>Active</td></tr>
+                    <tr><td><code>Under Maintenance</code></td><td>Under Maintenance</td></tr>
+                    <tr><td><code>Inactive</code></td><td>Inactive</td></tr>
+                </tbody>
+            </table>
+
+            <div class="info-box info">
+                <strong>String Representation:</strong> Returns <code>"{ship_name} ({imo_number})"</code>
+            </div>
+
+            <div class="info-box success">
+                <strong>Database Indexes:</strong> Indexed on <code>imo_number</code> and <code>company</code> for performance
+            </div>
+        </section>
+
+        <section id="endpoints">
+            <h2><i class="fas fa-plug"></i> API Endpoints</h2>
+            <div class="info-box info">
+                <strong>Base URL:</strong> <code>/api/ships/</code>
+            </div>
+
+            <h3><i class="fas fa-cogs"></i> Standard CRUD Operations</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                        <th>Auth</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/</code></td>
+                        <td>List all ships (paginated)</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/</code></td>
+                        <td>Create new ship</td>
+                        <td>Ship Manager/Admin</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge get">GET</span></td>
+                        <td><code>/{id}/</code></td>
+                        <td>Retrieve ship details</td>
+                        <td>Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge put">PUT</span></td>
+                        <td><code>/{id}/</code></td>
+                        <td>Update entire ship record</td>
+                        <td>Ship Manager/Admin</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge patch">PATCH</span></td>
+                        <td><code>/{id}/</code></td>
+                        <td>Partial update ship record</td>
+                        <td>Ship Manager/Admin</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge delete">DELETE</span></td>
+                        <td><code>/{id}/</code></td>
+                        <td>Delete ship</td>
+                        <td>Ship Manager/Admin</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-users-cog"></i> Custom Crew Management Actions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                        <th>Payload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/{id}/assign-user/</code></td>
+                        <td>Add a user to ship's crew</td>
+                        <td><code>{"user_id": 123}</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/{id}/unassign-user/</code></td>
+                        <td>Remove a user from ship's crew</td>
+                        <td><code>{"user_id": 123}</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-box warning">
+                <strong>Permission Note:</strong> Ship management requires 'Ship Manager' or 'Admin' role permissions.
+            </div>
+
+            <h3><i class="fas fa-box"></i> Serialized Fields</h3>
+            <p>The ShipSerializer provides both read and write capabilities:</p>
+            <ul>
+                <li><strong>Read Fields:</strong> All model fields plus nested <code>crew</code> details</li>
+                <li><strong>Write Fields:</strong> Accepts <code>crew_ids</code> array to bulk assign crew</li>
+                <li><strong>Nested Crew:</strong> Returns <code>{id, first_name, last_name, email}</code> for each crew member</li>
+            </ul>
+        </section>
+
+        <section id="admin">
+            <h2><i class="fas fa-cog"></i> Django Admin Interface</h2>
+            <div class="info-box info">
+                <strong>URL:</strong> <code>/admin/ships/ship/</code>
+            </div>
+
+            <h3><i class="fas fa-columns"></i> List Display Configuration</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Admin Column</th>
+                        <th>Source</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>ship_name</code></td><td><code>ship_name</code></td><td>Vessel name</td></tr>
+                    <tr><td><code>imo_number</code></td><td><code>imo_number</code></td><td>IMO number</td></tr>
+                    <tr><td><code>ship_type</code></td><td><code>ship_type</code></td><td>Type of vessel</td></tr>
+                    <tr><td><code>status</code></td><td><code>status</code></td><td>Operational status</td></tr>
+                    <tr><td><code>company</code></td><td><code>company</code></td><td>Owner company</td></tr>
+                    <tr><td><code>get_crew_count</code></td><td>Custom method</td><td>Number of crew members</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-search"></i> Search & Filter</h3>
+            <ul>
+                <li><strong>Search Fields:</strong> ship_name, imo_number, crew__first_name, crew__last_name</li>
+                <li><strong>Filter Fields:</strong> ship_type, status, company</li>
+            </ul>
+
+            <h3><i class="fas fa-users"></i> ManyToMany Widget</h3>
+            <div class="info-box success">
+                The admin uses <code>filter_horizontal = ('crew',)</code> for a user-friendly multi-select interface.
+            </div>
+
+            <h3><i class="fas fa-wrench"></i> Meta Configuration</h3>
+            <p><strong>Ordering:</strong> Sorted by ship_name alphabetically</p>
+            <p><strong>Indexes:</strong> Database indexes on imo_number and company for query optimization</p>
+        </section>
+
+        <section id="features">
+            <h2><i class="fas fa-star"></i> Key Features</h2>
+
+            <h3><i class="fas fa-ship"></i> Comprehensive Vessel Management</h3>
+            <ul>
+                <li>IMO number validation and uniqueness enforcement</li>
+                <li>Detailed technical specifications (tonnage, engine, builder)</li>
+                <li>Flag state and port of registry tracking</li>
+            </ul>
+
+            <h3><i class="fas fa-users"></i> Dynamic Crew Assignment</h3>
+            <ul>
+                <li><strong>ManyToMany relationship</strong> between ships and users</li>
+                <li>Custom API endpoints for adding/removing crew</li>
+                <li>Nested serialization shows crew details in API responses</li>
+                <li>Admin interface with multi-select widget</li>
+            </ul>
+
+            <h3><i class="fas fa-building"></i> Company Integration</h3>
+            <ul>
+                <li>ForeignKey to Company model with CASCADE delete protection</li>
+                <li>Related_name allows reverse queries: <code>company.ships.all()</code></li>
+            </ul>
+
+            <h3><i class="fas fa-shield-alt"></i> Role-Based Permissions</h3>
+            <ul>
+                <li><strong>IsShipManagerOrAdmin</strong> permission class</li>
+                <li>Ship managers can manage ships, HR can manage users</li>
+                <li>Admin users have full access</li>
+            </ul>
+
+            <h3><i class="fas fa-plug"></i> API-Ready</h3>
+            <ul>
+                <li>Full CRUD with DRF ModelViewSet</li>
+                <li>Custom actions for crew management</li>
+                <li>Nested serializers for complex data structures</li>
+                <li>Automatic timestamp fields</li>
+            </ul>
+        </section>
+
+        <section id="examples">
+            <h2><i class="fas fa-code"></i> Usage Examples</h2>
+
+            <h3><i class="fas fa-plus-circle"></i> Create Ship with Crew</h3>
+            <pre><code class="language-http">POST /api/ships/
+Content-Type: application/json
+Authorization: Token your-token-here
+
+{
+  "ship_name": "MV Pacific Voyager",
+  "imo_number": "9876543",
+  "ship_type": 2,
+  "flag": 1,
+  "company": 3,
+  "status": "Active",
+  "gross_tonnage": 45000,
+  "engine_power_kw": 25000,
+  "crew_ids": [5, 7, 12, 18]
+}</code></pre>
+
+            <h3><i class="fas fa-reply"></i> Response with Nested Crew</h3>
+            <pre><code class="language-json">{
+  "id": 8,
+  "ship_name": "MV Pacific Voyager",
+  "imo_number": "9876543",
+  "ship_type": 2,
+  "flag": 1,
+  "company": 3,
+  "crew": [
+    {
+      "id": 5,
+      "first_name": "John",
+      "last_name": "Smith",
+      "email": "john.smith@example.com"
+    },
+    {
+      "id": 7,
+      "first_name": "Maria",
+      "last_name": "Garcia",
+      "email": "maria.garcia@example.com"
+    }
+  ],
+  "status": "Active",
+  "gross_tonnage": 45000,
+  "engine_power_kw": 25000,
+  "created_at": "2025-11-10T10:30:00Z",
+  "updated_at": "2025-11-10T10:30:00Z"
+}</code></pre>
+
+            <h3><i class="fas fa-user-plus"></i> Assign User to Ship</h3>
+            <pre><code class="language-http">POST /api/ships/8/assign-user/
+Content-Type: application/json
+Authorization: Token your-token-here
+
+{
+  "user_id": 15
+}</code></pre>
+
+            <h3><i class="fas fa-check"></i> Assignment Response</h3>
+            <pre><code class="language-json">{
+  "status": "User David assigned to ship MV Pacific Voyager"
+}</code></pre>
+
+            <h3><i class="fas fa-user-minus"></i> Remove User from Ship</h3>
+            <pre><code class="language-http">POST /api/ships/8/unassign-user/
+Content-Type: application/json
+Authorization: Token your-token-here
+
+{
+  "user_id": 7
+}</code></pre>
+
+            <h3><i class="fas fa-filter"></i> List Ships with Filters</h3>
+            <pre><code class="language-http">GET /api/ships/?status=Active&company=3&ship_type=2
+Authorization: Token your-token-here</code></pre>
+
+            <h3><i class="fas fa-search"></i> Search Ships by Crew Member</h3>
+            <pre><code class="language-http">GET /api/ships/?search=John
+Authorization: Token your-token-here</code></pre>
+        </section>
+
+        <section id="integration">
+            <h2><i class="fas fa-link"></i> Integration Notes</h2>
+
+            <h3><i class="fas fa-plug"></i> URL Configuration</h3>
+            <p>Add to your main <code>urls.py</code>:</p>
+            <pre><code class="language-python">urlpatterns = [
+    # ... other paths
+    path('api/', include('ships.urls')),
+]</code></pre>
+
+            <h3><i class="fas fa-database"></i> Required Dependencies</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>App</th>
+                        <th>Model</th>
+                        <th>Relation Type</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>companies</code></td>
+                        <td><code>Company</code></td>
+                        <td>ForeignKey</td>
+                        <td>Ship owner/operator</td>
+                    </tr>
+                    <tr>
+                        <td><code>api</code></td>
+                        <td><code>Users</code></td>
+                        <td>ManyToMany</td>
+                        <td>Crew assignments</td>
+                    </tr>
+                    <tr>
+                        <td><code>core</code></td>
+                        <td><code>Flag</code></td>
+                        <td>ForeignKey</td>
+                        <td>Flag state registration</td>
+                    </tr>
+                    <tr>
+                        <td><code>core</code></td>
+                        <td><code>VesselType</code></td>
+                        <td>ForeignKey</td>
+                        <td>Vessel classification</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-cog"></i> Database Relations</h3>
+            <ul>
+                <li><strong>Company → Ships:</strong> One-to-Many (One company owns many ships)</li>
+                <li><strong>Ship → Crew:</strong> Many-to-Many (Ships have many crew, crew can serve on multiple ships)</li>
+                <li><strong>User → Ships:</strong> Reverse Many-to-Many (Access via <code>user.ships.all()</code>)</li>
+            </ul>
+
+            <h3><i class="fas fa-shield-alt"></i> Permission Configuration</h3>
+            <p>The module uses a custom permission class:</p>
+            <pre><code class="language-python"># In settings.py or views
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}</code></pre>
+
+            <div class="info-box warning">
+                <strong>Note:</strong> The <code>IsShipManagerOrAdmin</code> permission class must be implemented in <code>permissions.py</code> to support role-based access control.
+            </div>
+
+            <h3><i class="fas fa-magic"></i> Related Queries</h3>
+            <pre><code class="language-python"># Get all ships for a company
+company.ships.all()
+
+# Get all crew for a ship
+ship.crew.all()
+
+# Get all ships a user serves on
+user.ships.all()
+
+# Check if user is on a specific ship
+ship.crew.filter(id=user_id).exists()
+</code></pre>
+        </section>
+    </main>
+
+    <footer>
+        <p><i class="fas fa-ship"></i> <strong>Documentation Version:</strong> 1.0 | <strong>Last Updated:</strong> November 2025 | <strong>Module:</strong> Ships Management</p>
+    </footer>
+
+    <!-- Prism.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-http.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+</body>
+</html>
