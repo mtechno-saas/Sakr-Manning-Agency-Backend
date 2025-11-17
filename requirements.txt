@@ -18,6 +18,9 @@ gunicorn
 whitenoise
 fastapi
 uvicorn[standard]
+wikipedia
+# Note: After installing Python packages, run:
+# ollama pull llama3.1:8b
 
 
 # {
