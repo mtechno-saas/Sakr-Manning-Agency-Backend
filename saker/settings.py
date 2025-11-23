@@ -31,7 +31,10 @@ SECRET_KEY = 'django-insecure-^hvh8+)3^ifz_%u6sjo67e)u!4xv%#d672l023$xo@ec!b$kmx
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [    
+    "api.backend.hs.vc",
+    "localhost",
+    "127.0.0.1"]
 
 
 # Application definition
@@ -220,7 +223,14 @@ AUTH_USER_MODEL = 'api.Users'
 CORS_ALLOWED_ORIGINS = [
     "https://test.sakrshipping.com",
     "http://localhost:5173",
+    "http://api.backend.hs.vc",
+    "https://api.backend.hs.vc",
 ]
 
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://api.backend.hs.vc",
+    "https://api.backend.hs.vc",
+]
 
 CORS_ALLOW_CREDENTIALS = True
