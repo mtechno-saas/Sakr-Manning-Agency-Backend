@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'ai_agents',
     'ai_document',
     'corsheaders',
-
+    'interviews',
 ]
 
 MIDDLEWARE = [

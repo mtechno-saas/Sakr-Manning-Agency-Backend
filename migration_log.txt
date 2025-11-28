@@ -1,0 +1,30 @@
+Starting migrations...
+Running makemigrations...
+Was financerecord.date renamed to financerecord.end_date (a DateField)? [y/N] It is impossible to add a non-nullable field 'start_date' to financerecord without specifying a default. This is because the database needs something to populate existing rows.
+Please select a fix:
+ 1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+ 2) Quit and manually define a default value in models.py.
+Select an option: Please enter the default value as valid Python.
+The datetime and django.utils.timezone modules are available, so it is possible to provide e.g. timezone.now as a value.
+Type 'exit' to exit this prompt
+>>> Migrations for 'api':
+  api/migrations/0011_contract_signed_at_contract_signed_file_users_role_and_more.py
+    + Add field signed_at to contract
+    + Add field signed_file to contract
+    + Add field role to users
+    ~ Alter field status on contract
+Migrations for 'finance':
+  finance/migrations/0005_alter_financerecord_options_and_more.py
+    ~ Change Meta options on financerecord
+    ~ Rename field date on financerecord to end_date
+    ~ Alter unique_together for financerecord (0 constraint(s))
+    + Add field start_date to financerecord
+    - Remove field hours_worked from financerecord
+    - Remove field ship from financerecord
+Running migrate...
+Operations to perform:
+  Apply all migrations: admin, ai_agents, ai_document, api, auth, authtoken, companies, contenttypes, core, finance, sessions, ships, tickets_papers
+Running migrations:
+  Applying api.0011_contract_signed_at_contract_signed_file_users_role_and_more... OK
+  Applying finance.0005_alter_financerecord_options_and_more... OK
+Migrations completed successfully.

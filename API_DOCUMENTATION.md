@@ -24,6 +24,7 @@ A comprehensive REST API for managing maritime manning agency operations, includ
   - [Tickets & Papers](#tickets--papers)
   - [Core Data](#core-data)
   - [Finance](#finance)
+  - [Interviews](#interviews)
   - [AI Agents](#ai-agents)
   - [AI Document Processing](#ai-document-processing)
 - [Data Models](#data-models)
@@ -108,6 +109,8 @@ erDiagram
     Users ||--o{ Ticket : "has many"
     Users ||--o{ TravelingPaper : "has many"
     Users ||--o{ FinanceRecord : "has many"
+    Users ||--o{ Interview : "is candidate in"
+    Users ||--o{ Interview : "is interviewer in"
     Users }o--o{ Certificate : "many-to-many"
     Users ||--o{ UserRank : "has many"
     Rank ||--o{ UserRank : "has many"
@@ -235,6 +238,21 @@ Base URL: `http://127.0.0.1:8000` (development)
   - `page_size`: Items per page
 - **Response**: `200 OK`
 
+  ```json
+  [
+    {
+      "id": 1,
+      "email": "seafarer@example.com",
+      "first_name": "John",
+      "role": "Employee",
+      "phone_number": "+1234567890",
+      "nationality": "Egypt",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+  ```
+
 #### Get Filtered Users
 
 - **Endpoint**: `GET /api/filter/`
@@ -269,10 +287,18 @@ Base URL: `http://127.0.0.1:8000` (development)
     "phone_number": "+1234567890",
     "nationality": "Egypt",
     "date_of_birth": "1985-05-15",
+    "role": "Employee",
     "rank_ids": [1, 2],
     "certificate_ids": [5, 10, 15]
   }
   ```
+
+**Available Roles**:
+
+- `Admin` - Full system access
+- `HR Manager` - HR operations
+- `Recruiter` - Recruitment operations
+- `Employee` - Standard user (default)
 
 #### Update User
 
@@ -368,6 +394,8 @@ Employment contracts track seafarer assignments to ships.
       "sign_off_date": "2024-07-15",
       "salary": "5000.00",
       "status": "Active",
+      "signed_file": "/media/contracts/signed/contract_001.pdf",
+      "signed_at": "2024-01-14T15:30:00Z",
       "created_at": "2024-01-10T10:00:00Z",
       "updated_at": "2024-01-10T10:00:00Z"
     }
@@ -388,9 +416,24 @@ Employment contracts track seafarer assignments to ships.
     "sign_on_date": "2024-01-15",
     "sign_off_date": "2024-07-15",
     "salary": "5000.00",
-    "status": "Active"
+    "status": "Pending Signature"
   }
   ```
+
+**Available Contract Statuses**:
+
+- `Draft` - Contract being prepared
+- `Pending Signature` - Awaiting signatures
+- `Signed` - Contract signed and active
+- `Pending` - Pending approval
+- `Active` - Currently active
+- `Completed` - Contract finished
+
+**Contract Document Management**:
+
+- Use `multipart/form-data` to upload signed contract files
+- Field: `signed_file` (PDF recommended)
+- Field: `signed_at` (automatically set when file uploaded)
 
 #### Get Contract Details
 
@@ -812,6 +855,114 @@ Reference data for ships and other entities.
 
 - **Endpoints**: `GET/PUT/PATCH/DELETE /api/finance/finance-records/<id>/`
 - **Authentication**: Required
+
+---
+
+### Interviews
+
+Manage candidate interviews for recruitment.
+
+#### List Interviews
+
+- **Endpoint**: `GET /api/interviews/interviews/`
+- **Authentication**: Required
+- **Description**: List all scheduled interviews
+- **Response**: `200 OK`
+
+  ```json
+  [
+    {
+      "id": 1,
+      "candidate": {
+        "id": 5,
+        "email": "candidate@example.com",
+        "first_name": "Sara",
+        "role": "Employee"
+      },
+      "interviewer": {
+        "id": 2,
+        "email": "hr@example.com",
+        "first_name": "John",
+        "role": "HR Manager"
+      },
+      "date": "2024-12-15T14:00:00Z",
+      "status": "Scheduled",
+      "notes": "Technical interview for Chief Engineer position",
+      "link": "https://zoom.us/j/123456789",
+      "created_at": "2024-11-20T10:00:00Z",
+      "updated_at": "2024-11-20T10:00:00Z"
+    }
+  ]
+  ```
+
+#### Create Interview
+
+- **Endpoint**: `POST /api/interviews/interviews/`
+- **Authentication**: Required
+- **Description**: Schedule a new interview
+- **Request Body**:
+
+  ```json
+  {
+    "candidate": 5,
+    "interviewer": 2,
+    "date": "2024-12-15T14:00:00Z",
+    "status": "Scheduled",
+    "notes": "Technical interview for Chief Engineer position",
+    "link": "https://zoom.us/j/123456789"
+  }
+  ```
+
+- **Response**: `201 Created`
+
+  ```json
+  {
+    "id": 1,
+    "candidate": 5,
+    "interviewer": 2,
+    "date": "2024-12-15T14:00:00Z",
+    "status": "Scheduled",
+    "notes": "Technical interview for Chief Engineer position",
+    "link": "https://zoom.us/j/123456789",
+    "created_at": "2024-11-27T00:00:00Z",
+    "updated_at": "2024-11-27T00:00:00Z"
+  }
+  ```
+
+**Available Interview Statuses**:
+
+- `Scheduled` - Interview is scheduled
+- `Completed` - Interview has been conducted
+- `Pending Confirmation` - Awaiting confirmation from parties
+- `Cancelled` - Interview cancelled
+
+#### Get Interview Details
+
+- **Endpoint**: `GET /api/interviews/interviews/<id>/`
+- **Authentication**: Required
+- **Description**: Retrieve detailed information for a specific interview
+- **Response**: `200 OK` (includes nested candidate and interviewer details)
+
+#### Update Interview
+
+- **Endpoint**: `PUT /api/interviews/interviews/<id>/` or `PATCH /api/interviews/interviews/<id>/`
+- **Authentication**: Required
+- **Description**: Update interview information (full or partial)
+- **Example PATCH**:
+
+  ```json
+  {
+    "status": "Completed",
+    "notes": "Candidate performed well. Recommended for hire."
+  }
+  ```
+
+#### Delete Interview
+
+- **Endpoint**: `DELETE /api/interviews/interviews/<id>/`
+- **Authentication**: Required
+- **Description**: Delete an interview
+- **Response**: `204 No Content`
 
 ---
 
