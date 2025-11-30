@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manning Agency API Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        
+:root {
+    --primary-color: #007bff;
+    --sidebar-width: 280px;
+    --header-height: 60px;
+    --text-color: #333;
+    --bg-color: #fff;
+    --sidebar-bg: #f8f9fa;
+    --border-color: #e9ecef;
+    --code-bg: #f6f8fa;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    padding: 2rem 1rem;
+    box-sizing: border-box;
+}
+
+.sidebar h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li {
+    margin-bottom: 0.25rem;
+}
+
+.sidebar a {
+    display: block;
+    padding: 0.4rem 0.5rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.sidebar a:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--primary-color);
+}
+
+.sidebar a.active {
+    background: rgba(0, 123, 255, 0.1);
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 2rem 4rem;
+    max-width: 900px;
+    width: 100%;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+h1 { font-size: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+h2 { font-size: 1.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3rem; margin-top: 3rem; }
+h3 { font-size: 1.4rem; }
+h4 { font-size: 1.1rem; }
+
+a { color: var(--primary-color); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Code Blocks */
+pre {
+    background: var(--code-bg);
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+}
+
+code {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    background: rgba(0,0,0,0.05);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+pre code {
+    background: transparent;
+    padding: 0;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}
+
+th, td {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+th {
+    background: var(--sidebar-bg);
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none; /* Simple mobile view for now */
+    }
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div style="margin-bottom: 2rem; font-weight: bold; font-size: 1.2rem;">
+            🚢 Manning API
+        </div>
+        <ul><li class="toc-h2" style=""><a href="#1.-introduction">1. Introduction</a></li><li class="toc-h2" style=""><a href="#2.-authentication">2. Authentication</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#authentication-endpoints">Authentication Endpoints</a></li><li class="toc-h2" style=""><a href="#3.-data-flows-storytelling">3. Data Flows (Storytelling)</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#3.1-user-data-flow-seafarer-journey">3.1 User Data Flow (Seafarer Journey)</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#3.2-admin-data-flow-recruitment--operations">3.2 Admin Data Flow (Recruitment & Operations)</a></li><li class="toc-h2" style=""><a href="#4.-api-reference">4. API Reference</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#4.1-users--profiles">4.1 Users & Profiles</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#4.2-recruitment-cvs--interviews">4.2 Recruitment (CVs & Interviews)</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#4.3-documents--contracts">4.3 Documents & Contracts</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#4.4-master-data-companies--ships">4.4 Master Data (Companies & Ships)</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#4.5-logistics-tickets--papers">4.5 Logistics (Tickets & Papers)</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#4.6-finance">4.6 Finance</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#4.7-ai-services">4.7 AI Services</a></li><li class="toc-h2" style=""><a href="#5.-error-handling">5. Error Handling</a></li></ul>
+    </nav>
+    <main class="main-content">
+        <h1 id="sakr-manning-agency-api-documentation">Sakr Manning Agency - API Documentation</h1>
+<h2 id="1-introduction">1. Introduction</h2>
+<p>Welcome to the Sakr Manning Agency API documentation. This API powers the Manning Agency platform, facilitating the management of seafarers, companies, ships, recruitment processes, and financial records. It is built using Django REST Framework and features role-based access control (RBAC) and AI-powered document processing.</p>
+<p><strong>Base URL:</strong> <code>http://&lt;your-domain&gt;/api/</code></p>
+<h2 id="2-authentication">2. Authentication</h2>
+<p>The API uses JWT (JSON Web Token) for authentication. All protected endpoints require the <code>Authorization</code> header.</p>
+<p><strong>Header Format:</strong> <code>Authorization: Bearer &lt;access_token&gt;</code></p>
+<h3 id="authentication-endpoints">Authentication Endpoints</h3>
+<h4 id="login">Login</h4>
+<p>Obtain a pair of access and refresh tokens.</p>
+<ul>
+<li><strong>URL:</strong> <code>/api/login/</code></li>
+<li><strong>Method:</strong> <code>POST</code></li>
+<li>
+<p><strong>Request Body:</strong></p>
+<p><code>json
+{
+    "username": "user123",
+    "password": "password123"
+}</code></p>
+</li>
+<li>
+<p><strong>Response:</strong></p>
+<p><code>json
+{
+    "refresh": "ey...",
+    "access": "ey..."
+}</code></p>
+</li>
+</ul>
+<h4 id="refresh-token">Refresh Token</h4>
+<p>Get a new access token using a valid refresh token.</p>
+<ul>
+<li><strong>URL:</strong> <code>/api/login/refresh/</code></li>
+<li><strong>Method:</strong> <code>POST</code></li>
+<li>
+<p><strong>Request Body:</strong></p>
+<p><code>json
+{
+    "refresh": "ey..."
+}</code></p>
+</li>
+</ul>
+<h4 id="register">Register</h4>
+<p>Register a new user account.</p>
+<ul>
+<li><strong>URL:</strong> <code>/api/register/</code></li>
+<li><strong>Method:</strong> <code>POST</code></li>
+<li>
+<p><strong>Request Body:</strong></p>
+<p><code>json
+{
+    "username": "newuser",
+    "email": "user@example.com",
+    "password": "securepassword",
+    "role": "seafarer"
+}</code></p>
+</li>
+</ul>
+<hr />
+<h2 id="3-data-flows-storytelling">3. Data Flows (Storytelling)</h2>
+<h3 id="31-user-data-flow-seafarer-journey">3.1 User Data Flow (Seafarer Journey)</h3>
+<p>This flow describes how a seafarer interacts with the platform.</p>
+<ol>
+<li>
+<p><strong>Onboarding</strong>:</p>
+<ul>
+<li>The seafarer registers via <code>/api/register/</code>.</li>
+<li>They log in via <code>/api/login/</code> to get their access token.</li>
+<li>They view their profile using <code>/api/users/me/</code> or <code>/api/users/&lt;id&gt;/</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Document Management</strong>:</p>
+<ul>
+<li>To verify their qualifications, the seafarer uploads documents (Passport, Seaman Book) using the AI-powered upload at <code>/ai/upload/</code>.</li>
+<li>The system automatically extracts data.</li>
+<li>They can view their assigned certificates via <code>/api/users/&lt;id&gt;/certificates/</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Job Application</strong>:</p>
+<ul>
+<li>The seafarer submits their CV for review via <code>/api/cv-submissions/</code>.</li>
+<li>They can track the status of their submission (e.g., "Under Review", "Interviewed").</li>
+</ul>
+</li>
+<li>
+<p><strong>Interview &amp; Deployment</strong>:</p>
+<ul>
+<li>If selected, they can view their scheduled interviews via <code>/api/interviews/</code>.</li>
+<li>Once hired, they can view their contract details via <code>/api/contracts/</code>.</li>
+<li>Travel arrangements (tickets and visa papers) can be checked under <code>/api/tickets-papers/tickets/</code> and <code>/api/tickets-papers/traveling-papers/</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>AI Assistance</strong>:</p>
+<ul>
+<li>At any point, the seafarer can ask questions to the AI agent via <code>/ai-agents/chat/</code> to get instant support regarding their application or status.</li>
+</ul>
+</li>
+</ol>
+<h3 id="32-admin-data-flow-recruitment-operations">3.2 Admin Data Flow (Recruitment &amp; Operations)</h3>
+<p>This flow describes how an Admin or HR Manager manages the platform.</p>
+<ol>
+<li>
+<p><strong>Dashboard &amp; Overview</strong>:</p>
+<ul>
+<li>The admin checks high-level statistics using <code>/api/users/stats/</code>, <code>/api/contracts/stats/</code>, and <code>/api/interviews/stats/</code> to see active users, pending contracts, and upcoming interviews.</li>
+</ul>
+</li>
+<li>
+<p><strong>User &amp; Master Data Management</strong>:</p>
+<ul>
+<li>Admin manages shipping companies via <code>/api/companies/</code> and ships via <code>/api/ships/</code>.</li>
+<li>They manage global settings like Ranks (<code>/api/ranks/</code>) and Certificates (<code>/api/certificates/</code>).</li>
+<li>They can manually create users (<code>/api/create/</code>) or filter existing ones (<code>/api/filter/</code>).</li>
+</ul>
+</li>
+<li>
+<p><strong>Recruitment Pipeline</strong>:</p>
+<ul>
+<li>Admin reviews incoming CVs via <code>/api/cv-submissions/</code>.</li>
+<li>They schedule interviews for candidates using <code>/api/interviews/</code>.</li>
+<li>They can batch convert AI-processed applicants into full system users via <code>/ai/batch-convert/</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Operations &amp; Logistics</strong>:</p>
+<ul>
+<li>Admin assigns ranks to users via <code>/api/users/&lt;id&gt;/assign-rank/</code>.</li>
+<li>They manage contracts via <code>/api/contracts/</code>, ensuring they are signed and valid.</li>
+<li>They handle logistics by issuing tickets (<code>/api/tickets-papers/tickets/</code>) and traveling papers (<code>/api/tickets-papers/traveling-papers/</code>).</li>
+</ul>
+</li>
+<li>
+<p><strong>Finance</strong>:</p>
+<ul>
+<li>Admin tracks financial records, payments, and invoices via <code>/api/finance-records/</code>.</li>
+<li>They can export financial data for reporting using <code>/api/finance-records/export/</code>.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="4-api-reference">4. API Reference</h2>
+<h3 id="41-users-profiles">4.1 Users &amp; Profiles</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Endpoint</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/api/users/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">List or create users</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/users/&lt;id&gt;/</code></td>
+<td style="text-align: left;">GET, PUT, DELETE</td>
+<td style="text-align: left;">Retrieve, update, or delete a user</td>
+<td style="text-align: left;">Admin/HR/Owner</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/users/me/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get current user's profile</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/users/stats/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get user statistics</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/all/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get all users (simplified)</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/create/</code></td>
+<td style="text-align: left;">POST</td>
+<td style="text-align: left;">Manually create a user</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/filter/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Filter users by criteria</td>
+<td style="text-align: left;">Admin/HR/Recruiter</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/users/&lt;id&gt;/assign-rank/&lt;rank_id&gt;/</code></td>
+<td style="text-align: left;">POST</td>
+<td style="text-align: left;">Assign a rank to a user</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/users/&lt;id&gt;/ranks/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get user's ranks</td>
+<td style="text-align: left;">Admin/HR/Owner</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/users/&lt;id&gt;/certificates/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get user's certificates</td>
+<td style="text-align: left;">Admin/HR/Owner</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-recruitment-cvs-interviews">4.2 Recruitment (CVs &amp; Interviews)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Endpoint</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/api/cv-submissions/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">List or submit CVs</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/cv-submissions/stats/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get CV statistics</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/cv-submissions/&lt;id&gt;/update-status/</code></td>
+<td style="text-align: left;">PATCH</td>
+<td style="text-align: left;">Update CV status</td>
+<td style="text-align: left;">Recruiter+</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/interviews/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">List or schedule interviews</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/interviews/stats/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get interview statistics</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/interviews/calendar/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get interviews for calendar view</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-documents-contracts">4.3 Documents &amp; Contracts</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Endpoint</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/api/contracts/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage contracts</td>
+<td style="text-align: left;">Admin/HR/Owner</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/contracts/stats/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get contract statistics</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/certificates/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage certificate types</td>
+<td style="text-align: left;">Admin/HR (Write)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/ranks/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage rank types</td>
+<td style="text-align: left;">Admin/HR (Write)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/references/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage user references</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/sea-services/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage sea service records</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+</tbody>
+</table>
+<h3 id="44-master-data-companies-ships">4.4 Master Data (Companies &amp; Ships)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Endpoint</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/api/companies/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage shipping companies</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/companies/stats/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get company statistics</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/ships/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage ships</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/core/flags/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">List vessel flags</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/core/vessel-types/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">List vessel types</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+</tbody>
+</table>
+<h3 id="45-logistics-tickets-papers">4.5 Logistics (Tickets &amp; Papers)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Endpoint</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/api/tickets-papers/tickets/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage flight tickets</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/tickets-papers/traveling-papers/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage visa/travel papers</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+</tbody>
+</table>
+<h3 id="46-finance">4.6 Finance</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Endpoint</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/api/finance/finance-records/</code></td>
+<td style="text-align: left;">GET, POST</td>
+<td style="text-align: left;">Manage finance records</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/finance/finance-records/stats/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get finance statistics</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/api/finance/finance-records/export/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Export finance data</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+</tbody>
+</table>
+<h3 id="47-ai-services">4.7 AI Services</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Endpoint</th>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>/ai/upload/</code></td>
+<td style="text-align: left;">POST</td>
+<td style="text-align: left;">Upload document for AI extraction</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/ai/applicants/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">List AI-processed applicants</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/ai/batch-convert/</code></td>
+<td style="text-align: left;">POST</td>
+<td style="text-align: left;">Convert applicants to users</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/ai/sync-status/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Check sync status of applicant</td>
+<td style="text-align: left;">Admin/HR</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/ai-agents/chat/</code></td>
+<td style="text-align: left;">POST</td>
+<td style="text-align: left;">Chat with AI agent</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>/ai-agents/chat/history/&lt;session_id&gt;/</code></td>
+<td style="text-align: left;">GET</td>
+<td style="text-align: left;">Get chat history</td>
+<td style="text-align: left;">Authenticated</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-error-handling">5. Error Handling</h2>
+<p>The API uses standard HTTP status codes:</p>
+<ul>
+<li><code>200 OK</code>: Request successful.</li>
+<li><code>201 Created</code>: Resource successfully created.</li>
+<li><code>400 Bad Request</code>: Invalid input data.</li>
+<li><code>401 Unauthorized</code>: Authentication credentials missing or invalid.</li>
+<li><code>403 Forbidden</code>: You do not have permission to perform this action.</li>
+<li><code>404 Not Found</code>: Resource not found.</li>
+<li><code>500 Internal Server Error</code>: Server-side error.</li>
+</ul>
+    </main>
+    <script>
+        hljs.highlightAll();
+        
+        // Add IDs to headers for navigation
+        document.querySelectorAll('h2, h3').forEach(header => {
+            const id = header.textContent.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+            header.id = id;
+        });
+    </script>
+</body>
+</html>
