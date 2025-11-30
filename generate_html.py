@@ -3,8 +3,8 @@ import re
 import os
 
 # Configuration
-INPUT_FILE = "API_DOCUMENTATION.md"
-OUTPUT_FILE = "api_documentation.html"
+INPUT_FILE = "FULL_API_DOCUMENTATION_V2.md"
+OUTPUT_FILE = "full_api_documentation_v2.html"
 
 # CSS Styles
 CSS = """
