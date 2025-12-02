@@ -51,52 +51,40 @@ from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Ticket, TravelingPaper
 from .serializers import TicketSerializer, TravelingPaperSerializer
-from api.models import Users # We'll need this for associating the user
 
 class TicketViewSet(viewsets.ModelViewSet):
     """
-    A ViewSet for viewing, creating, and deleting Tickets for a specific user.
+    A ViewSet for viewing, creating, and deleting Tickets.
     """
+    queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
         """
-        This view should only return tickets for the user specified in the URL.
+        Optionally filter tickets by user_id query parameter.
         """
-        # We access the user's ID from the URL kwargs, which is populated by the nested router.
-        user_pk = self.kwargs['user_pk']
-        return Ticket.objects.filter(user__pk=user_pk)
-
-    def perform_create(self, serializer):
-        """
-        When creating a new ticket, automatically associate it with the user
-        from the URL.
-        """
-        user = Users.objects.get(pk=self.kwargs['user_pk'])
-        # The serializer is saved with the user instance, so we don't need
-        # to pass the user_id in the request body.
-        serializer.save(user=user)
+        queryset = Ticket.objects.all()
+        user_id = self.request.query_params.get('user_id', None)
+        if user_id is not None:
+            queryset = queryset.filter(user__pk=user_id)
+        return queryset
 
 
 class TravelingPaperViewSet(viewsets.ModelViewSet):
     """
-    A ViewSet for viewing, creating, and deleting Traveling Papers for a specific user.
+    A ViewSet for viewing, creating, and deleting Traveling Papers.
     """
+    queryset = TravelingPaper.objects.all()
     serializer_class = TravelingPaperSerializer
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
         """
-        This view should only return papers for the user specified in the URL.
+        Optionally filter traveling papers by user_id query parameter.
         """
-        user_pk = self.kwargs['user_pk']
-        return TravelingPaper.objects.filter(user__pk=user_pk)
-
-    def perform_create(self, serializer):
-        """
-        When creating a new paper, automatically associate it with the user
-        from the URL.
-        """
-        user = Users.objects.get(pk=self.kwargs['user_pk'])
-        serializer.save(user=user)
+        queryset = TravelingPaper.objects.all()
+        user_id = self.request.query_params.get('user_id', None)
+        if user_id is not None:
+            queryset = queryset.filter(user__pk=user_id)
+        return queryset

@@ -31,9 +31,8 @@ class TicketSerializer(serializers.ModelSerializer):
             'file_url', # The new computed URL field
             'created_at'
         ]
-        # Make the 'user' field read-only. It will be set automatically
-        # from the URL in the view, not from the request body.
-        read_only_fields = ['user', 'created_at', 'file_url']
+        # Make 'created_at' and 'file_url' read-only
+        read_only_fields = ['created_at', 'file_url']
 
     def get_file_url(self, obj):
         """
@@ -59,7 +58,7 @@ class TravelingPaperSerializer(serializers.ModelSerializer):
             'file_url',
             'created_at'
         ]
-        read_only_fields = ['user', 'created_at', 'file_url']
+        read_only_fields = ['created_at', 'file_url']
 
     def get_file_url(self, obj):
         """
