@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakr Manning Agency - API Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .nav h3 {
+            color: #2a5298;
+            margin-bottom: 15px;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 15px;
+            display: block;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section h2 {
+            color: #1e3c72;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tbody tr:hover {
+            background: #f5f7fa;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .method.get {
+            background: #61affe;
+            color: white;
+        }
+
+        .method.post {
+            background: #49cc90;
+            color: white;
+        }
+
+        .method.put {
+            background: #fca130;
+            color: white;
+        }
+
+        .method.patch {
+            background: #50e3c2;
+            color: white;
+        }
+
+        .method.delete {
+            background: #f93e3e;
+            color: white;
+        }
+
+        .permission {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+
+        .admin {
+            background: #f93e3e;
+            color: white;
+        }
+
+        .hr {
+            background: #fca130;
+            color: white;
+        }
+
+        .recruiter {
+            background: #50e3c2;
+            color: #333;
+        }
+
+        .employee {
+            background: #61affe;
+            color: white;
+        }
+
+        .allowany {
+            background: #49cc90;
+            color: white;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1em;
+        }
+
+        .footer {
+            background: #1e3c72;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚢 Sakr Manning Agency</h1>
+            <p>Complete API Reference Documentation</p>
+        </div>
+
+        <div class="content">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search endpoints..."
+                onkeyup="searchTable()">
+
+            <div class="nav">
+                <h3>📑 Quick Navigation</h3>
+                <ul>
+                    <li><a href="#auth">Authentication</a></li>
+                    <li><a href="#users">User Management</a></li>
+                    <li><a href="#core">Core Module</a></li>
+                    <li><a href="#ships">Ships</a></li>
+                    <li><a href="#companies">Companies</a></li>
+                    <li><a href="#tickets">Tickets & Papers</a></li>
+                    <li><a href="#finance">Finance</a></li>
+                    <li><a href="#interviews">Interviews</a></li>
+                    <li><a href="#ai-chat">AI Chat</a></li>
+                    <li><a href="#ai-doc">AI Documents</a></li>
+                    <li><a href="#contracts">Contracts</a></li>
+                    <li><a href="#certificates">Certificates</a></li>
+                    <li><a href="#ranks">Ranks</a></li>
+                    <li><a href="#cv">CV Submissions</a></li>
+                </ul>
+            </div>
+
+            <!-- Authentication -->
+            <div class="section" id="auth">
+                <h2>🔐 Authentication Endpoints</h2>
+                <table id="authTable">
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/login/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Obtain JWT access and refresh tokens</td>
+                            <td><span class="role-badge allowany">AllowAny</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/login/refresh/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Refresh JWT access token</td>
+                            <td><span class="role-badge allowany">AllowAny</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/register/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Register new user account</td>
+                            <td><span class="role-badge allowany">AllowAny</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Users -->
+            <div class="section" id="users">
+                <h2>👥 User Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/users/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List all users</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span><span
+                                    class="role-badge recruiter">Recruiter</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/users/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create user</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/users/{id}/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Get user details</td>
+                            <td>Role-based</td>
+                        </tr>
+                        <tr>
+                            <td>/api/users/{id}/</td>
+                            <td><span class="method put">PUT</span></td>
+                            <td>Update user</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/users/{id}/</td>
+                            <td><span class="method delete">DELETE</span></td>
+                            <td>Delete user</td>
+                            <td><span class="role-badge admin">Admin</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/users/me/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Get current user profile</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/users/stats/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>User statistics</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/users/{id}/certificates/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Get user certificates</td>
+                            <td>Owner or Admin/HR</td>
+                        </tr>
+                        <tr>
+                            <td>/api/users/{id}/ranks/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Get user ranks</td>
+                            <td>Owner or Admin/HR</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Core -->
+            <div class="section" id="core">
+                <h2>⚙️ Core Module (Flags & Vessel Types)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/core/flags/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List all flags</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/core/flags/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create flag</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/core/flags/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span><span
+                                    class="method delete">DELETE</span></td>
+                            <td>Flag operations</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/core/vessel-types/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List vessel types</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/core/vessel-types/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create vessel type</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/core/vessel-types/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span><span
+                                    class="method delete">DELETE</span></td>
+                            <td>Vessel type operations</td>
+                            <td>Authenticated</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Ships -->
+            <div class="section" id="ships">
+                <h2>🚢 Ships Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/ships/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List all ships</td>
+                            <td>Ship Manager or Admin</td>
+                        </tr>
+                        <tr>
+                            <td>/api/ships/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create ship</td>
+                            <td>Ship Manager or Admin</td>
+                        </tr>
+                        <tr>
+                            <td>/api/ships/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span><span
+                                    class="method delete">DELETE</span></td>
+                            <td>Ship operations</td>
+                            <td>Ship Manager or Admin</td>
+                        </tr>
+                        <tr>
+                            <td>/api/ships/{id}/assign-user/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Assign user to crew</td>
+                            <td>Ship Manager or Admin</td>
+                        </tr>
+                        <tr>
+                            <td>/api/ships/{id}/unassign-user/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Remove user from crew</td>
+                            <td>Ship Manager or Admin</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Companies -->
+            <div class="section" id="companies">
+                <h2>🏢 Companies Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/companies/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List companies</td>
+                            <td>All authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/companies/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create company</td>
+                            <td><span class="role-badge admin">Admin</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/companies/{id}/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Get company details</td>
+                            <td>All authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/companies/{id}/</td>
+                            <td><span class="method put">PUT</span><span class="method patch">PATCH</span></td>
+                            <td>Update company</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span><span
+                                    class="role-badge recruiter">Recruiter</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/companies/stats/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Company statistics</td>
+                            <td>Authenticated</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tickets & Papers -->
+            <div class="section" id="tickets">
+                <h2>🎫 Tickets & Papers Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/tickets-papers/tickets/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List tickets</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/tickets-papers/tickets/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create ticket</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/tickets-papers/tickets/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span><span
+                                    class="method delete">DELETE</span></td>
+                            <td>Ticket operations</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/tickets-papers/traveling-papers/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List traveling papers</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/tickets-papers/traveling-papers/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create paper</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/tickets-papers/traveling-papers/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span><span
+                                    class="method delete">DELETE</span></td>
+                            <td>Paper operations</td>
+                            <td>Authenticated</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Finance -->
+            <div class="section" id="finance">
+                <h2>💰 Finance Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/finance/finance-records/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List finance records</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span> (all),
+                                Others (own)</td>
+                        </tr>
+                        <tr>
+                            <td>/api/finance/finance-records/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create finance record</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/finance/finance-records/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span></td>
+                            <td>Finance operations</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/finance/finance-records/calculate/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Calculate without saving</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/finance/finance-records/stats/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Finance statistics</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/finance/finance-records/export/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Export records</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Interviews -->
+            <div class="section" id="interviews">
+                <h2>📅 Interviews Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/interviews/interviews/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List interviews</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span><span
+                                    class="role-badge recruiter">Recruiter</span> (all), Employee (own)</td>
+                        </tr>
+                        <tr>
+                            <td>/api/interviews/interviews/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create interview</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span><span
+                                    class="role-badge recruiter">Recruiter</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/interviews/interviews/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span><span
+                                    class="method delete">DELETE</span></td>
+                            <td>Interview operations</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span><span
+                                    class="role-badge recruiter">Recruiter</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/interviews/interviews/stats/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Interview statistics</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/interviews/interviews/calendar/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Calendar view</td>
+                            <td>Authenticated</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- AI Chat -->
+            <div class="section" id="ai-chat">
+                <h2>🤖 AI Chat Agent</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/ai-agents/chat/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Send message to AI</td>
+                            <td><span class="role-badge allowany">AllowAny</span></td>
+                        </tr>
+                        <tr>
+                            <td>/ai-agents/chat/history/{session_id}/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Get chat history</td>
+                            <td><span class="role-badge allowany">AllowAny</span></td>
+                        </tr>
+                        <tr>
+                            <td>/ai-agents/chat/sessions/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Get user sessions</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/ai-agents/capabilities/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>AI capabilities info</td>
+                            <td><span class="role-badge allowany">AllowAny</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- AI Documents -->
+            <div class="section" id="ai-doc">
+                <h2>📄 AI Document Processing</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/ai/upload/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Upload & process document</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/ai/applicants/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List applicants</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/ai/applicants/{id}/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Get applicant details</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/ai/convert/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Convert applicant to user</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/ai/batch-convert/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Batch convert applicants</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/ai/sync-status/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Check sync status</td>
+                            <td>Authenticated</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Contracts -->
+            <div class="section" id="contracts">
+                <h2>📋 Contracts Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/contracts/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List contracts</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span><span
+                                    class="role-badge recruiter">Recruiter</span> (all), Employee (own)</td>
+                        </tr>
+                        <tr>
+                            <td>/api/contracts/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create contract</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/contracts/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span><span
+                                    class="method delete">DELETE</span></td>
+                            <td>Contract operations</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/contracts/stats/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>Contract statistics</td>
+                            <td>Authenticated</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Certificates -->
+            <div class="section" id="certificates">
+                <h2>🎓 Certificates Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/certificates/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List certificates</td>
+                            <td>All authenticated (read)</td>
+                        </tr>
+                        <tr>
+                            <td>/api/certificates/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create certificate</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/certificates/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span><span
+                                    class="method delete">DELETE</span></td>
+                            <td>Certificate operations</td>
+                            <td>Admin/HR (edit), All (read)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Ranks -->
+            <div class="section" id="ranks">
+                <h2>⭐ Ranks Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/ranks/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List ranks</td>
+                            <td>All authenticated (read)</td>
+                        </tr>
+                        <tr>
+                            <td>/api/ranks/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Create rank</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span></td>
+                        </tr>
+                        <tr>
+                            <td>/api/ranks/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span><span
+                                    class="method delete">DELETE</span></td>
+                            <td>Rank operations</td>
+                            <td>Admin/HR (edit), All (read)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- CV Submissions -->
+            <div class="section" id="cv">
+                <h2>📝 CV Submissions Management</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/cv-submissions/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>List CV submissions</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span><span
+                                    class="role-badge recruiter">Recruiter</span> (all), Employee (own)</td>
+                        </tr>
+                        <tr>
+                            <td>/api/cv-submissions/</td>
+                            <td><span class="method post">POST</span></td>
+                            <td>Submit CV</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/cv-submissions/{id}/</td>
+                            <td><span class="method get">GET</span><span class="method put">PUT</span></td>
+                            <td>CV operations</td>
+                            <td>Admin/HR (full), Recruiter (update status)</td>
+                        </tr>
+                        <tr>
+                            <td>/api/cv-submissions/stats/</td>
+                            <td><span class="method get">GET</span></td>
+                            <td>CV statistics</td>
+                            <td>Authenticated</td>
+                        </tr>
+                        <tr>
+                            <td>/api/cv-submissions/{id}/update-status/</td>
+                            <td><span class="method patch">PATCH</span></td>
+                            <td>Update CV status</td>
+                            <td><span class="role-badge admin">Admin</span><span class="role-badge hr">HR</span><span
+                                    class="role-badge recruiter">Recruiter</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Roles Summary -->
+            <div class="section">
+                <h2>🔐 Permission Roles Summary</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>Description</th>
+                            <th>Access Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="role-badge admin">Admin</span></td>
+                            <td>System Administrator</td>
+                            <td>Full access to all resources</td>
+                        </tr>
+                        <tr>
+                            <td><span class="role-badge hr">HR Manager</span></td>
+                            <td>Human Resources Manager</td>
+                            <td>Manage all resources except Admin operations</td>
+                        </tr>
+                        <tr>
+                            <td><span class="role-badge recruiter">Recruiter</span></td>
+                            <td>Recruitment Specialist</td>
+                            <td>View most resources, edit candidates and CVs</td>
+                        </tr>
+                        <tr>
+                            <td><span class="role-badge employee">Employee</span></td>
+                            <td>Regular Employee</td>
+                            <td>View/edit own profile and submissions only</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Sakr Manning Agency Backend System</strong> | Version 1.0 | Last Updated: December 2025</p>
+            <p>All endpoints require JWT authentication via Authorization: Bearer &lt;token&gt; header (except AllowAny)
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function searchTable() {
+            const input = document.getElementById('searchBox');
+            const filter = input.value.toUpperCase();
+            const tables = document.querySelectorAll('table');
+
+            tables.forEach(table => {
+                const rows = table.getElementsByTagName('tr');
+                for (let i = 1; i < rows.length; i++) {
+                    const cells = rows[i].getElementsByTagName('td');
+                    let found = false;
+                    for (let j = 0; j < cells.length; j++) {
+                        if (cells[j].innerText.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    rows[i].style.display = found ? '' : 'none';
+                }
+            });
+        }
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
