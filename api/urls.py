@@ -62,7 +62,6 @@ from .views import (
     SeaServiceViewSet,
     CertificateViewSet,
     RankViewSet,
-    CompanyViewSet,
     InterviewViewSet,
     FinanceRecordViewSet,
     CVSubmissionViewSet,
@@ -86,7 +85,7 @@ router.register(r'references', ReferenceViewSet, basename="reference")
 router.register(r'sea-services', SeaServiceViewSet, basename="seaservice")
 router.register(r'certificates', CertificateViewSet, basename="certificate")
 router.register(r'ranks', RankViewSet, basename="rank")
-router.register(r'companies', CompanyViewSet, basename="company")
+# NOTE: companies route is handled by the companies app (includes stats endpoint)
 router.register(r'interviews', InterviewViewSet, basename="interview")
 router.register(r'finance-records', FinanceRecordViewSet, basename="financerecord")
 router.register(r'cv-submissions', CVSubmissionViewSet, basename="cvsubmission")

@@ -735,6 +735,11 @@ class Users(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name"]
 
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+
     def __str__(self):
         return self.email
 
