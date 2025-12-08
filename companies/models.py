@@ -27,6 +27,7 @@ class Company(models.Model):
     class Meta:
         verbose_name = 'Company'
         verbose_name_plural = 'Companies'
+        ordering = ['company_name']
 
     def __str__(self):
         return self.company_name
