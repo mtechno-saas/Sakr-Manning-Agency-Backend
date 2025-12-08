@@ -4,9 +4,17 @@ from companies.models import Company
 
 
 class FinanceRecord(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Paid', 'Paid'),
+        ('Overdue', 'Overdue'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="finance_records")
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="finance_records")
 
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     start_date = models.DateField()
     end_date = models.DateField()
 
