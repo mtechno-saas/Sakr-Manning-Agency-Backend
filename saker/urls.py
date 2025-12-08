@@ -32,17 +32,17 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/users/", include("api.urls")),  # users API
-     path("api/", include("api.urls")),
     path("api/tickets-papers/", include("tickets_papers.urls")),  # ✅ tickets & papers API
     path("api/companies/", include("companies.urls")),
     path("api/ships/", include("ships.urls")),
     path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("api/core/", include("core.urls")),
-   path('api/finance/', include('finance.urls')),
-   path("ai-agents/", include("ai_agents.urls")),
-   path("ai/", include("ai_document.urls")),
-   path("api/interviews/", include("interviews.urls")),
+    path('api/finance/', include('finance.urls')),
+    path("ai-agents/", include("ai_agents.urls")),
+    path("ai/", include("ai_document.urls")),
+    path("api/interviews/", include("interviews.urls")),
+    path("api/", include("api.urls")),
 ]
 
 
