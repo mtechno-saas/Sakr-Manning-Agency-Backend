@@ -282,8 +282,9 @@
 from rest_framework import serializers, validators
 from .models import (
     Users, UserRank, Certificate, Rank, Contract, Reference, SeaService,
-    Company, Interview, CVSubmission
+    Interview, CVSubmission
 )
+from companies.models import Company
 from finance.models import FinanceRecord
 from tickets_papers.models import Ticket, TravelingPaper
 from ships.serializers import ShipSerializer

@@ -439,6 +439,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin
 )
+from companies.models import Company
 
 class Marital_Status(models.TextChoices):
     SINGLE = 'SINGLE'
@@ -809,7 +810,7 @@ class Contract(models.Model):
 
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='contracts')
     ship = models.ForeignKey('ships.Ship', on_delete=models.CASCADE, related_name='contracts')
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True, related_name='contracts')
+    company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='api_contracts')
     rank = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True)
 
     sign_on_date = models.DateField()
@@ -857,7 +858,7 @@ class Interview(models.Model):
     ]
 
     candidate = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='interviews')
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True, related_name='interviews')
+    company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='api_interviews')
     position = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True, blank=True)
 
     scheduled_date = models.DateField()
@@ -901,7 +902,7 @@ class CVSubmission(models.Model):
     ]
 
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='cv_submissions')
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True, related_name='cv_submissions')
+    company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='api_cv_submissions')
     position = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True, blank=True)
 
     cv_file = models.FileField(upload_to='cv_submissions/', null=True, blank=True)
