@@ -607,6 +607,23 @@ class InterviewViewSet(viewsets.ModelViewSet):
         serializer = InterviewCalendarSerializer(interviews, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], url_path='status')
+    def status(self, request):
+        """Get interview counts by status"""
+        if request.user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            interviews = Interview.objects.all()
+        else:
+            interviews = Interview.objects.filter(candidate=request.user)
+        
+        return Response({
+            'scheduled': interviews.filter(status='Scheduled').count(),
+            'completed': interviews.filter(status='Completed').count(),
+            'cancelled': interviews.filter(status='Cancelled').count(),
+            'rescheduled': interviews.filter(status='Rescheduled').count(),
+            'no_show': interviews.filter(status='No Show').count(),
+            'total': interviews.count(),
+        })
+
 
 class FinanceRecordViewSet(viewsets.ModelViewSet):
     """
