@@ -11,6 +11,7 @@ class Company(models.Model):
         ('Specialized Marine Manning Companies', 'Specialized Marine Manning Companies'),
         ('Temporary / Contract Manning Agencies', 'Temporary / Contract Manning Agencies'),
         ('Full Crew Management Companies', 'Full Crew Management Companies'),
+        ('Other', 'Other'),
     ]
 
     STATUS_CHOICES = [

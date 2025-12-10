@@ -313,6 +313,7 @@ Create a new company.
 - Specialized Marine Manning Companies
 - Temporary / Contract Manning Agencies
 - Full Crew Management Companies
+- Other
 
 **Response (201 Created):**
 
