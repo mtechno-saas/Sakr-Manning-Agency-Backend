@@ -275,12 +275,55 @@ Returned if user is not an Admin/Superuser.
   {
     "id": 1,
     "company_name": "Maersk Line",
-    "company_type": "Shipping",
+    "company_type": "Shipping Manning Companies",
     "status": "Active",
     "hourly_rate": "550.00",
     "open_positions": 5
   }
 ]
+```
+
+### Create Company
+
+**POST** `/api/companies/`
+
+Create a new company.
+
+**Request Body:**
+
+```json
+{
+  "company_name": "Oceanic Transport",
+  "company_type": "Shipping Manning Companies",
+  "contact_email": "contact@oceanic.com",
+  "status": "Active",
+  "open_positions": 5,
+  "hourly_rate": "150.00"
+}
+```
+
+**Valid `company_type` Choices:**
+
+- Shipping Manning Companies
+- Cargo Manning Companies
+- Cruise & Hospitality Manning Companies
+- Offshore & Oil/Gas Manning Companies
+- Fishing Fleet Manning Companies
+- General Crew Manning Companies
+- Specialized Marine Manning Companies
+- Temporary / Contract Manning Agencies
+- Full Crew Management Companies
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 2,
+  "company_name": "Oceanic Transport",
+  "company_type": "Shipping Manning Companies",
+  "status": "Active",
+  "created_at": "2024-03-15T10:00:00Z"
+}
 ```
 
 ### Get Company Stats
