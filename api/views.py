@@ -325,10 +325,24 @@ from .permissions import (
 )
 
 
+from django.core.cache import cache
+from rest_framework.views import APIView
+
 class RegisterView(generics.CreateAPIView):
     queryset = Users.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # Delete online status cache immediately
+            cache.delete(f'online_user_{request.user.id}')
+            return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):

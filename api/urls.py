@@ -57,6 +57,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     UserViewSet,
     RegisterView,
+    LogoutView,
     ContractViewSet,
     ReferenceViewSet,
     SeaServiceViewSet,
@@ -93,6 +94,7 @@ router.register(r'cv-submissions', CVSubmissionViewSet, basename="cvsubmission")
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('all/', get_all_users, name='get_all_users'),
     path('create/', create_user, name='create_user'),
     path('filter/', get_filter_users, name='get_filter_users'),
