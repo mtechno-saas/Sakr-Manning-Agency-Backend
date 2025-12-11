@@ -607,7 +607,13 @@ class Users(AbstractBaseUser, PermissionsMixin):
     schengen_visa_status = models.CharField(max_length=50, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     marital_status = models.CharField(max_length=40, default="Single")
-    user_status = models.CharField(max_length=40, default="On Site")
+    
+    USER_STATUS_CHOICES = [
+        ('On Site', 'On Site'),
+        ('Vacation', 'Vacation'),
+        ('Medical Vacation', 'Medical Vacation'),
+    ]
+    user_status = models.CharField(max_length=40, choices=USER_STATUS_CHOICES, default="On Site")
     nationality = models.CharField(max_length=50, null=True)
     Place_Of_Birth = models.CharField(max_length=100, null=True, blank=True)
     Nearest_Port = models.CharField(max_length=200, null=True)
