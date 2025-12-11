@@ -609,9 +609,9 @@ class Users(AbstractBaseUser, PermissionsMixin):
     marital_status = models.CharField(max_length=40, default="Single")
     
     USER_STATUS_CHOICES = [
-        ('On Site', 'On Site'),
-        ('Vacation', 'Vacation'),
-        ('Medical Vacation', 'Medical Vacation'),
+        ('ON_SITE', 'ON_SITE'),
+        ('VACATION', 'VACATION'),
+        ('MEDICAL VACATION', 'MEDICAL VACATION'),
     ]
     user_status = models.CharField(max_length=40, choices=USER_STATUS_CHOICES, default="On Site")
     nationality = models.CharField(max_length=50, null=True)
