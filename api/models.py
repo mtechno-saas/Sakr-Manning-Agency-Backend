@@ -447,9 +447,9 @@ class Marital_Status(models.TextChoices):
 
 
 class User_Status(models.TextChoices):
-    IN_VECATION = 'VECATION'
-    ON_SITE = 'ON_SITE'
-    MEDICAL = 'MEDICAL VECATION'
+    VACATION = 'VACATION', 'VACATION'
+    ON_SITE = 'ON_SITE', 'ON_SITE'
+    MEDICAL_VACATION = 'MEDICAL VACATION', 'MEDICAL VACATION'
 
 
 
@@ -608,12 +608,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     date_of_birth = models.DateField(null=True, blank=True)
     marital_status = models.CharField(max_length=40, default="Single")
     
-    USER_STATUS_CHOICES = [
-        ('ON_SITE', 'ON_SITE'),
-        ('VACATION', 'VACATION'),
-        ('MEDICAL VACATION', 'MEDICAL VACATION'),
-    ]
-    user_status = models.CharField(max_length=40, choices=USER_STATUS_CHOICES, default="ON_SITE")
+    user_status = models.CharField(max_length=40, choices=User_Status.choices, default=User_Status.ON_SITE)
     nationality = models.CharField(max_length=50, null=True)
     Place_Of_Birth = models.CharField(max_length=100, null=True, blank=True)
     Nearest_Port = models.CharField(max_length=200, null=True)
