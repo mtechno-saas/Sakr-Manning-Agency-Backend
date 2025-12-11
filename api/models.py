@@ -613,7 +613,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
         ('VACATION', 'VACATION'),
         ('MEDICAL VACATION', 'MEDICAL VACATION'),
     ]
-    user_status = models.CharField(max_length=40, choices=USER_STATUS_CHOICES, default="On Site")
+    user_status = models.CharField(max_length=40, choices=USER_STATUS_CHOICES, default="ON_SITE")
     nationality = models.CharField(max_length=50, null=True)
     Place_Of_Birth = models.CharField(max_length=100, null=True, blank=True)
     Nearest_Port = models.CharField(max_length=200, null=True)
