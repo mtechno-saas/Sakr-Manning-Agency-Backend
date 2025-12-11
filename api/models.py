@@ -896,7 +896,9 @@ class CVSubmission(models.Model):
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Under Review', 'Under Review'),
+        ('Interviewed', 'Interviewed'),
         ('Shortlisted', 'Shortlisted'),
+        ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
         ('Hired', 'Hired'),
     ]

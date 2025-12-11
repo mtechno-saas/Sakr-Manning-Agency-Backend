@@ -922,29 +922,3 @@ def remove_user_rank(request, user_id, rank_id):
         return Response({"error": "User does not have this rank"}, status=status.HTTP_404_NOT_FOUND)
     
 
-
-class CompanyViewSet(viewsets.ModelViewSet):
-    queryset = Company.objects.all()
-    serializer_class = CompanySerializer
-    filterset_class = CompanyFilter
-    search_fields = ['name', 'email', 'contact_person', 'country']
-    ordering_fields = ['name', 'created_at', 'open_positions']
-    ordering = ['-created_at']
-
-
-class InterviewViewSet(viewsets.ModelViewSet):
-    queryset = Interview.objects.all()
-    serializer_class = InterviewSerializer
-    filterset_class = InterviewFilter
-    search_fields = ['candidate__first_name', 'candidate__email', 'company__name', 'position']
-    ordering_fields = ['scheduled_date', 'created_at']
-    ordering = ['-scheduled_date']
-
-
-class CVSubmissionViewSet(viewsets.ModelViewSet):
-    queryset = CVSubmission.objects.all()
-    serializer_class = CVSubmissionSerializer
-    filterset_class = CVSubmissionFilter
-    search_fields = ['user__first_name', 'user__email', 'company__name', 'position']
-    ordering_fields = ['submitted_date', 'rating']
-    ordering = ['-submitted_date']
