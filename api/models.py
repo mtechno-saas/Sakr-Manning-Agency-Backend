@@ -609,7 +609,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     marital_status = models.CharField(max_length=40, default="Single")
     
     user_status = models.CharField(max_length=40, choices=User_Status.choices, default=User_Status.ON_SITE)
-    nationality = models.CharField(max_length=50, null=True)
+    nationality = models.CharField(max_length=50, null=True, blank=True)
     Place_Of_Birth = models.CharField(max_length=100, null=True, blank=True)
     Nearest_Port = models.CharField(max_length=200, null=True)
     Height_Cm = models.IntegerField(default=0)
@@ -620,7 +620,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     # Contact
     address = models.CharField(max_length=100, null=True)
-    phone_number = models.CharField(max_length=20)
+    phone_number = models.CharField(max_length=20, blank=True)
     tel_number = models.CharField(max_length=20, blank=True, null=True)
 
     # Admin/Tracking
