@@ -472,6 +472,9 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'reviewed_by', 'reviewed_by_name', 'reviewed_date',
             'notes', 'rating', 'created_at', 'updated_at'
         ]
+        extra_kwargs = {
+            'user': {'required': False}
+        }
 
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()
