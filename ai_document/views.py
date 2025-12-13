@@ -3485,7 +3485,9 @@ class DocumentUploadView(APIView):
     
     Uses serializers for validation and response formatting.
     """
-    
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = DocumentUploadSerializer
+
     def post(self, request, *args, **kwargs):
         """Handle document upload with proper serializer validation."""
         
