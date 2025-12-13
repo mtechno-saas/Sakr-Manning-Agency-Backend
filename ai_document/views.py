@@ -21,7 +21,10 @@
 # from .document_to_json import convert_text_to_json  # Use the fixed version
 # from .models import Applicant
 
-# logger = logging.getLogger(__name__)
+# from .models import Applicant
+from .serializers import DocumentUploadSerializer
+
+logger = logging.getLogger(__name__)
 
 
 # def clean_text(text: str) -> str:
@@ -3482,6 +3485,7 @@ class DocumentUploadView(APIView):
     Uses serializers for validation and response formatting.
     """
     parser_classes = [MultiPartParser, FormParser]
+    serializer_class = DocumentUploadSerializer
 
     def post(self, request, *args, **kwargs):
         """Handle document upload with proper serializer validation."""
