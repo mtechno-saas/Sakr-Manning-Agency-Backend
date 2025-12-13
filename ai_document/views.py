@@ -23,8 +23,8 @@
 
 # from .models import Applicant
 # from .serializers import DocumentUploadSerializer
+import logging
 
-# logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 
 
