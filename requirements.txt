@@ -24,6 +24,3 @@ uvicorn[standard]==0.35.0
 wikipedia==1.4.0
 django-cors-headers
 wikipedia
-PyMuPDF
-PyPDF2
-pdfplumber

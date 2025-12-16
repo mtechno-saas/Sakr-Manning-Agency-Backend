@@ -221,21 +221,18 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = 'api.Users'
 
-#CORS_ALLOW_ALL_ORIGINS = True
-
-# CORS_ALLOWED_ORIGINS = [
-#     "https://sakr-maritime.vercel.app",
-#     "https://test.sakrshipping.com",
-#     "http://localhost:5173",
-#     "http://api.backend.hs.vc",
-#     "https://api.backend.hs.vc",
-# ]
+CORS_ALLOWED_ORIGINS = [
+    "https://sakr-maritime.vercel.app",
+    "https://test.sakrshipping.com",
+    "http://localhost:5173",
+    "http://api.backend.hs.vc",
+    "https://api.backend.hs.vc",
+]
 
 
 CSRF_TRUSTED_ORIGINS = [
     "https://sakr-maritime.vercel.app",
     "https://test.sakrshipping.com",
-    "http://localhost:5173",
     "http://api.backend.hs.vc",
     "https://api.backend.hs.vc",
 ]

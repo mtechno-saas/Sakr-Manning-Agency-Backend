@@ -1550,11 +1550,28 @@ EXAMPLE OUTPUT STRUCTURE:
     "Mobile_Tel": "+201224468438"
   }}}},
   "Travel_Documents": [
-    {{{{"Type": "Passport", "Document_No": "A24348496", "ISS_Date": "2019-08-18", "Exp_Date": "2026-02-17", "ISS_By_Authority": "Egyptian Authority"}}}},
-    {{{{"Type": "Seaman Book", "Document_No": "S00034684", "ISS_Date": "2023-09-14", "Exp_Date": "2028-09-10", "ISS_By_Authority": "EAMS", "Place_of_Issue": "Alex."}}}}
+    {{{{
+      "Type": "Passport",
+      "Document_No": "A24348496",
+      "ISS_Date": "2019-08-18",
+      "Exp_Date": "2026-02-17",
+      "ISS_By_Authority": "Egyptian Authority"
+    }}}},
+    {{{{
+      "Type": "Seaman Book",
+      "Document_No": "S00034684",
+      "ISS_Date": "2023-09-14",
+      "Exp_Date": "2028-09-10",
+      "ISS_By_Authority": "EAMS",
+      "Place_of_Issue": "Alex."
+    }}}}
   ],
   "Professional_Qualifications": [
-    {{{{"Certificate_Name": "COC (Rank)", "Issued_By": "EAMS", "Issued_At": "Alex."}}}}
+    {{{{
+      "Certificate_Name": "COC (Rank)",
+      "Issued_By": "EAMS",
+      "Issued_At": "Alex."
+    }}}}
   ],
   "Next_of_Kin_Emergency_Contact": {{{{
     "Full_Name": "DEYAA AMIN OSMAN",
@@ -1562,8 +1579,18 @@ EXAMPLE OUTPUT STRUCTURE:
     "Mobile": "+2001093947878"
   }}}},
   "Health_Certificates_Vaccinations": [
-    {{{{"Flag_State": "International Medical", "Number": "21648", "Issue_Date": "2023-11-30", "Expiry_Date": "2025-11-29", "Issued_By": "EAMS"}}}},
-    {{{{"Flag_State": "Yellow Fever", "Issue_Date": "2021-01-21", "Issued_By": "Ministry of Health"}}}}
+    {{{{
+      "Flag_State": "International Medical",
+      "Number": "21648",
+      "Issue_Date": "2023-11-30",
+      "Expiry_Date": "2025-11-29",
+      "Issued_By": "EAMS"
+    }}}},
+    {{{{
+      "Flag_State": "Yellow Fever",
+      "Issue_Date": "2021-01-21",
+      "Issued_By": "Ministry of Health"
+    }}}}
   ],
   "Covid_19_Vaccination": {{{{
     "Vaccination_Name": "ASTRAZENECA",
@@ -1571,11 +1598,33 @@ EXAMPLE OUTPUT STRUCTURE:
     "Second_Dose": "2022-03-20"
   }}}},
   "Marine_Courses": [
-    {{{{"Course_Name": "Personal Survival Techniques", "Number": "40093/21/EG", "Issue_Date": "2021-11-18", "Expiry_Date": "2026-11-03", "Issued_By_At": "EAMS"}}}},
-    {{{{"Course_Name": "Fire Prevention and Fire Fighting", "Number": "40093/21/EG", "Issue_Date": "2021-11-18", "Expiry_Date": "2026-11-03", "Issued_By_At": "EAMS"}}}}
+    {{{{
+      "Course_Name": "Personal Survival Techniques",
+      "Number": "40093/21/EG",
+      "Issue_Date": "2021-11-18",
+      "Expiry_Date": "2026-11-03",
+      "Issued_By_At": "EAMS"
+    }}}},
+    {{{{
+      "Course_Name": "Fire Prevention and Fire Fighting",
+      "Number": "40093/21/EG",
+      "Issue_Date": "2021-11-18",
+      "Expiry_Date": "2026-11-03",
+      "Issued_By_At": "EAMS"
+    }}}}
   ],
   "Sea_Service_Details": [
-    {{{{"Company_Name": "SEAJETS CATAMARAN JV", "Rank": "A/C Engineer", "Vessel_Name": "Queen of the Oceans", "Flag": "Bermuda", "Signed_On": "2024-08-27", "Signed_Off": "2025-02-06", "Vessel_Type": "Passenger", "Engine_Type": "Wärtsilä", "Reason_for_Sign_off": "END OF CONTRACT"}}}}
+    {{{{
+      "Company_Name": "SEAJETS CATAMARAN JV",
+      "Rank": "A/C Engineer",
+      "Vessel_Name": "Queen of the Oceans",
+      "Flag": "Bermuda",
+      "Signed_On": "2024-08-27",
+      "Signed_Off": "2025-02-06",
+      "Vessel_Type": "Passenger",
+      "Engine_Type": "Wärtsilä",
+      "Reason_for_Sign_off": "END OF CONTRACT"
+    }}}}
   ],
   "Specialised_Experience": [],
   "References": [],
@@ -1612,26 +1661,68 @@ Now extract ALL information from the CV text above and return the complete JSON 
             # Extract JSON from the response
             try:
                 # Try to find JSON object in the response
-                text = str(raw_result)
-                if hasattr(raw_result, 'content'):
-                    text = raw_result.content
+                json_match = re.search(r'\{.*\}', str(raw_result), re.DOTALL)
+                if json_match:
+                    raw_result = json_match.group(0)
                 
-                # Use the improve json string repair
-                cleaned_json = repair_json_string(text)
-                result = json.loads(cleaned_json)
-                print("✅ Successfully parsed JSON from LLM response")
-            except json.JSONDecodeError as e:
-                print(f"❌ JSON Parsing failed: {str(e)}")
-                # Fallback to manual extraction
-                print("⚠️ Falling back to manual extraction patterns...")
-                result = extract_structured_data_from_text(extracted_text)
-                result['error'] = f"LLM Output JSON Parse Error: {str(e)}"
+                cleaned = repair_json_string(str(raw_result))
+                print(f"Cleaned JSON length: {len(cleaned)}")
+                
+                result = json.loads(cleaned)
+                print("✅ Successfully parsed JSON")
+                
+            except Exception as e:
+                print(f"❌ Parsing failed: {e}")
+                print("Attempting regex-based extraction...")
+                
+                # Fallback: Use regex to extract structured data
+                regex_data = extract_structured_data_from_text(truncated_text)
+                print(f"Regex extracted: {regex_data}")
+                
+                # Return minimal structure with regex-extracted data
+                result = {
+                    "Personal_Details": {
+                        "email": regex_data.get('email', '')
+                    },
+                    "Contact_Details": {
+                        "email": regex_data.get('email', ''),
+                        "phones": regex_data.get('found_phones', [])
+                    },
+                    "Travel_Documents": [],
+                    "Professional_Qualifications": [],
+                    "Next_of_Kin_Emergency_Contact": {},
+                    "Health_Certificates_Vaccinations": [],
+                    "Covid_19_Vaccination": {},
+                    "Marine_Courses": [],
+                    "Sea_Service_Details": [],
+                    "Specialised_Experience": [],
+                    "References": [],
+                    "Declaration": {},
+                    "Office_Use_Only": {},
+                    "Education": {},
+                    "error": str(e),
+                    "raw_output": str(raw_result)[:500]
+                }
     
     except Exception as e:
-        print(f"❌ LLM Invocation failed: {str(e)}")
-        # Fallback
-        result = extract_structured_data_from_text(extracted_text)
-        result['error'] = f"LLM Error: {str(e)}"
+        print(f"❌ LLM invocation failed: {e}")
+        result = {
+            "Personal_Details": {},
+            "Education": {},
+            "Contact_Details": {},
+            "Travel_Documents": [],
+            "Professional_Qualifications": [],
+            "Next_of_Kin_Emergency_Contact": {},
+            "Health_Certificates_Vaccinations": [],
+            "Covid_19_Vaccination": {},
+            "Marine_Courses": [],
+            "Sea_Service_Details": [],
+            "Specialised_Experience": [],
+            "References": [],
+            "Declaration": {},
+            "Office_Use_Only": {},
+            "error": str(e)
+        }
     
     # Ensure all expected keys exist with proper structure
     default_structure = {
@@ -1666,3 +1757,5 @@ Now extract ALL information from the CV text above and return the complete JSON 
 
     result = normalize_for_serializer(result)
     return result
+    
+    
