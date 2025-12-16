@@ -229,12 +229,16 @@ CORS_ALLOWED_ORIGINS = [
     "https://api.backend.hs.vc",
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://sakr-maritime.vercel.app",
     "https://test.sakrshipping.com",
     "http://api.backend.hs.vc",
     "https://api.backend.hs.vc",
+    "http://localhost:5173",
+    "https://localhost:5173",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
