@@ -1452,6 +1452,67 @@ def convert_text_to_json(extracted_text: str) -> dict:
     Convert extracted document text into structured JSON using Ollama.
     Returns a dictionary with all extracted data.
     """
+    
+    # VALIDATION: Check if this is actually a maritime CV before processing
+    def is_valid_maritime_cv(text: str) -> bool:
+        """
+        Check if the document contains maritime CV indicators.
+        Returns False if the document is NOT a maritime CV.
+        """
+        text_lower = text.lower()
+        
+        # Maritime-specific keywords that should be present in a valid CV
+        maritime_keywords = [
+            'passport', 'seaman', 'coc', 'goc', 'rank', 'vessel', 'ship',
+            'marine', 'maritime', 'stcw', 'certificate', 'sea service',
+            'nationality', 'date of birth', 'personal details', 'marital status',
+            'next of kin', 'emergency contact', 'vaccination', 'health certificate',
+            'fire fighting', 'survival', 'sailor', 'officer', 'engineer',
+            'captain', 'chief', 'deck', 'engine', 'flag state', 'imo',
+            'dwt', 'grt', 'signed on', 'signed off', 'full name', 'port',
+            'cv', 'resume', 'curriculum vitae', 'application form'
+        ]
+        
+        # Count how many maritime keywords are found
+        keyword_count = sum(1 for keyword in maritime_keywords if keyword in text_lower)
+        
+        # Require at least 5 maritime keywords to consider it a valid CV
+        # Also check for minimum text length (a real CV should have substantial content)
+        min_keywords = 5
+        min_length = 200  # At least 200 characters of actual content
+        
+        is_valid = keyword_count >= min_keywords and len(text.strip()) >= min_length
+        
+        print(f"CV Validation: Found {keyword_count} maritime keywords, text length: {len(text.strip())}")
+        print(f"CV Validation Result: {'VALID' if is_valid else 'INVALID - NOT A MARITIME CV'}")
+        
+        return is_valid
+    
+    # Check if document is a valid maritime CV
+    if not is_valid_maritime_cv(extracted_text):
+        print("=" * 80)
+        print("⚠️ DOCUMENT IS NOT A VALID MARITIME CV - RETURNING EMPTY DATA")
+        print("=" * 80)
+        
+        # Return empty structured data without calling LLM
+        return {
+            "Personal_Details": {},
+            "Education": {},
+            "Contact_Details": {},
+            "Travel_Documents": [],
+            "Professional_Qualifications": [],
+            "Next_of_Kin_Emergency_Contact": {},
+            "Health_Certificates_Vaccinations": [],
+            "Covid_19_Vaccination": {},
+            "Marine_Courses": [],
+            "Sea_Service_Details": [],
+            "Specialised_Experience": [],
+            "References": [],
+            "Declaration": {},
+            "Office_Use_Only": {},
+            "validation_error": "Document does not appear to be a maritime CV. No data extracted."
+        }
+    
     # Use a larger model for better extraction
     # Change from llama3.2:1b to llama3.2:3b or llama3:8b if available
     llm = OllamaLLM(model="llama3.2:1b", temperature=0)
@@ -1532,107 +1593,66 @@ CRITICAL RULES:
 - Extract dates in the format found in the document
 - Extract ALL instances of multi-item categories (documents, certificates, courses, sea service)
 - Do NOT truncate or summarize - extract complete information
+- If the uploaded CV text is missing, unstructured, incomplete, or does not explicitly like the provided features do not extract any data from the document
 
-EXAMPLE OUTPUT STRUCTURE:
+IMPORTANT: Extract ACTUAL DATA from the CV text above. DO NOT use placeholder text.
+DO NOT return "[EXTRACT_FROM_CV]" or any placeholder - return the REAL values found in the document.
+If a field is not found in the CV, use an empty string "".
+
+OUTPUT FORMAT (replace with ACTUAL values from the CV):
 {{{{
   "Personal_Details": {{{{
-    "Full_Name": "SABRY NAEIM AMIN OSMAN",
-    "Date_Of_Birth": "29/01/1968",
-    "Place_Of_Birth": "DAMIETTA",
-    "Nationality": "Egyptian",
-    "Marital_Status": "Married",
-    "Nearest_Port": "CAIRO AIRPORT",
-    "Register_Code": "ER-7.002"
+    "Full_Name": "<actual name from CV>",
+    "Date_Of_Birth": "<actual date>",
+    "Place_Of_Birth": "<actual place>",
+    "Nationality": "<actual nationality>",
+    "Marital_Status": "<actual status>",
+    "Nearest_Port": "<actual port>",
+    "Register_Code": "<actual code>"
   }}}},
   "Contact_Details": {{{{
-    "Home_Address_City": "EZBAT ELBORG, DAMIETTA, EGYPT",
-    "Email": "sabryosmanac@gmail.com",
-    "Mobile_Tel": "+201224468438"
+    "Home_Address_City": "<actual address>",
+    "Email": "<actual email>",
+    "Mobile_Tel": "<actual phone>"
   }}}},
   "Travel_Documents": [
-    {{{{
-      "Type": "Passport",
-      "Document_No": "A24348496",
-      "ISS_Date": "2019-08-18",
-      "Exp_Date": "2026-02-17",
-      "ISS_By_Authority": "Egyptian Authority"
-    }}}},
-    {{{{
-      "Type": "Seaman Book",
-      "Document_No": "S00034684",
-      "ISS_Date": "2023-09-14",
-      "Exp_Date": "2028-09-10",
-      "ISS_By_Authority": "EAMS",
-      "Place_of_Issue": "Alex."
-    }}}}
+    {{{{ "Type": "Passport", "Document_No": "<actual number>", "ISS_Date": "<actual date>", "Exp_Date": "<actual date>", "ISS_By_Authority": "<actual authority>" }}}},
+    {{{{ "Type": "Seaman Book", "Document_No": "<actual number>", "ISS_Date": "<actual date>", "Exp_Date": "<actual date>", "ISS_By_Authority": "<actual authority>", "Place_of_Issue": "<actual place>" }}}}
   ],
   "Professional_Qualifications": [
-    {{{{
-      "Certificate_Name": "COC (Rank)",
-      "Issued_By": "EAMS",
-      "Issued_At": "Alex."
-    }}}}
+    {{{{ "Certificate_Name": "<actual cert name>", "Number": "<actual number>", "Issue_Date": "<actual date>", "Expiry_Date": "<actual date>", "Issued_By": "<actual authority>", "Issued_At": "<actual place>" }}}}
   ],
   "Next_of_Kin_Emergency_Contact": {{{{
-    "Full_Name": "DEYAA AMIN OSMAN",
-    "Relationship": "SON",
-    "Mobile": "+2001093947878"
+    "Full_Name": "<actual name>",
+    "Relationship": "<actual relationship>",
+    "Mobile": "<actual phone>"
   }}}},
   "Health_Certificates_Vaccinations": [
-    {{{{
-      "Flag_State": "International Medical",
-      "Number": "21648",
-      "Issue_Date": "2023-11-30",
-      "Expiry_Date": "2025-11-29",
-      "Issued_By": "EAMS"
-    }}}},
-    {{{{
-      "Flag_State": "Yellow Fever",
-      "Issue_Date": "2021-01-21",
-      "Issued_By": "Ministry of Health"
-    }}}}
+    {{{{ "Flag_State": "<actual type>", "Number": "<actual number>", "Issue_Date": "<actual date>", "Expiry_Date": "<actual date>", "Issued_By": "<actual authority>" }}}}
   ],
   "Covid_19_Vaccination": {{{{
-    "Vaccination_Name": "ASTRAZENECA",
-    "First_Dose": "2021-09-11",
-    "Second_Dose": "2022-03-20"
+    "Vaccination_Name": "<actual vaccine name>",
+    "First_Dose": "<actual date>",
+    "Second_Dose": "<actual date>"
   }}}},
   "Marine_Courses": [
-    {{{{
-      "Course_Name": "Personal Survival Techniques",
-      "Number": "40093/21/EG",
-      "Issue_Date": "2021-11-18",
-      "Expiry_Date": "2026-11-03",
-      "Issued_By_At": "EAMS"
-    }}}},
-    {{{{
-      "Course_Name": "Fire Prevention and Fire Fighting",
-      "Number": "40093/21/EG",
-      "Issue_Date": "2021-11-18",
-      "Expiry_Date": "2026-11-03",
-      "Issued_By_At": "EAMS"
-    }}}}
+    {{{{ "Course_Name": "<actual course name>", "Number": "<actual number>", "Issue_Date": "<actual date>", "Expiry_Date": "<actual date>", "Issued_By_At": "<actual authority>" }}}}
   ],
   "Sea_Service_Details": [
-    {{{{
-      "Company_Name": "SEAJETS CATAMARAN JV",
-      "Rank": "A/C Engineer",
-      "Vessel_Name": "Queen of the Oceans",
-      "Flag": "Bermuda",
-      "Signed_On": "2024-08-27",
-      "Signed_Off": "2025-02-06",
-      "Vessel_Type": "Passenger",
-      "Engine_Type": "Wärtsilä",
-      "Reason_for_Sign_off": "END OF CONTRACT"
-    }}}}
+    {{{{ "Company_Name": "<actual company>", "Rank": "<actual rank>", "Vessel_Name": "<actual vessel>", "Flag": "<actual flag>", "Signed_On": "<actual date>", "Signed_Off": "<actual date>", "Vessel_Type": "<actual type>", "Engine_Type": "<actual engine>", "Reason_for_Sign_off": "<actual reason>" }}}}
   ],
   "Specialised_Experience": [],
   "References": [],
   "Declaration": {{{{}}}},
-  "Office_Use_Only": {{{{}}}}
+  "Office_Use_Only": {{{{}}}},
+  "Education": {{{{}}}}
 }}}}
 
-Now extract ALL information from the CV text above and return the complete JSON object:
+CRITICAL: Replace all <...> placeholders above with ACTUAL DATA extracted from the CV text. 
+DO NOT include angle brackets < > in your output.
+If information is not found, use empty string "".
+
+Now extract ALL information from the CV text and return the JSON with REAL DATA:
 """,
         input_variables=["document"],
     )
@@ -1670,6 +1690,37 @@ Now extract ALL information from the CV text above and return the complete JSON 
                 
                 result = json.loads(cleaned)
                 print("✅ Successfully parsed JSON")
+                
+                # POST-PROCESSING: Remove any placeholder values that the LLM copied
+                def clean_placeholders(obj):
+                    """Recursively clean placeholder values from the result."""
+                    placeholder_patterns = [
+                        r'^\[EXTRACT_FROM_CV\]$',
+                        r'^\[extract_from_cv\]$',
+                        r'^<actual.*>$',
+                        r'^<.*>$',  # Any angle bracket placeholder
+                        r'^\[.*\]$',  # Any square bracket placeholder (but not arrays)
+                    ]
+                    
+                    if isinstance(obj, dict):
+                        cleaned = {}
+                        for key, value in obj.items():
+                            cleaned[key] = clean_placeholders(value)
+                        return cleaned
+                    elif isinstance(obj, list):
+                        return [clean_placeholders(item) for item in obj]
+                    elif isinstance(obj, str):
+                        # Check if this is a placeholder value
+                        for pattern in placeholder_patterns:
+                            if re.match(pattern, obj, re.IGNORECASE):
+                                print(f"⚠️ Removing placeholder value: {obj}")
+                                return ""  # Replace with empty string
+                        return obj
+                    else:
+                        return obj
+                
+                result = clean_placeholders(result)
+                print("✅ Cleaned any placeholder values")
                 
             except Exception as e:
                 print(f"❌ Parsing failed: {e}")

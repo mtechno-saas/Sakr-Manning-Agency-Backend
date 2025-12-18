@@ -3545,6 +3545,25 @@ class DocumentUploadView(APIView):
                         "error": f"Unexpected return type: {type(structured_json)}"
                     }
 
+                # VALIDATION CHECK: If document is not a valid maritime CV, do NOT save to database
+                if "validation_error" in structured_json:
+                    # Clean up the temporary file
+                    try:
+                        default_storage.delete(file_path)
+                    except Exception as e:
+                        logger.warning(f"Failed to delete temporary file: {e}")
+                    
+                    # Return error response without saving anything
+                    return Response({
+                        "success": False,
+                        "error": "Invalid document",
+                        "message": structured_json.get("validation_error", "Document is not a valid maritime CV"),
+                        "file_name": file.name,
+                        "structured_data": structured_json,
+                        "page_count": result.get("page_count"),
+                        "word_count": len(cleaned_text.split()),
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
                 # Step 4: Save structured data into Applicant model
                 applicant = Applicant.objects.create(
                     personal_details=structured_json.get("Personal_Details", {}),
