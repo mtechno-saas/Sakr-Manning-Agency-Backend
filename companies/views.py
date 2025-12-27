@@ -2,13 +2,16 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Count, Sum
-from .models import Company
-from .serializers import CompanySerializer
+from .models import Company, JobOrder, JobOrderPosition
+from .models import Company, JobOrder, JobOrderPosition
+from .serializers import CompanySerializer, JobOrderSerializer, JobOrderPositionSerializer
+from api.filters import CompanyFilter
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
+    filterset_class = CompanyFilter
 
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
@@ -54,3 +57,19 @@ class CompanyViewSet(viewsets.ModelViewSet):
             },
             'recent_companies': list(recent_companies)
         })
+
+
+from api.filters import JobOrderFilter
+
+# ... (inside JobOrderViewSet)
+class JobOrderViewSet(viewsets.ModelViewSet):
+    queryset = JobOrder.objects.all()
+    serializer_class = JobOrderSerializer
+    filterset_class = JobOrderFilter
+
+
+class JobOrderPositionViewSet(viewsets.ModelViewSet):
+    queryset = JobOrderPosition.objects.all()
+    serializer_class = JobOrderPositionSerializer
+    filterset_fields = ['job_order', 'rank']
+
