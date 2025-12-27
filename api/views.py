@@ -735,6 +735,39 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
             'approved_percent': round((cvs.filter(status='Approved').count() / total * 100) if total > 0 else 0),
         })
 
+    @action(detail=False, methods=['post'], url_path='upload', parser_classes=[MultiPartParser, FormParser])
+    def upload_cv(self, request):
+        """
+        Upload a CV document (PDF/Word).
+        POST /api/cv-submissions/upload/
+        Body: cv_file, position_id (optional-ish)
+        """
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        file_obj = request.FILES.get('cv_file')
+        if not file_obj:
+            return Response({'error': 'No file provided (key: cv_file)'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Determine position if provided
+        position_id = request.data.get('position')
+        position = None
+        if position_id:
+            from .models import Rank
+            position = get_object_or_404(Rank, id=position_id)
+            
+        # Create submission
+        submission = CVSubmission.objects.create(
+            user=request.user,
+            cv_file=file_obj,
+            position=position,
+            status='Pending',
+            notes=request.data.get('notes', '')
+        )
+        
+        serializer = self.get_serializer(submission)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['patch'], url_path='update-status')
     def update_status(self, request, pk=None):
         """Update CV status - Recruiter+ access"""
