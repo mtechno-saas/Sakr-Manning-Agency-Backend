@@ -1,4 +1,5 @@
 # from django.db import models
+from django.core.validators import FileExtensionValidator
 # from django import forms
 # from django.core.management.base import BaseCommand
 # from multiselectfield import MultiSelectField
@@ -737,6 +738,13 @@ class Users(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
+    generated_id = models.CharField(max_length=12, unique=True, null=True, blank=True, help_text="Auto-generated 12-digit ID")
+
+    # Synced from Document
+    title = models.CharField(max_length=255, null=True, blank=True, help_text="Synced from Document title")
+    file = models.FileField(upload_to="user_files/", null=True, blank=True, help_text="Synced from Document file")
+    position = models.CharField(max_length=100, null=True, blank=True, help_text="Synced from Document position")
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
@@ -1007,3 +1015,78 @@ class PerformanceAppraisal(models.Model):
 
     def __str__(self):
         return f"Appraisal for {self.user.email} ({self.rating}/5) on {self.vessel_name}"
+
+
+# =====================
+# DOCUMENT MODEL
+# =====================
+class Document(models.Model):
+    """
+    Document model for storing user uploaded files (PDF/DOCX).
+    """
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='documents')
+    title = models.CharField(max_length=255)
+    file = models.FileField(
+        upload_to='documents/',
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx'])]
+    )
+    
+    POSITION_CHOICES = [
+        ('Master', 'Master'),
+        ('1st. Officer – Chief Off.', '1st. Officer – Chief Off.'),
+        ('2nd. Officer', '2nd. Officer'),
+        ('3rd. Officer', '3rd. Officer'),
+        ('Tug Master', 'Tug Master'),
+        ('Boson', 'Boson'),
+        ('A.B – O.S', 'A.B – O.S'),
+        ('Steward / Galley Boy', 'Steward / Galley Boy'),
+        ('Cook / 2nd. Cook / Ass. Cook / Baker / Pastry', 'Cook / 2nd. Cook / Ass. Cook / Baker / Pastry'),
+        ('Carpenter', 'Carpenter'),
+        ('Waiter', 'Waiter'),
+        ('Purser', 'Purser'),
+        ('Doctor', 'Doctor'),
+        ('1st. Engineer', '1st. Engineer'),
+        ('2nd. Engineer', '2nd. Engineer'),
+        ('3rd. Engineer', '3rd. Engineer'),
+        ('Electrical Engineer – E/E – ETO', 'Electrical Engineer – E/E – ETO'),
+        ('Assistant Electrician', 'Assistant Electrician'),
+        ('4th. Engineer', '4th. Engineer'),
+        ('Electrician', 'Electrician'),
+        ('Motor Man / Mechanic', 'Motor Man / Mechanic'),
+        ('Oiler', 'Oiler'),
+        ('Fitter – Welder', 'Fitter – Welder'),
+        ('Wiper', 'Wiper'),
+        ('Other', 'Other'),
+    ]
+
+    name = models.CharField(max_length=255, help_text="Name of the person", null=True, blank=True)
+    email = models.EmailField(help_text="Email address", null=True, blank=True)
+    phone_number = models.CharField(max_length=50, help_text="Phone number", null=True, blank=True)
+    position = models.CharField(
+        max_length=100,
+        choices=POSITION_CHOICES,
+        help_text="Position/Rank",
+        null=True, 
+        blank=True
+    )
+
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Active', 'Active'),
+        ('Blacklist', 'Blacklist'),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='Pending',
+        help_text="Document status"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.user.email})"

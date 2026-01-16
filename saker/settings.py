@@ -257,3 +257,12 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # or your provider
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'mtechsaas@gmail.com'
+EMAIL_HOST_PASSWORD = 'udnw dixo vjsq yuqw'
+DEFAULT_FROM_EMAIL = 'Sakr Manning Agency <crew@sakrshipping.com>'
+

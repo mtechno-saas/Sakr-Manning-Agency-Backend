@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakr Agency - API Filters Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=dataset:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #64748b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --code-bg: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            top: 0;
+            left: 0;
+        }
+
+        .sidebar h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            padding: 0.5rem 0.75rem;
+            display: block;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: #eff6ff;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 3rem 4rem;
+            max-width: 1200px;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 2rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+        }
+
+        p {
+            line-height: 1.6;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        /* Filter Cards */
+        .endpoint-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .endpoint-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .method-badge {
+            background-color: #dbeafe;
+            color: var(--primary-dark);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            font-family: 'Dataset', monospace;
+        }
+
+        .url {
+            font-family: 'Dataset', monospace;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            width: 30%;
+        }
+
+        code {
+            background-color: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Dataset', monospace;
+            font-size: 0.85rem;
+            color: #d63384;
+        }
+
+        .use-case {
+            background-color: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0 4px 4px 0;
+            font-style: italic;
+            color: #166534;
+            font-size: 0.95rem;
+        }
+
+        footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <h1>FILTER API</h1>
+        <ul class="nav-links">
+            <li><a href="#intro">Introduction</a></li>
+            <li><a href="#core">1. Core API</a></li>
+            <li><a href="#operations">2. Operations</a></li>
+            <li><a href="#ships">3. Fleet & Ships</a></li>
+            <li><a href="#logistics">4. Logistics</a></li>
+            <li><a href="#compliance">5. Compliance</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <section id="intro">
+            <h2>Introduction</h2>
+            <p>Welcome to the Sakr Agency Filter API Documentation. This guide details how to filter resources across our system using query parameters.</p>
+            <p><strong>Base URL:</strong> <code>http://api.sakr.com/api/</code></p>
+            <p>All endpoints support query strings, e.g., <code>?status=Active&name=John</code>.</p>
+        </section>
+
+        <!-- 1. CORE API -->
+        <section id="core">
+            <h2>1. Core API (User & General)</h2>
+            
+            <div class="endpoint-card">
+                <h3>Users & Crew</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/users/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>name</code></td><td>Partial match (e.g., "John")</td></tr>
+                    <tr><td><code>rank_name</code></td><td>Rank title (e.g., "Master", "Cook")</td></tr>
+                    <tr><td><code>nationality</code></td><td>Country name</td></tr>
+                    <tr><td><code>user_status</code></td><td>Current status (On Site, Vacation)</td></tr>
+                    <tr><td><code>is_blacklisted</code></td><td>Boolean (true/false)</td></tr>
+                </table>
+                <div class="use-case">Example: Find available Ukrainian Masters.<br><code>?nationality=Ukraine&rank_name=Master&user_status=On Site</code></div>
+            </div>
+
+            <div class="endpoint-card">
+                <h3>Finance Records</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/finance-records/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>company</code></td><td>Company ID</td></tr>
+                    <tr><td><code>status</code></td><td>Payment status (Pending, Paid)</td></tr>
+                    <tr><td><code>start_date_from</code></td><td>Start date range (YYYY-MM-DD)</td></tr>
+                </table>
+                <div class="use-case">Example: Pending payments for December.<br><code>?status=Pending&start_date_from=2024-12-01</code></div>
+            </div>
+
+            <div class="endpoint-card">
+                <h3>Interviews</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/interviews/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>candidate</code></td><td>User ID</td></tr>
+                    <tr><td><code>status</code></td><td>Scheduled, Completed, Rejected</td></tr>
+                    <tr><td><code>scheduled_date</code></td><td>Specific date (YYYY-MM-DD)</td></tr>
+                </table>
+            </div>
+
+            <div class="endpoint-card">
+                <h3>CV Submissions</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/cv-submissions/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>position</code></td><td>Position ID</td></tr>
+                    <tr><td><code>status</code></td><td>Application status (Pending, Approved)</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- 2. OPERATIONS -->
+        <section id="operations">
+            <h2>2. Operations & Companies</h2>
+
+            <div class="endpoint-card">
+                <h3>Companies</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/companies/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>name</code></td><td>Company Name</td></tr>
+                    <tr><td><code>company_type</code></td><td>Type (e.g., "Ship Owner")</td></tr>
+                    <tr><td><code>status</code></td><td>Active, Inactive</td></tr>
+                </table>
+            </div>
+
+            <div class="endpoint-card">
+                <h3>Job Orders</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/companies/job-orders/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>status</code></td><td>Open, Closed, Hold</td></tr>
+                    <tr><td><code>reference_number</code></td><td>JO Reference Code</td></tr>
+                    <tr><td><code>request_date_from</code></td><td>Date range start</td></tr>
+                </table>
+                <div class="use-case">Example: Find open Job Orders from a specific ship.<br><code>?status=Open&ship=5</code></div>
+            </div>
+        </section>
+
+        <!-- 3. SHIPS -->
+        <section id="ships">
+            <h2>3. Fleet & Ships</h2>
+            <div class="endpoint-card">
+                <h3>Ships</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/ships/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>name</code></td><td>Vessel Name</td></tr>
+                    <tr><td><code>imo_number</code></td><td>IMO Number</td></tr>
+                    <tr><td><code>flag</code></td><td>Flag State (e.g., Panama)</td></tr>
+                    <tr><td><code>ship_type</code></td><td>Vessel Type (e.g., Tanker)</td></tr>
+                    <tr><td><code>status</code></td><td>Active, Inactive</td></tr>
+                </table>
+                <div class="use-case">Example: Active Tankers under Panama flag.<br><code>?flag=Panama&ship_type=Tanker&status=Active</code></div>
+            </div>
+        </section>
+
+        <!-- 4. LOGISTICS -->
+        <section id="logistics">
+            <h2>4. Logistics</h2>
+            
+            <div class="endpoint-card">
+                <h3>Flights</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/logistics/flights/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>status</code></td><td>Requested, Booked</td></tr>
+                    <tr><td><code>airline</code></td><td>Airline Name</td></tr>
+                </table>
+            </div>
+
+            <div class="endpoint-card">
+                <h3>Visas</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/logistics/visas/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>country</code></td><td>Visa Country</td></tr>
+                    <tr><td><code>visa_type</code></td><td>Type (Schengen, US C1/D)</td></tr>
+                    <tr><td><code>status</code></td><td>Status (Submitted, Approved)</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- 5. COMPLIANCE -->
+        <section id="compliance">
+            <h2>5. Compliance</h2>
+            
+            <div class="endpoint-card">
+                <h3>Audits</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/compliance/audits/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>audit_type</code></td><td>MLC, ISO, PSC</td></tr>
+                    <tr><td><code>status</code></td><td>Passed, Failed</td></tr>
+                </table>
+            </div>
+
+            <div class="endpoint-card">
+                <h3>Incident Reports</h3>
+                <div><span class="method-badge">GET</span> <span class="url">/compliance/incidents/</span></div>
+                <table>
+                    <tr><th>Parameter</th><th>Description</th></tr>
+                    <tr><td><code>severity</code></td><td>Low, Medium, High, Critical</td></tr>
+                    <tr><td><code>incident_type</code></td><td>Accident, grievance, etc.</td></tr>
+                    <tr><td><code>is_closed</code></td><td>Boolean</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2024 Sakr Manning Agency. All rights reserved.</p>
+        </footer>
+    </main>
+
+    <script>
+        // Smooth scrolling for sidebar links
+        document.querySelectorAll('.nav-links a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+                // Update active state
+                document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
