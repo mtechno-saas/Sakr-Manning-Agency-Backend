@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     'ai_document',
     'corsheaders',
     'interviews',
+    'logistics',
+    'compliance',
 ]
 
 MIDDLEWARE = [
@@ -172,6 +174,7 @@ REST_FRAMEWORK = {
         # Add pagination configuration
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 25,  # Adjust based on your needs
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 # --- Add this new configuration block for Simple JWT ---
 SIMPLE_JWT = {
@@ -253,4 +256,13 @@ CORS_ALLOW_METHODS = [
     "POST",
     "PUT",
 ]
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # or your provider
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'mtechsaas@gmail.com'
+EMAIL_HOST_PASSWORD = 'udnw dixo vjsq yuqw'
+DEFAULT_FROM_EMAIL = 'Sakr Manning Agency <crew@sakrshipping.com>'
 

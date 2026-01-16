@@ -282,7 +282,7 @@
 from rest_framework import serializers, validators
 from .models import (
     Users, UserRank, Certificate, Rank, Contract, Reference, SeaService,
-    Interview, CVSubmission
+    Interview, CVSubmission, Document
 )
 from companies.models import Company
 from finance.models import FinanceRecord
@@ -599,16 +599,23 @@ class UsersSerializer(serializers.ModelSerializer):
             'declaration_consent', 'declaration_date', 'declaration_place',
             'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
             # Relationships
-            'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services'
+            'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services',
+            'generated_id'
         ]
         extra_kwargs = {
             'profile_image': {'required': False},
-            'password': {'write_only': True, 'required': False}
+            'password': {'write_only': True, 'required': False},
+            'generated_id': {'read_only': True}
         }
 
     def to_representation(self, instance):
         """Override to ensure proper serialization of nested fields"""
         representation = super().to_representation(instance)
+
+        # Hide generated_id for non-privileged users
+        request = self.context.get('request')
+        if request and hasattr(request.user, 'role') and request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
+            representation.pop('generated_id', None)
 
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
@@ -720,3 +727,34 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data['first_name']
         )
         return user
+
+
+class DocumentSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(required=False)
+    generated_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Document
+        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'status', 'generated_id']
+        read_only_fields = ['user', 'created_at', 'updated_at']
+    
+    def validate(self, attrs):
+        # If title is not provided, use the filename
+        if not attrs.get('title') and attrs.get('file'):
+            attrs['title'] = attrs['file'].name
+        return attrs
+
+    def get_generated_id(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user:
+            return None
+        
+        # Check Role of the viewer
+        if request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
+            return None
+            
+        # Check Status of the document
+        if obj.status == 'Active':
+            return obj.user.generated_id
+            
+        return None

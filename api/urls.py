@@ -77,6 +77,7 @@ from .views import (
     add_user_rank,
     remove_user_certificate,
     remove_user_rank,
+    DocumentViewSet
 )
 
 router = DefaultRouter()
@@ -90,6 +91,7 @@ router.register(r'ranks', RankViewSet, basename="rank")
 router.register(r'interviews', InterviewViewSet, basename="interview")
 router.register(r'finance-records', FinanceRecordViewSet, basename="financerecord")
 router.register(r'cv-submissions', CVSubmissionViewSet, basename="cvsubmission")
+router.register(r'documents', DocumentViewSet, basename="document")
 
 urlpatterns = [
     path('', include(router.urls)),

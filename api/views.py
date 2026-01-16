@@ -293,9 +293,14 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from datetime import timedelta
+import random
+import string
+from django.core.mail import send_mail
+from django.conf import settings
 from rest_framework.decorators import api_view, parser_classes, action
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
+from django.http import FileResponse
 from rest_framework import status, viewsets, generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from finance.models import FinanceRecord
@@ -305,7 +310,7 @@ from .filters import CompanyFilter, InterviewFilter, CVSubmissionFilter
 
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
-    Company, Interview, CVSubmission
+    Company, Interview, CVSubmission, Document
 )
 from .serializer import (
     UsersSerializer, UserRankSerializer, ContractSerializer, ContractListSerializer,
@@ -314,7 +319,7 @@ from .serializer import (
     CompanySerializer, CompanyListSerializer,
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
-    CVSubmissionSerializer, CVSubmissionListSerializer
+    CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer
 )
 from .filters import UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, CompanyFilter
 from .permissions import (
@@ -735,6 +740,39 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
             'approved_percent': round((cvs.filter(status='Approved').count() / total * 100) if total > 0 else 0),
         })
 
+    @action(detail=False, methods=['post'], url_path='upload', parser_classes=[MultiPartParser, FormParser])
+    def upload_cv(self, request):
+        """
+        Upload a CV document (PDF/Word).
+        POST /api/cv-submissions/upload/
+        Body: cv_file, position_id (optional-ish)
+        """
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        file_obj = request.FILES.get('cv_file')
+        if not file_obj:
+            return Response({'error': 'No file provided (key: cv_file)'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Determine position if provided
+        position_id = request.data.get('position')
+        position = None
+        if position_id:
+            from .models import Rank
+            position = get_object_or_404(Rank, id=position_id)
+            
+        # Create submission
+        submission = CVSubmission.objects.create(
+            user=request.user,
+            cv_file=file_obj,
+            position=position,
+            status='Pending',
+            notes=request.data.get('notes', '')
+        )
+        
+        serializer = self.get_serializer(submission)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['patch'], url_path='update-status')
     def update_status(self, request, pk=None):
         """Update CV status - Recruiter+ access"""
@@ -765,6 +803,166 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
     queryset = SeaService.objects.all()
     serializer_class = SeaServiceSerializer
     permission_classes = [IsAuthenticated, IsHROrReadOnly]
+
+
+class DocumentViewSet(viewsets.ModelViewSet):
+    """
+    Document Management - Role-based access:
+    - Admin/HR: Full access
+    - Employee: Own documents only
+    """
+    queryset = Document.objects.all()
+    serializer_class = DocumentSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return Document.objects.all()
+        return Document.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        # Assign current user if not Admin/HR or if they want to
+        # Generally for this endpoint, we assume the uploader is the owner unless specified otherwise
+        # But if employee, they can only upload for themselves
+        if self.request.user.role == 'Employee':
+            serializer.save(user=self.request.user)
+        else:
+            # If Admin/HR doesn't specify user, default to themselves or handle as needed
+            # But usually we might want to specify which user this doc belongs to.
+            # If 'user' is in valid data (which our serializer allows if provided), it will be used.
+            # If not provided, default to request.user
+            if 'user' not in serializer.validated_data:
+                serializer.save(user=self.request.user)
+            else:
+                serializer.save()
+
+    def _sync_user_data(self, document):
+        """Helper to sync Document data to User profile when Active"""
+        print(f"DEBUG: Syncing user data for document {document.id} to user {document.user.id}")
+        user = document.user
+        
+        # Update name if provided
+        if document.name:
+            parts = document.name.split(' ', 1)
+            user.first_name = parts[0]
+            if len(parts) > 1:
+                user.middle_name = parts[1]
+                
+        # Update contact info
+        if document.email:
+             # Check if email is already taken by another user
+            if not Users.objects.filter(email=document.email).exclude(id=user.id).exists():
+                user.email = document.email
+            else:
+                print(f"DEBUG: Skipping email update, {document.email} is already taken.")
+        if document.phone_number:
+            user.phone_number = document.phone_number
+            
+        # Update new fields
+        if document.title:
+            user.title = document.title
+        if document.file:
+            user.file = document.file
+        if document.position:
+            user.position = document.position
+            
+        user.save()
+
+    def _check_id_generation(self, document, new_status):
+        """Helper to generate User ID if status becomes Active"""
+        print(f"DEBUG: Checking ID generation for doc {document.id}, status {new_status}")
+        if new_status == 'Active':
+            user = document.user
+            if not user.generated_id:
+                # Generate 12-digit random number
+                new_id = ''.join(random.choices(string.digits, k=12))
+                
+                # Check uniqueness loop
+                while Users.objects.filter(generated_id=new_id).exists():
+                    new_id = ''.join(random.choices(string.digits, k=12))
+                
+                user.generated_id = new_id
+                user.save()
+            
+            # Sync data to user profile
+            self._sync_user_data(document)
+
+            # Send acceptance email
+            try:
+                if user.email:
+                    send_mail(
+                        subject='Welcome to Sakr Manning Agency',
+                        message=f"Dear {user.first_name},\n\nYou have been accepted to the Sakr Manning Agency website. You can now log in and complete your information in the form.\n\nBest regards,\nSakr Manning Agency",
+                        from_email=settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@sakrmanning.com',
+                        recipient_list=[user.email],
+                        fail_silently=True,
+                    )
+            except Exception as e:
+                print(f"Failed to send email: {e}")
+
+    def perform_update(self, serializer):
+        # Check if status is being updated
+        if 'status' in serializer.validated_data:
+            self._check_id_generation(serializer.instance, serializer.validated_data['status'])
+        
+        serializer.save()
+
+    @action(detail=True, methods=['post'])
+    def set_status(self, request, pk=None):
+        """
+        Manually set status for a document.
+        POST /api/documents/{id}/set_status/
+        Body: {"status": "Active"}
+        """
+        print(f"DEBUG: set_status called for doc {pk} with data {request.data}")
+        document = self.get_object()
+        new_status = request.data.get('status')
+        
+        valid_statuses = dict(Document.STATUS_CHOICES).keys()
+        if new_status not in valid_statuses:
+            return Response(
+                {"error": f"Invalid status. Choices are: {list(valid_statuses)}"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Merge Logic: Check if email exists on another user
+        if document.email:
+            existing_user = Users.objects.filter(email=document.email).exclude(id=document.user.id).first()
+            if existing_user:
+                print(f"DEBUG: Merging document {document.id} from user {document.user.id} to existing user {existing_user.id}")
+                document.user = existing_user
+            
+        document.status = new_status
+        document.save()
+        print("DEBUG: Document saved")
+        
+        # Trigger side effects
+        try:
+            self._check_id_generation(document, new_status)
+        except Exception as e:
+            print(f"DEBUG: Error in side effects: {e}")
+            import traceback
+            traceback.print_exc()
+            # We might want to re-raise or handle it, but for 500 debugging let's print it
+            raise e
+        
+        return Response(self.get_serializer(document).data)
+
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
+        """
+        Download/View the document file.
+        """
+        document = self.get_object()
+        if not document.file:
+            return Response({"error": "No file attached to this document"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # FileResponse automatically handles streaming and content type
+        response = FileResponse(document.file.open(), as_attachment=False)
+        return response
+
 
 
 class CertificateViewSet(viewsets.ModelViewSet):

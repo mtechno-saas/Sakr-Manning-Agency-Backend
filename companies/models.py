@@ -36,3 +36,60 @@ class Company(models.Model):
 
     def __str__(self):
         return self.company_name
+
+
+class JobOrder(models.Model):
+    """
+    Step 1: Client Management & Job Order Control
+    Represents a formal manpower request from a Shipowner/Manager.
+    """
+    STATUS_CHOICES = [
+        ('Pending', 'Pending Review'),
+        ('Open', 'Open / Sourcing'),
+        ('In Progress', 'In Progress / Interviewing'),
+        ('Fulfilled', 'Fulfilled'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='job_orders')
+    ship = models.ForeignKey('ships.Ship', on_delete=models.SET_NULL, null=True, blank=True, related_name='job_orders')
+    reference_number = models.CharField(max_length=50, unique=True, help_text="e.g. JO-2024-001")
+    request_date = models.DateField()
+    target_joining_date = models.DateField()
+    
+    # Details from workflow Step 1B
+    vessel_type_override = models.CharField(max_length=100, blank=True, help_text="Override if different from ship's default")
+    trading_area = models.CharField(max_length=100, blank=True)
+    
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending')
+    notes = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-request_date']
+
+    def __str__(self):
+        return f"{self.reference_number} - {self.company.company_name}"
+
+
+class JobOrderPosition(models.Model):
+    """
+    Specific ranks required within a Job Order.
+    Step 1C: Confirm rank, salary scale, etc.
+    """
+    job_order = models.ForeignKey(JobOrder, on_delete=models.CASCADE, related_name='positions')
+    rank = models.ForeignKey('api.Rank', on_delete=models.SET_NULL, null=True)
+    quantity = models.PositiveIntegerField(default=1)
+    
+    salary_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    salary_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=10, default='USD')
+    
+    contract_duration_months = models.PositiveIntegerField(default=6)
+    remarks = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.rank} ({self.quantity}) for {self.job_order.reference_number}"
+
