@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     'interviews',
     'logistics',
     'compliance',
+    'licenses',
+    'vaccinations',
 ]
 
 MIDDLEWARE = [
@@ -265,4 +267,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mtechsaas@gmail.com'
 EMAIL_HOST_PASSWORD = 'udnw dixo vjsq yuqw'
 DEFAULT_FROM_EMAIL = 'Sakr Manning Agency <crew@sakrshipping.com>'
-
+MEDIA_URL = '/media/'
+DEBUG = True
+MEDIA_ROOT = BASE_DIR / 'media'
