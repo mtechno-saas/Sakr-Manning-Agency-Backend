@@ -77,7 +77,10 @@ from .views import (
     add_user_rank,
     remove_user_certificate,
     remove_user_rank,
-    DocumentViewSet
+    DocumentViewSet,
+    UserLanguageViewSet,
+    PersonalDocumentViewSet,
+    VerifyEmailView
 )
 
 router = DefaultRouter()
@@ -92,6 +95,8 @@ router.register(r'interviews', InterviewViewSet, basename="interview")
 router.register(r'finance-records', FinanceRecordViewSet, basename="financerecord")
 router.register(r'cv-submissions', CVSubmissionViewSet, basename="cvsubmission")
 router.register(r'documents', DocumentViewSet, basename="document")
+router.register(r'user-languages', UserLanguageViewSet, basename="userlanguage")
+router.register(r'personal-documents', PersonalDocumentViewSet, basename="personaldocument")
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -110,4 +115,5 @@ urlpatterns = [
     path('users/<int:user_id>/ranks/add/', add_user_rank, name='add-user-rank'),
     path('users/<int:user_id>/certificates/<int:certificate_id>/remove/', remove_user_certificate, name='remove-user-certificate'),
     path('users/<int:user_id>/ranks/<int:rank_id>/remove/', remove_user_rank, name='remove-user-rank'),
+    path('verify-email/<uidb64>/<token>/', VerifyEmailView.as_view(), name='verify-email'),
 ]

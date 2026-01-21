@@ -300,7 +300,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view, parser_classes, action
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponseRedirect
 from rest_framework import status, viewsets, generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from finance.models import FinanceRecord
@@ -308,9 +308,17 @@ from .models import Company, Interview, CVSubmission
 from .serializer import CompanySerializer, InterviewSerializer, CVSubmissionSerializer
 from .filters import CompanyFilter, InterviewFilter, CVSubmissionFilter
 
+# For Verification Link
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.urls import reverse
+from rest_framework.views import APIView
+
+
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
-    Company, Interview, CVSubmission, Document
+    Company, Interview, CVSubmission, Document, UserLanguage, PersonalDocument
 )
 from .serializer import (
     UsersSerializer, UserRankSerializer, ContractSerializer, ContractListSerializer,
@@ -319,7 +327,8 @@ from .serializer import (
     CompanySerializer, CompanyListSerializer,
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
-    CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer
+    CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer,
+    UserLanguageSerializer, PersonalDocumentSerializer
 )
 from .filters import UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, CompanyFilter
 from .permissions import (
@@ -337,6 +346,29 @@ class RegisterView(generics.CreateAPIView):
     queryset = Users.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
+
+class VerifyEmailView(APIView):
+    """
+    Verify email via token sent in welcome email.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = Users.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, Users.DoesNotExist):
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            # Activate user if needed, or just return success
+            # user.is_active = True # Depending on requirements
+            # user.save()
+            # Redirect to user form/profile
+            return HttpResponseRedirect("https://test.sakrshipping.com/profile")
+        else:
+            return HttpResponseRedirect("https://test.sakrshipping.com/login?error=invalid_token")
+
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -818,7 +850,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+        if user.role in ['Admin', 'HR Manager', 'Recruiter'] or user.is_superuser:
             return Document.objects.all()
         return Document.objects.filter(user=user)
 
@@ -826,17 +858,38 @@ class DocumentViewSet(viewsets.ModelViewSet):
         # Assign current user if not Admin/HR or if they want to
         # Generally for this endpoint, we assume the uploader is the owner unless specified otherwise
         # But if employee, they can only upload for themselves
-        if self.request.user.role == 'Employee':
+        if self.request.user.role == 'Employee' and not self.request.user.is_superuser:
             serializer.save(user=self.request.user)
         else:
-            # If Admin/HR doesn't specify user, default to themselves or handle as needed
-            # But usually we might want to specify which user this doc belongs to.
-            # If 'user' is in valid data (which our serializer allows if provided), it will be used.
-            # If not provided, default to request.user
-            if 'user' not in serializer.validated_data:
-                serializer.save(user=self.request.user)
-            else:
+            # For Admin/HR/Recruiter/Superuser:
+            # If 'user' is explicitly provided, use it.
+            if 'user' in serializer.validated_data:
                 serializer.save()
+            else:
+                # If no user specified, try to link via email
+                email = serializer.validated_data.get('email')
+                name = serializer.validated_data.get('name')
+                
+                if email:
+                    # Check if user exists
+                    existing_user = Users.objects.filter(email=email).first()
+                    if existing_user:
+                        serializer.save(user=existing_user)
+                    else:
+                        # Create new user for this applicant
+                        print(f"DEBUG: Creating new user for Quick Applier: {email}")
+                        first_name = name.split(' ')[0] if name else "Applicant"
+                        new_user = Users.objects.create_user(
+                            email=email,
+                            first_name=first_name,
+                            role='Employee', # Default role for applicants
+                            password=None, # Unusable password until they set it
+                            # user_status='Active' # Removed invalid choice
+                        )
+                        serializer.save(user=new_user)
+                else:
+                    # Fallback to uploader if no email provided (though rare for applications)
+                    serializer.save(user=self.request.user)
 
     def _sync_user_data(self, document):
         """Helper to sync Document data to User profile when Active"""
@@ -892,9 +945,25 @@ class DocumentViewSet(viewsets.ModelViewSet):
             # Send acceptance email
             try:
                 if user.email:
+                    # Generate verification token
+                    token = default_token_generator.make_token(user)
+                    uid = urlsafe_base64_encode(force_bytes(user.pk))
+                    
+                    # Build verification link
+                    # Since this call likely comes from perform_update in the same ViewSet, 
+                    # self.request should be available
+                    if hasattr(self, 'request') and self.request:
+                        # base_url = self.request.build_absolute_uri('/')[:-1] 
+                        # Force domain as per user request
+                        base_url = "https://test.sakrshipping.com"
+                        verification_link = f"{base_url}/api/verify-email/{uid}/{token}/"
+                    else:
+                        # Fallback
+                        verification_link = f"https://test.sakrshipping.com/api/verify-email/{uid}/{token}/"
+
                     send_mail(
-                        subject='Welcome to Sakr Manning Agency',
-                        message=f"Dear {user.first_name},\n\nYou have been accepted to the Sakr Manning Agency website. You can now log in and complete your information in the form.\n\nBest regards,\nSakr Manning Agency",
+                        subject='Welcome to Sakr Manning Agency - Verification Required',
+                        message=f"Dear {user.first_name},\n\nYou have been accepted to the Sakr Manning Agency website.\n\nPlease verify your email by clicking the link below:\n{verification_link}\n\nYou can now log in and complete your information in the form.\n\nBest regards,\nSakr Manning Agency",
                         from_email=settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@sakrmanning.com',
                         recipient_list=[user.email],
                         fail_silently=True,
@@ -916,6 +985,13 @@ class DocumentViewSet(viewsets.ModelViewSet):
         POST /api/documents/{id}/set_status/
         Body: {"status": "Active"}
         """
+        # Permission Check: Only Admin/HR/Recruiter or Superuser can change status
+        if request.user.role not in ['Admin', 'HR Manager', 'Recruiter'] and not request.user.is_superuser:
+            return Response(
+                {"error": "Permission denied. You cannot change document status."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         print(f"DEBUG: set_status called for doc {pk} with data {request.data}")
         document = self.get_object()
         new_status = request.data.get('status')
@@ -947,6 +1023,9 @@ class DocumentViewSet(viewsets.ModelViewSet):
             traceback.print_exc()
             # We might want to re-raise or handle it, but for 500 debugging let's print it
             raise e
+        
+        # Refresh the user object to ensure generated_id is picked up by serializer
+        document.user.refresh_from_db()
         
         return Response(self.get_serializer(document).data)
 
@@ -1123,3 +1202,55 @@ def remove_user_rank(request, user_id, rank_id):
         return Response({"error": "User does not have this rank"}, status=status.HTTP_404_NOT_FOUND)
     
 
+class UserLanguageViewSet(viewsets.ModelViewSet):
+    """
+    User Languages - Role-based access:
+    - Admin/HR/Recruiter: Full access
+    - Employee: Own languages only
+    """
+    queryset = UserLanguage.objects.all()
+    serializer_class = UserLanguageSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return UserLanguage.objects.all()
+        return UserLanguage.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        if self.request.user.role == 'Employee':
+            serializer.save(user=self.request.user)
+        else:
+            if 'user' not in serializer.validated_data:
+                serializer.save(user=self.request.user)
+            else:
+                serializer.save()
+
+
+class PersonalDocumentViewSet(viewsets.ModelViewSet):
+    """
+    Personal/Travel Documents - Role-based access:
+    - Admin/HR/Recruiter: Full access
+    - Employee: Own documents only
+    """
+    queryset = PersonalDocument.objects.all()
+    serializer_class = PersonalDocumentSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return PersonalDocument.objects.all()
+        return PersonalDocument.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        if self.request.user.role == 'Employee':
+            serializer.save(user=self.request.user)
+        else:
+            if 'user' not in serializer.validated_data:
+                serializer.save(user=self.request.user)
+            else:
+                serializer.save()

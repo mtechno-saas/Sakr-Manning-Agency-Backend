@@ -724,6 +724,11 @@ class Users(AbstractBaseUser, PermissionsMixin):
     marlins_test_issued_at = models.CharField(max_length=100, blank=True, null=True)
     marlins_test_issued_by = models.CharField(max_length=100, blank=True, null=True)
 
+    ces_test_result = models.CharField(max_length=100, blank=True, null=True)
+    ces_test_issued_date = models.DateField(null=True, blank=True)
+    ces_test_issued_at = models.CharField(max_length=100, blank=True, null=True)
+    ces_test_issued_by = models.CharField(max_length=100, blank=True, null=True)
+
     certificates = models.ManyToManyField(Certificate, blank=True)
     codes = models.ManyToManyField(Rank, blank=True)
 
@@ -1090,3 +1095,105 @@ class Document(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.user.email})"
+
+
+# =====================
+# LANGUAGE MODEL
+# =====================
+class UserLanguage(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='languages')
+    language = models.CharField(max_length=100)
+    general_remarks = models.TextField(blank=True, null=True)
+    
+    # Proficiency Levels
+    SPEAKING_CHOICES = [
+        ('Elementary', 'Elementary'),
+        ('Intermediate', 'Intermediate'),
+        ('Advanced', 'Advanced'),
+        ('Native', 'Native'),
+    ]
+    WRITING_CHOICES = [
+        ('Elementary', 'Elementary'),
+        ('Intermediate', 'Intermediate'),
+        ('Advanced', 'Advanced'),
+        ('Native', 'Native'),
+    ]
+    READING_CHOICES = [
+        ('Elementary', 'Elementary'),
+        ('Intermediate', 'Intermediate'),
+        ('Advanced', 'Advanced'),
+        ('Native', 'Native'),
+    ]
+    
+    speaking_level = models.CharField(max_length=50, choices=SPEAKING_CHOICES, blank=True, null=True)
+    writing_level = models.CharField(max_length=50, choices=WRITING_CHOICES, blank=True, null=True)
+    reading_level = models.CharField(max_length=50, choices=READING_CHOICES, blank=True, null=True)
+    
+    # CEFR Level
+    CEFR_CHOICES = [
+        ('A1', 'A1'),
+        ('A2', 'A2'),
+        ('B1', 'B1'),
+        ('B2', 'B2'),
+        ('C1', 'C1'),
+        ('C2', 'C2'),
+    ]
+    cefr_level = models.CharField(max_length=10, choices=CEFR_CHOICES, blank=True, null=True)
+    cefr_description = models.TextField(blank=True, null=True, help_text="Description of selected CEFR Level")
+    
+    attachment = models.FileField(upload_to='languages/', blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.language} ({self.user.email})"
+
+
+# =====================
+# PERSONAL DOCUMENT MODEL
+# =====================
+class PersonalDocument(models.Model):
+    """Travel/Personal Documents"""
+    DOCUMENT_TYPE_CHOICES = [
+        ("BAHAMAS SEAMAN'S BOOK", "BAHAMAS SEAMAN'S BOOK"),
+        ("BELIZE SEAMAN'S BOOK", "BELIZE SEAMAN'S BOOK"),
+        ("BERMUDA SEAMAN'S BOOK", "BERMUDA SEAMAN'S BOOK"),
+        ("EU national ID", "EU national ID"),
+        ("Exit Interview", "Exit Interview"),
+        ("LIBERIAN SEAMAN'S BOOK", "LIBERIAN SEAMAN'S BOOK"),
+        ("Local ID Card", "Local ID Card"),
+        ("LUXEMBOURG SEAMAN'S BOOK", "LUXEMBOURG SEAMAN'S BOOK"),
+        ("PALAU SEAMAN'S BOOK", "PALAU SEAMAN'S BOOK"),
+        ("PANAMA SEAMAN'S BOOK", "PANAMA SEAMAN'S BOOK"),
+        ("Passport", "Passport"),
+        ("PERMESSO SOGGIORNO PERMANENTE", "PERMESSO SOGGIORNO PERMANENTE"),
+        ("PERMESSO SOGGIORNO TEMPORANEO", "PERMESSO SOGGIORNO TEMPORANEO"),
+        ("Personal Record Sheet", "Personal Record Sheet"),
+        ("RESIDENCE CERTIFICATE", "RESIDENCE CERTIFICATE"),
+        ("SEAFARERS' ID. DOC. ILO 185", "SEAFARERS' ID. DOC. ILO 185"),
+        ("Seaman's Book", "Seaman's Book"),
+        ("Seaman's Book/Card or ID", "Seaman's Book/Card or ID"),
+        ("U.K. SEAMAN'S BOOK", "U.K. SEAMAN'S BOOK"),
+    ]
+
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='personal_documents')
+    document_type = models.CharField(max_length=100, choices=DOCUMENT_TYPE_CHOICES)
+    
+    document_number = models.CharField(max_length=50, blank=True, null=True)
+    issue_date = models.DateField(blank=True, null=True)
+    expiry_date = models.DateField(blank=True, null=True)
+    issuing_country = models.CharField(max_length=100, blank=True, null=True)
+    
+    file = models.FileField(
+        upload_to='personal_documents/',
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png'])],
+        blank=True,
+        null=True
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.document_type} - {self.user.email}"
