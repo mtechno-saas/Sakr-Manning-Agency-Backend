@@ -868,7 +868,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
         # Assign current user if not Admin/HR or if they want to
         # Generally for this endpoint, we assume the uploader is the owner unless specified otherwise
         # But if employee, they can only upload for themselves
-        if self.request.user.role == 'Employee' and not self.request.user.is_superuser:
+        if self.request.user.is_authenticated and self.request.user.role == 'Employee' and not self.request.user.is_superuser:
             serializer.save(user=self.request.user)
         else:
             # For Admin/HR/Recruiter/Superuser:
