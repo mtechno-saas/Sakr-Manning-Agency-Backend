@@ -849,7 +849,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_authenticators(self):
-        if self.action == 'create':
+        if getattr(self, 'action', None) == 'create':
             return []
         return super().get_authenticators()
 
