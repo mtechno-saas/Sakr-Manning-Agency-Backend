@@ -848,6 +848,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    def get_authenticators(self):
+        if self.action == 'create':
+            return []
+        return super().get_authenticators()
+
     def get_permissions(self):
         if self.action == 'create':
             return [AllowAny()]
