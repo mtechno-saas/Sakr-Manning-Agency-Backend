@@ -751,7 +751,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             return None
         
         # Check Role of the viewer
-        if request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
+        if not request.user.is_authenticated or request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
             return None
             
         # Check Status of the document
