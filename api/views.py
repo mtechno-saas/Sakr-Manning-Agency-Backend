@@ -848,6 +848,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
     def get_queryset(self):
         user = self.request.user
         if user.role in ['Admin', 'HR Manager', 'Recruiter'] or user.is_superuser:

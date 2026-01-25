@@ -31,6 +31,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("api/contracts-gen/", include("contracts.urls")),
     path("api/users/", include("api.urls")),  # users API
     path("api/tickets-papers/", include("tickets_papers.urls")),  # ✅ tickets & papers API
     path("api/companies/", include("companies.urls")),
@@ -46,7 +47,8 @@ urlpatterns = [
     path("api/compliance/", include("compliance.urls")),
     path("api/", include("api.urls")),
     path('api/', include('licenses.urls')),
-     path("api/", include("vaccinations.urls")),
+    path("api/", include("vaccinations.urls")),
+    path("api/", include("vaccinations.urls")),
 ]
 
 
