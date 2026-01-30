@@ -163,7 +163,52 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
         return self.create_user(email, password, **extra_fields)
 
+class LanguageProficiency(models.Model):
+    # CEFR Level Options
+    CEFR_CHOICES = [
+        ('A1', 'A1 - Beginner'),
+        ('A2', 'A2 - Elementary'),
+        ('B1', 'B1 - Intermediate'),
+        ('B2', 'B2 - Upper Intermediate'),
+        ('C1', 'C1 - Advanced'),
+        ('C2', 'C2 - Proficient'),
+    ]
 
+    # Linking to your specific 'Users' model
+    # related_name='languages' allows you to call user.languages.all()
+    user = models.ForeignKey(
+        'Users', 
+        on_delete=models.CASCADE, 
+        related_name='languages'
+    )
+    
+    # Fields as requested
+    language = models.CharField(max_length=100)
+    general_marks = models.IntegerField(default=0)
+    speaking = models.IntegerField(default=0)
+    writing = models.IntegerField(default=0)
+    reading = models.IntegerField(default=0)
+    
+    cefr_level = models.CharField(
+        max_length=2, 
+        choices=CEFR_CHOICES, 
+        default='A1'
+    )
+    cefr_description = models.TextField(
+        blank=True, 
+        null=True, 
+        help_text="Detailed description of the language ability based on CEFR"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Language Proficiency"
+        verbose_name_plural = "Language Proficiencies"
+
+    def __str__(self):
+        return f"{self.language} for {self.user.email}"
 class Users(AbstractBaseUser, PermissionsMixin):
     # Authentication
     email = models.EmailField(max_length=100, unique=True)
@@ -179,7 +224,24 @@ class Users(AbstractBaseUser, PermissionsMixin):
     schengen_visa_status = models.CharField(max_length=50, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     marital_status = models.CharField(max_length=40, default="Single")
-    
+    register_code = models.CharField(
+        max_length=50,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Registration code from system or document"
+    )
+
+    register_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="User registration date"
+    )
+
+    last_updated_date = models.DateTimeField(
+        auto_now=True,
+        help_text="Last time user data was updated"
+    )
     user_status = models.CharField(max_length=40, choices=User_Status.choices, default=User_Status.ON_SITE)
     
     # Blacklist Status
@@ -199,7 +261,8 @@ class Users(AbstractBaseUser, PermissionsMixin):
     address = models.CharField(max_length=100, null=True)
     phone_number = models.CharField(max_length=20, blank=True)
     tel_number = models.CharField(max_length=20, blank=True, null=True)
-
+    country = models.CharField(max_length=100, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
     # Admin/Tracking
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
