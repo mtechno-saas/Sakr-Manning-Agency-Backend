@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakr Manning Agency API Documentation</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Prism.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0a2540;
+            --secondary-color: #1e88e5;
+            --accent-color: #00bcd4;
+            --text-color: #333333;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --border-color: #e0e6ed;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --code-bg: #2d2d2d;
+            --nav-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        header p {
+            opacity: 0.85;
+            margin-top: 0.5rem;
+        }
+
+        /* Navigation */
+        nav {
+            width: var(--nav-width);
+            background: var(--card-bg);
+            position: fixed;
+            left: 0;
+            top: 120px;
+            bottom: 0;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav li {
+            margin: 0.25rem 0;
+        }
+
+        nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(30, 136, 229, 0.05);
+            border-left-color: var(--secondary-color);
+        }
+
+        nav a i {
+            width: 20px;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        /* Main Content */
+        main {
+            margin-left: var(--nav-width);
+            margin-top: 120px;
+            padding: 2rem;
+            flex: 1;
+            max-width: 1200px;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        section h2 {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        section h3 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody tr:hover {
+            background: rgba(30, 136, 229, 0.03);
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f9fbfd;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            color: #f8f8f2;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Courier New', monospace;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .info-box.info {
+            background: #e3f2fd;
+            border-color: var(--secondary-color);
+            color: #0d47a1;
+        }
+
+        .info-box.success {
+            background: #e8f5e9;
+            border-color: var(--success-color);
+            color: #1b5e20;
+        }
+
+        .info-box.warning {
+            background: #fff3e0;
+            border-color: var(--warning-color);
+            color: #e65100;
+        }
+
+        .info-box.danger {
+            background: #ffebee;
+            border-color: var(--danger-color);
+            color: #b71c1c;
+        }
+
+        /* Lists */
+        ul {
+            padding-left: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        /* Footer */
+        footer {
+            margin-left: var(--nav-width);
+            padding: 2rem;
+            text-align: center;
+            color: #6c757d;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+            
+            main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            header {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.4rem;
+            }
+            
+            section {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-ship"></i> Sakr Manning Agency API</h1>
+        <p>Comprehensive Django REST Framework Documentation</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview"><i class="fas fa-info-circle"></i> Project Overview</a></li>
+            <li><a href="#installation"><i class="fas fa-download"></i> Installation & Setup</a></li>
+            <li><a href="#models"><i class="fas fa-database"></i> Models Documentation</a></li>
+            <li><a href="#endpoints"><i class="fas fa-plug"></i> API Endpoints</a></li>
+            <li><a href="#authentication"><i class="fas fa-lock"></i> Authentication</a></li>
+            <li><a href="#filtering"><i class="fas fa-filter"></i> Filtering System</a></li>
+            <li><a href="#admin"><i class="fas fa-cog"></i> Django Admin Panel</a></li>
+            <li><a href="#features"><i class="fas fa-star"></i> Key Features</a></li>
+            <li><a href="#examples"><i class="fas fa-code"></i> Usage Examples</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="overview">
+            <h2><i class="fas fa-info-circle"></i> Project Overview</h2>
+            <div class="info-box info">
+                <strong>Sakr Manning Agency API</strong> is a crew management system designed for maritime operations.
+            </div>
+            
+            <h3><i class="fas fa-check-circle"></i> Core Features</h3>
+            <ul>
+                <li><strong>Seafarer Profile Management</strong>: Complete personnel records with documents, certificates, and health data</li>
+                <li><strong>Rank & Certification Tracking</strong>: Automated rank code generation and certificate assignments</li>
+                <li><strong>Contract Management</strong>: Employment history with vessel assignments</li>
+                <li><strong>Sea Service Records</strong>: Historical voyage data</li>
+                <li><strong>Document Management</strong>: Passport, seaman's book, and health certificates</li>
+                <li><strong>RESTful API</strong>: Full CRUD operations with nested serialization</li>
+            </ul>
+
+            <div class="info-box success">
+                <strong>Tech Stack:</strong> Django 4+, Django REST Framework, django-filter, PostgreSQL (implied)
+            </div>
+        </section>
+
+        <section id="installation">
+            <h2><i class="fas fa-download"></i> Installation & Setup</h2>
+            
+            <h3><i class="fas fa-tools"></i> Prerequisites</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Package</th>
+                        <th>Version</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Python</td>
+                        <td>>= 3.8</td>
+                        <td>Language runtime</td>
+                    </tr>
+                    <tr>
+                        <td>Django</td>
+                        <td>>= 4.0</td>
+                        <td>Web framework</td>
+                    </tr>
+                    <tr>
+                        <td>djangorestframework</td>
+                        <td>Latest</td>
+                        <td>REST API toolkit</td>
+                    </tr>
+                    <tr>
+                        <td>django-filter</td>
+                        <td>Latest</td>
+                        <td>Query filtering</td>
+                    </tr>
+                    <tr>
+                        <td>Pillow</td>
+                        <td>Latest</td>
+                        <td>Image processing</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-terminal"></i> Installation Steps</h3>
+            <pre><code class="language-bash"># Clone repository
+git clone &lt;repository-url&gt;
+cd sakr-manning-api
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run migrations
+python manage.py makemigrations
+python manage.py migrate
+
+# Create superuser
+python manage.py createsuperuser
+
+# Run development server
+python manage.py runserver</code></pre>
+
+            <h3><i class="fas fa-cog"></i> Settings Configuration</h3>
+            <pre><code class="language-python">INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    # ...
+    'rest_framework',
+    'django_filters',
+    'api',  # Your app
+    'ships',  # Related app
+    'tickets_papers',  # Related app
+]</code></pre>
+        </section>
+
+        <section id="models">
+            <h2><i class="fas fa-database"></i> Models Documentation</h2>
+
+            <h3><i class="fas fa-user"></i> Users (Custom User Model)</h3>
+            <div class="info-box info">Base: <code>AbstractBaseUser</code>, <code>PermissionsMixin</code></div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>email</code></td><td>EmailField (unique)</td><td>Primary authentication field</td></tr>
+                    <tr><td><code>first_name</code></td><td>CharField</td><td>Required</td></tr>
+                    <tr><td><code>middle_name</code></td><td>CharField</td><td>Optional</td></tr>
+                    <tr><td><code>profile_image</code></td><td>ImageField</td><td>Upload to <code>users/</code> directory</td></tr>
+                    <tr><td><code>age</code></td><td>IntegerField</td><td>Optional</td></tr>
+                    <tr><td><code>date_of_birth</code></td><td>DateField</td><td>Optional</td></tr>
+                    <tr><td><code>marital_status</code></td><td>CharField</td><td>Default: "Single"</td></tr>
+                    <tr><td><code>user_status</code></td><td>CharField</td><td>Default: "On Site"</td></tr>
+                    <tr><td><code>nationality</code></td><td>CharField</td><td>Optional</td></tr>
+                    <tr><td><code>salary</code></td><td>DecimalField</td><td>Optional, 10 digits, 2 decimals</td></tr>
+                    <tr><td><code>is_active</code></td><td>BooleanField</td><td>Default: True</td></tr>
+                    <tr><td><code>is_staff</code></td><td>BooleanField</td><td>Default: False</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-medal"></i> Rank</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>code</code></td><td>CharField (unique)</td><td>Rank code (e.g., "DO-1.000")</td></tr>
+                    <tr><td><code>name</code></td><td>CharField</td><td>Rank name (e.g., "Master")</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-certificate"></i> Certificate</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>code</code></td><td>CharField (unique)</td><td>Certificate code</td></tr>
+                    <tr><td><code>name</code></td><td>CharField</td><td>Full certificate name</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-link"></i> UserRank (Through Model)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>user</code></td><td>ForeignKey(Users)</td><td>Related user</td></tr>
+                    <tr><td><code>rank</code></td><td>ForeignKey(Rank)</td><td>Selected rank</td></tr>
+                    <tr><td><code>assigned_code</code></td><td>CharField</td><td>Auto-generated unique code</td></tr>
+                </tbody>
+            </table>
+
+            <div class="info-box success">
+                <strong>Auto-generation Logic:</strong> Extracts prefix from rank code (e.g., "DO-1"), finds last assigned code, increments number: <code>DO-1.001</code>, <code>DO-1.002</code>, etc.
+            </div>
+        </section>
+
+        <section id="endpoints">
+            <h2><i class="fas fa-plug"></i> API Endpoints</h2>
+            <div class="info-box info">
+                <strong>Base URL:</strong> <code>/api/</code>
+            </div>
+
+            <h3><i class="fas fa-user-plus"></i> Authentication Endpoints</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                        <th>Auth</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge post">POST</span></td>
+                        <td><code>/register/</code></td>
+                        <td>Create new user</td>
+                        <td><span class="badge public">Public</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-users"></i> User Management</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                        <th>Auth</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="badge get">GET</span></td><td><code>/users/</code></td><td>List all users (paginated)</td><td>Authenticated</td></tr>
+                    <tr><td><span class="badge post">POST</span></td><td><code>/users/</code></td><td>Create user</td><td>Authenticated</td></tr>
+                    <tr><td><span class="badge get">GET</span></td><td><code>/users/{id}/</code></td><td>Get user details</td><td>Authenticated</td></tr>
+                    <tr><td><span class="badge put">PUT</span></td><td><code>/users/{id}/</code></td><td>Update user</td><td>Authenticated</td></tr>
+                    <tr><td><span class="badge patch">PATCH</span></td><td><code>/users/{id}/</code></td><td>Partial update</td><td>Authenticated</td></tr>
+                    <tr><td><span class="badge delete">DELETE</span></td><td><code>/users/{id}/</code></td><td>Delete user</td><td>Authenticated</td></tr>
+                    <tr><td><span class="badge get">GET</span></td><td><code>/users/me/</code></td><td>Get current user</td><td>Authenticated</td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-medal"></i> Rank Management</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="badge get">GET</span></td><td><code>/ranks/</code></td><td>List all ranks</td></tr>
+                    <tr><td><span class="badge post">POST</span></td><td><code>/ranks/</code></td><td>Create rank</td></tr>
+                    <tr><td><span class="badge get">GET</span></td><td><code>/ranks/{id}/</code></td><td>Get rank details</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="authentication">
+            <h2><i class="fas fa-lock"></i> Authentication</h2>
+            <div class="info-box warning">
+                Include token in headers: <code>Authorization: Token &lt;your-token-key&gt;</code>
+            </div>
+
+            <h3><i class="fas fa-user-check"></i> Registration Example</h3>
+            <pre><code class="language-http">POST /api/register/
+Content-Type: application/json
+
+{
+  "email": "seafarer@example.com",
+  "password": "securepassword123",
+  "first_name": "John"
+}</code></pre>
+
+            <h3><i class="fas fa-sign-in"></i> Response</h3>
+            <pre><code class="language-json">{
+  "email": "seafarer@example.com",
+  "first_name": "John"
+}</code></pre>
+        </section>
+
+        <section id="filtering">
+            <h2><i class="fas fa-filter"></i> Filtering System</h2>
+            <div class="info-box info">User Filters: <code>/users/filter/</code></div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>name</code></td><td>string</td><td>Search in first_name (icontains)</td><td><code>?name=john</code></td></tr>
+                    <tr><td><code>age</code></td><td>integer</td><td>Exact age match</td><td><code>?age=35</code></td></tr>
+                    <tr><td><code>marital_status</code></td><td>string</td><td>Exact match (case-insensitive)</td><td><code>?marital_status=SINGLE</code></td></tr>
+                    <tr><td><code>user_status</code></td><td>string</td><td>Exact match</td><td><code>?user_status=ON_SITE</code></td></tr>
+                    <tr><td><code>nationality</code></td><td>string</td><td>Contains search</td><td><code>?nationality=Egyptian</code></td></tr>
+                    <tr><td><code>nearest_port</code></td><td>string</td><td>Contains search</td><td><code>?nearest_port=Alexandria</code></td></tr>
+                    <tr><td><code>rank_name</code></td><td>string</td><td>Filter by rank name</td><td><code>?rank_name=Engineer</code></td></tr>
+                    <tr><td><code>assigned_code</code></td><td>string</td><td>Filter by rank code</td><td><code>?assigned_code=EO-</code></td></tr>
+                </tbody>
+            </table>
+
+            <h3><i class="fas fa-search"></i> Example Filter Request</h3>
+            <pre><code class="language-http">GET /api/users/filter/?nationality=Egyptian&user_status=ON_SITE&rank_name=Engineer</code></pre>
+        </section>
+
+        <section id="admin">
+            <h2><i class="fas fa-cog"></i> Django Admin Panel</h2>
+            <div class="info-box info">
+                <strong>URL:</strong> <code>/admin</code>
+            </div>
+
+            <h3><i class="fas fa-star"></i> Features</h3>
+            <ul>
+                <li><strong>Custom Header:</strong> "Sakr Manning Agency Administration"</li>
+                <li><strong>User Management:</strong> Comprehensive inline editing</li>
+                <li><strong>Auto-generated Fields:</strong> Username from email, Rank codes</li>
+                <li><strong>Collapsible Sections:</strong> Organized fieldsets for better UX</li>
+            </ul>
+
+            <h3><i class="fas fa-th-list"></i> Admin Inline Models</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Inline Model</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>UserRankInline</strong></td><td>Assign ranks with auto-generated codes</td></tr>
+                    <tr><td><strong>TicketInline</strong></td><td>Manage travel tickets</td></tr>
+                    <tr><td><strong>TravelingPaperInline</strong></td><td>Handle travel documents</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="features">
+            <h2><i class="fas fa-star"></i> Key Features</h2>
+            
+            <h3><i class="fas fa-magic"></i> Auto-Generated Username</h3>
+            <p>When creating users via API:</p>
+            <ul>
+                <li>Username auto-generated from email prefix</li>
+                <li>Ensures uniqueness by appending numbers: <code>john.doe</code>, <code>john.doe1</code>, etc.</li>
+            </ul>
+
+            <h3><i class="fas fa-bolt"></i> Automatic Rank Code Assignment</h3>
+            <p><code>UserRank</code> model auto-generates sequential codes:</p>
+            <ul>
+                <li>Pattern: <code>{prefix}.{sequence}</code></li>
+                <li>Example: <code>DO-1.001</code>, <code>DO-1.002</code>, <code>ER-4.001</code></li>
+            </ul>
+
+            <h3><i class="fas fa-layer-group"></i> Nested Serialization</h3>
+            <ul>
+                <li><strong>Read:</strong> Full nested objects (<code>ranks</code>, <code>certificates</code>, etc.)</li>
+                <li><strong>Write:</strong> Accepts ID lists (<code>rank_ids</code>, <code>certificate_ids</code>)</li>
+            </ul>
+        </section>
+
+        <section id="examples">
+            <h2><i class="fas fa-code"></i> Usage Examples</h2>
+
+            <h3><i class="fas fa-user-plus"></i> Create User with Certificates & Ranks</h3>
+            <pre><code class="language-http">POST /api/users/create/
+Content-Type: multipart/form-data
+
+email: john.doe@example.com
+first_name: John
+last_name: Doe
+rank_ids: 1,3,5
+certificate_ids: 2,4,6
+profile_image: &lt;upload file&gt;</code></pre>
+
+            <h3><i class="fas fa-medal"></i> Add Rank to User</h3>
+            <pre><code class="language-http">POST /api/users/5/ranks/add/
+Content-Type: application/json
+
+{
+  "rank_id": 3
+}</code></pre>
+
+            <h3><i class="fas fa-check-square"></i> Response</h3>
+            <pre><code class="language-json">{
+  "message": "Rank '2nd. Engineer' added to user John Doe",
+  "user_rank": {
+    "id": 10,
+    "assigned_code": "EO-2.015",
+    "rank_code": "EO-2.000",
+    "rank_name": "2nd. Engineer",
+    "rank": 3
+  }
+}</code></pre>
+        </section>
+    </main>
+
+    <footer>
+        <p><i class="fas fa-anchor"></i> <strong>Documentation Version:</strong> 1.0 | <strong>Last Updated:</strong> November 2025 | <strong>Project:</strong> Sakr Manning Agency</p>
+    </footer>
+
+    <!-- Prism.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-http.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+</body>
+</html>

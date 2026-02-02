@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manning Agency API Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        
+:root {
+    --primary-color: #007bff;
+    --sidebar-width: 280px;
+    --header-height: 60px;
+    --text-color: #333;
+    --bg-color: #fff;
+    --sidebar-bg: #f8f9fa;
+    --border-color: #e9ecef;
+    --code-bg: #f6f8fa;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    padding: 2rem 1rem;
+    box-sizing: border-box;
+}
+
+.sidebar h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li {
+    margin-bottom: 0.25rem;
+}
+
+.sidebar a {
+    display: block;
+    padding: 0.4rem 0.5rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.sidebar a:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--primary-color);
+}
+
+.sidebar a.active {
+    background: rgba(0, 123, 255, 0.1);
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 2rem 4rem;
+    max-width: 900px;
+    width: 100%;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+h1 { font-size: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+h2 { font-size: 1.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3rem; margin-top: 3rem; }
+h3 { font-size: 1.4rem; }
+h4 { font-size: 1.1rem; }
+
+a { color: var(--primary-color); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Code Blocks */
+pre {
+    background: var(--code-bg);
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+}
+
+code {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    background: rgba(0,0,0,0.05);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+pre code {
+    background: transparent;
+    padding: 0;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}
+
+th, td {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+th {
+    background: var(--sidebar-bg);
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none; /* Simple mobile view for now */
+    }
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div style="margin-bottom: 2rem; font-weight: bold; font-size: 1.2rem;">
+            🚢 Manning API
+        </div>
+        <ul><li class="toc-h2" style=""><a href="#📋-table-of-contents">📋 Table of Contents</a></li><li class="toc-h2" style=""><a href="#🎯-overview">🎯 Overview</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#technology-stack">Technology Stack</a></li><li class="toc-h2" style=""><a href="#🏗️-architecture">🏗️ Architecture</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#database-relationships">Database Relationships</a></li><li class="toc-h2" style=""><a href="#🔐-authentication">🔐 Authentication</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#authentication-flow">Authentication Flow</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#token-usage">Token Usage</a></li><li class="toc-h2" style=""><a href="#🔌-api-endpoints">🔌 API Endpoints</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#authentication--registration">Authentication & Registration</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#users-management">Users Management</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#contracts">Contracts</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#certificates--ranks">Certificates & Ranks</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#references--sea-services">References & Sea Services</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#ships">Ships</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#companies">Companies</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#tickets--papers">Tickets & Papers</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#core-data">Core Data</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#finance">Finance</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#interviews">Interviews</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#ai-agents">AI Agents</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#ai-document-processing">AI Document Processing</a></li><li class="toc-h2" style=""><a href="#📊-data-models">📊 Data Models</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#user-model">User Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#contract-model">Contract Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#ship-model">Ship Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#company-model">Company Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#certificate-model">Certificate Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#rank-model">Rank Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#userrank-model">UserRank Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#reference-model">Reference Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#seaservice-model">SeaService Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#ticket--travelingpaper-models">Ticket & TravelingPaper Models</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#financerecord-model">FinanceRecord Model</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#flag--vesseltype-models">Flag & VesselType Models</a></li><li class="toc-h2" style=""><a href="#📝-requestresponse-examples">📝 Request/Response Examples</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#example-1:-complete-user-registration-and-setup">Example 1: Complete User Registration and Setup</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#example-2:-create-employment-contract">Example 2: Create Employment Contract</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#example-3:-upload-documents">Example 3: Upload Documents</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#example-4:-ai-document-processing">Example 4: AI Document Processing</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#example-5:-finance-tracking">Example 5: Finance Tracking</a></li><li class="toc-h2" style=""><a href="#⚠️-error-handling">⚠️ Error Handling</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#success-codes">Success Codes</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#client-error-codes">Client Error Codes</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#server-error-codes">Server Error Codes</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#jwt-token-errors">JWT Token Errors</a></li><li class="toc-h2" style=""><a href="#🚀-getting-started">🚀 Getting Started</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#prerequisites">Prerequisites</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#installation">Installation</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#access-points">Access Points</a></li><li class="toc-h2" style=""><a href="#📚-additional-resources">📚 Additional Resources</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#django-admin">Django Admin</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#filtering">Filtering</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#pagination">Pagination</a></li><li class="toc-h3" style="padding-left: 1rem;"><a href="#file-uploads">File Uploads</a></li><li class="toc-h2" style=""><a href="#🔒-security-notes">🔒 Security Notes</a></li><li class="toc-h2" style=""><a href="#📞-support">📞 Support</a></li><li class="toc-h2" style=""><a href="#📄-license">📄 License</a></li></ul>
+    </nav>
+    <main class="main-content">
+        <h1 id="manning-agency-api-documentation">🚢 Manning Agency API Documentation</h1>
+<p><img alt="Django" src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&amp;logo=django&amp;logoColor=white" />
+<img alt="Django REST Framework" src="https://img.shields.io/badge/Django%20REST%20Framework-A30000?style=for-the-badge&amp;logo=django&amp;logoColor=white" />
+<img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&amp;logo=python&amp;logoColor=white" /></p>
+<p>A comprehensive REST API for managing maritime manning agency operations, including seafarer management, ship assignments, employment contracts, and AI-powered document processing.</p>
+<hr />
+<h2 id="table-of-contents">📋 Table of Contents</h2>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#authentication">Authentication</a></li>
+<li><a href="#api-endpoints">API Endpoints</a></li>
+<li><a href="#authentication--registration">Authentication &amp; Registration</a></li>
+<li><a href="#users-management">Users Management</a></li>
+<li><a href="#contracts">Contracts</a></li>
+<li><a href="#certificates--ranks">Certificates &amp; Ranks</a></li>
+<li><a href="#references--sea-services">References &amp; Sea Services</a></li>
+<li><a href="#ships">Ships</a></li>
+<li><a href="#companies">Companies</a></li>
+<li><a href="#tickets--papers">Tickets &amp; Papers</a></li>
+<li><a href="#core-data">Core Data</a></li>
+<li><a href="#finance">Finance</a></li>
+<li><a href="#interviews">Interviews</a></li>
+<li><a href="#ai-agents">AI Agents</a></li>
+<li><a href="#ai-document-processing">AI Document Processing</a></li>
+<li><a href="#data-models">Data Models</a></li>
+<li><a href="#requestresponse-examples">Request/Response Examples</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+</ul>
+<hr />
+<h2 id="overview">🎯 Overview</h2>
+<p>This Django REST Framework API provides a complete backend solution for maritime manning agencies to manage:</p>
+<ul>
+<li><strong>Seafarer Profiles</strong>: Comprehensive user management with personal, professional, and medical information</li>
+<li><strong>Employment Contracts</strong>: Track seafarer assignments to ships with contract details</li>
+<li><strong>Ship &amp; Company Management</strong>: Manage fleet and company information</li>
+<li><strong>Document Management</strong>: Upload and manage tickets, traveling papers, and other documents</li>
+<li><strong>Finance Tracking</strong>: Monitor work periods and calculate payments</li>
+<li><strong>AI-Powered Processing</strong>: Automated document extraction and data mapping</li>
+</ul>
+<h3 id="technology-stack">Technology Stack</h3>
+<ul>
+<li><strong>Framework</strong>: Django 5.2 + Django REST Framework 3.16.1</li>
+<li><strong>Authentication</strong>: JWT (Simple JWT 5.5.1) with 15-day refresh token lifetime</li>
+<li><strong>Database</strong>: SQLite (development) / PostgreSQL (production ready)</li>
+<li><strong>AI/ML</strong>: LangChain, Ollama for document processing</li>
+<li><strong>Additional</strong>: django-filter, django-multiselectfield</li>
+</ul>
+<hr />
+<h2 id="architecture">🏗️ Architecture</h2>
+<pre><code class="language-mermaid">graph TB
+    Client[Client Application]
+    API[Django REST API]
+
+    subgraph &quot;Django Apps&quot;
+        API_APP[api - Users &amp; Contracts]
+        SHIPS[ships - Fleet Management]
+        COMPANIES[companies - Company Data]
+        TICKETS[tickets_papers - Documents]
+        CORE[core - Reference Data]
+        FINANCE[finance - Financial Records]
+        AI_AGENTS[ai_agents - Chat &amp; Search]
+        AI_DOC[ai_document - Document Processing]
+    end
+
+    subgraph &quot;Data Layer&quot;
+        DB[(SQLite/PostgreSQL)]
+        MEDIA[Media Storage]
+    end
+
+    Client --&gt;|JWT Token| API
+    API --&gt; API_APP
+    API --&gt; SHIPS
+    API --&gt; COMPANIES
+    API --&gt; TICKETS
+    API --&gt; CORE
+    API --&gt; FINANCE
+    API --&gt; AI_AGENTS
+    API --&gt; AI_DOC
+
+    API_APP --&gt; DB
+    SHIPS --&gt; DB
+    COMPANIES --&gt; DB
+    TICKETS --&gt; DB
+    TICKETS --&gt; MEDIA
+    CORE --&gt; DB
+    FINANCE --&gt; DB
+    AI_AGENTS --&gt; DB
+    AI_DOC --&gt; DB
+    AI_DOC --&gt; MEDIA
+</code></pre>
+<h3 id="database-relationships">Database Relationships</h3>
+<pre><code class="language-mermaid">erDiagram
+    Users ||--o{ Contract : &quot;has many&quot;
+    Users ||--o{ Reference : &quot;has many&quot;
+    Users ||--o{ SeaService : &quot;has many&quot;
+    Users ||--o{ Ticket : &quot;has many&quot;
+    Users ||--o{ TravelingPaper : &quot;has many&quot;
+    Users ||--o{ FinanceRecord : &quot;has many&quot;
+    Users ||--o{ Interview : &quot;is candidate in&quot;
+    Users ||--o{ Interview : &quot;is interviewer in&quot;
+    Users }o--o{ Certificate : &quot;many-to-many&quot;
+    Users ||--o{ UserRank : &quot;has many&quot;
+    Rank ||--o{ UserRank : &quot;has many&quot;
+    Ship ||--o{ Contract : &quot;has many&quot;
+    Ship }o--|| Company : &quot;belongs to&quot;
+    Ship }o--|| Flag : &quot;has&quot;
+    Ship }o--|| VesselType : &quot;has type&quot;
+    Company ||--o{ FinanceRecord : &quot;has many&quot;
+    Contract }o--|| Rank : &quot;has rank&quot;
+</code></pre>
+<hr />
+<h2 id="authentication">🔐 Authentication</h2>
+<p>The API uses <strong>JWT (JSON Web Tokens)</strong> for authentication with the following configuration:</p>
+<ul>
+<li><strong>Access Token</strong>: Short-lived token for API requests</li>
+<li><strong>Refresh Token</strong>: 15-day lifetime for obtaining new access tokens</li>
+<li><strong>Login Field</strong>: Email (not username)</li>
+</ul>
+<h3 id="authentication-flow">Authentication Flow</h3>
+<ol>
+<li><strong>Register</strong> a new account (public endpoint)</li>
+<li><strong>Login</strong> with email and password to receive tokens</li>
+<li><strong>Include</strong> access token in request headers</li>
+<li><strong>Refresh</strong> token when access token expires</li>
+</ol>
+<h3 id="token-usage">Token Usage</h3>
+<p>Include the access token in the <code>Authorization</code> header:</p>
+<pre><code class="language-http">Authorization: Bearer &lt;your_access_token&gt;
+</code></pre>
+<hr />
+<h2 id="api-endpoints">🔌 API Endpoints</h2>
+<p>Base URL: <code>http://127.0.0.1:8000</code> (development)</p>
+<h3 id="authentication-registration">Authentication &amp; Registration</h3>
+<h4 id="register-new-user">Register New User</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/register/</code></li>
+<li><strong>Authentication</strong>: None (Public)</li>
+<li><strong>Description</strong>: Create a new user account</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "email": "seafarer@example.com",
+    "password": "SecurePass123!",
+    "first_name": "John"
+  }</code></p>
+<ul>
+<li><strong>Response</strong>: <code>201 Created</code></li>
+</ul>
+<p><code>json
+  {
+    "id": 1,
+    "email": "seafarer@example.com",
+    "first_name": "John"
+  }</code></p>
+<h4 id="login">Login</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/login/</code></li>
+<li><strong>Authentication</strong>: None (Public)</li>
+<li><strong>Description</strong>: Authenticate and receive JWT tokens</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "email": "seafarer@example.com",
+    "password": "SecurePass123!"
+  }</code></p>
+<ul>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  {
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+  }</code></p>
+<h4 id="refresh-token">Refresh Token</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/login/refresh/</code></li>
+<li><strong>Authentication</strong>: None</li>
+<li><strong>Description</strong>: Get new access token using refresh token</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+  }</code></p>
+<ul>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  {
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+  }</code></p>
+<hr />
+<h3 id="users-management">Users Management</h3>
+<h4 id="list-all-users">List All Users</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/users/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Retrieve paginated list of all users</li>
+<li><strong>Query Parameters</strong>:</li>
+<li><code>page</code>: Page number</li>
+<li><code>page_size</code>: Items per page</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "email": "seafarer@example.com",
+      "first_name": "John",
+      "role": "Employee",
+      "phone_number": "+1234567890",
+      "nationality": "Egypt",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]</code></p>
+<h4 id="get-filtered-users">Get Filtered Users</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/filter/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Filter users by various criteria</li>
+<li><strong>Query Parameters</strong>: (based on django-filter configuration)</li>
+<li><code>email</code>: Filter by email</li>
+<li><code>first_name</code>: Filter by first name</li>
+<li><code>nationality</code>: Filter by nationality</li>
+<li><code>user_status</code>: Filter by status (VECATION, ON_SITE, MEDICAL VECATION)</li>
+<li><code>marital_status</code>: Filter by marital status (SINGLE, MARRIED)</li>
+</ul>
+<h4 id="get-user-details">Get User Details</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/users/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Retrieve detailed information for a specific user</li>
+<li><strong>Response</strong>: <code>200 OK</code> (includes nested ranks, certificates, references, sea_services)</li>
+</ul>
+<h4 id="create-user">Create User</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/users/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Create a new user with detailed information</li>
+<li><strong>Request Body</strong>: (multipart/form-data for profile_image)</li>
+</ul>
+<p><code>json
+  {
+    "email": "captain@example.com",
+    "first_name": "James",
+    "middle_name": "Robert",
+    "phone_number": "+1234567890",
+    "nationality": "Egypt",
+    "date_of_birth": "1985-05-15",
+    "role": "Employee",
+    "rank_ids": [1, 2],
+    "certificate_ids": [5, 10, 15]
+  }</code></p>
+<p><strong>Available Roles</strong>:</p>
+<ul>
+<li><code>Admin</code> - Full system access</li>
+<li><code>HR Manager</code> - HR operations</li>
+<li><code>Recruiter</code> - Recruitment operations</li>
+<li><code>Employee</code> - Standard user (default)</li>
+</ul>
+<h4 id="update-user">Update User</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>PUT /api/users/&lt;id&gt;/</code> or <code>PATCH /api/users/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Update user information (full or partial)</li>
+</ul>
+<h4 id="delete-user">Delete User</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>DELETE /api/users/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Delete a user account</li>
+<li><strong>Response</strong>: <code>204 No Content</code></li>
+</ul>
+<h4 id="user-certificates-management">User Certificates Management</h4>
+<h5 id="get-user-certificates">Get User Certificates</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/users/&lt;user_id&gt;/certificates/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: List all certificates for a specific user</li>
+</ul>
+<h5 id="add-certificate-to-user">Add Certificate to User</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/users/&lt;user_id&gt;/certificates/add/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "certificate_id": 5
+  }</code></p>
+<h5 id="remove-certificate-from-user">Remove Certificate from User</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>DELETE /api/users/&lt;user_id&gt;/certificates/&lt;certificate_id&gt;/remove/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Remove a certificate from user</li>
+</ul>
+<h4 id="user-ranks-management">User Ranks Management</h4>
+<h5 id="get-user-ranks">Get User Ranks</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/users/&lt;user_id&gt;/ranks/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: List all ranks assigned to a user (includes assigned_code)</li>
+</ul>
+<h5 id="add-rank-to-user">Add Rank to User</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/users/&lt;user_id&gt;/ranks/add/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "rank_id": 3
+  }</code></p>
+<h5 id="assign-rank-alternative">Assign Rank (Alternative)</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/users/&lt;user_id&gt;/assign-rank/&lt;rank_id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Assign a rank to user with auto-generated code</li>
+</ul>
+<h5 id="remove-rank-from-user">Remove Rank from User</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>DELETE /api/users/&lt;user_id&gt;/ranks/&lt;rank_id&gt;/remove/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<hr />
+<h3 id="contracts">Contracts</h3>
+<p>Employment contracts track seafarer assignments to ships.</p>
+<h4 id="list-contracts">List Contracts</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/contracts/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: List all employment contracts</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "user": "seafarer@example.com",
+      "ship": "MV Ocean Star (IMO1234567)",
+      "rank": "DO-1.000 - Master",
+      "sign_on_date": "2024-01-15",
+      "sign_off_date": "2024-07-15",
+      "salary": "5000.00",
+      "status": "Active",
+      "signed_file": "/media/contracts/signed/contract_001.pdf",
+      "signed_at": "2024-01-14T15:30:00Z",
+      "created_at": "2024-01-10T10:00:00Z",
+      "updated_at": "2024-01-10T10:00:00Z"
+    }
+  ]</code></p>
+<h4 id="create-contract">Create Contract</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/contracts/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "user_id": 5,
+    "ship_id": 3,
+    "rank_id": 1,
+    "sign_on_date": "2024-01-15",
+    "sign_off_date": "2024-07-15",
+    "salary": "5000.00",
+    "status": "Pending Signature"
+  }</code></p>
+<p><strong>Available Contract Statuses</strong>:</p>
+<ul>
+<li><code>Draft</code> - Contract being prepared</li>
+<li><code>Pending Signature</code> - Awaiting signatures</li>
+<li><code>Signed</code> - Contract signed and active</li>
+<li><code>Pending</code> - Pending approval</li>
+<li><code>Active</code> - Currently active</li>
+<li><code>Completed</code> - Contract finished</li>
+</ul>
+<p><strong>Contract Document Management</strong>:</p>
+<ul>
+<li>Use <code>multipart/form-data</code> to upload signed contract files</li>
+<li>Field: <code>signed_file</code> (PDF recommended)</li>
+<li>Field: <code>signed_at</code> (automatically set when file uploaded)</li>
+</ul>
+<h4 id="get-contract-details">Get Contract Details</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/contracts/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h4 id="update-contract">Update Contract</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>PUT /api/contracts/&lt;id&gt;/</code> or <code>PATCH /api/contracts/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h4 id="delete-contract">Delete Contract</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>DELETE /api/contracts/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Response</strong>: <code>204 No Content</code></li>
+</ul>
+<hr />
+<h3 id="certificates-ranks">Certificates &amp; Ranks</h3>
+<h4 id="certificates">Certificates</h4>
+<h5 id="list-all-certificates">List All Certificates</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/certificates/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Get all available certificates</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "code": "PERSONAL_SURVIVAL_TECHNIQUES",
+      "name": "Personal Survival Techniques"
+    }
+  ]</code></p>
+<h5 id="create-certificate">Create Certificate</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/certificates/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h5 id="getupdatedelete-certificate">Get/Update/Delete Certificate</h5>
+<ul>
+<li><strong>Endpoints</strong>: <code>GET/PUT/PATCH/DELETE /api/certificates/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h4 id="ranks">Ranks</h4>
+<h5 id="list-all-ranks">List All Ranks</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/ranks/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Get all available ranks</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "code": "DO-1.000",
+      "name": "Master"
+    },
+    {
+      "id": 2,
+      "code": "DO-2.000",
+      "name": "1st. Officer – Chief Off."
+    }
+  ]</code></p>
+<h5 id="create-rank">Create Rank</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/ranks/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h5 id="getupdatedelete-rank">Get/Update/Delete Rank</h5>
+<ul>
+<li><strong>Endpoints</strong>: <code>GET/PUT/PATCH/DELETE /api/ranks/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<hr />
+<h3 id="references-sea-services">References &amp; Sea Services</h3>
+<h4 id="references">References</h4>
+<h5 id="list-references">List References</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/references/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h5 id="create-reference">Create Reference</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/references/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "user": 5,
+    "company_name": "Maritime Services Ltd",
+    "position": "Chief Engineer",
+    "name": "John Smith",
+    "tel": "+1234567890",
+    "email": "john.smith@maritime.com"
+  }</code></p>
+<h5 id="getupdatedelete-reference">Get/Update/Delete Reference</h5>
+<ul>
+<li><strong>Endpoints</strong>: <code>GET/PUT/PATCH/DELETE /api/references/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h4 id="sea-services">Sea Services</h4>
+<h5 id="list-sea-services">List Sea Services</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/sea-services/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h5 id="create-sea-service">Create Sea Service</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/sea-services/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "user": 5,
+    "company_name": "Ocean Shipping Co.",
+    "rank": "Second Officer",
+    "vessel_name_imo": "MV Atlantic / IMO9876543",
+    "flag": "Panama",
+    "signed_on": "2022-01-15",
+    "signed_off": "2022-07-15",
+    "period": "6 months",
+    "vessel_type": "Container Ship",
+    "dwt_grt": "50000 DWT",
+    "engine_type_bh_kw": "MAN B&amp;W 12000 KW",
+    "reason_for_sign_off": "End of contract"
+  }</code></p>
+<h5 id="getupdatedelete-sea-service">Get/Update/Delete Sea Service</h5>
+<ul>
+<li><strong>Endpoints</strong>: <code>GET/PUT/PATCH/DELETE /api/sea-services/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<hr />
+<h3 id="ships">Ships</h3>
+<h4 id="list-ships">List Ships</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/ships/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Get all ships in the fleet</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "ship_name": "MV Ocean Star",
+      "imo_number": "IMO1234567",
+      "ship_type": "Container Ship",
+      "flag": "Panama",
+      "company": "Global Shipping Ltd",
+      "status": "Active",
+      "gross_tonnage": 50000,
+      "deadweight": 70000,
+      "year_built": 2015,
+      "engine_power_kw": 12000
+    }
+  ]</code></p>
+<h4 id="create-ship">Create Ship</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/ships/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "ship_name": "MV Pacific Queen",
+    "imo_number": "IMO7654321",
+    "company": 2,
+    "ship_type": 1,
+    "flag": 3,
+    "official_no": "OFF123456",
+    "call_sign": "ABCD",
+    "mmsi_no": "123456789",
+    "port_of_registry": "Singapore",
+    "gross_tonnage": 45000,
+    "deadweight": 65000,
+    "year_built": 2018,
+    "builder": "Hyundai Heavy Industries",
+    "engine_type": "MAN B&amp;W",
+    "engine_power_kw": 11000,
+    "status": "Active"
+  }</code></p>
+<h4 id="getupdatedelete-ship">Get/Update/Delete Ship</h4>
+<ul>
+<li><strong>Endpoints</strong>: <code>GET/PUT/PATCH/DELETE /api/ships/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<hr />
+<h3 id="companies">Companies</h3>
+<h4 id="list-companies">List Companies</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/companies/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "company_name": "Global Shipping Ltd",
+      "company_type": "Shipping",
+      "open_positions": 5,
+      "status": "Active",
+      "contact_email": "hr@globalshipping.com",
+      "hourly_rate": "25.00",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]</code></p>
+<h4 id="create-company">Create Company</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/companies/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "company_name": "Pacific Maritime Services",
+    "company_type": "Offshore",
+    "open_positions": 10,
+    "status": "Active",
+    "contact_email": "contact@pacificmaritime.com",
+    "hourly_rate": "30.00"
+  }</code></p>
+<h4 id="getupdatedelete-company">Get/Update/Delete Company</h4>
+<ul>
+<li><strong>Endpoints</strong>: <code>GET/PUT/PATCH/DELETE /api/companies/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<hr />
+<h3 id="tickets-papers">Tickets &amp; Papers</h3>
+<h4 id="tickets">Tickets</h4>
+<h5 id="list-tickets">List Tickets</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/tickets-papers/tickets/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: List all tickets (can filter by user)</li>
+</ul>
+<h5 id="create-ticket">Create Ticket</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/tickets-papers/tickets/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Content-Type</strong>: <code>multipart/form-data</code></li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>user: 5
+  ticket_number: TKT-2024-001
+  file: [binary file data]</code></p>
+<h5 id="getupdatedelete-ticket">Get/Update/Delete Ticket</h5>
+<ul>
+<li><strong>Endpoints</strong>: <code>GET/PUT/PATCH/DELETE /api/tickets-papers/tickets/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h4 id="traveling-papers">Traveling Papers</h4>
+<h5 id="list-traveling-papers">List Traveling Papers</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/tickets-papers/traveling-papers/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h5 id="create-traveling-paper">Create Traveling Paper</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/tickets-papers/traveling-papers/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Content-Type</strong>: <code>multipart/form-data</code></li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>user: 5
+  title: Visa Document
+  issued_date: 2024-01-15
+  file: [binary file data]</code></p>
+<h5 id="getupdatedelete-traveling-paper">Get/Update/Delete Traveling Paper</h5>
+<ul>
+<li><strong>Endpoints</strong>: <code>GET/PUT/PATCH/DELETE /api/tickets-papers/traveling-papers/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<hr />
+<h3 id="core-data">Core Data</h3>
+<p>Reference data for ships and other entities.</p>
+<h4 id="flags">Flags</h4>
+<h5 id="list-flags">List Flags</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/core/flags/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Get all country flags</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "name": "Panama",
+      "icon": "/media/flags/panama.png"
+    }
+  ]</code></p>
+<h5 id="createupdatedelete-flag">Create/Update/Delete Flag</h5>
+<ul>
+<li><strong>Endpoints</strong>: <code>POST/PUT/PATCH/DELETE /api/core/flags/</code> or <code>/api/core/flags/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h4 id="vessel-types">Vessel Types</h4>
+<h5 id="list-vessel-types">List Vessel Types</h5>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/core/vessel-types/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Get all vessel types</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "name": "Container Ship"
+    },
+    {
+      "id": 2,
+      "name": "Bulk Carrier"
+    }
+  ]</code></p>
+<h5 id="createupdatedelete-vessel-type">Create/Update/Delete Vessel Type</h5>
+<ul>
+<li><strong>Endpoints</strong>: <code>POST/PUT/PATCH/DELETE /api/core/vessel-types/</code> or <code>/api/core/vessel-types/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<hr />
+<h3 id="finance">Finance</h3>
+<h4 id="list-finance-records">List Finance Records</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/finance/finance-records/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Get all financial records</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "user": 5,
+      "company": 2,
+      "start_date": "2024-01-01",
+      "end_date": "2024-01-31",
+      "total_days": 31,
+      "daily_rate": "200.00",
+      "total_money": "6200.00",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]</code></p>
+<h4 id="create-finance-record">Create Finance Record</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/finance/finance-records/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "user": 5,
+    "company": 2,
+    "start_date": "2024-02-01",
+    "end_date": "2024-02-29"
+  }</code></p>
+<ul>
+<li><strong>Note</strong>: <code>total_days</code>, <code>daily_rate</code>, and <code>total_money</code> are calculated automatically</li>
+</ul>
+<h4 id="getupdatedelete-finance-record">Get/Update/Delete Finance Record</h4>
+<ul>
+<li><strong>Endpoints</strong>: <code>GET/PUT/PATCH/DELETE /api/finance/finance-records/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<hr />
+<h3 id="interviews">Interviews</h3>
+<p>Manage candidate interviews for recruitment.</p>
+<h4 id="list-interviews">List Interviews</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/interviews/interviews/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: List all scheduled interviews</li>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  [
+    {
+      "id": 1,
+      "candidate": {
+        "id": 5,
+        "email": "candidate@example.com",
+        "first_name": "Sara",
+        "role": "Employee"
+      },
+      "interviewer": {
+        "id": 2,
+        "email": "hr@example.com",
+        "first_name": "John",
+        "role": "HR Manager"
+      },
+      "date": "2024-12-15T14:00:00Z",
+      "status": "Scheduled",
+      "notes": "Technical interview for Chief Engineer position",
+      "link": "https://zoom.us/j/123456789",
+      "created_at": "2024-11-20T10:00:00Z",
+      "updated_at": "2024-11-20T10:00:00Z"
+    }
+  ]</code></p>
+<h4 id="create-interview">Create Interview</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /api/interviews/interviews/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Schedule a new interview</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "candidate": 5,
+    "interviewer": 2,
+    "date": "2024-12-15T14:00:00Z",
+    "status": "Scheduled",
+    "notes": "Technical interview for Chief Engineer position",
+    "link": "https://zoom.us/j/123456789"
+  }</code></p>
+<ul>
+<li><strong>Response</strong>: <code>201 Created</code></li>
+</ul>
+<p><code>json
+  {
+    "id": 1,
+    "candidate": 5,
+    "interviewer": 2,
+    "date": "2024-12-15T14:00:00Z",
+    "status": "Scheduled",
+    "notes": "Technical interview for Chief Engineer position",
+    "link": "https://zoom.us/j/123456789",
+    "created_at": "2024-11-27T00:00:00Z",
+    "updated_at": "2024-11-27T00:00:00Z"
+  }</code></p>
+<p><strong>Available Interview Statuses</strong>:</p>
+<ul>
+<li><code>Scheduled</code> - Interview is scheduled</li>
+<li><code>Completed</code> - Interview has been conducted</li>
+<li><code>Pending Confirmation</code> - Awaiting confirmation from parties</li>
+<li><code>Cancelled</code> - Interview cancelled</li>
+</ul>
+<h4 id="get-interview-details">Get Interview Details</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /api/interviews/interviews/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Retrieve detailed information for a specific interview</li>
+<li><strong>Response</strong>: <code>200 OK</code> (includes nested candidate and interviewer details)</li>
+</ul>
+<h4 id="update-interview">Update Interview</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>PUT /api/interviews/interviews/&lt;id&gt;/</code> or <code>PATCH /api/interviews/interviews/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Update interview information (full or partial)</li>
+<li><strong>Example PATCH</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "status": "Completed",
+    "notes": "Candidate performed well. Recommended for hire."
+  }</code></p>
+<h4 id="delete-interview">Delete Interview</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>DELETE /api/interviews/interviews/&lt;id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Delete an interview</li>
+<li><strong>Response</strong>: <code>204 No Content</code></li>
+</ul>
+<hr />
+<h3 id="ai-agents">AI Agents</h3>
+<p>AI-powered chat and search functionality.</p>
+<h4 id="chat-search">Chat Search</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /ai-agents/chat/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Send a chat message and get AI-powered response</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "message": "Find all masters available for assignment",
+    "session_id": "optional-uuid-for-continuing-conversation"
+  }</code></p>
+<h4 id="chat-history">Chat History</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /ai-agents/chat/history/&lt;session_id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Retrieve chat history for a specific session</li>
+</ul>
+<h4 id="user-sessions">User Sessions</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /ai-agents/chat/sessions/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: List all chat sessions for the authenticated user</li>
+</ul>
+<h4 id="search-capabilities">Search Capabilities</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /ai-agents/capabilities/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Get information about available search capabilities</li>
+</ul>
+<hr />
+<h3 id="ai-document-processing">AI Document Processing</h3>
+<p>Automated document extraction and data mapping to user profiles.</p>
+<h4 id="upload-document">Upload Document</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /ai/upload/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Content-Type</strong>: <code>multipart/form-data</code></li>
+<li><strong>Description</strong>: Upload a document (CV, application form) for AI processing</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>document: [PDF/Image file]</code></p>
+<ul>
+<li><strong>Response</strong>: <code>200 OK</code></li>
+</ul>
+<p><code>json
+  {
+    "success": true,
+    "applicant_id": 15,
+    "user_id": 42,
+    "message": "Document processed and data saved to both Applicant and Users models"
+  }</code></p>
+<ul>
+<li><strong>What it does</strong>:</li>
+<li>Extracts data from uploaded document using AI</li>
+<li>Saves to <code>Applicant</code> model (ai_document app)</li>
+<li>Automatically maps and saves to <code>Users</code> model (api app)</li>
+<li>Handles complex field mappings between different structures</li>
+</ul>
+<h4 id="list-applicants">List Applicants</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /ai/applicants/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: List all processed applicants</li>
+</ul>
+<h4 id="get-applicant-details">Get Applicant Details</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /ai/applicants/&lt;applicant_id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Get detailed information for a specific applicant</li>
+</ul>
+<h4 id="update-applicant">Update Applicant</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>PUT /ai/applicants/&lt;applicant_id&gt;/</code> or <code>PATCH /ai/applicants/&lt;applicant_id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h4 id="delete-applicant">Delete Applicant</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>DELETE /ai/applicants/&lt;applicant_id&gt;/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+</ul>
+<h4 id="convert-applicant-to-user">Convert Applicant to User</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /ai/convert/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Manually convert an applicant to a user</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "applicant_id": 15
+  }</code></p>
+<h4 id="batch-convert-applicants">Batch Convert Applicants</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>POST /ai/batch-convert/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Convert multiple applicants to users</li>
+<li><strong>Request Body</strong>:</li>
+</ul>
+<p><code>json
+  {
+    "applicant_ids": [15, 16, 17]
+  }</code></p>
+<h4 id="check-sync-status">Check Sync Status</h4>
+<ul>
+<li><strong>Endpoint</strong>: <code>GET /ai/sync-status/</code></li>
+<li><strong>Authentication</strong>: Required</li>
+<li><strong>Description</strong>: Check synchronization status between Applicant and Users models</li>
+<li><strong>Query Parameters</strong>:</li>
+<li><code>applicant_id</code>: ID of applicant to check</li>
+</ul>
+<hr />
+<h2 id="data-models">📊 Data Models</h2>
+<h3 id="user-model">User Model</h3>
+<p>The <code>Users</code> model is the core of the system, extending Django's <code>AbstractBaseUser</code>.</p>
+<p><strong>Key Fields</strong>:</p>
+<p><strong>Authentication &amp; Basic Info</strong>:</p>
+<ul>
+<li><code>email</code> (EmailField, unique) - Login credential</li>
+<li><code>first_name</code>, <code>middle_name</code> (CharField)</li>
+<li><code>profile_image</code> (ImageField)</li>
+</ul>
+<p><strong>Personal Information</strong>:</p>
+<ul>
+<li><code>age</code>, <code>date_of_birth</code>, <code>blood_type</code></li>
+<li><code>nationality</code>, <code>Place_Of_Birth</code></li>
+<li><code>marital_status</code> (SINGLE, MARRIED)</li>
+<li><code>user_status</code> (VECATION, ON_SITE, MEDICAL VECATION)</li>
+<li><code>Height_Cm</code>, <code>Weight_Kg</code></li>
+<li><code>smoker</code> (Boolean)</li>
+</ul>
+<p><strong>Contact</strong>:</p>
+<ul>
+<li><code>address</code>, <code>phone_number</code>, <code>tel_number</code></li>
+</ul>
+<p><strong>Travel Documents</strong>:</p>
+<ul>
+<li>Passport: <code>passport_no</code>, <code>passport_issue_date</code>, <code>passport_expiry_date</code>, <code>passport_issued_by</code>, <code>passport_place_of_issue</code></li>
+<li>Seaman Book: <code>seaman_book_no</code>, <code>seaman_book_issue_date</code>, <code>seaman_book_expiry_date</code>, etc.</li>
+<li>Other Seaman Book: Similar fields with <code>other_</code> prefix</li>
+</ul>
+<p><strong>Professional Qualifications</strong>:</p>
+<ul>
+<li>COC Certificate: <code>coc_certificate_name</code>, <code>coc_certificate_number</code>, <code>coc_issue_date</code>, <code>coc_expiry_date</code>, <code>coc_issued_by</code>, <code>coc_issued_at</code></li>
+<li>GOC Certificate: Similar fields with <code>goc_</code> prefix</li>
+<li>Marlins Test: <code>marlins_test_result</code>, <code>marlins_test_issued_date</code>, etc.</li>
+</ul>
+<p><strong>Health &amp; Medical</strong>:</p>
+<ul>
+<li>Health Certificate: <code>health_flag_state</code>, <code>health_number</code>, <code>health_issue_date</code>, <code>health_expiry_date</code></li>
+<li>International Medical: <code>international_medical_number</code>, dates</li>
+<li>Vaccinations: <code>yellow_fever_*</code>, <code>cholera_*</code></li>
+<li>COVID-19: <code>covid_vaccine_name</code>, <code>covid_first_dose</code>, <code>covid_second_dose</code>, <code>covid_other_doses_or_remarks</code></li>
+</ul>
+<p><strong>Next of Kin</strong>:</p>
+<ul>
+<li><code>next_of_kin_full_name</code>, <code>next_of_kin_relationship</code>, <code>next_of_kin_address_country</code>, <code>next_of_kin_phone</code>, <code>next_of_kin_email</code></li>
+</ul>
+<p><strong>Additional Information</strong>:</p>
+<ul>
+<li>Clothing sizes: <code>overall_size</code>, <code>shirt_size</code>, <code>trouser_size</code>, <code>shoes_size</code></li>
+<li>Languages: <code>english_language_level</code>, <code>other_language</code>, <code>other_language_level</code></li>
+<li>Medical history: <code>disease_history</code>, <code>accident_history</code>, <code>psychiatric_treatment_history</code>, <code>addiction_history</code></li>
+<li>Declaration: <code>declaration_consent</code>, <code>declaration_date</code>, <code>declaration_place</code></li>
+<li>Assessment: <code>initial_assessment_comments</code>, <code>responsible_person_name</code>, <code>assessment_date</code></li>
+</ul>
+<p><strong>Relationships</strong>:</p>
+<ul>
+<li><code>certificates</code> (ManyToMany with Certificate)</li>
+<li><code>codes</code> (ManyToMany with Rank via UserRank)</li>
+<li><code>contracts</code> (ForeignKey from Contract)</li>
+<li><code>references</code> (ForeignKey from Reference)</li>
+<li><code>sea_services</code> (ForeignKey from SeaService)</li>
+<li><code>tickets</code> (ForeignKey from Ticket)</li>
+<li><code>traveling_papers</code> (ForeignKey from TravelingPaper)</li>
+</ul>
+<h3 id="contract-model">Contract Model</h3>
+<p>Tracks employment assignments.</p>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><code>user</code> (ForeignKey to Users)</li>
+<li><code>ship</code> (ForeignKey to Ship)</li>
+<li><code>rank</code> (ForeignKey to Rank)</li>
+<li><code>sign_on_date</code>, <code>sign_off_date</code> (DateField)</li>
+<li><code>salary</code> (DecimalField)</li>
+<li><code>status</code> (Active, Completed, Pending)</li>
+</ul>
+<h3 id="ship-model">Ship Model</h3>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><code>ship_name</code>, <code>imo_number</code> (unique)</li>
+<li><code>company</code> (ForeignKey to Company)</li>
+<li><code>ship_type</code> (ForeignKey to VesselType)</li>
+<li><code>flag</code> (ForeignKey to Flag)</li>
+<li><code>official_no</code>, <code>call_sign</code>, <code>mmsi_no</code>, <code>port_of_registry</code></li>
+<li><code>gross_tonnage</code>, <code>deadweight</code>, <code>year_built</code></li>
+<li><code>builder</code>, <code>engine_type</code>, <code>engine_power_kw</code></li>
+<li><code>status</code> (Active, Under Maintenance, Inactive)</li>
+<li><code>crew</code> (ManyToMany with Users)</li>
+</ul>
+<h3 id="company-model">Company Model</h3>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><code>company_name</code> (unique)</li>
+<li><code>company_type</code> (Shipping, Cruise, Cargo, Offshore, Other)</li>
+<li><code>open_positions</code>, <code>status</code>, <code>contact_email</code></li>
+<li><code>hourly_rate</code> (DecimalField)</li>
+</ul>
+<h3 id="certificate-model">Certificate Model</h3>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><code>code</code> (unique) - e.g., "PERSONAL_SURVIVAL_TECHNIQUES"</li>
+<li><code>name</code> - Human-readable name</li>
+</ul>
+<p><strong>Available Certificates</strong> (102 types including):</p>
+<ul>
+<li>Personal Survival Techniques</li>
+<li>Fire Prevention and Fire Fighting</li>
+<li>GMDSS, ECDIS, ARPA</li>
+<li>Bridge/Engine Resource Management</li>
+<li>High Voltage Training</li>
+<li>Ship's Cook Certificate</li>
+<li>And many more...</li>
+</ul>
+<h3 id="rank-model">Rank Model</h3>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><code>code</code> (unique) - e.g., "DO-1.000"</li>
+<li><code>name</code> - e.g., "Master"</li>
+</ul>
+<p><strong>Available Ranks</strong> (51 types):</p>
+<ul>
+<li><strong>Deck Officers</strong>: Master, Chief Officer, 2nd Officer, 3rd Officer</li>
+<li><strong>Deck Ratings</strong>: Boson, A.B, Steward, Cook, Carpenter</li>
+<li><strong>Engine Officers</strong>: 1st Engineer, 2nd Engineer, 3rd Engineer, 4th Engineer, Electrical Engineer</li>
+<li><strong>Engine Ratings</strong>: Electrician, Motor Man, Oiler, Fitter, Welder, Wiper</li>
+</ul>
+<h3 id="userrank-model">UserRank Model</h3>
+<p>Links users to ranks with auto-generated sequential codes.</p>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><code>user</code> (ForeignKey to Users)</li>
+<li><code>rank</code> (ForeignKey to Rank)</li>
+<li><code>assigned_code</code> (auto-generated, e.g., "DO-1.001", "DO-1.002")</li>
+</ul>
+<h3 id="reference-model">Reference Model</h3>
+<p>Professional references for seafarers.</p>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><code>user</code>, <code>company_name</code>, <code>position</code>, <code>name</code>, <code>tel</code>, <code>email</code></li>
+</ul>
+<h3 id="seaservice-model">SeaService Model</h3>
+<p>Previous employment history.</p>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><code>user</code>, <code>company_name</code>, <code>rank</code>, <code>vessel_name_imo</code></li>
+<li><code>flag</code>, <code>signed_on</code>, <code>signed_off</code>, <code>period</code></li>
+<li><code>vessel_type</code>, <code>dwt_grt</code>, <code>engine_type_bh_kw</code></li>
+<li><code>reason_for_sign_off</code></li>
+</ul>
+<h3 id="ticket-travelingpaper-models">Ticket &amp; TravelingPaper Models</h3>
+<p>Document management.</p>
+<p><strong>Ticket</strong>:</p>
+<ul>
+<li><code>user</code>, <code>ticket_number</code>, <code>file</code>, <code>created_at</code></li>
+</ul>
+<p><strong>TravelingPaper</strong>:</p>
+<ul>
+<li><code>user</code>, <code>title</code>, <code>issued_date</code>, <code>file</code>, <code>created_at</code></li>
+</ul>
+<h3 id="financerecord-model">FinanceRecord Model</h3>
+<p>Financial tracking with automatic calculations.</p>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><code>user</code>, <code>company</code>, <code>start_date</code>, <code>end_date</code></li>
+</ul>
+<p><strong>Calculated Properties</strong>:</p>
+<ul>
+<li><code>total_days</code>: Days between start and end</li>
+<li><code>daily_rate</code>: Company hourly_rate × 8 hours</li>
+<li><code>total_money</code>: total_days × daily_rate</li>
+</ul>
+<h3 id="flag-vesseltype-models">Flag &amp; VesselType Models</h3>
+<p>Reference data for ships.</p>
+<p><strong>Flag</strong>:</p>
+<ul>
+<li><code>name</code>, <code>icon</code> (ImageField)</li>
+</ul>
+<p><strong>VesselType</strong>:</p>
+<ul>
+<li><code>name</code> (e.g., "Container Ship", "Bulk Carrier")</li>
+</ul>
+<hr />
+<h2 id="requestresponse-examples">📝 Request/Response Examples</h2>
+<h3 id="example-1-complete-user-registration-and-setup">Example 1: Complete User Registration and Setup</h3>
+<pre><code class="language-bash"># 1. Register new user
+curl -X POST http://127.0.0.1:8000/api/register/ \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;email&quot;: &quot;captain.smith@maritime.com&quot;,
+    &quot;password&quot;: &quot;SecurePass123!&quot;,
+    &quot;first_name&quot;: &quot;James&quot;
+  }'
+
+# 2. Login to get tokens
+curl -X POST http://127.0.0.1:8000/api/login/ \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;email&quot;: &quot;captain.smith@maritime.com&quot;,
+    &quot;password&quot;: &quot;SecurePass123!&quot;
+  }'
+
+# Response:
+{
+  &quot;refresh&quot;: &quot;eyJ0eXAiOiJKV1QiLCJhbGc...&quot;,
+  &quot;access&quot;: &quot;eyJ0eXAiOiJKV1QiLCJhbGc...&quot;
+}
+
+# 3. Update user profile with detailed information
+curl -X PATCH http://127.0.0.1:8000/api/users/1/ \
+  -H &quot;Authorization: Bearer &lt;access_token&gt;&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;middle_name&quot;: &quot;Robert&quot;,
+    &quot;phone_number&quot;: &quot;+20123456789&quot;,
+    &quot;nationality&quot;: &quot;Egypt&quot;,
+    &quot;date_of_birth&quot;: &quot;1980-05-15&quot;,
+    &quot;passport_no&quot;: &quot;A12345678&quot;,
+    &quot;passport_issue_date&quot;: &quot;2020-01-01&quot;,
+    &quot;passport_expiry_date&quot;: &quot;2030-01-01&quot;,
+    &quot;passport_issued_by&quot;: &quot;Egyptian Government&quot;,
+    &quot;marital_status&quot;: &quot;MARRIED&quot;,
+    &quot;user_status&quot;: &quot;ON_SITE&quot;
+  }'
+
+# 4. Add certificates to user
+curl -X POST http://127.0.0.1:8000/api/users/1/certificates/add/ \
+  -H &quot;Authorization: Bearer &lt;access_token&gt;&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{&quot;certificate_id&quot;: 1}'
+
+# 5. Assign rank to user
+curl -X POST http://127.0.0.1:8000/api/users/1/assign-rank/1/ \
+  -H &quot;Authorization: Bearer &lt;access_token&gt;&quot;
+</code></pre>
+<h3 id="example-2-create-employment-contract">Example 2: Create Employment Contract</h3>
+<pre><code class="language-bash"># 1. Create a contract
+curl -X POST http://127.0.0.1:8000/api/contracts/ \
+  -H &quot;Authorization: Bearer &lt;access_token&gt;&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;user_id&quot;: 1,
+    &quot;ship_id&quot;: 5,
+    &quot;rank_id&quot;: 1,
+    &quot;sign_on_date&quot;: &quot;2024-01-15&quot;,
+    &quot;sign_off_date&quot;: &quot;2024-07-15&quot;,
+    &quot;salary&quot;: &quot;5000.00&quot;,
+    &quot;status&quot;: &quot;Active&quot;
+  }'
+
+# Response:
+{
+  &quot;id&quot;: 10,
+  &quot;user&quot;: &quot;captain.smith@maritime.com&quot;,
+  &quot;ship&quot;: &quot;MV Ocean Star (IMO1234567)&quot;,
+  &quot;rank&quot;: &quot;DO-1.000 - Master&quot;,
+  &quot;sign_on_date&quot;: &quot;2024-01-15&quot;,
+  &quot;sign_off_date&quot;: &quot;2024-07-15&quot;,
+  &quot;salary&quot;: &quot;5000.00&quot;,
+  &quot;status&quot;: &quot;Active&quot;,
+  &quot;created_at&quot;: &quot;2024-01-10T10:00:00Z&quot;,
+  &quot;updated_at&quot;: &quot;2024-01-10T10:00:00Z&quot;
+}
+</code></pre>
+<h3 id="example-3-upload-documents">Example 3: Upload Documents</h3>
+<pre><code class="language-bash"># Upload a ticket
+curl -X POST http://127.0.0.1:8000/api/tickets-papers/tickets/ \
+  -H &quot;Authorization: Bearer &lt;access_token&gt;&quot; \
+  -F &quot;user=1&quot; \
+  -F &quot;ticket_number=TKT-2024-001&quot; \
+  -F &quot;file=@/path/to/ticket.pdf&quot;
+
+# Upload traveling paper
+curl -X POST http://127.0.0.1:8000/api/tickets-papers/traveling-papers/ \
+  -H &quot;Authorization: Bearer &lt;access_token&gt;&quot; \
+  -F &quot;user=1&quot; \
+  -F &quot;title=US Visa&quot; \
+  -F &quot;issued_date=2024-01-15&quot; \
+  -F &quot;file=@/path/to/visa.pdf&quot;
+</code></pre>
+<h3 id="example-4-ai-document-processing">Example 4: AI Document Processing</h3>
+<pre><code class="language-bash"># Upload CV for automatic processing
+curl -X POST http://127.0.0.1:8000/ai/upload/ \
+  -H &quot;Authorization: Bearer &lt;access_token&gt;&quot; \
+  -F &quot;document=@/path/to/seafarer_cv.pdf&quot;
+
+# Response:
+{
+  &quot;success&quot;: true,
+  &quot;applicant_id&quot;: 25,
+  &quot;user_id&quot;: 50,
+  &quot;message&quot;: &quot;Document processed successfully&quot;,
+  &quot;extracted_data&quot;: {
+    &quot;first_name&quot;: &quot;John&quot;,
+    &quot;email&quot;: &quot;john.doe@example.com&quot;,
+    &quot;nationality&quot;: &quot;Philippines&quot;,
+    &quot;certificates&quot;: [&quot;STCW Basic Safety&quot;, &quot;GMDSS&quot;],
+    &quot;rank&quot;: &quot;Second Officer&quot;
+  }
+}
+</code></pre>
+<h3 id="example-5-finance-tracking">Example 5: Finance Tracking</h3>
+<pre><code class="language-bash"># Create finance record
+curl -X POST http://127.0.0.1:8000/api/finance/finance-records/ \
+  -H &quot;Authorization: Bearer &lt;access_token&gt;&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;user&quot;: 1,
+    &quot;company&quot;: 2,
+    &quot;start_date&quot;: &quot;2024-01-01&quot;,
+    &quot;end_date&quot;: &quot;2024-01-31&quot;
+  }'
+
+# Response (with calculated fields):
+{
+  &quot;id&quot;: 5,
+  &quot;user&quot;: 1,
+  &quot;company&quot;: 2,
+  &quot;start_date&quot;: &quot;2024-01-01&quot;,
+  &quot;end_date&quot;: &quot;2024-01-31&quot;,
+  &quot;total_days&quot;: 31,
+  &quot;daily_rate&quot;: &quot;200.00&quot;,
+  &quot;total_money&quot;: &quot;6200.00&quot;,
+  &quot;created_at&quot;: &quot;2024-01-15T10:00:00Z&quot;
+}
+</code></pre>
+<hr />
+<h2 id="error-handling">⚠️ Error Handling</h2>
+<p>The API uses standard HTTP status codes:</p>
+<h3 id="success-codes">Success Codes</h3>
+<ul>
+<li><code>200 OK</code>: Request succeeded</li>
+<li><code>201 Created</code>: Resource created successfully</li>
+<li><code>204 No Content</code>: Resource deleted successfully</li>
+</ul>
+<h3 id="client-error-codes">Client Error Codes</h3>
+<ul>
+<li><code>400 Bad Request</code>: Invalid request data</li>
+</ul>
+<p><code>json
+  {
+    "email": ["This field is required."],
+    "password": ["This field may not be blank."]
+  }</code></p>
+<ul>
+<li><code>401 Unauthorized</code>: Missing or invalid authentication</li>
+</ul>
+<p><code>json
+  {
+    "detail": "Authentication credentials were not provided."
+  }</code></p>
+<ul>
+<li><code>403 Forbidden</code>: Insufficient permissions</li>
+</ul>
+<p><code>json
+  {
+    "detail": "You do not have permission to perform this action."
+  }</code></p>
+<ul>
+<li><code>404 Not Found</code>: Resource not found</li>
+</ul>
+<p><code>json
+  {
+    "detail": "Not found."
+  }</code></p>
+<ul>
+<li><code>409 Conflict</code>: Resource conflict (e.g., duplicate email)</li>
+</ul>
+<p><code>json
+  {
+    "email": ["This email is already registered."]
+  }</code></p>
+<h3 id="server-error-codes">Server Error Codes</h3>
+<ul>
+<li><code>500 Internal Server Error</code>: Server-side error</li>
+</ul>
+<p><code>json
+  {
+    "detail": "An error occurred processing your request."
+  }</code></p>
+<h3 id="jwt-token-errors">JWT Token Errors</h3>
+<p><strong>Expired Token</strong>:</p>
+<pre><code class="language-json">{
+  &quot;detail&quot;: &quot;Given token not valid for any token type&quot;,
+  &quot;code&quot;: &quot;token_not_valid&quot;,
+  &quot;messages&quot;: [
+    {
+      &quot;token_class&quot;: &quot;AccessToken&quot;,
+      &quot;token_type&quot;: &quot;access&quot;,
+      &quot;message&quot;: &quot;Token is expired&quot;
+    }
+  ]
+}
+</code></pre>
+<p><strong>Solution</strong>: Use refresh token to get new access token</p>
+<p><strong>Invalid Token</strong>:</p>
+<pre><code class="language-json">{
+  &quot;detail&quot;: &quot;Token is invalid or expired&quot;,
+  &quot;code&quot;: &quot;token_not_valid&quot;
+}
+</code></pre>
+<hr />
+<h2 id="getting-started">🚀 Getting Started</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Python 3.8+</li>
+<li>pip</li>
+<li>Virtual environment (recommended)</li>
+</ul>
+<h3 id="installation">Installation</h3>
+<pre><code class="language-bash"># 1. Clone the repository
+git clone &lt;repository-url&gt;
+cd django-test
+
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Run migrations
+python manage.py makemigrations
+python manage.py migrate
+
+# 5. Create superuser
+python manage.py createsuperuser
+# Note: Use email as login field
+
+# 6. Run development server
+python manage.py runserver
+</code></pre>
+<h3 id="access-points">Access Points</h3>
+<ul>
+<li><strong>API Base</strong>: <a href="http://127.0.0.1:8000/api/">http://127.0.0.1:8000/api/</a></li>
+<li><strong>Admin Panel</strong>: <a href="http://127.0.0.1:8000/admin/">http://127.0.0.1:8000/admin/</a></li>
+<li><strong>API Documentation</strong>: This file</li>
+</ul>
+<hr />
+<h2 id="additional-resources">📚 Additional Resources</h2>
+<h3 id="django-admin">Django Admin</h3>
+<p>The project includes a comprehensive Django Admin interface for managing:</p>
+<ul>
+<li>Users with detailed inline forms</li>
+<li>Ships and Companies</li>
+<li>Contracts and Finance Records</li>
+<li>Certificates and Ranks</li>
+<li>Documents (Tickets &amp; Papers)</li>
+<li>AI-processed Applicants</li>
+</ul>
+<p>Access at: <a href="http://127.0.0.1:8000/admin/">http://127.0.0.1:8000/admin/</a></p>
+<h3 id="filtering">Filtering</h3>
+<p>The API supports filtering on various endpoints using django-filter:</p>
+<pre><code class="language-bash"># Filter users by nationality
+GET /api/filter/?nationality=Egypt
+
+# Filter by multiple criteria
+GET /api/filter/?nationality=Egypt&amp;user_status=ON_SITE&amp;marital_status=SINGLE
+</code></pre>
+<h3 id="pagination">Pagination</h3>
+<p>List endpoints support pagination:</p>
+<pre><code class="language-bash"># Get second page with 20 items per page
+GET /api/users/?page=2&amp;page_size=20
+</code></pre>
+<h3 id="file-uploads">File Uploads</h3>
+<p>When uploading files (profile images, documents):</p>
+<ul>
+<li>Use <code>multipart/form-data</code> content type</li>
+<li>Files are stored in <code>media/</code> directory</li>
+<li>Supported formats: PDF, images (JPEG, PNG), documents</li>
+</ul>
+<hr />
+<h2 id="security-notes">🔒 Security Notes</h2>
+<ol>
+<li><strong>JWT Tokens</strong>:</li>
+<li>Access tokens are short-lived</li>
+<li>Refresh tokens expire after 15 days</li>
+<li>
+<p>Store tokens securely (never in localStorage for production)</p>
+</li>
+<li>
+<p><strong>HTTPS</strong>:</p>
+</li>
+<li>Always use HTTPS in production</li>
+<li>
+<p>Configure <code>SECURE_SSL_REDIRECT = True</code> in settings</p>
+</li>
+<li>
+<p><strong>CORS</strong>:</p>
+</li>
+<li>Configure allowed origins in production</li>
+<li>
+<p>Don't use <code>CORS_ALLOW_ALL_ORIGINS = True</code> in production</p>
+</li>
+<li>
+<p><strong>File Uploads</strong>:</p>
+</li>
+<li>Validate file types and sizes</li>
+<li>
+<p>Scan uploaded files for malware in production</p>
+</li>
+<li>
+<p><strong>Rate Limiting</strong>:</p>
+</li>
+<li>Consider implementing rate limiting for production</li>
+<li>Especially for authentication endpoints</li>
+</ol>
+<hr />
+<h2 id="support">📞 Support</h2>
+<p>For issues, questions, or contributions:</p>
+<ul>
+<li>Check existing documentation</li>
+<li>Review Django REST Framework documentation</li>
+<li>Contact the development team</li>
+</ul>
+<hr />
+<h2 id="license">📄 License</h2>
+<p>[Specify your license here]</p>
+<hr />
+<p><strong>Last Updated</strong>: November 2024<br />
+<strong>API Version</strong>: 1.0<br />
+<strong>Django Version</strong>: 5.2<br />
+<strong>DRF Version</strong>: 3.16.1</p>
+    </main>
+    <script>
+        hljs.highlightAll();
+        
+        // Add IDs to headers for navigation
+        document.querySelectorAll('h2, h3').forEach(header => {
+            const id = header.textContent.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+            header.id = id;
+        });
+    </script>
+</body>
+</html>
+

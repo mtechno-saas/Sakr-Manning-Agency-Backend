@@ -1,0 +1,20 @@
+Starting debug script
+Error: No module named 'corsheaders'
+Traceback (most recent call last):
+  File "/run/media/storm/TECNO SQUEARE/django test/debug_log.py", line 14, in <module>
+    django.setup()
+  File "/home/storm/anaconda3/lib/python3.11/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/home/storm/anaconda3/lib/python3.11/site-packages/django/apps/registry.py", line 91, in populate
+    app_config = AppConfig.create(entry)
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/storm/anaconda3/lib/python3.11/site-packages/django/apps/config.py", line 193, in create
+    import_module(entry)
+  File "/home/storm/anaconda3/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'corsheaders'
+Finished
