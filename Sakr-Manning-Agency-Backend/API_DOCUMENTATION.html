@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakr Manning Agency API Documentation</title>
+    <style>
+        :root {
+            --primary-color: #0f172a;
+            --secondary-color: #1e293b;
+            --accent-color: #3b82f6;
+            --text-color: #334155;
+            --heading-color: #0f172a;
+            --code-bg: #f1f5f9;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+            top: 0;
+            left: 0;
+        }
+
+        .sidebar h1 {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: block;
+            text-decoration: none;
+            color: var(--text-color);
+            padding: 0.5rem 0;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color);
+        }
+
+        .nav-link.active {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .sub-link {
+            padding-left: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 3rem 4rem;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: var(--heading-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            scroll-margin-top: 5rem;
+            /* For sticky header clearance if needed */
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-top: 0;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 1rem;
+            margin-top: 3rem;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+        }
+
+        p,
+        ul,
+        ol {
+            margin-bottom: 1.5rem;
+        }
+
+        ul,
+        ol {
+            padding-left: 1.5rem;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: var(--code-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: #d946ef;
+            /* Distinct color for inline code */
+        }
+
+        pre code {
+            color: #334155;
+            display: block;
+        }
+
+        /* Endpoint Badge Styling */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .get {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .post {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .put {
+            background-color: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .delete {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <h1>Sakr API Docs</h1>
+        <div class="toc">
+            <a href="#overview" class="nav-link">Overview</a>
+            <a href="#auth" class="nav-link">Authentication</a>
+            <a href="#status-codes" class="nav-link">Status Codes</a>
+            <a href="#endpoints" class="nav-link">Endpoints</a>
+            <a href="#auth-endpoints" class="nav-link sub-link">1. Auth</a>
+            <a href="#users-endpoints" class="nav-link sub-link">2. Users</a>
+            <a href="#ships-endpoints" class="nav-link sub-link">3. Ships</a>
+            <a href="#companies-endpoints" class="nav-link sub-link">4. Companies</a>
+            <a href="#logistics-endpoints" class="nav-link sub-link">5. Logistics</a>
+            <a href="#finance-endpoints" class="nav-link sub-link">6. Finance</a>
+            <a href="#interviews-endpoints" class="nav-link sub-link">7. Interviews</a>
+            <a href="#core-endpoints" class="nav-link sub-link">8. Core References</a>
+            <a href="#ai-endpoints" class="nav-link sub-link">9. AI & Docs</a>
+            <a href="#examples" class="nav-link">Developer Examples</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+
+        <section id="header">
+            <h1>Sakr Manning Agency API Documentation</h1>
+            <p><strong>Version:</strong> 1.0.0<br>
+                <strong>Base URL:</strong> <code>https://api.backend.hs.vc</code> (Production) /
+                <code>http://localhost:8000</code> (Development)
+            </p>
+        </section>
+
+        <section id="overview">
+            <h2>📖 Overview</h2>
+            <p>The Sakr Manning Agency API provides a comprehensive backend for managing maritime crew, ships,
+                companies, and related logistics. It is built with Django REST Framework (DRF) and serves as the data
+                layer for the frontend application.</p>
+
+            <h3>Capabilities</h3>
+            <ul>
+                <li><strong>User Management</strong>: Crew members, admins, recruiters.</li>
+                <li><strong>Ship Management</strong>: Vessel details, crew assignments.</li>
+                <li><strong>Logistics</strong>: Tickets, traveling papers, visas.</li>
+                <li><strong>Finance</strong>: Payroll, daily rates, contracts.</li>
+                <li><strong>Recruitment</strong>: Interviews, AI-powered candidate search.</li>
+                <li><strong>AI Integration</strong>: Document parsing and intelligent chatbots.</li>
+            </ul>
+        </section>
+
+        <section id="auth">
+            <h2>🔐 Authentication</h2>
+            <p>The API uses <strong>JWT (JSON Web Token)</strong> authentication.</p>
+
+            <h3>Headers</h3>
+            <p>All authenticated requests must include the <code>Authorization</code> header:</p>
+            <pre><code>Authorization: Bearer &lt;your_access_token&gt;</code></pre>
+
+            <h3>Flow</h3>
+            <ol>
+                <li><strong>Login</strong> with username/password to get <code>access</code> and <code>refresh</code>
+                    tokens.</li>
+                <li>Use <code>access</code> token for API requests (valid for ~15 days).</li>
+                <li>When <code>access</code> token expires, use <code>refresh</code> token to get a new pair.</li>
+            </ol>
+        </section>
+
+        <section id="standards">
+            <h2>📡 Request & Response Structure</h2>
+
+            <h3>Standard Success Response</h3>
+            <p>Most endpoints return JSON objects or arrays.</p>
+            <pre><code>{
+  "id": 1,
+  "name": "Object Name",
+  "created_at": "2023-10-27T10:00:00Z"
+}</code></pre>
+
+            <h3>Standard Error Response</h3>
+            <p>Errors are returned with appropriate HTTP status codes and a detailed JSON body.</p>
+            <pre><code>{
+  "detail": "Authentication credentials were not provided."
+}</code></pre>
+
+            <h4>Validation Errors (400 Bad Request):</h4>
+            <pre><code>{
+  "email": ["Enter a valid email address."],
+  "password": ["This field is required."]
+}</code></pre>
+        </section>
+
+        <section id="status-codes">
+            <h2>🚦 Status Codes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Meaning</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>200</code></td>
+                        <td><strong>OK</strong></td>
+                        <td>Request successful.</td>
+                    </tr>
+                    <tr>
+                        <td><code>201</code></td>
+                        <td><strong>Created</strong></td>
+                        <td>Resource successfully created.</td>
+                    </tr>
+                    <tr>
+                        <td><code>204</code></td>
+                        <td><strong>No Content</strong></td>
+                        <td>Request successful, no content returned.</td>
+                    </tr>
+                    <tr>
+                        <td><code>400</code></td>
+                        <td><strong>Bad Request</strong></td>
+                        <td>Validation error or malformed request.</td>
+                    </tr>
+                    <tr>
+                        <td><code>401</code></td>
+                        <td><strong>Unauthorized</strong></td>
+                        <td>Authentication failed or token missing.</td>
+                    </tr>
+                    <tr>
+                        <td><code>403</code></td>
+                        <td><strong>Forbidden</strong></td>
+                        <td>User authenticated but lacks permission.</td>
+                    </tr>
+                    <tr>
+                        <td><code>404</code></td>
+                        <td><strong>Not Found</strong></td>
+                        <td>Resource does not exist.</td>
+                    </tr>
+                    <tr>
+                        <td><code>500</code></td>
+                        <td><strong>Internal Server Error</strong></td>
+                        <td>Server-side error.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="endpoints">
+            <h1>📚 Endpoints</h1>
+
+            <div id="auth-endpoints">
+                <h2>1. Authentication</h2>
+
+                <h3>Login (Obtain Token)</h3>
+                <p><span class="badge post">POST</span> <code>/api/login/</code></p>
+                <p>Authenticate a user and retrieve access/refresh tokens.</p>
+
+                <h4>Request Body</h4>
+                <pre><code>{
+  "email": "admin@example.com",
+  "password": "securepassword123"
+}</code></pre>
+
+                <h4>Response (200 OK)</h4>
+                <pre><code>{
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}</code></pre>
+
+                <h3>Refresh Token</h3>
+                <p><span class="badge post">POST</span> <code>/api/login/refresh/</code></p>
+                <p>Get a new access token using a valid refresh token.</p>
+                <pre><code>{ "refresh": "your_refresh_token_here" }</code></pre>
+            </div>
+
+            <div id="users-endpoints">
+                <h2>2. Users (Crew & Staff)</h2>
+
+                <h3>List All Users</h3>
+                <p><span class="badge get">GET</span> <code>/api/users/</code></p>
+                <p>Retrieve a paginated list of all users.</p>
+
+                <h4>Query Parameters</h4>
+                <ul>
+                    <li><code>page</code>: Page number (default: 1)</li>
+                    <li><code>search</code>: Search by name or email</li>
+                    <li><code>role</code>: Filter by role (Admin, Recruiter, Employee)</li>
+                </ul>
+
+                <h4>Response (200 OK)</h4>
+                <pre><code>{
+  "count": 102,
+  "next": "https://api.backend.hs.vc/api/users/?page=2",
+  "results": [
+    {
+      "id": 1,
+      "email": "crew@sakr.com",
+      "first_name": "Ahmed",
+      "role": "Employee"
+    }
+  ]
+}</code></pre>
+
+                <h3>Create User</h3>
+                <p><span class="badge post">POST</span> <code>/api/users/</code></p>
+                <p>Create a new user profile.</p>
+                <pre><code>{
+  "email": "newuser@example.com",
+  "password": "password123",
+  "first_name": "New",
+  "role": "Employee"
+}</code></pre>
+
+                <h3>Get User Details</h3>
+                <p><span class="badge get">GET</span> <code>/api/users/{id}/</code></p>
+                <p>Retrieve detailed profile for a specific user.</p>
+            </div>
+
+            <div id="ships-endpoints">
+                <h2>3. Ships (Vessels)</h2>
+
+                <h3>List Ships</h3>
+                <p><span class="badge get">GET</span> <code>/api/ships/</code></p>
+                <p>Retrieve all ships in the fleet.</p>
+
+                <h3>Create Ship</h3>
+                <p><span class="badge post">POST</span> <code>/api/ships/</code></p>
+                <p>Add a new vessel. Requires Admin or Ship Manager privileges.</p>
+
+                <h4>Request Body</h4>
+                <pre><code>{
+  "ship_name": "MV Atlantic Star",
+  "imo_number": "IMO9876543",
+  "company": 1,
+  "ship_type": 1,
+  "flag": 2,
+  "official_no": "OFF99999",
+  "crew_ids": [10, 25, 33]
+}</code></pre>
+
+                <h4>Response (201 Created)</h4>
+                <pre><code>{
+  "id": 5,
+  "ship_name": "MV Atlantic Star",
+  "crew": [ ... ]
+}</code></pre>
+            </div>
+
+            <div id="companies-endpoints">
+                <h2>4. Companies</h2>
+                <h3>List Companies</h3>
+                <p><span class="badge get">GET</span> <code>/api/companies/</code></p>
+
+                <h3>Get Company Stats</h3>
+                <p><span class="badge get">GET</span> <code>/api/companies/stats/</code></p>
+                <p>Returns aggregated statistics (active companies, hiring status).</p>
+
+                <h3>Create Company</h3>
+                <p><span class="badge post">POST</span> <code>/api/companies/</code></p>
+                <p>Register a new company in the system.</p>
+                <h4>Request Body</h4>
+                <pre><code>{
+  "company_name": "Maersk Service", 
+  "company_type": "Cargo",
+  "contact_email": "contact@example.com",
+  "open_positions": 6,
+  "hourly_rate": 149.00
+}</code></pre>
+            </div>
+
+            <div id="logistics-endpoints">
+                <h2>5. Logistics (Tickets & Papers)</h2>
+                <h3>List Tickets</h3>
+                <p><span class="badge get">GET</span> <code>/api/tickets-papers/tickets/</code></p>
+
+                <h3>Upload Ticket</h3>
+                <p><span class="badge post">POST</span> <code>/api/tickets-papers/tickets/</code></p>
+                <p>Multipart Form-Data: <code>user</code>, <code>ticket_number</code>, <code>file</code> (PDF/Image).
+                </p>
+
+                <h3>List Traveling Papers</h3>
+                <p><span class="badge get">GET</span> <code>/api/tickets-papers/traveling-papers/</code></p>
+            </div>
+
+            <div id="finance-endpoints">
+                <h2>6. Finance</h2>
+                <h3>List Records</h3>
+                <p><span class="badge get">GET</span> <code>/api/finance/finance-records/</code></p>
+
+                <h3>Create Finance Record</h3>
+                <p><span class="badge post">POST</span> <code>/api/finance/finance-records/</code></p>
+                <pre><code>{
+  "user": 5,
+  "company": 2,
+  "start_date": "2024-01-01",
+  "end_date": "2024-01-31",
+  "status": "Paid"
+}</code></pre>
+            </div>
+
+            <div id="interviews-endpoints">
+                <h2>7. Interviews</h2>
+                <h3>List / Schedule Interview</h3>
+                <p><span class="badge get">GET</span> <span class="badge post">POST</span> <code>/api/interviews/</code>
+                </p>
+
+                <h3>Get Stats</h3>
+                <p><span class="badge get">GET</span> <code>/api/interviews/status/</code></p>
+            </div>
+
+            <div id="core-endpoints">
+                <h2>8. Core (Reference Data)</h2>
+
+                <h3>List Vessel Types</h3>
+                <p><span class="badge get">GET</span> <code>/api/core/vessel-types/</code></p>
+                <p>Retrieve a list of all defined vessel types.</p>
+                <pre><code>[
+  { "id": 1, "name": "Bulk Carrier" },
+  { "id": 2, "name": "Oil Tanker" }
+]</code></pre>
+
+                <h3>Create Vessel Type</h3>
+                <p><span class="badge post">POST</span> <code>/api/core/vessel-types/</code></p>
+                <p>Create a new vessel type category.</p>
+                <pre><code>{ "name": "Container Ship" }</code></pre>
+
+                <h3>List Flags</h3>
+                <p><span class="badge get">GET</span> <code>/api/core/flags/</code></p>
+                <p>Retrieve all country flags with their icons.</p>
+                <pre><code>[
+  { "id": 1, "name": "Panama", "icon": "https://api.../media/flags/panama.png" }
+]</code></pre>
+
+                <h3>Create Flag</h3>
+                <p><span class="badge post">POST</span> <code>/api/core/flags/</code></p>
+                <p>Add a new flag entry. Requires multipart/form-data for image upload.</p>
+                <h4>Request Body (Multipart)</h4>
+                <ul>
+                    <li><code>name</code>: String (e.g., "Liberia")</li>
+                    <li><code>icon</code>: File (Image)</li>
+                </ul>
+            </div>
+
+            <div id="ai-endpoints">
+                <h2>9. AI Agents & Documents</h2>
+
+                <h3>Document Upload</h3>
+                <p><span class="badge post">POST</span> <code>/ai/upload/</code></p>
+                <p>Upload a document (CV, Passport) for AI parsing.</p>
+
+                <h3>Chat with AI</h3>
+                <p><span class="badge post">POST</span> <code>/ai-agents/chat/</code></p>
+                <p>Search database or chat using natural language.</p>
+                <pre><code>{
+  "query": "Find me a Captain with 5 years experience"
+}</code></pre>
+            </div>
+
+        </section>
+
+        <section id="examples">
+            <h2>💻 Developer Examples</h2>
+
+            <h3>Python (requests)</h3>
+            <pre><code>import requests
+
+url = "https://api.backend.hs.vc/api/ships/"
+token = "your_access_token"
+
+headers = {
+    "Authorization": f"Bearer {token}",
+    "Content-Type": "application/json"
+}
+
+data = { "ship_name": "MV Python", "company": 1 }
+
+response = requests.post(url, json=data, headers=headers)
+print(response.json())</code></pre>
+
+            <h3>JavaScript (fetch)</h3>
+            <pre><code>const createShip = async () => {
+  const response = await fetch('https://api.backend.hs.vc/api/ships/', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + localStorage.getItem('token'),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      ship_name: 'MV JS',
+      company: 1
+    })
+  });
+  
+  const data = await response.json();
+  console.log(data);
+};</code></pre>
+        </section>
+
+    </main>
+
+    <script>
+        // Simple script to handle active state in sidebar
+        const sections = document.querySelectorAll("section");
+        const navLinks = document.querySelectorAll(".nav-link");
+
+        window.onscroll = () => {
+            let current = "";
+            sections.forEach((section) => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 60) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navLinks.forEach((a) => {
+                a.classList.remove("active");
+                if (a.getAttribute("href").includes(current)) {
+                    a.classList.add("active");
+                }
+            });
+        };
+    </script>
+
+</body>
+
+</html>

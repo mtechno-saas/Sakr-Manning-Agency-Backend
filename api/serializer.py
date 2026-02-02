@@ -1,7 +1,7 @@
 from rest_framework import serializers, validators
 from .models import (
     Users, UserRank, Certificate, Rank, Contract, Reference, SeaService,
-    Interview, CVSubmission, Document
+    Interview, CVSubmission, Document, UserLanguage, PersonalDocument
 )
 from companies.models import Company
 from finance.models import FinanceRecord
@@ -302,6 +302,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'coc_expiry_date', 'coc_issued_by', 'coc_issued_at',
             'goc_certificate_number', 'goc_issue_date', 'goc_expiry_date',
             'goc_issued_by', 'goc_issued_at',
+            'ces_test_result', 'ces_test_issued_date', 'ces_test_issued_at', 'ces_test_issued_by',
             # Next of Kin
             'next_of_kin_full_name', 'next_of_kin_relationship', 'next_of_kin_address_country',
             'next_of_kin_phone', 'next_of_kin_email',
@@ -477,7 +478,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             return None
         
         # Check Role of the viewer
-        if request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
+        if not request.user.is_authenticated or request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
             return None
             
         # Check Status of the document
@@ -485,3 +486,26 @@ class DocumentSerializer(serializers.ModelSerializer):
             return obj.user.generated_id
             
         return None
+
+
+class UserLanguageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserLanguage
+        fields = [
+            'id', 'user', 'language', 'general_remarks',
+            'speaking_level', 'writing_level', 'reading_level',
+            'cefr_level', 'cefr_description', 'attachment',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class PersonalDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PersonalDocument
+        fields = [
+            'id', 'user', 'document_type', 'document_number',
+            'issue_date', 'expiry_date', 'issuing_country', 'file',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']

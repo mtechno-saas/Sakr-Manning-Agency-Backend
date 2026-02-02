@@ -1,0 +1,542 @@
+# Sakr Manning Agency API Documentation
+
+**Version:** 1.0.0  
+**Base URL:** `https://api.backend.hs.vc` (Production) / `http://localhost:8000` (Development)
+
+## 📖 Overview
+
+The Sakr Manning Agency API provides a comprehensive backend for managing maritime crew, ships, companies, and related logistics. It is built with Django REST Framework (DRF) and serves as the data layer for the frontend application.
+
+The API supports:
+
+- **User Management**: Crew members, admins, recruiters.
+- **Ship Management**: Vessel details, crew assignments.
+- **Logistics**: Tickets, traveling papers, visas.
+- **Finance**: Payroll, daily rates, contracts.
+- **Recruitment**: Interviews, AI-powered candidate search.
+- **AI Integration**: Document parsing and intelligent chatbots.
+
+---
+
+## 🔐 Authentication
+
+The API uses **JWT (JSON Web Token)** authentication.
+
+### Headers
+
+All authenticated requests must include the `Authorization` header:
+
+```http
+Authorization: Bearer <your_access_token>
+```
+
+### Flow
+
+1. **Login** with username/password to get `access` and `refresh` tokens.
+2. Use `access` token for API requests (valid for ~15 days).
+3. When `access` token expires, use `refresh` token to get a new pair.
+
+---
+
+## 📡 Request & Response Structure
+
+### Standard Success Response
+
+Most endpoints return JSON objects or arrays.
+
+```json
+{
+  "id": 1,
+  "name": "Object Name",
+  "created_at": "2023-10-27T10:00:00Z"
+}
+```
+
+### Standard Error Response
+
+Errors are returned with appropriate HTTP status codes and a detailed JSON body.
+
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+**Validation Errors (400 Bad Request):**
+
+```json
+{
+  "email": ["Enter a valid email address."],
+  "password": ["This field is required."]
+}
+```
+
+---
+
+## 🚦 Status Codes
+
+| Code | Meaning | Description |
+| :--- | :--- | :--- |
+| `200` | **OK** | Request successful. |
+| `201` | **Created** | Resource successfully created. |
+| `204` | **No Content** | Request successful, no content returned (e.g., DELETE). |
+| `400` | **Bad Request** | Validation error or malformed request. |
+| `401` | **Unauthorized** | Authentication failed or token missing. |
+| `403` | **Forbidden** | User authenticated but lacks permission. |
+| `404` | **Not Found** | Resource does not exist. |
+| `500` | **Internal Server Error** | Server-side error. |
+
+---
+
+# 📚 Endpoints
+
+## 1. Authentication
+
+### Login (Obtain Token)
+
+**POST** `/api/login/`
+
+Authenticate a user and retrieve access/refresh tokens.
+
+**Request Body:**
+
+```json
+{
+  "email": "admin@example.com",
+  "password": "securepassword123"
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+#### Code Example
+
+```bash
+curl -X POST https://api.backend.hs.vc/api/login/ \
+     -H "Content-Type: application/json" \
+     -d '{"email": "admin@example.com", "password": "pass"}'
+```
+
+### Refresh Token
+
+**POST** `/api/login/refresh/`
+
+Get a new access token using a valid refresh token.
+
+**Request Body:**
+
+```json
+{
+  "refresh": "your_refresh_token_here"
+}
+```
+
+---
+
+## 2. Users (Crew & Staff)
+
+### List All Users
+
+**GET** `/api/users/`
+
+Retrieve a paginated list of all users.
+
+**Query Parameters:**
+
+- `page`: Page number (default: 1)
+- `search`: Search by name or email
+- `role`: Filter by role (Admin, Recruiter, Employee)
+
+**Response (200 OK):**
+
+```json
+{
+  "count": 102,
+  "next": "https://api.backend.hs.vc/api/users/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "email": "crew@sakr.com",
+      "first_name": "Ahmed",
+      "last_name": "Ali",
+      "role": "Employee",
+      "nationality": "Egyptian",
+      "rank": "Captain"
+    }
+  ]
+}
+```
+
+### Create User
+
+**POST** `/api/users/`
+
+Create a new user profile.
+
+**Request Body:**
+
+```json
+{
+  "email": "newuser@example.com",
+  "password": "password123",
+  "first_name": "New",
+  "last_name": "User",
+  "role": "Employee",
+  "nationality": "Filipino",
+  "date_of_birth": "1990-01-01"
+}
+```
+
+### Get User Details
+
+**GET** `/api/users/{id}/`
+
+Retrieve detailed profile for a specific user.
+
+---
+
+## 3. Ships (Vessels)
+
+### List Ships
+
+**GET** `/api/ships/`
+
+Retrieve all ships in the fleet.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "ship_name": "MV Pacific Queen",
+    "imo_number": "IMO7654321",
+    "status": "Active",
+    "company": 2,
+    "crew": [...] 
+  }
+]
+```
+
+### Create Ship
+
+**POST** `/api/ships/`
+
+Add a new vessel to the system. Requires Admin or Ship Manager privileges.
+
+**Request Body:**
+
+```json
+{
+  "ship_name": "MV Atlantic Star",
+  "imo_number": "IMO9876543",
+  "company": 1,
+  "ship_type": 1,
+  "flag": 2,
+  "official_no": "OFF99999",
+  "crew_ids": [10, 25, 33],
+  "engine_type": "MAN B&W"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 5,
+  "ship_name": "MV Atlantic Star",
+  "crew": [ ...list of crew objects... ]
+}
+```
+
+**Error (403 Forbidden):**
+Returned if user is not an Admin/Superuser.
+
+---
+
+## 4. Companies
+
+### List Companies
+
+**GET** `/api/companies/`
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "company_name": "Maersk Line",
+    "company_type": "Shipping Manning Companies",
+    "status": "Active",
+    "hourly_rate": "550.00",
+    "open_positions": 5
+  }
+]
+```
+
+### Create Company
+
+**POST** `/api/companies/`
+
+Create a new company.
+
+**Request Body:**
+
+```json
+{
+  "company_name": "Oceanic Transport",
+  "company_type": "Shipping Manning Companies",
+  "contact_email": "contact@oceanic.com",
+  "status": "Active",
+  "open_positions": 5,
+  "hourly_rate": "150.00"
+}
+```
+
+**Valid `company_type` Choices:**
+
+- Shipping Manning Companies
+- Cargo Manning Companies
+- Cruise & Hospitality Manning Companies
+- Offshore & Oil/Gas Manning Companies
+- Fishing Fleet Manning Companies
+- General Crew Manning Companies
+- Specialized Marine Manning Companies
+- Temporary / Contract Manning Agencies
+- Full Crew Management Companies
+- Other
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 2,
+  "company_name": "Oceanic Transport",
+  "company_type": "Shipping Manning Companies",
+  "status": "Active",
+  "created_at": "2024-03-15T10:00:00Z"
+}
+```
+
+### Get Company Stats
+
+**GET** `/api/companies/stats/`
+
+Returns aggregated statistics about companies.
+
+**Response (200 OK):**
+
+```json
+{
+  "total_companies": 15,
+  "active_companies": 12,
+  "hiring_companies": 5
+}
+```
+
+---
+
+## 5. Logistics (Tickets & Papers)
+
+### List Tickets
+
+**GET** `/api/tickets-papers/tickets/`
+
+Retrieve all travel tickets.
+
+### Upload Ticket
+
+**POST** `/api/tickets-papers/tickets/`
+
+**Request Body (Multipart Form-Data):**
+
+- `user`: User ID (integer)
+- `ticket_number`: String
+- `file`: File upload (PDF/Image)
+
+### List Traveling Papers
+
+**GET** `/api/tickets-papers/traveling-papers/`
+
+Retrieve visas, seaman books, and other travel docs.
+
+---
+
+## 6. Finance
+
+### List Finance Records
+
+**GET** `/api/finance/finance-records/`
+
+Retrieve payroll records details.
+
+### Create Finance Record
+
+**POST** `/api/finance/finance-records/`
+
+**Request Body:**
+
+```json
+{
+  "user": 5,
+  "company": 2,
+  "start_date": "2024-01-01",
+  "end_date": "2024-01-31",
+  "status": "Paid"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 101,
+  "user": 5,
+  "total_days": 31,
+  "daily_rate": 200.0,
+  "total_money": 6200.0
+}
+```
+
+---
+
+## 7. Interviews
+
+### List Interviews
+
+**GET** `/api/interviews/`
+
+### Schedule Interview
+
+**POST** `/api/interviews/`
+
+**Request Body:**
+
+```json
+{
+  "candidate": 5,
+  "interviewer": 1,
+  "date": "2024-02-15T10:00:00Z",
+  "status": "Scheduled",
+  "link": "https://meet.google.com/abc-defg-hij"
+}
+```
+
+### Get Interview Status Stats
+
+**GET** `/api/interviews/status/`
+
+Returns counts of interviews by status.
+
+**Response (200 OK):**
+
+```json
+{
+  "scheduled": 5,
+  "completed": 20,
+  "pending": 2
+}
+```
+
+---
+
+## 8. Core (Reference Data)
+
+### Vessel Types
+
+**GET** `/api/core/vessel-types/`  
+**POST** `/api/core/vessel-types/`  
+Body: `{"name": "Bulk Carrier"}`
+
+### Flags (Countries)
+
+**GET** `/api/core/flags/`  
+**POST** `/api/core/flags/`  
+Body: `{"name": "Panama", "icon": <file>}`
+
+---
+
+## 9. AI Agents & Documents
+
+### Document Upload (Parsed)
+
+**POST** `/ai/upload/`
+Upload a document (CV, Passport) for AI parsing.
+
+**Request Body:**
+
+- `file`: PDF/Image
+- `document_type`: "Passport", "CV", etc.
+
+### Chat with AI
+
+**POST** `/ai-agents/chat/`
+
+Search database or chat using natural language.
+
+**Request Body:**
+
+```json
+{
+  "query": "Find me a Captain with 5 years experience on Tankers",
+  "session_id": "optional-uuid"
+}
+```
+
+---
+
+## 💻 Developer Examples
+
+### Python (requests)
+
+```python
+import requests
+
+url = "https://api.backend.hs.vc/api/ships/"
+token = "your_access_token"
+
+headers = {
+    "Authorization": f"Bearer {token}",
+    "Content-Type": "application/json"
+}
+
+data = {
+    "ship_name": "MV Python",
+    "imo_number": "IMO1234567",
+    "company": 1
+}
+
+response = requests.post(url, json=data, headers=headers)
+print(response.json())
+```
+
+### JavaScript (fetch)
+
+```javascript
+const createShip = async () => {
+  const response = await fetch('https://api.backend.hs.vc/api/ships/', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + localStorage.getItem('token'),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      ship_name: 'MV JS',
+      imo_number: 'IMO9999999',
+      company: 1
+    })
+  });
+  
+  const data = await response.json();
+  console.log(data);
+};
+```

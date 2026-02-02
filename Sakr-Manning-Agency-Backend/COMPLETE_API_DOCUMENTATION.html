@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakr Manning Agency - Complete API Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #f7fafc;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        .version {
+            background: rgba(255, 255, 255, 0.2);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        /* Sidebar Navigation */
+        .layout {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #2d3748;
+            color: white;
+            padding: 30px 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            color: #a0aec0;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 25px 0 10px 0;
+            font-weight: 600;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin: 5px 0;
+        }
+
+        .sidebar a {
+            color: #e2e8f0;
+            text-decoration: none;
+            display: block;
+            padding: 8px 15px;
+            border-radius: 6px;
+            transition: all 0.3s;
+            font-size: 0.95em;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: rgba(102, 126, 234, 0.3);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Main Content */
+        .content {
+            flex: 1;
+            padding: 40px 50px;
+            overflow-y: auto;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section h2 {
+            color: #1a202c;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            font-weight: 700;
+        }
+
+        .section h3 {
+            color: #2d3748;
+            font-size: 1.6em;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .section h4 {
+            color: #4a5568;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .inline-code {
+            background: #edf2f7;
+            color: #e53e3e;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.85em;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Badges */
+        .method {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .get {
+            background: #4299e1;
+            color: white;
+        }
+
+        .post {
+            background: #48bb78;
+            color: white;
+        }
+
+        .put {
+            background: #ed8936;
+            color: white;
+        }
+
+        .patch {
+            background: #38b2ac;
+            color: white;
+        }
+
+        .delete {
+            background: #f56565;
+            color: white;
+        }
+
+        .status-code {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85em;
+            background: #edf2f7;
+            color: #2d3748;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .success-box {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .error-box {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        /* Endpoint Card */
+        .endpoint-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .endpoint-path {
+            font-family: 'Monaco', monospace;
+            font-size: 1.1em;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .permission-badge {
+            background: #f7fafc;
+            color: #4a5568;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        /* Model Card */
+        .model-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .model-title {
+            font-size: 1.3em;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .field-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .field-item:last-child {
+            border-bottom: none;
+        }
+
+        .field-name {
+            font-family: 'Monaco', monospace;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .field-type {
+            color: #718096;
+            font-style: italic;
+            margin-left: 10px;
+        }
+
+        /* Search Box */
+        .search-container {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Footer */
+        .footer {
+            background: #2d3748;
+            color: #a0aec0;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚢 Sakr Manning Agency</h1>
+            <p>Complete API Documentation</p>
+            <div class="version">Version 1.0 | December 2024</div>
+        </div>
+
+        <div class="layout">
+            <!-- Sidebar Navigation -->
+            <div class="sidebar">
+                <h3>Quick Navigation</h3>
+                <ul>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#authentication">Authentication</a></li>
+                    <li><a href="#data-models">Data Models</a></li>
+                    <li><a href="#error-handling">Error Handling</a></li>
+                </ul>
+
+                <h3>Endpoints</h3>
+                <ul>
+                    <li><a href="#users">User Management</a></li>
+                    <li><a href="#ships">Ships Management</a></li>
+                    <li><a href="#companies">Companies</a></li>
+                    <li><a href="#interviews">Interviews</a></li>
+                    <li><a href="#finance">Finance</a></li>
+                    <li><a href="#cv-submissions">CV Submissions</a></li>
+                    <li><a href="#ai-documents">AI Documents</a></li>
+                    <li><a href="#ai-chat">AI Chat Agent</a></li>
+                    <li><a href="#contracts">Contracts</a></li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="content">
+                <div class="search-container">
+                    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search documentation..."
+                        onkeyup="searchContent()">
+                </div>
+
+                <!-- Introduction -->
+                <section class="section" id="introduction">
+                    <h2>Introduction</h2>
+                    <p>This documentation provides comprehensive information about the Sakr Manning Agency Backend API,
+                        including:</p>
+                    <ul style="margin-left: 30px; margin-top: 15px;">
+                        <li>Complete data model specifications</li>
+                        <li>Detailed request and response formats</li>
+                        <li>Error handling patterns</li>
+                        <li>Real-world examples for all endpoints</li>
+                    </ul>
+
+                    <div class="info-box">
+                        <strong>Base URL:</strong> <code class="inline-code">http://your-domain.com</code><br>
+                        <strong>API Version:</strong> 1.0<br>
+                        <strong>Authentication:</strong> JWT (JSON Web Tokens)
+                    </div>
+                </section>
+
+                <!-- Authentication -->
+                <section class="section" id="authentication">
+                    <h2>Authentication</h2>
+
+                    <h3>JWT Authentication</h3>
+                    <p>All authenticated endpoints require a JWT token in the Authorization header:</p>
+                    <pre><code>Authorization: Bearer &lt;your_access_token&gt;</code></pre>
+
+                    <!-- Login Endpoint -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/api/login/</span>
+                            <span class="permission-badge">AllowAny</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "email": "user@example.com",
+  "password": "SecurePassword123"
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}</code></pre>
+
+                        <h4>Error Responses:</h4>
+                        <div class="error-box">
+                            <strong>401 Unauthorized:</strong>
+                            <pre><code>{
+  "detail": "No active account found with the given credentials"
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Refresh Token -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/api/login/refresh/</span>
+                            <span class="permission-badge">AllowAny</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}</code></pre>
+                    </div>
+
+                    <!-- Registration -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/api/register/</span>
+                            <span class="permission-badge">AllowAny</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "email": "newuser@example.com",
+  "password": "SecurePassword123",
+  "first_name": "John",
+  "middle_name": "Michael",
+  "phone_number": "+201234567890",
+  "nationality": "Egyptian"
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">201 Created</span>:</h4>
+                        <pre><code>{
+  "id": 15,
+  "email": "newuser@example.com",
+  "first_name": "John",
+  "middle_name": "Michael",
+  "role": "Employee",
+  "is_active": true
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Data Models -->
+                <section class="section" id="data-models">
+                    <h2>Data Models</h2>
+
+                    <div class="model-card">
+                        <div class="model-title">Users Model</div>
+                        <p><strong>Key Fields:</strong></p>
+                        <div class="field-item">
+                            <span class="field-name">id</span>
+                            <span class="field-type">integer (auto)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">email</span>
+                            <span class="field-type">string (unique, required)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">first_name</span>
+                            <span class="field-type">string (required)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">middle_name</span>
+                            <span class="field-type">string</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">profile_image</span>
+                            <span class="field-type">file (image)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">age</span>
+                            <span class="field-type">integer</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">nationality</span>
+                            <span class="field-type">string</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">phone_number</span>
+                            <span class="field-type">string (required)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">role</span>
+                            <span class="field-type">choices: Admin, HR Manager, Recruiter, Employee</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">passport_no</span>
+                            <span class="field-type">string</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">certificates</span>
+                            <span class="field-type">array of Certificate objects</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">user_ranks</span>
+                            <span class="field-type">array of UserRank objects</span>
+                        </div>
+                    </div>
+
+                    <div class="model-card">
+                        <div class="model-title">Ship Model</div>
+                        <div class="field-item">
+                            <span class="field-name">ship_name</span>
+                            <span class="field-type">string (required, max 200)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">imo_number</span>
+                            <span class="field-type">string (unique, max 10)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">company</span>
+                            <span class="field-type">integer (Company ID)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">ship_type</span>
+                            <span class="field-type">integer (VesselType ID)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">flag</span>
+                            <span class="field-type">integer (Flag ID)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">gross_tonnage</span>
+                            <span class="field-type">integer</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">crew</span>
+                            <span class="field-type">array of User IDs (many-to-many)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">status</span>
+                            <span class="field-type">choices: Active, Under Maintenance, Inactive</span>
+                        </div>
+                    </div>
+
+                    <div class="model-card">
+                        <div class="model-title">Company Model</div>
+                        <div class="field-item">
+                            <span class="field-name">name</span>
+                            <span class="field-type">string (required, max 255)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">company_type</span>
+                            <span class="field-type">choices: Ship Owner, Ship Manager, Crewing Agency, etc.</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">email</span>
+                            <span class="field-type">email</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">open_positions</span>
+                            <span class="field-type">integer (default: 0)</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-name">status</span>
+                            <span class="field-type">choices: Active, Inactive, Prospect</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Error Handling -->
+                <section class="section" id="error-handling">
+                    <h2>Error Handling</h2>
+
+                    <h3>Standard Error Response Format</h3>
+                    <pre><code>{
+  "field_name": ["Error message 1", "Error message 2"],
+  "another_field": ["Error message"],
+  "detail": "General error message"
+}</code></pre>
+
+                    <h3>Common HTTP Status Codes</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Meaning</th>
+                                <th>Usage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="status-code">200</span></td>
+                                <td>OK</td>
+                                <td>Successful GET, PUT, PATCH</td>
+                            </tr>
+                            <tr>
+                                <td><span class="status-code">201</span></td>
+                                <td>Created</td>
+                                <td>Successful POST</td>
+                            </tr>
+                            <tr>
+                                <td><span class="status-code">204</span></td>
+                                <td>No Content</td>
+                                <td>Successful DELETE</td>
+                            </tr>
+                            <tr>
+                                <td><span class="status-code">400</span></td>
+                                <td>Bad Request</td>
+                                <td>Validation errors</td>
+                            </tr>
+                            <tr>
+                                <td><span class="status-code">401</span></td>
+                                <td>Unauthorized</td>
+                                <td>Missing/invalid authentication</td>
+                            </tr>
+                            <tr>
+                                <td><span class="status-code">403</span></td>
+                                <td>Forbidden</td>
+                                <td>Insufficient permissions</td>
+                            </tr>
+                            <tr>
+                                <td><span class="status-code">404</span></td>
+                                <td>Not Found</td>
+                                <td>Resource doesn't exist</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- User Management -->
+                <section class="section" id="users">
+                    <h2>User Management</h2>
+
+                    <!-- List Users -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/api/users/</span>
+                            <span class="permission-badge">Admin/HR/Recruiter</span>
+                        </div>
+
+                        <p><strong>Query Parameters:</strong> role, nationality, user_status, search</p>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>[
+  {
+    "id": 1,
+    "email": "admin@example.com",
+    "first_name": "Admin",
+    "middle_name": "User",
+    "nationality": "Egyptian",
+    "role": "Admin",
+    "certificates": [
+      {"id": 1, "code": "STCW_95", "name": "STCW 95"}
+    ],
+    "user_ranks": [
+      {
+        "id": 1,
+        "assigned_code": "DO-1.001",
+        "rank": {"id": 1, "code": "DO-1.000", "name": "Master"}
+      }
+    ]
+  }
+]</code></pre>
+                    </div>
+
+                    <!-- Create User -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/api/users/</span>
+                            <span class="permission-badge">Admin/HR Only</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "email": "captain@example.com",
+  "password": "SecurePass123",
+  "first_name": "John",
+  "middle_name": "Smith",
+  "phone_number": "+201234567890",
+  "nationality": "Egyptian",
+  "age": 45,
+  "role": "Employee",
+  "rank_ids": [1, 2],
+  "certificate_ids": [1, 2, 3]
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">201 Created</span>:</h4>
+                        <pre><code>{
+  "id": 25,
+  "email": "captain@example.com",
+  "first_name": "John",
+  "role": "Employee",
+  "created_at": "2024-12-01T15:30:00Z"
+}</code></pre>
+                    </div>
+
+                    <!-- Get User Stats -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/api/users/stats/</span>
+                            <span class="permission-badge">Admin/HR Only</span>
+                        </div>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "total_users": 150,
+  "admins": 3,
+  "hr_managers": 5,
+  "recruiters": 10,
+  "employees": 132,
+  "active_users": 145
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Ships Management -->
+                <section class="section" id="ships">
+                    <h2>Ships Management</h2>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/api/ships/</span>
+                            <span class="permission-badge">Authenticated</span>
+                        </div>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>[
+  {
+    "id": 1,
+    "ship_name": "MV Ocean Voyager",
+    "imo_number": "1234567",
+    "company": {"id": 3, "name": "Global Shipping Co."},
+    "ship_type": {"id": 1, "name": "Container Ship"},
+    "flag": {"id": 5, "name": "Panama", "code": "PA"},
+    "gross_tonnage": 50000,
+    "status": "Active",
+    "crew": [1, 5, 8, 12]
+  }
+]</code></pre>
+                    </div>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/api/ships/{id}/assign-user/</span>
+                            <span class="permission-badge">Ship Manager/Admin</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "user_id": 25
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "status": "User Ahmed assigned to ship MV Ocean Voyager"
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Companies -->
+                <section class="section" id="companies">
+                    <h2>Companies Management</h2>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/api/companies/</span>
+                            <span class="permission-badge">Authenticated</span>
+                        </div>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>[
+  {
+    "id": 1,
+    "name": "Global Shipping Company",
+    "company_type": "Ship Owner",
+    "email": "info@globalship.com",
+    "country": "Singapore",
+    "open_positions": 15,
+    "status": "Active"
+  }
+]</code></pre>
+                    </div>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method get">GET</span>
+                            <span class="endpoint-path">/api/companies/stats/</span>
+                            <span class="permission-badge">Authenticated</span>
+                        </div>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "total_companies": 45,
+  "active_companies": 38,
+  "total_open_positions": 127
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Interviews -->
+                <section class="section" id="interviews">
+                    <h2>Interviews Management</h2>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/api/interviews/interviews/</span>
+                            <span class="permission-badge">Admin/HR/Recruiter</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "candidate": 5,
+  "company": 3,
+  "position": 15,
+  "scheduled_date": "2024-12-10",
+  "scheduled_time": "10:00:00",
+  "duration_minutes": 45,
+  "interview_type": "Video",
+  "meeting_link": "https://teams.microsoft.com/meet/xyz",
+  "status": "Scheduled"
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">201 Created</span>:</h4>
+                        <pre><code>{
+  "id": 25,
+  "candidate": 5,
+  "scheduled_date": "2024-12-10",
+  "status": "Scheduled",
+  "created_at": "2024-12-01T19:00:00Z"
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Finance -->
+                <section class="section" id="finance">
+                    <h2>Finance Management</h2>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/api/finance/finance-records/calculate/</span>
+                            <span class="permission-badge">Authenticated</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "user": 5,
+  "company": 3,
+  "start_date": "2024-12-01",
+  "end_date": "2024-12-15"
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "total_days": 15,
+  "daily_rate": "150.00",
+  "total_money": "2250.00"
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- CV Submissions -->
+                <section class="section" id="cv-submissions">
+                    <h2>CV Submissions Management</h2>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/api/cv-submissions/</span>
+                            <span class="permission-badge">Authenticated</span>
+                        </div>
+
+                        <p><strong>Content-Type:</strong> multipart/form-data</p>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>user: 8 (auto-set for Employee role)
+company: 2
+position: 10
+cv_file: [file]
+cover_letter: "I am very interested..."</code></pre>
+
+                        <h4>Success Response <span class="status-code">201 Created</span>:</h4>
+                        <pre><code>{
+  "id": 15,
+  "user": 8,
+  "company": 2,
+  "status": "Pending",
+  "submitted_date": "2024-12-01"
+}</code></pre>
+                    </div>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method patch">PATCH</span>
+                            <span class="endpoint-path">/api/cv-submissions/{id}/update-status/</span>
+                            <span class="permission-badge">Admin/HR/Recruiter</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "status": "Approved"
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "id": 15,
+  "status": "Approved",
+  "reviewed_by": 1,
+  "reviewed_date": "2024-12-01"
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- AI Documents -->
+                <section class="section" id="ai-documents">
+                    <h2>AI Document Processing</h2>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/ai/upload/</span>
+                            <span class="permission-badge">Authenticated</span>
+                        </div>
+
+                        <p><strong>Content-Type:</strong> multipart/form-data</p>
+                        <p><strong>Description:</strong> Upload PDF or DOCX document for AI processing and data
+                            extraction</p>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "success": true,
+  "applicant_id": 45,
+  "user_id": 67,
+  "message": "Document processed and saved successfully",
+  "extracted_data": {
+    "first_name": "John",
+    "email": "john@example.com",
+    "phone_number": "+201234567890",
+    "nationality": "Egyptian",
+    "certificates": ["STCW 95", "GMDSS"]
+  }
+}</code></pre>
+                    </div>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/ai/convert/</span>
+                            <span class="permission-badge">Authenticated</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "applicant_id": 45,
+  "password": "SecurePass123",
+  "role": "Employee"
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "success": true,
+  "user_id": 68,
+  "message": "Applicant converted to user successfully"
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- AI Chat -->
+                <section class="section" id="ai-chat">
+                    <h2>AI Chat Agent</h2>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/ai-agents/chat/</span>
+                            <span class="permission-badge">AllowAny</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "message": "Find all seafarers with Master rank",
+  "session_id": "550e8400-e29b-41d4-a716-446655440000"
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">200 OK</span>:</h4>
+                        <pre><code>{
+  "response": "I found 5 seafarers with Master rank...",
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "message_id": "123e4567-e89b-12d3-a456-426614174000"
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Contracts -->
+                <section class="section" id="contracts">
+                    <h2>Contracts Management</h2>
+
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method post">POST</span>
+                            <span class="endpoint-path">/api/contracts/</span>
+                            <span class="permission-badge">Admin/HR Only</span>
+                        </div>
+
+                        <h4>Request Body:</h4>
+                        <pre><code>{
+  "user": 5,
+  "ship": 1,
+  "company": 3,
+  "rank": 15,
+  "sign_on_date": "2025-01-01",
+  "sign_off_date": "2025-07-01",
+  "salary": "5500.00",
+  "currency": "USD",
+  "status": "Pending Signature"
+}</code></pre>
+
+                        <h4>Success Response <span class="status-code">201 Created</span>:</h4>
+                        <pre><code>{
+  "id": 25,
+  "user": 5,
+  "ship": 1,
+  "status": "Pending Signature",
+  "created_at": "2024-12-01T21:00:00Z"
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Additional Notes -->
+                <section class="section">
+                    <h2>Additional Notes</h2>
+
+                    <div class="info-box">
+                        <h4>📁 File Upload Guidelines</h4>
+                        <ul>
+                            <li>Use <code class="inline-code">multipart/form-data</code> content type</li>
+                            <li>Maximum file size: 10MB</li>
+                            <li>Supported formats: JPG, PNG, WEBP, PDF, DOCX</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>📅 Date Formats</h4>
+                        <ul>
+                            <li>Date: <code class="inline-code">YYYY-MM-DD</code> (e.g., "2024-12-01")</li>
+                            <li>DateTime: <code class="inline-code">YYYY-MM-DDTHH:MM:SSZ</code></li>
+                            <li>Time: <code class="inline-code">HH:MM:SS</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>📄 Pagination</h4>
+                        <p>List endpoints support pagination using <code class="inline-code">?page=2</code> query
+                            parameter. Default page size: 50 items.</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Sakr Manning Agency Backend System</strong></p>
+            <p>Version 1.0 | Last Updated: December 2024</p>
+            <p>All endpoints require JWT authentication via Authorization: Bearer &lt;token&gt; header (except AllowAny)
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Search functionality
+        function searchContent() {
+            const input = document.getElementById('searchBox');
+            const filter = input.value.toUpperCase();
+            const sections = document.querySelectorAll('.section');
+
+            sections.forEach(section => {
+                const text = section.textContent || section.innerText;
+                if (text.toUpperCase().indexOf(filter) > -1) {
+                    section.style.display = '';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        // Active navigation
+        const navLinks = document.querySelectorAll('.sidebar a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

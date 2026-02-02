@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAKR MANNING AGENCY - REST API DOCUMENTATION v1.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .base-url {
+            background: white;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .base-url code {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .section {
+            background: white;
+            margin: 20px 0;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            font-size: 1.8em;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            margin: 25px 0 15px 0;
+            font-size: 1.4em;
+        }
+        
+        .section h4 {
+            color: #555;
+            margin: 20px 0 10px 0;
+            font-size: 1.1em;
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+        
+        .method.get { background: #28a745; color: white; }
+        .method.post { background: #007bff; color: white; }
+        .method.put { background: #ffc107; color: #333; }
+        .method.patch { background: #17a2b8; color: white; }
+        .method.delete { background: #dc3545; color: white; }
+        
+        .url {
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.05em;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+        }
+        
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .enum-value {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .enum-value h4 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+        
+        .status-code {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .toc {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .toc h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .toc a {
+            color: #764ba2;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .toc a:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🚢 SAKR MANNING AGENCY</h1>
+        <p>REST API DOCUMENTATION v1.0</p>
+    </header>
+    
+    <div class="container">
+        <div class="base-url">
+            <strong>BASE URL:</strong> <code>http://localhost:8000/api/users/</code>
+        </div>
+        
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h2>📋 Table of Contents</h2>
+            <a href="#authentication">1. Authentication</a>
+            <a href="#users">2. Users</a>
+            <a href="#user-certs-ranks">3. User Certificates & Ranks</a>
+            <a href="#ranks">4. Ranks</a>
+            <a href="#certificates">5. Certificates</a>
+            <a href="#contracts">6. Contracts</a>
+            <a href="#references">7. References</a>
+            <a href="#sea-services">8. Sea Services</a>
+            <a href="#companies">9. Companies</a>
+            <a href="#interviews">10. Interviews</a>
+            <a href="#cv-submissions">11. CV Submissions</a>
+            <a href="#enum-values">12. Enum Values Reference</a>
+            <a href="#quick-reference">13. Quick Reference - All Endpoints</a>
+            <a href="#status-codes">14. HTTP Status Codes</a>
+            <a href="#auth-headers">15. Authentication Headers</a>
+        </div>
+        
+        <!-- 1. AUTHENTICATION -->
+        <div class="section" id="authentication">
+            <h2>1. AUTHENTICATION</h2>
+            
+            <h3>Register User</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/register/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "email": "john@example.com",
+    "password": "securepass123",
+    "first_name": "John"
+}</pre>
+                <p><strong>Response (201):</strong></p>
+                <pre>{
+    "id": 1,
+    "email": "john@example.com",
+    "first_name": "John"
+}</pre>
+            </div>
+        </div>
+        
+        <!-- 2. USERS -->
+        <div class="section" id="users">
+            <h2>2. USERS</h2>
+            
+            <h3>List Users</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/users/</span></div>
+            </div>
+            
+            <h3>Create User</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/users/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "email": "jane@example.com",
+    "password": "securepass123",
+    "first_name": "Jane",
+    "middle_name": "Marie",
+    "age": 28,
+    "date_of_birth": "1996-03-20",
+    "nationality": "Filipino",
+    "phone_number": "+639123456789",
+    "role": "employee",
+    "rank_ids": [1, 2],
+    "certificate_ids": [1, 3, 5]
+}</pre>
+            </div>
+            
+            <h3>Get User Detail</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/users/{id}/</span></div>
+            </div>
+            
+            <h3>Update User</h3>
+            <div class="endpoint">
+                <div><span class="method put">PUT</span><span class="url">/api/users/users/{id}/</span></div>
+            </div>
+            
+            <h3>Partial Update User</h3>
+            <div class="endpoint">
+                <div><span class="method patch">PATCH</span><span class="url">/api/users/users/{id}/</span></div>
+            </div>
+            
+            <h3>Delete User</h3>
+            <div class="endpoint">
+                <div><span class="method delete">DELETE</span><span class="url">/api/users/users/{id}/</span></div>
+            </div>
+            
+            <h3>Filter Users</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/filter/?nationality=Egyptian&user_status=active&role=employee</span></div>
+            </div>
+        </div>
+        
+        <!-- 3. USER CERTIFICATES & RANKS -->
+        <div class="section" id="user-certs-ranks">
+            <h2>3. USER CERTIFICATES & RANKS</h2>
+            
+            <h3>Get User Certificates</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/users/{user_id}/certificates/</span></div>
+            </div>
+            
+            <h3>Add Certificate to User</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/users/{user_id}/certificates/add/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{ "certificate_id": 3 }</pre>
+            </div>
+            
+            <h3>Remove Certificate from User</h3>
+            <div class="endpoint">
+                <div><span class="method delete">DELETE</span><span class="url">/api/users/users/{user_id}/certificates/{certificate_id}/remove/</span></div>
+            </div>
+            
+            <h3>Get User Ranks</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/users/{user_id}/ranks/</span></div>
+            </div>
+            
+            <h3>Add Rank to User</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/users/{user_id}/ranks/add/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{ "rank_id": 2 }</pre>
+            </div>
+            
+            <h3>Remove Rank from User</h3>
+            <div class="endpoint">
+                <div><span class="method delete">DELETE</span><span class="url">/api/users/users/{user_id}/ranks/{rank_id}/remove/</span></div>
+            </div>
+            
+            <h3>Assign Rank to User (with auto-generated code)</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/users/{user_id}/assign-rank/{rank_id}/</span></div>
+                <p><strong>Response:</strong></p>
+                <pre>{
+    "message": "Rank assigned successfully",
+    "assigned_code": "2OFF-001"
+}</pre>
+            </div>
+        </div>
+        
+        <!-- 4. RANKS -->
+        <div class="section" id="ranks">
+            <h2>4. RANKS</h2>
+            
+            <h3>List Ranks</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/ranks/</span></div>
+            </div>
+            
+            <h3>Create Rank</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/ranks/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "code": "BSN",
+    "name": "Bosun"
+}</pre>
+            </div>
+            
+            <h3>Get/Update/Delete Rank</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span> / <span class="method put">PUT</span> / <span class="method patch">PATCH</span> / <span class="method delete">DELETE</span></div>
+                <div><span class="url">/api/users/ranks/{id}/</span></div>
+            </div>
+        </div>
+        
+        <!-- 5. CERTIFICATES -->
+        <div class="section" id="certificates">
+            <h2>5. CERTIFICATES</h2>
+            
+            <h3>List Certificates</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/certificates/</span></div>
+            </div>
+            
+            <h3>Create Certificate</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/certificates/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "code": "SSO",
+    "name": "Ship Security Officer"
+}</pre>
+            </div>
+            
+            <h3>Get/Update/Delete Certificate</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span> / <span class="method put">PUT</span> / <span class="method patch">PATCH</span> / <span class="method delete">DELETE</span></div>
+                <div><span class="url">/api/users/certificates/{id}/</span></div>
+            </div>
+        </div>
+        
+        <!-- 6. CONTRACTS -->
+        <div class="section" id="contracts">
+            <h2>6. CONTRACTS</h2>
+            
+            <h3>List Contracts</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/contracts/</span></div>
+            </div>
+            
+            <h3>Create Contract</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/contracts/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "user_id": 1,
+    "ship_id": 1,
+    "rank_id": 1,
+    "company_id": 1,
+    "sign_on_date": "2024-07-01",
+    "sign_off_date": "2025-01-01",
+    "salary": "9000.00",
+    "status": "pending"
+}</pre>
+            </div>
+            
+            <h3>Get/Update/Delete Contract</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span> / <span class="method put">PUT</span> / <span class="method patch">PATCH</span> / <span class="method delete">DELETE</span></div>
+                <div><span class="url">/api/users/contracts/{id}/</span></div>
+            </div>
+        </div>
+        
+        <!-- 7. REFERENCES -->
+        <div class="section" id="references">
+            <h2>7. REFERENCES</h2>
+            
+            <h3>List References</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/references/</span></div>
+            </div>
+            
+            <h3>Create Reference</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/references/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "user": 1,
+    "company_name": "XYZ Maritime",
+    "position": "Operations Manager",
+    "name": "Mike Brown",
+    "email": "mike@xyzmaritime.com",
+    "phone": "+0987654321",
+    "relationship": "Former Supervisor"
+}</pre>
+            </div>
+            
+            <h3>Get/Update/Delete Reference</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span> / <span class="method put">PUT</span> / <span class="method patch">PATCH</span> / <span class="method delete">DELETE</span></div>
+                <div><span class="url">/api/users/references/{id}/</span></div>
+            </div>
+        </div>
+        
+        <!-- 8. SEA SERVICES -->
+        <div class="section" id="sea-services">
+            <h2>8. SEA SERVICES</h2>
+            
+            <h3>List Sea Services</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/sea-services/</span></div>
+            </div>
+            
+            <h3>Create Sea Service</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/sea-services/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "user": 1,
+    "company_name": "Ocean Lines Ltd",
+    "vessel_name_imo": "MV Atlantic / IMO 7654321",
+    "vessel_type": "Container Ship",
+    "vessel_flag": "Liberia",
+    "vessel_grt": 55000,
+    "vessel_dwt": 68000,
+    "rank": "Chief Officer",
+    "signed_on": "2023-01-15",
+    "signed_off": "2023-07-15",
+    "reason_for_leaving": "Promotion"
+}</pre>
+            </div>
+            
+            <h3>Get/Update/Delete Sea Service</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span> / <span class="method put">PUT</span> / <span class="method patch">PATCH</span> / <span class="method delete">DELETE</span></div>
+                <div><span class="url">/api/users/sea-services/{id}/</span></div>
+            </div>
+        </div>
+        
+        <!-- 9. COMPANIES -->
+        <div class="section" id="companies">
+            <h2>9. COMPANIES</h2>
+            
+            <h3>List Companies</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/companies/</span></div>
+            </div>
+            
+            <h3>Create Company</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/companies/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "name": "Atlantic Ship Management",
+    "company_type": "ship_manager",
+    "email": "contact@atlanticship.com",
+    "phone": "+442012345678",
+    "website": "https://www.atlanticship.com",
+    "address": "789 Dock Lane",
+    "city": "London",
+    "country": "United Kingdom",
+    "contact_person": "James Wilson",
+    "contact_email": "james@atlanticship.com",
+    "contact_phone": "+442098765432",
+    "open_positions": 8,
+    "status": "active"
+}</pre>
+            </div>
+            
+            <h3>Get/Update/Delete Company</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span> / <span class="method put">PUT</span> / <span class="method patch">PATCH</span> / <span class="method delete">DELETE</span></div>
+                <div><span class="url">/api/users/companies/{id}/</span></div>
+            </div>
+            
+            <h3>Filter Companies</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/companies/?company_type=ship_owner&status=active&country=Switzerland</span></div>
+            </div>
+        </div>
+        
+        <!-- 10. INTERVIEWS -->
+        <div class="section" id="interviews">
+            <h2>10. INTERVIEWS</h2>
+            
+            <h3>List Interviews</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/interviews/</span></div>
+            </div>
+            
+            <h3>Create Interview</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/interviews/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "candidate": 1,
+    "company": 1,
+    "position": "Second Officer",
+    "scheduled_date": "2024-07-10T09:00:00Z",
+    "interview_type": "video",
+    "meeting_link": "https://teams.microsoft.com/meet/123",
+    "interviewer_name": "Anna Schmidt",
+    "interviewer_email": "anna@medship.com",
+    "status": "scheduled",
+    "result": "pending"
+}</pre>
+            </div>
+            
+            <h3>Update Interview Result</h3>
+            <div class="endpoint">
+                <div><span class="method patch">PATCH</span><span class="url">/api/users/interviews/{id}/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "status": "completed",
+    "result": "passed",
+    "feedback": "Strong candidate, recommended for next round"
+}</pre>
+            </div>
+            
+            <h3>Get/Delete Interview</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span> / <span class="method delete">DELETE</span></div>
+                <div><span class="url">/api/users/interviews/{id}/</span></div>
+            </div>
+            
+            <h3>Filter Interviews</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/interviews/?status=scheduled&interview_type=video&candidate=1</span></div>
+            </div>
+        </div>
+        
+        <!-- 11. CV SUBMISSIONS -->
+        <div class="section" id="cv-submissions">
+            <h2>11. CV SUBMISSIONS</h2>
+            
+            <h3>List CV Submissions</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/cv-submissions/</span></div>
+            </div>
+            
+            <h3>Create CV Submission</h3>
+            <div class="endpoint">
+                <div><span class="method post">POST</span><span class="url">/api/users/cv-submissions/</span></div>
+                <p><strong>Content-Type:</strong> multipart/form-data</p>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "user": 1,
+    "company": 3,
+    "position": "Second Officer",
+    "cv_file": "&lt;file upload&gt;",
+    "cover_letter": "I am interested in the position...",
+    "status": "submitted",
+    "submitted_date": "2024-06-25"
+}</pre>
+            </div>
+            
+            <h3>Review CV Submission</h3>
+            <div class="endpoint">
+                <div><span class="method patch">PATCH</span><span class="url">/api/users/cv-submissions/{id}/</span></div>
+                <p><strong>Request Body:</strong></p>
+                <pre>{
+    "status": "shortlisted",
+    "reviewed_date": "2024-06-26",
+    "reviewed_by": "James Wilson",
+    "rating": 5,
+    "feedback": "Excellent candidate, proceed to interview"
+}</pre>
+            </div>
+            
+            <h3>Get/Delete CV Submission</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span> / <span class="method delete">DELETE</span></div>
+                <div><span class="url">/api/users/cv-submissions/{id}/</span></div>
+            </div>
+            
+            <h3>Filter CV Submissions</h3>
+            <div class="endpoint">
+                <div><span class="method get">GET</span><span class="url">/api/users/cv-submissions/?status=submitted&user=1&company=1&rating=5</span></div>
+            </div>
+        </div>
+        
+        <!-- 12. ENUM VALUES REFERENCE -->
+        <div class="section" id="enum-values">
+            <h2>12. ENUM VALUES REFERENCE</h2>
+            
+            <h3>User Roles</h3>
+            <table>
+                <thead>
+                    <tr><th>Value</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>admin</td><td>Full system access</td></tr>
+                    <tr><td>hr_manager</td><td>HR management access</td></tr>
+                    <tr><td>recruiter</td><td>Recruitment access</td></tr>
+                    <tr><td>employee</td><td>Basic employee access</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>User Status</h3>
+            <table>
+                <thead>
+                    <tr><th>Value</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>active</td><td>Currently active</td></tr>
+                    <tr><td>inactive</td><td>Not active</td></tr>
+                    <tr><td>on_leave</td><td>On leave</td></tr>
+                    <tr><td>terminated</td><td>Employment terminated</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Company Types</h3>
+            <table>
+                <thead>
+                    <tr><th>Value</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>ship_owner</td><td>Ship owner company</td></tr>
+                    <tr><td>ship_manager</td><td>Ship management company</td></tr>
+                    <tr><td>crewing_agency</td><td>Crewing agency</td></tr>
+                    <tr><td>other</td><td>Other type</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Company Status</h3>
+            <table>
+                <thead>
+                    <tr><th>Value</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>active</td><td>Active partnership</td></tr>
+                    <tr><td>inactive</td><td>Inactive</td></tr>
+                    <tr><td>pending</td><td>Pending approval</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Interview Types</h3>
+            <table>
+                <thead>
+                    <tr><th>Value</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>in_person</td><td>Face-to-face interview</td></tr>
+                    <tr><td>video</td><td>Video call interview</td></tr>
+                    <tr><td>phone</td><td>Phone interview</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Interview Status</h3>
+            <table>
+                <thead>
+                    <tr><th>Value</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>scheduled</td><td>Interview scheduled</td></tr>
+                    <tr><td>completed</td><td>Interview completed</td></tr>
+                    <tr><td>cancelled</td><td>Interview cancelled</td></tr>
+                    <tr><td>no_show</td><td>Candidate didn't show</td></tr>
+                    <tr><td>rescheduled</td><td>Interview rescheduled</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Interview Results</h3>
+            <table>
+                <thead>
+                    <tr><th>Value</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>pending</td><td>Awaiting result</td></tr>
+                    <tr><td>passed</td><td>Candidate passed</td></tr>
+                    <tr><td>failed</td><td>Candidate failed</td></tr>
+                    <tr><td>on_hold</td><td>Decision on hold</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>CV Submission Status</h3>
+            <table>
+                <thead>
+                    <tr><th>Value</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>submitted</td><td>CV submitted</td></tr>
+                    <tr><td>under_review</td><td>Under review</td></tr>
+                    <tr><td>shortlisted</td><td>Candidate shortlisted</td></tr>
+                    <tr><td>rejected</td><td>CV rejected</td></tr>
+                    <tr><td>accepted</td><td>CV accepted</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>Contract Status</h3>
+            <table>
+                <thead>
+                    <tr><th>Value</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>pending</td><td>Contract pending</td></tr>
+                    <tr><td>active</td><td>Contract active</td></tr>
+                    <tr><td>completed</td><td>Contract completed</td></tr>
+                    <tr><td>terminated</td><td>Contract terminated</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 13. QUICK REFERENCE -->
+        <div class="section" id="quick-reference">
+            <h2>13. QUICK REFERENCE - ALL ENDPOINTS</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Resource</th>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Auth</td><td>POST</td><td>/api/users/register/</td><td>Register user</td></tr>
+                    <tr><td>Users</td><td>GET</td><td>/api/users/users/</td><td>List users</td></tr>
+                    <tr><td>Users</td><td>POST</td><td>/api/users/users/</td><td>Create user</td></tr>
+                    <tr><td>Users</td><td>GET</td><td>/api/users/users/{id}/</td><td>Get user</td></tr>
+                    <tr><td>Users</td><td>PUT</td><td>/api/users/users/{id}/</td><td>Update user</td></tr>
+                    <tr><td>Users</td><td>PATCH</td><td>/api/users/users/{id}/</td><td>Partial update</td></tr>
+                    <tr><td>Users</td><td>DELETE</td><td>/api/users/users/{id}/</td><td>Delete user</td></tr>
+                    <tr><td>Users</td><td>GET</td><td>/api/users/filter/</td><td>Filter users</td></tr>
+                    <tr><td>User Certs</td><td>GET</td><td>/api/users/users/{id}/certificates/</td><td>Get user certificates</td></tr>
+                    <tr><td>User Certs</td><td>POST</td><td>/api/users/users/{id}/certificates/add/</td><td>Add certificate</td></tr>
+                    <tr><td>User Certs</td><td>DELETE</td><td>/api/users/users/{id}/certificates/{cert_id}/remove/</td><td>Remove certificate</td></tr>
+                    <tr><td>User Ranks</td><td>GET</td><td>/api/users/users/{id}/ranks/</td><td>Get user ranks</td></tr>
+                    <tr><td>User Ranks</td><td>POST</td><td>/api/users/users/{id}/ranks/add/</td><td>Add rank</td></tr>
+                    <tr><td>User Ranks</td><td>DELETE</td><td>/api/users/users/{id}/ranks/{rank_id}/remove/</td><td>Remove rank</td></tr>
+                    <tr><td>User Ranks</td><td>POST</td><td>/api/users/users/{id}/assign-rank/{rank_id}/</td><td>Assign rank with code</td></tr>
+                    <tr><td>Ranks</td><td>GET</td><td>/api/users/ranks/</td><td>List ranks</td></tr>
+                    <tr><td>Ranks</td><td>POST</td><td>/api/users/ranks/</td><td>Create rank</td></tr>
+                    <tr><td>Ranks</td><td>GET/PUT/PATCH/DELETE</td><td>/api/users/ranks/{id}/</td><td>CRUD rank</td></tr>
+                    <tr><td>Certificates</td><td>GET</td><td>/api/users/certificates/</td><td>List certificates</td></tr>
+                    <tr><td>Certificates</td><td>POST</td><td>/api/users/certificates/</td><td>Create certificate</td></tr>
+                    <tr><td>Certificates</td><td>GET/PUT/PATCH/DELETE</td><td>/api/users/certificates/{id}/</td><td>CRUD certificate</td></tr>
+                    <tr><td>Contracts</td><td>GET</td><td>/api/users/contracts/</td><td>List contracts</td></tr>
+                    <tr><td>Contracts</td><td>POST</td><td>/api/users/contracts/</td><td>Create contract</td></tr>
+                    <tr><td>Contracts</td><td>GET/PUT/PATCH/DELETE</td><td>/api/users/contracts/{id}/</td><td>CRUD contract</td></tr>
+                    <tr><td>References</td><td>GET</td><td>/api/users/references/</td><td>List references</td></tr>
+                    <tr><td>References</td><td>POST</td><td>/api/users/references/</td><td>Create reference</td></tr>
+                    <tr><td>References</td><td>GET/PUT/PATCH/DELETE</td><td>/api/users/references/{id}/</td><td>CRUD reference</td></tr>
+                    <tr><td>Sea Services</td><td>GET</td><td>/api/users/sea-services/</td><td>List sea services</td></tr>
+                    <tr><td>Sea Services</td><td>POST</td><td>/api/users/sea-services/</td><td>Create sea service</td></tr>
+                    <tr><td>Sea Services</td><td>GET/PUT/PATCH/DELETE</td><td>/api/users/sea-services/{id}/</td><td>CRUD sea service</td></tr>
+                    <tr><td>Companies</td><td>GET</td><td>/api/users/companies/</td><td>List companies</td></tr>
+                    <tr><td>Companies</td><td>POST</td><td>/api/users/companies/</td><td>Create company</td></tr>
+                    <tr><td>Companies</td><td>GET/PUT/PATCH/DELETE</td><td>/api/users/companies/{id}/</td><td>CRUD company</td></tr>
+                    <tr><td>Interviews</td><td>GET</td><td>/api/users/interviews/</td><td>List interviews</td></tr>
+                    <tr><td>Interviews</td><td>POST</td><td>/api/users/interviews/</td><td>Create interview</td></tr>
+                    <tr><td>Interviews</td><td>GET/PUT/PATCH/DELETE</td><td>/api/users/interviews/{id}/</td><td>CRUD interview</td></tr>
+                    <tr><td>CV Submissions</td><td>GET</td><td>/api/users/cv-submissions/</td><td>List CV submissions</td></tr>
+                    <tr><td>CV Submissions</td><td>POST</td><td>/api/users/cv-submissions/</td><td>Create CV submission</td></tr>
+                    <tr><td>CV Submissions</td><td>GET/PUT/PATCH/DELETE</td><td>/api/users/cv-submissions/{id}/</td><td>CRUD CV submission</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 14. HTTP STATUS CODES -->
+        <div class="section" id="status-codes">
+            <h2>14. HTTP STATUS CODES</h2>
+            <table>
+                <thead>
+                    <tr><th>Code</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="status-code">200</span></td><td>OK - Request successful</td></tr>
+                    <tr><td><span class="status-code">201</span></td><td>Created - Resource created successfully</td></tr>
+                    <tr><td><span class="status-code">204</span></td><td>No Content - Resource deleted successfully</td></tr>
+                    <tr><td><span class="status-code">400</span></td><td>Bad Request - Invalid request data</td></tr>
+                    <tr><td><span class="status-code">401</span></td><td>Unauthorized - Authentication required</td></tr>
+                    <tr><td><span class="status-code">403</span></td><td>Forbidden - Permission denied</td></tr>
+                    <tr><td><span class="status-code">404</span></td><td>Not Found - Resource not found</td></tr>
+                    <tr><td><span class="status-code">500</span></td><td>Internal Server Error - Server error</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 15. AUTHENTICATION HEADERS -->
+        <div class="section" id="auth-headers">
+            <h2>15. AUTHENTICATION HEADERS</h2>
+            <p>For protected endpoints, include the authentication token in the request header:</p>
+            <pre>Authorization: Token &lt;your_token_here&gt;</pre>
+            <p>Or if using JWT:</p>
+            <pre>Authorization: Bearer &lt;your_jwt_token_here&gt;</pre>
+        </div>
+        
+        <div style="text-align: center; padding: 40px; color: #667eea; font-style: italic;">
+            <p>Documentation generated for Sakr Manning Agency API v1.0</p>
+        </div>
+    </div>
+</body>
+</html>
