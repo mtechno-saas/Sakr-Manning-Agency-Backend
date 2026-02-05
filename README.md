@@ -748,3 +748,45 @@ When submitting data to the API, specific fields require exact string matches fr
 - `Navigational Watch Rating (Reg. II/4)`
 - `Navigational Watch Rating (Reg. II/4) Endorsement`
 
+### 10.8 Companies, Ships & Finance
+
+#### **Company Type** (`company_type`)
+*Used in `/api/companies/`*
+- `Shipping Manning Companies`
+- `Cargo Manning Companies`
+- `Cruise & Hospitality Manning Companies`
+- `Offshore & Oil/Gas Manning Companies`
+- `Fishing Fleet Manning Companies`
+- `General Crew Manning Companies`
+- `Specialized Marine Manning Companies`
+- `Temporary / Contract Manning Agencies`
+- `Full Crew Management Companies`
+- `Other`
+
+#### **Company Status** (`status`)
+- `Active`
+- `Inactive`
+- `Prospect`
+
+#### **Job Order Status** (`status`)
+*Used in `/api/companies/job-orders/`* (if applicable)
+- `Pending` (Pending Review)
+- `Open` (Open / Sourcing)
+- `In Progress` (In Progress / Interviewing)
+- `Fulfilled`
+- `Cancelled`
+
+#### **Ship Status** (`status`)
+*Used in `/api/ships/`*
+- `Active`
+- `Under Maintenance`
+- `Inactive`
+
+#### **Finance Record Status** (`status`)
+*Used in `/api/finance/`*
+- `Pending`
+- `Paid`
+- `Overdue`
+- `Cancelled`
+
+
