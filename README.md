@@ -1,88 +1,701 @@
+# Sakr Manning Agency API Documentation
 
+**Version:** 1.0.0  
+**Base URL:** `https://api.backend.hs.vc` (Production) / `http://localhost:8000` (Development)
 
-![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white )
-![Django REST Framework](https://img.shields.io/badge/Django%20REST%20Framework-A30000?style=for-the-badge&logo=django&logoColor=white )
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white )
+## 📖 Overview
 
-A robust web application designed to manage the complete operations of a maritime manning agency. This system, built with Django and Django REST Framework, provides a comprehensive and **secure backend solution** for managing seafarers, their professional documentation, employment contracts, company details, and ship assignments.
+The Sakr Manning Agency API provides a comprehensive backend for managing maritime crew, ships, companies, and related logistics. It is built with Django REST Framework (DRF) and serves as the data layer for the frontend application.
 
-## Core Features
+The API supports:
 
-This project provides a full-featured backend system with a powerful Django Admin interface and a complete REST API for programmatic access.
+- **User Management**: Crew members, admins, recruiters.
+- **Ship Management**: Vessel details, crew assignments.
+- **Logistics**: Tickets, traveling papers, visas.
+- **Finance**: Payroll, daily rates, contracts.
+- **Recruitment**: Interviews, AI-powered candidate search.
+- **AI Integration**: Document parsing and intelligent chatbots.
 
-### 1. Seafarer & Employment Management
--   **Custom User Model**: Built on Django's `AbstractUser` for a flexible and secure foundation. **Login is handled via email and password.**
--   **Public User Registration**: New users can sign up through a dedicated, public API endpoint.
--   **Detailed Seafarer Profiles**: Store extensive information for each seafarer, including personal, professional, and visa details, based on detailed Figma designs.
--   **Employment Contracts**: A dedicated model to track the employment history of each seafarer, including their rank, vessel, salary, and contract dates.
--   **Dynamic Ranks & Certificates**: Assign multiple professional ranks and certificates to each user.
--   **Document Management**: Upload and manage scanned documents like tickets and traveling papers for each user.
+---
 
-### 2. Ship & Company Management
--   **Detailed Ship Profiles**: Manage a fleet of ships with extensive details including IMO number, vessel type, flag, tonnage, and engine specifications.
--   **Company Database**: Maintain a list of companies that own or operate the ships.
--   **Crew Roster Management**: Assign crew members to ships via the `Contract` model, creating a dynamic and trackable crew roster for every vessel.
+## 🔐 Authentication
 
-### 3. Secure REST API with JWT Authentication
-A complete RESTful API provides programmatic access to all resources. The API is secured using **JSON Web Tokens (JWT)** with a 15-day refresh token lifetime.
+The API uses **JWT (JSON Web Token)** authentication.
 
-**Authentication & Registration Endpoints:**
+### Headers
 
-| Method | URL                     | Description                                                  |
-| :----- | :---------------------- | :----------------------------------------------------------- |
-| `POST` | `/api/register/`        | **Register (Public)**: Create a new user account.            |
-| `POST` | `/api/login/`           | **Login**: Authenticate with **email** and password to receive access and refresh tokens. |
-| `POST` | `/api/login/refresh/`   | **Refresh Token**: Use a valid refresh token to get a new access token. |
+All authenticated requests must include the `Authorization` header:
 
-**Key API Endpoints (Requires Authentication):**
+```http
+Authorization: Bearer <your_access_token>
+```
 
-| Resource | Method | URL                                         | Description                                  |
-| :--- | :----- | :------------------------------------------ | :------------------------------------------- |
-| **Users** | `GET`, `POST` | `/api/users/`                               | List or create users.                        |
-| | `GET`, `PUT`, `DELETE` | `/api/users/<id>/`                          | Retrieve, update, or delete a specific user. |
-| **Ships** | `GET`, `POST` | `/api/ships/`                               | List or create ships.                        |
-| | `GET`, `PUT`, `DELETE` | `/api/ships/<id>/`                          | Retrieve, update, or delete a specific ship. |
-| **Contracts** | `GET`, `POST` | `/api/contracts/`                           | **New**: List or create employment contracts. |
-| | `GET`, `PUT`, `DELETE` | `/api/contracts/<id>/`                      | **New**: Manage a specific contract.         |
-| **Core Data** | `GET` | `/api/core/flags/`                          | **New**: Get a list of all country flags.    |
-| | `GET` | `/api/core/vessel-types/`                 | **New**: Get a list of all vessel types.     |
-| **User Docs** | `GET`, `POST` | `/api/users/<user_id>/tickets/`             | List or upload tickets for a specific user.  |
-| | `DELETE`| `/api/users/<user_id>/tickets/<ticket_id>/` | Delete a specific ticket.                    |
-| | `GET`, `POST` | `/api/users/<user_id>/traveling-papers/`    | List or upload traveling papers for a user.  |
-| | `DELETE`| `/api/users/<user_id>/traveling-papers/<paper_id>/`| Delete a specific traveling paper.         |
+### Flow
 
-## Getting Started
+1. **Login** with username/password to get `access` and `refresh` tokens.
+2. Use `access` token for API requests (valid for ~15 days).
+3. When `access` token expires, use `refresh` token to get a new pair.
 
-Follow these instructions to get a copy of the project up and running on your local machine.
+---
 
-### Prerequisites
+## 📡 Request & Response Structure
 
--   Python (3.8 or newer)
--   Django & Django REST Framework
--   A `requirements.txt` file should be present in the project.
+### Standard Success Response
 
-### Installation
+Most endpoints return JSON objects or arrays.
 
-1.  **Clone the repository.**
-2.  **Create and activate a virtual environment.**
-3.  **Install the required packages:** `pip install -r requirements.txt`
-4.  **Apply database migrations:** `python manage.py makemigrations` and then `python manage.py migrate`
-5.  **Create a superuser:** `python manage.py createsuperuser` (You will be prompted for an **email** as the login field).
-6.  **Run the development server:** `python manage.py runserver`
+```json
+{
+  "id": 1,
+  "name": "Object Name",
+  "created_at": "2023-10-27T10:00:00Z"
+}
+```
 
-### Accessing the API
+### Standard Error Response
 
-1.  **Register a new user:** Send a `POST` request to `http://127.0.0.1:8000/api/register/`.
-2.  **Get your tokens:** Send a `POST` request to `http://127.0.0.1:8000/api/login/` with your email and password.
-3.  **Authorize your requests:** To access a protected endpoint, include an `Authorization` header with the value `Bearer <your_access_token>`.
+Errors are returned with appropriate HTTP status codes and a detailed JSON body.
 
-## Future Development Roadmap
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
 
--   [x] **API Authentication**: Implemented JWT with a 15-day refresh token.
--   [x] **File Uploads via API**: Implemented for profile pictures and user documents.
--   [x] **User Roles & Permissions**: Foundational system using Django Groups is in place.
--   [ ] **Advanced Reporting**: Develop a module for generating reports on crew composition, certificate expiry dates, and contract statuses.
--   [ ] **Frontend Application**: Build a frontend client (e.g., using React, Vue.js, or Svelte ) to provide a rich user interface for interacting with the API.
-# ... (rest of your README )
+**Validation Errors (400 Bad Request):**
 
-# Forcing a new commit to sync with Hugging Face.
+```json
+{
+  "email": ["Enter a valid email address."],
+  "password": ["This field is required."]
+}
+```
+
+---
+
+## 🚦 Status Codes
+
+| Code | Meaning | Description |
+| :--- | :--- | :--- |
+| `200` | **OK** | Request successful. |
+| `201` | **Created** | Resource successfully created. |
+| `204` | **No Content** | Request successful, no content returned (e.g., DELETE). |
+| `400` | **Bad Request** | Validation error or malformed request. |
+| `401` | **Unauthorized** | Authentication failed or token missing. |
+| `403` | **Forbidden** | User authenticated but lacks permission. |
+| `404` | **Not Found** | Resource does not exist. |
+| `500` | **Internal Server Error** | Server-side error. |
+
+---
+
+# 📚 Endpoints
+
+## 1. Authentication
+
+### Login (Obtain Token)
+
+**POST** `/api/login/`
+
+Authenticate a user and retrieve access/refresh tokens.
+
+**Request Body:**
+
+```json
+{
+  "email": "admin@example.com",
+  "password": "securepassword123"
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+#### Code Example
+
+```bash
+curl -X POST https://api.backend.hs.vc/api/login/ \
+     -H "Content-Type: application/json" \
+     -d '{"email": "admin@example.com", "password": "pass"}'
+```
+
+### Refresh Token
+
+**POST** `/api/login/refresh/`
+
+Get a new access token using a valid refresh token.
+
+**Request Body:**
+
+```json
+{
+  "refresh": "your_refresh_token_here"
+}
+```
+
+---
+
+## 2. Users (Crew & Staff)
+
+### List All Users
+
+**GET** `/api/users/`
+
+Retrieve a paginated list of all users.
+
+**Query Parameters:**
+
+- `page`: Page number (default: 1)
+- `search`: Search by name or email
+- `role`: Filter by role (Admin, Recruiter, Employee)
+
+**Response (200 OK):**
+
+```json
+{
+  "count": 102,
+  "next": "https://api.backend.hs.vc/api/users/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "email": "crew@sakr.com",
+      "first_name": "Ahmed",
+      "last_name": "Ali",
+      "role": "Employee",
+      "nationality": "Egyptian",
+      "rank": "Captain"
+    }
+  ]
+}
+```
+
+### Create User
+
+**POST** `/api/users/`
+
+Create a new user profile.
+
+**Request Body:**
+
+```json
+{
+  "email": "newuser@example.com",
+  "password": "password123",
+  "first_name": "New",
+  "last_name": "User",
+  "role": "Employee",
+  "nationality": "Filipino",
+  "date_of_birth": "1990-01-01"
+}
+```
+
+### Get User Details
+
+**GET** `/api/users/{id}/`
+
+Retrieve detailed profile for a specific user.
+
+---
+
+## 3. Ships (Vessels)
+
+### List Ships
+
+**GET** `/api/ships/`
+
+Retrieve all ships in the fleet.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "ship_name": "MV Pacific Queen",
+    "imo_number": "IMO7654321",
+    "status": "Active",
+    "company": 2,
+    "crew": [...] 
+  }
+]
+```
+
+### Create Ship
+
+**POST** `/api/ships/`
+
+Add a new vessel to the system. Requires Admin or Ship Manager privileges.
+
+**Request Body:**
+
+```json
+{
+  "ship_name": "MV Atlantic Star",
+  "imo_number": "IMO9876543",
+  "company": 1,
+  "ship_type": 1,
+  "flag": 2,
+  "official_no": "OFF99999",
+  "crew_ids": [10, 25, 33],
+  "engine_type": "MAN B&W"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 5,
+  "ship_name": "MV Atlantic Star",
+  "crew": [ ...list of crew objects... ]
+}
+```
+
+**Error (403 Forbidden):**
+Returned if user is not an Admin/Superuser.
+
+---
+
+## 4. Companies
+
+### List Companies
+
+**GET** `/api/companies/`
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "company_name": "Maersk Line",
+    "company_type": "Shipping Manning Companies",
+    "status": "Active",
+    "hourly_rate": "550.00",
+    "open_positions": 5
+  }
+]
+```
+
+### Create Company
+
+**POST** `/api/companies/`
+
+Create a new company.
+
+**Request Body:**
+
+```json
+{
+  "company_name": "Oceanic Transport",
+  "company_type": "Shipping Manning Companies",
+  "contact_email": "contact@oceanic.com",
+  "status": "Active",
+  "open_positions": 5,
+  "hourly_rate": "150.00"
+}
+```
+
+**Valid `company_type` Choices:**
+
+- Shipping Manning Companies
+- Cargo Manning Companies
+- Cruise & Hospitality Manning Companies
+- Offshore & Oil/Gas Manning Companies
+- Fishing Fleet Manning Companies
+- General Crew Manning Companies
+- Specialized Marine Manning Companies
+- Temporary / Contract Manning Agencies
+- Full Crew Management Companies
+- Other
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 2,
+  "company_name": "Oceanic Transport",
+  "company_type": "Shipping Manning Companies",
+  "status": "Active",
+  "created_at": "2024-03-15T10:00:00Z"
+}
+```
+
+### Get Company Stats
+
+**GET** `/api/companies/stats/`
+
+Returns aggregated statistics about companies.
+
+**Response (200 OK):**
+
+```json
+{
+  "total_companies": 15,
+  "active_companies": 12,
+  "hiring_companies": 5
+}
+```
+
+---
+
+## 5. Logistics (Tickets & Papers)
+
+### List Tickets
+
+**GET** `/api/tickets-papers/tickets/`
+
+Retrieve all travel tickets.
+
+### Upload Ticket
+
+**POST** `/api/tickets-papers/tickets/`
+
+**Request Body (Multipart Form-Data):**
+
+- `user`: User ID (integer)
+- `ticket_number`: String
+- `file`: File upload (PDF/Image)
+
+### List Traveling Papers
+
+**GET** `/api/tickets-papers/traveling-papers/`
+
+Retrieve visas, seaman books, and other travel docs.
+
+---
+
+## 6. Finance
+
+### List Finance Records
+
+**GET** `/api/finance/finance-records/`
+
+Retrieve payroll records details.
+
+### Create Finance Record
+
+**POST** `/api/finance/finance-records/`
+
+**Request Body:**
+
+```json
+{
+  "user": 5,
+  "company": 2,
+  "start_date": "2024-01-01",
+  "end_date": "2024-01-31",
+  "status": "Paid"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 101,
+  "user": 5,
+  "total_days": 31,
+  "daily_rate": 200.0,
+  "total_money": 6200.0
+}
+```
+
+---
+
+## 7. Interviews
+
+### List Interviews
+
+**GET** `/api/interviews/`
+
+### Schedule Interview
+
+**POST** `/api/interviews/`
+
+**Request Body:**
+
+```json
+{
+  "candidate": 5,
+  "interviewer": 1,
+  "date": "2024-02-15T10:00:00Z",
+  "status": "Scheduled",
+  "link": "https://meet.google.com/abc-defg-hij"
+}
+```
+
+### Get Interview Status Stats
+
+**GET** `/api/interviews/status/`
+
+Returns counts of interviews by status.
+
+**Response (200 OK):**
+
+```json
+{
+  "scheduled": 5,
+  "completed": 20,
+  "pending": 2
+}
+```
+
+---
+
+## 8. Core (Reference Data)
+
+### Vessel Types
+
+**GET** `/api/core/vessel-types/`  
+**POST** `/api/core/vessel-types/`  
+Body: `{"name": "Bulk Carrier"}`
+
+### Flags (Countries)
+
+**GET** `/api/core/flags/`  
+**POST** `/api/core/flags/`  
+Body: `{"name": "Panama", "icon": <file>}`
+
+---
+
+## 9. AI Agents & Documents
+
+### Document Upload (Parsed)
+
+**POST** `/ai/upload/`
+Upload a document (CV, Passport) for AI parsing.
+
+**Request Body:**
+
+- `file`: PDF/Image
+- `document_type`: "Passport", "CV", etc.
+
+### Chat with AI
+
+**POST** `/ai-agents/chat/`
+
+Search database or chat using natural language.
+
+**Request Body:**
+
+```json
+{
+  "query": "Find me a Captain with 5 years experience on Tankers",
+  "session_id": "optional-uuid"
+}
+```
+
+---
+
+## 💻 Developer Examples
+
+### Python (requests)
+
+```python
+import requests
+
+url = "https://api.backend.hs.vc/api/ships/"
+token = "your_access_token"
+
+headers = {
+    "Authorization": f"Bearer {token}",
+    "Content-Type": "application/json"
+}
+
+data = {
+    "ship_name": "MV Python",
+    "imo_number": "IMO1234567",
+    "company": 1
+}
+
+response = requests.post(url, json=data, headers=headers)
+print(response.json())
+```
+
+### JavaScript (fetch)
+
+```javascript
+const createShip = async () => {
+  const response = await fetch('https://api.backend.hs.vc/api/ships/', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + localStorage.getItem('token'),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      ship_name: 'MV JS',
+      imo_number: 'IMO9999999',
+      company: 1
+    })
+  });
+  
+  const data = await response.json();
+  console.log(data);
+};
+```
+
+---
+
+## 10. Appendix: Field Choices Reference
+
+When submitting data to the API, specific fields require exact string matches from the lists below.
+
+### 10.1 User & Profile
+
+#### **Role** (`role`)
+- `Admin`
+- `HR Manager`
+- `Recruiter`
+- `Employee`
+
+#### **User Status** (`user_status`)
+- `VACATION`
+- `ON_SITE`
+- `MEDICAL VACATION`
+
+#### **Marital Status** (`marital_status`)
+- `SINGLE`
+- `MARRIED`
+
+### 10.2 Medical & Vaccinations
+
+#### **Vaccine/Certificate Name** (`name`)
+*Used in `/api/vaccinations/`*
+- `QUARANTINE LETTER`
+- `RUBELLA IMMUNITY`
+- `TESSERA SANITARIA`
+- `TUBERCULOSIS_LAB_SCREEN`
+- `TYPHOID_VACCINATION`
+- `VARICELLA_IMMUNIZATION`
+- `YELLOW_FEVER_IMMUNIZATION`
+- `CHICKENPOX_IMMUNITY_SCREENING`
+- `COLOR_VISION_CERTIFICATE`
+- `COVID_SARS_VACCINATION`
+- `COVID_FORM`
+- `FOODHANDLER_EXAMS`
+- `HEALTH_QUESTIONNAIRE`
+- `HEPATITIS_A_IMMUNIZATION`
+- `HEPATITIS_B_IMMUNIZATION`
+- `ITALIAN_MEDICAL_PRE_EMBARK`
+- `MEASLES_IMMUNITY`
+- `MEDICAL_CERT_SEAFARERS`
+- `MMR_BOOSTER_2`
+- `MMR_VACC_IMMUNIZATION`
+- `MUMPS_IMMUNITY`
+- `PERTUSSIS_IMMUNIZATION`
+
+### 10.3 Compliance
+
+#### **Audit Type** (`audit_type`)
+- `MLC` (MLC 2006)
+- `ISO` (ISO 9001)
+- `PSC` (Port State Control)
+- `Internal` (Internal Audit)
+- `Client` (Client Audit)
+
+#### **Incident Type** (`incident_type`)
+- `Accident` (Accident / Injury)
+- `Near Miss`
+- `Grievance` (Crew Grievance / Complaint)
+- `Disciplinary` (Disciplinary Action)
+- `Pollution` (Pollution / Environmental)
+- `Security` (Security Breach)
+
+#### **Severity** (`severity`)
+- `Low`
+- `Medium`
+- `High`
+- `Critical`
+
+### 10.4 Documents
+
+#### **Document Position/Rank** (`position`)
+*Used in `/api/documents/`*
+- `Master`
+- `1st. Officer – Chief Off.`
+- `2nd. Officer`
+- `3rd. Officer`
+- `Tug Master`
+- `Boson`
+- `A.B – O.S`
+- `Steward / Galley Boy`
+- `Cook / 2nd. Cook / Ass. Cook / Baker / Pastry`
+- `Carpenter`
+- `Waiter`
+- `Purser`
+- `Doctor`
+- `1st. Engineer`
+- `2nd. Engineer`
+- `3rd. Engineer`
+- `Electrical Engineer – E/E – ETO`
+- `Assistant Electrician`
+- `4th. Engineer`
+- `Electrician`
+- `Motor Man / Mechanic`
+- `Oiler`
+- `Fitter – Welder`
+- `Wiper`
+- `Other`
+
+#### **Personal Document Type** (`document_type`)
+*Used in `/api/personal-documents/`*
+- `BAHAMAS SEAMAN'S BOOK`
+- `BELIZE SEAMAN'S BOOK`
+- `BERMUDA SEAMAN'S BOOK`
+- `EU national ID`
+- `Exit Interview`
+- `LIBERIAN SEAMAN'S BOOK`
+- `Local ID Card`
+- `LUXEMBOURG SEAMAN'S BOOK`
+- `PALAU SEAMAN'S BOOK`
+- `PANAMA SEAMAN'S BOOK`
+- `Passport`
+- `PERMESSO SOGGIORNO PERMANENTE`
+- `PERMESSO SOGGIORNO TEMPORANEO`
+- `Personal Record Sheet`
+- `RESIDENCE CERTIFICATE`
+- `SEAFARERS' ID. DOC. ILO 185`
+- `Seaman's Book`
+- `Seaman's Book/Card or ID`
+- `U.K. SEAMAN'S BOOK`
+
+### 10.5 Language Proficiency
+
+#### **Speaking/Writing/Reading Levels**
+- `Elementary`
+- `Intermediate`
+- `Advanced`
+- `Native`
+
+#### **CEFR Levels**
+- `A1` (Beginner)
+- `A2` (Elementary)
+- `B1` (Intermediate)
+- `B2` (Upper Intermediate)
+- `C1` (Advanced)
+- `C2` (Proficient)
+
+### 10.6 Contracts & Finance
+
+#### **Contract Status**
+- `Active`
+- `Completed`
+- `Pending`
+- `Signed`
+- `Pending Signature`
+- `Draft`
+- `Cancelled`
+
+#### **Currency**
+- `USD`
+- `EUR`
+- `GBP`
+- `EGP`
+
