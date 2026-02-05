@@ -699,3 +699,52 @@ When submitting data to the API, specific fields require exact string matches fr
 - `GBP`
 - `EGP`
 
+### 10.7 Licenses
+
+#### **Document Name** (`document_name`)
+*Used in `/api/my-licenses/`*
+- `Master (Reg. II/2 Par. 1-2)`
+- `Master (Reg. II/2 Par. 1-2) Endorsement`
+- `Master <3,000 GRT (Reg. II/2 Par. 3-4)`
+- `Master <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement`
+- `Master <500 GRT (Reg. II/3 Par. 5-6)`
+- `Master <500 GRT (Reg. II/3 Par. 5-6) Endorsement`
+- `Yachtmaster Coastal`
+- `Chief Officer (Reg. II/2 Par. 1-2)`
+- `Chief Officer (Reg. II/2 Par. 1-2) Endorsement`
+- `Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4)`
+- `Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement`
+- `Navigational Watch Officer (Reg. II/1)`
+- `Navigational Watch Officer (Reg. II/1) Endorsement`
+- `Navigational Watch Officer <500 GRT (II/3 Par. 3-4)`
+- `Chief Engineer (Reg. III/2)`
+- `Chief Engineer (Reg. III/2) Endorsement`
+- `Chief Engineer – Steam (Reg. III/2)`
+- `Chief Engineer – Steam (Reg. III/2) Endorsement`
+- `Chief Engineer <3,000 KW (Reg. III/3)`
+- `2nd Engineer (Reg. III/2)`
+- `2nd Engineer (Reg. III/2) Endorsement`
+- `2nd Engineer – Steam (Reg. III/3)`
+- `2nd Engineer – Steam (Reg. III/3) Endorsement`
+- `2nd Engineer <3,000 KW (Reg. III/3)`
+- `Engineering Watch Officer (Reg. III/1)`
+- `Engineering Watch Officer (Reg. III/1) Endorsement`
+- `Electro Technical Officer (Reg. III/6)`
+- `Electro Technical Officer (Reg. III/6) Endorsement`
+- `Electro Technical Rating (Reg. III/7)`
+- `Able Seaman Deck (Reg. II/5)`
+- `Able Seaman Deck (Reg. II/5) Endorsement`
+- `Able Seaman Engine (Reg. III/5)`
+- `Able Seaman Engine (Reg. III/5) Endorsement`
+- `Qualified Steward/Messman Endorsement`
+- `GMDSS Radio Operator (Reg. IV/2)`
+- `GMDSS Radio Operator (Reg. IV/2) Endorsement`
+- `GMDSS Endorsement (Reg. IV/2) Flag CRA`
+- `GMDSS Restricted Operator (ROC) (Reg. IV/2)`
+- `GMDSS Restricted Operator (ROC) (Reg. IV/2) Endorsement`
+- `GMDSS Restricted Operator (ROC) (Reg. IV/2) CRA`
+- `Qualified Ship’s Cook (MLC 2006)`
+- `Qualified Ship’s Cook (MLC 2006) Endorsement`
+- `Navigational Watch Rating (Reg. II/4)`
+- `Navigational Watch Rating (Reg. II/4) Endorsement`
+
