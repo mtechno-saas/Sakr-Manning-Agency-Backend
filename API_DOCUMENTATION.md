@@ -540,3 +540,285 @@ const createShip = async () => {
   console.log(data);
 };
 ```
+
+---
+
+## 10. Appendix: Field Choices Reference
+
+When submitting data to the API, specific fields require exact string matches from the lists below.
+
+### 10.1 User & Profile
+
+#### **Role** (`role`)
+- `Admin`
+- `HR Manager`
+- `Recruiter`
+- `Employee`
+
+#### **User Status** (`user_status`)
+- `VACATION`
+- `ON_SITE`
+- `MEDICAL VACATION`
+
+#### **Marital Status** (`marital_status`)
+- `SINGLE`
+- `MARRIED`
+
+### 10.2 Medical & Vaccinations
+
+#### **Vaccine/Certificate Name** (`name`)
+*Used in `/api/vaccinations/`*
+- `QUARANTINE LETTER`
+- `RUBELLA IMMUNITY`
+- `TESSERA SANITARIA`
+- `TUBERCULOSIS_LAB_SCREEN`
+- `TYPHOID_VACCINATION`
+- `VARICELLA_IMMUNIZATION`
+- `YELLOW_FEVER_IMMUNIZATION`
+- `CHICKENPOX_IMMUNITY_SCREENING`
+- `COLOR_VISION_CERTIFICATE`
+- `COVID_SARS_VACCINATION`
+- `COVID_FORM`
+- `FOODHANDLER_EXAMS`
+- `HEALTH_QUESTIONNAIRE`
+- `HEPATITIS_A_IMMUNIZATION`
+- `HEPATITIS_B_IMMUNIZATION`
+- `ITALIAN_MEDICAL_PRE_EMBARK`
+- `MEASLES_IMMUNITY`
+- `MEDICAL_CERT_SEAFARERS`
+- `MMR_BOOSTER_2`
+- `MMR_VACC_IMMUNIZATION`
+- `MUMPS_IMMUNITY`
+- `PERTUSSIS_IMMUNIZATION`
+
+### 10.3 Compliance
+
+#### **Audit Type** (`audit_type`)
+- `MLC` (MLC 2006)
+- `ISO` (ISO 9001)
+- `PSC` (Port State Control)
+- `Internal` (Internal Audit)
+- `Client` (Client Audit)
+
+#### **Incident Type** (`incident_type`)
+- `Accident` (Accident / Injury)
+- `Near Miss`
+- `Grievance` (Crew Grievance / Complaint)
+- `Disciplinary` (Disciplinary Action)
+- `Pollution` (Pollution / Environmental)
+- `Security` (Security Breach)
+
+#### **Severity** (`severity`)
+- `Low`
+- `Medium`
+- `High`
+- `Critical`
+
+### 10.4 Documents
+
+#### **Document Position/Rank** (`position`)
+*Used in `/api/documents/`*
+- `Master`
+- `1st. Officer – Chief Off.`
+- `2nd. Officer`
+- `3rd. Officer`
+- `Tug Master`
+- `Boson`
+- `A.B – O.S`
+- `Steward / Galley Boy`
+- `Cook / 2nd. Cook / Ass. Cook / Baker / Pastry`
+- `Carpenter`
+- `Waiter`
+- `Purser`
+- `Doctor`
+- `1st. Engineer`
+- `2nd. Engineer`
+- `3rd. Engineer`
+- `Electrical Engineer – E/E – ETO`
+- `Assistant Electrician`
+- `4th. Engineer`
+- `Electrician`
+- `Motor Man / Mechanic`
+- `Oiler`
+- `Fitter – Welder`
+- `Wiper`
+- `Other`
+
+#### **Personal Document Type** (`document_type`)
+*Used in `/api/personal-documents/`*
+- `BAHAMAS SEAMAN'S BOOK`
+- `BELIZE SEAMAN'S BOOK`
+- `BERMUDA SEAMAN'S BOOK`
+- `EU national ID`
+- `Exit Interview`
+- `LIBERIAN SEAMAN'S BOOK`
+- `Local ID Card`
+- `LUXEMBOURG SEAMAN'S BOOK`
+- `PALAU SEAMAN'S BOOK`
+- `PANAMA SEAMAN'S BOOK`
+- `Passport`
+- `PERMESSO SOGGIORNO PERMANENTE`
+- `PERMESSO SOGGIORNO TEMPORANEO`
+- `Personal Record Sheet`
+- `RESIDENCE CERTIFICATE`
+- `SEAFARERS' ID. DOC. ILO 185`
+- `Seaman's Book`
+- `Seaman's Book/Card or ID`
+- `U.K. SEAMAN'S BOOK`
+
+### 10.5 Language Proficiency
+
+#### **Language** (`language`)
+*Used in `/api/my-languages/`*
+- `English`
+- `Spanish`
+- `French`
+- `German`
+- `Italian`
+- `Portuguese`
+- `Dutch`
+- `Russian`
+- `Chinese (Mandarin)`
+- `Japanese`
+- `Korean`
+- `Arabic`
+- `Hindi`
+- `Greek`
+- `Polish`
+- `Turkish`
+- `Swedish`
+- `Norwegian`
+- `Danish`
+- `Finnish`
+- `Czech`
+- `Romanian`
+- `Ukrainian`
+- `Thai`
+- `Vietnamese`
+- `Indonesian`
+- `Malay`
+- `Tagalog`
+- `Other`
+
+#### **Speaking/Writing/Reading Levels**
+*Used in `/api/user-languages/`*
+- `Elementary`
+- `Intermediate`
+- `Advanced`
+- `Native`
+
+#### **CEFR Levels**
+- `A1` (Beginner)
+- `A2` (Elementary)
+- `B1` (Intermediate)
+- `B2` (Upper Intermediate)
+- `C1` (Advanced)
+- `C2` (Proficient)
+
+### 10.6 Contracts & Finance
+
+#### **Contract Status**
+- `Active`
+- `Completed`
+- `Pending`
+- `Signed`
+- `Pending Signature`
+- `Draft`
+- `Cancelled`
+
+#### **Currency**
+- `USD`
+- `EUR`
+- `GBP`
+- `EGP`
+
+### 10.7 Licenses
+
+#### **Document Name** (`document_name`)
+*Used in `/api/my-licenses/`*
+- `Master (Reg. II/2 Par. 1-2)`
+- `Master (Reg. II/2 Par. 1-2) Endorsement`
+- `Master <3,000 GRT (Reg. II/2 Par. 3-4)`
+- `Master <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement`
+- `Master <500 GRT (Reg. II/3 Par. 5-6)`
+- `Master <500 GRT (Reg. II/3 Par. 5-6) Endorsement`
+- `Yachtmaster Coastal`
+- `Chief Officer (Reg. II/2 Par. 1-2)`
+- `Chief Officer (Reg. II/2 Par. 1-2) Endorsement`
+- `Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4)`
+- `Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement`
+- `Navigational Watch Officer (Reg. II/1)`
+- `Navigational Watch Officer (Reg. II/1) Endorsement`
+- `Navigational Watch Officer <500 GRT (II/3 Par. 3-4)`
+- `Chief Engineer (Reg. III/2)`
+- `Chief Engineer (Reg. III/2) Endorsement`
+- `Chief Engineer – Steam (Reg. III/2)`
+- `Chief Engineer – Steam (Reg. III/2) Endorsement`
+- `Chief Engineer <3,000 KW (Reg. III/3)`
+- `2nd Engineer (Reg. III/2)`
+- `2nd Engineer (Reg. III/2) Endorsement`
+- `2nd Engineer – Steam (Reg. III/3)`
+- `2nd Engineer – Steam (Reg. III/3) Endorsement`
+- `2nd Engineer <3,000 KW (Reg. III/3)`
+- `Engineering Watch Officer (Reg. III/1)`
+- `Engineering Watch Officer (Reg. III/1) Endorsement`
+- `Electro Technical Officer (Reg. III/6)`
+- `Electro Technical Officer (Reg. III/6) Endorsement`
+- `Electro Technical Rating (Reg. III/7)`
+- `Able Seaman Deck (Reg. II/5)`
+- `Able Seaman Deck (Reg. II/5) Endorsement`
+- `Able Seaman Engine (Reg. III/5)`
+- `Able Seaman Engine (Reg. III/5) Endorsement`
+- `Qualified Steward/Messman Endorsement`
+- `GMDSS Radio Operator (Reg. IV/2)`
+- `GMDSS Radio Operator (Reg. IV/2) Endorsement`
+- `GMDSS Endorsement (Reg. IV/2) Flag CRA`
+- `GMDSS Restricted Operator (ROC) (Reg. IV/2)`
+- `GMDSS Restricted Operator (ROC) (Reg. IV/2) Endorsement`
+- `GMDSS Restricted Operator (ROC) (Reg. IV/2) CRA`
+- `Qualified Ship’s Cook (MLC 2006)`
+- `Qualified Ship’s Cook (MLC 2006) Endorsement`
+- `Navigational Watch Rating (Reg. II/4)`
+- `Navigational Watch Rating (Reg. II/4) Endorsement`
+
+### 10.8 Companies, Ships & Finance
+
+#### **Company Type** (`company_type`)
+*Used in `/api/companies/`*
+- `Shipping Manning Companies`
+- `Cargo Manning Companies`
+- `Cruise & Hospitality Manning Companies`
+- `Offshore & Oil/Gas Manning Companies`
+- `Fishing Fleet Manning Companies`
+- `General Crew Manning Companies`
+- `Specialized Marine Manning Companies`
+- `Temporary / Contract Manning Agencies`
+- `Full Crew Management Companies`
+- `Other`
+
+#### **Company Status** (`status`)
+- `Active`
+- `Inactive`
+- `Prospect`
+
+#### **Job Order Status** (`status`)
+*Used in `/api/companies/job-orders/`* (if applicable)
+- `Pending` (Pending Review)
+- `Open` (Open / Sourcing)
+- `In Progress` (In Progress / Interviewing)
+- `Fulfilled`
+- `Cancelled`
+
+#### **Ship Status** (`status`)
+*Used in `/api/ships/`*
+- `Active`
+- `Under Maintenance`
+- `Inactive`
+
+#### **Finance Record Status** (`status`)
+*Used in `/api/finance/`*
+- `Pending`
+- `Paid`
+- `Overdue`
+- `Cancelled`
+
