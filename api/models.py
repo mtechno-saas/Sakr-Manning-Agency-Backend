@@ -164,6 +164,39 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 class LanguageProficiency(models.Model):
+    # Language Options
+    LANGUAGE_CHOICES = [
+        ('English', 'English'),
+        ('Spanish', 'Spanish'),
+        ('French', 'French'),
+        ('German', 'German'),
+        ('Italian', 'Italian'),
+        ('Portuguese', 'Portuguese'),
+        ('Dutch', 'Dutch'),
+        ('Russian', 'Russian'),
+        ('Chinese (Mandarin)', 'Chinese (Mandarin)'),
+        ('Japanese', 'Japanese'),
+        ('Korean', 'Korean'),
+        ('Arabic', 'Arabic'),
+        ('Hindi', 'Hindi'),
+        ('Greek', 'Greek'),
+        ('Polish', 'Polish'),
+        ('Turkish', 'Turkish'),
+        ('Swedish', 'Swedish'),
+        ('Norwegian', 'Norwegian'),
+        ('Danish', 'Danish'),
+        ('Finnish', 'Finnish'),
+        ('Czech', 'Czech'),
+        ('Romanian', 'Romanian'),
+        ('Ukrainian', 'Ukrainian'),
+        ('Thai', 'Thai'),
+        ('Vietnamese', 'Vietnamese'),
+        ('Indonesian', 'Indonesian'),
+        ('Malay', 'Malay'),
+        ('Tagalog', 'Tagalog'),
+        ('Other', 'Other'),
+    ]
+    
     # CEFR Level Options
     CEFR_CHOICES = [
         ('A1', 'A1 - Beginner'),
@@ -183,7 +216,7 @@ class LanguageProficiency(models.Model):
     )
     
     # Fields as requested
-    language = models.CharField(max_length=100)
+    language = models.CharField(max_length=100, choices=LANGUAGE_CHOICES)
     general_marks = models.IntegerField(default=0)
     speaking = models.IntegerField(default=0)
     writing = models.IntegerField(default=0)
