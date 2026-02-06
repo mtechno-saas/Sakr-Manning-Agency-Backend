@@ -597,7 +597,17 @@ class Users(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=100, unique=True)
     first_name = models.CharField(max_length=100)
     middle_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
     profile_image = models.ImageField(upload_to="users/", blank=True, null=True)
+
+    # Position Information (from application form)
+    application_position = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True, blank=True, related_name='position_applicants', help_text="Position being applied for")
+    other_position = models.CharField(max_length=200, blank=True, null=True, help_text="Alternative position if any")
+    register_code = models.CharField(max_length=50, blank=True, null=True, help_text="Registration code")
+    register_date = models.DateField(null=True, blank=True, help_text="Registration date")
+    last_update_date = models.DateField(null=True, blank=True, help_text="Last update date")
+    available_date = models.DateField(null=True, blank=True, help_text="Date when user is available")
+    expected_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Expected salary")
 
     # Personal Info
     age = models.IntegerField(null=True, blank=True)
@@ -718,7 +728,10 @@ class Users(AbstractBaseUser, PermissionsMixin):
     marlins_test_issued_at = models.CharField(max_length=100, blank=True, null=True)
     marlins_test_issued_by = models.CharField(max_length=100, blank=True, null=True)
 
-    certificates = models.ManyToManyField(Certificate, blank=True)
+    # Certificate Types (general qualifications)
+    # NOTE: This tracks which certificate TYPES a user is qualified for.
+    # For actual certificate instances with details (numbers, dates, files), see UserCertificate model
+    certificates = models.ManyToManyField(Certificate, blank=True, related_name='qualified_users')
     codes = models.ManyToManyField(Rank, blank=True)
 
     # Auth & Permissions
@@ -934,7 +947,10 @@ class CVSubmission(models.Model):
 
 class Reference(models.Model):
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='references')
+    number = models.CharField(max_length=50, blank=True, null=True, help_text="Reference number/identifier")
     company_name = models.CharField(max_length=255)
+    management = models.CharField(max_length=255, blank=True, null=True, help_text="Management level or department")
+    country = models.CharField(max_length=100, blank=True, null=True, help_text="Country")
     position = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     tel = models.CharField(max_length=50)
@@ -960,3 +976,86 @@ class SeaService(models.Model):
 
     def __str__(self):
         return f"Sea service for {self.user.email} on {self.vessel_name_imo}"
+
+
+# =====================
+# USER CERTIFICATE MODEL
+# =====================
+class UserCertificate(models.Model):
+    """
+    Stores individual certificate and course instances for users.
+    This allows tracking multiple certificates/courses with detailed information
+    including document numbers, dates, issuers, and file uploads.
+    """
+    CERTIFICATE_CATEGORY_CHOICES = [
+        ('Certificate', 'Certificate'),
+        ('Course', 'Marine Course'),
+    ]
+    
+    # Relationships
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='user_certificates')
+    certificate_type = models.ForeignKey(
+        Certificate, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        help_text="Type/name of certificate from predefined list"
+    )
+    
+    # Certificate Details
+    document_name = models.CharField(max_length=255, help_text="Name of the certificate/course")
+    document_number = models.CharField(max_length=100, blank=True, null=True, help_text="Certificate number")
+    country_of_issue = models.CharField(max_length=100, blank=True, null=True, help_text="Country where issued")
+    
+    # Dates
+    issue_date = models.DateField(null=True, blank=True, help_text="Date when certificate was issued")
+    expiry_date = models.DateField(null=True, blank=True, help_text="Date when certificate expires")
+    
+    # Issuer Information
+    issued_by = models.CharField(max_length=255, blank=True, null=True, help_text="Issuing authority")
+    issued_at = models.CharField(max_length=255, blank=True, null=True, help_text="Place of issue")
+    
+    # File Storage
+    certificate_file = models.FileField(
+        upload_to='certificates/', 
+        null=True, 
+        blank=True,
+        help_text="Upload certificate document"
+    )
+    
+    # Category (to distinguish between certificates and courses)
+    category = models.CharField(
+        max_length=20, 
+        choices=CERTIFICATE_CATEGORY_CHOICES, 
+        default='Certificate',
+        help_text="Certificate or Marine Course"
+    )
+    
+    # Optional: Link to rank if certificate is rank-specific
+    rank = models.ForeignKey(
+        Rank, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        help_text="Associated rank if applicable"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-issue_date']
+        verbose_name = "User Certificate"
+        verbose_name_plural = "User Certificates"
+    
+    def __str__(self):
+        cert_name = self.certificate_type.name if self.certificate_type else self.document_name
+        return f"{self.user.first_name} {self.user.last_name} - {cert_name}"
+    
+    def is_expired(self):
+        """Check if certificate is expired"""
+        if self.expiry_date:
+            from django.utils import timezone
+            return self.expiry_date < timezone.now().date()
+        return False
