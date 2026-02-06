@@ -11,6 +11,7 @@ The API supports:
 
 - **User Management**: Crew members, admins, recruiters.
 - **Ship Management**: Vessel details, crew assignments.
+- **Certificate Management**: Track individual certificates and marine courses with detailed instances.
 - **Logistics**: Tickets, traveling papers, visas.
 - **Finance**: Payroll, daily rates, contracts.
 - **Recruitment**: Interviews, AI-powered candidate search.
@@ -449,7 +450,401 @@ Returns counts of interviews by status.
 
 ---
 
-## 8. Core (Reference Data)
+## 8. Certificate Instance Management
+
+The Certificate Instance Management API allows users to track individual certificates and marine courses with detailed information including document numbers, issue/expiry dates, issuer information, and file uploads.
+
+### Overview
+
+**Two-Level System:**
+1. **Certificate Types** (`/api/users/certificates/`) - Predefined certificate types (44 options)
+2. **Certificate Instances** (`/api/users/user-certificates/`) - Individual user certificates with details
+
+### List User Certificates
+
+**GET** `/api/users/user-certificates/`
+
+Retrieve certificate instances based on user role and permissions.
+
+**Query Parameters:**
+- `category`: Filter by "Certificate" or "Course"
+- `user_id`: Filter by specific user (Admin/HR/Recruiter only)
+
+**Role-Based Access:**
+- **Admin/HR Manager**: View all certificates
+- **Recruiter**: View all certificates (read-only)
+- **Employee**: View only their own certificates
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "user": 5,
+    "certificate_type": 12,
+    "certificate_type_name": "GMDSS",
+    "certificate_type_code": "GMDSS",
+    "document_name": "G.M.D.S.S",
+    "document_number": "GMDSS-2024-00456",
+    "country_of_issue": "Panama",
+    "issue_date": "2024-01-15",
+    "expiry_date": "2029-01-15",
+    "issued_by": "Panama Maritime Authority",
+    "issued_at": "Panama City",
+    "certificate_file": "/media/certificates/cert_456.pdf",
+    "category": "Certificate",
+    "rank": null,
+    "rank_name": null,
+    "is_expired": false,
+    "created_at": "2026-02-06T19:05:00Z",
+    "updated_at": "2026-02-06T19:05:00Z"
+  }
+]
+```
+
+### Create Certificate Instance
+
+**POST** `/api/users/user-certificates/`
+
+Add a new certificate instance for a user.
+
+**Permissions:**
+- **Employee**: Can only create for themselves (user field auto-set)
+- **Admin/HR Manager**: Can create for any user
+
+**Request Body:**
+
+```json
+{
+  "user": 5,
+  "certificate_type": 12,
+  "document_name": "STCW Basic Safety Training",
+  "document_number": "STCW-2024-00123",
+  "country_of_issue": "Panama",
+  "issue_date": "2024-01-15",
+  "expiry_date": "2029-01-15",
+  "issued_by": "Panama Maritime Authority",
+  "issued_at": "Panama City",
+  "category": "Certificate",
+  "certificate_file": "<file upload>"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 2,
+  "user": 5,
+  "certificate_type": 12,
+  "certificate_type_name": "STCW Basic Safety",
+  "document_number": "STCW-2024-00123",
+  "is_expired": false,
+  "created_at": "2026-02-06T19:10:00Z"
+}
+```
+
+### Update Certificate Instance
+
+**PUT** `/api/users/user-certificates/{id}/`  
+**PATCH** `/api/users/user-certificates/{id}/`
+
+Update certificate details.
+
+**Permissions:**
+- **Employee**: Can only update their own certificates
+- **Admin/HR Manager**: Can update any certificate
+- **Recruiter**: Cannot update (read-only)
+
+**Request Body (PATCH example):**
+
+```json
+{
+  "document_number": "STCW-2024-00124",
+  "expiry_date": "2030-01-15"
+}
+```
+
+### Delete Certificate Instance
+
+**DELETE** `/api/users/user-certificates/{id}/`
+
+Delete a certificate instance.
+
+**Permissions:**
+- **Admin/HR Manager only**
+
+**Response (204 No Content)**
+
+### Get Certificate Statistics
+
+**GET** `/api/users/user-certificates/stats/`
+
+Returns certificate statistics based on user's access level.
+
+**Response (200 OK):**
+
+```json
+{
+  "total_certificates": 45,
+  "certificates": 32,
+  "courses": 13,
+  "expired": 3,
+  "expiring_soon": 7
+}
+```
+
+### Filtering Examples
+
+**Get only certificates (not courses):**
+```
+GET /api/users/user-certificates/?category=Certificate
+```
+
+**Get only marine courses:**
+```
+GET /api/users/user-certificates/?category=Course
+```
+
+**Get certificates for specific user (Admin/HR/Recruiter only):**
+```
+GET /api/users/user-certificates/?user_id=123
+```
+
+### List Certificate Types
+
+**GET** `/api/users/certificates/`
+
+Retrieve all available certificate types that users can select from.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "code": "PERSONAL_SURVIVAL_TECHNIQUES",
+    "name": "Personal Survival Techniques"
+  },
+  {
+    "id": 2,
+    "code": "GMDSS",
+    "name": "G.M.D.S.S"
+  }
+]
+```
+
+**Note:** There are 44 predefined certificate types available.
+
+---
+
+## 9. Sea Service \u0026 References
+
+### Sea Service Records
+
+Sea service records track a crew member's employment history on vessels. This information is critical for compliance, CV generation, and experience verification.
+
+#### List Sea Services
+
+**GET** `/api/users/sea-services/`
+
+Retrieve all sea service records.
+
+**Permissions:**
+- **Admin/HR Manager**: View all records
+- **Recruiter**: View all records (read-only)
+- **Employee**: View only their own records
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "user": 5,
+    "company_name": "Maersk Line",
+    "rank": "3rd Officer",
+    "vessel_name_imo": "MV Nordic Star / IMO9876543",
+    "flag": "Panama",
+    "signed_on": "2022-01-15",
+    "signed_off": "2022-07-15",
+    "period": "6 months",
+    "vessel_type": "Container Ship",
+    "dwt_grt": "50,000 DWT",
+    "engine_type_bh_kw": "MAN B&W 12,000 BHP",
+    "reason_for_sign_off": "End of contract"
+  }
+]
+```
+
+#### Create Sea Service Record
+
+**POST** `/api/users/sea-services/`
+
+Add a new sea service record for a crew member.
+
+**Permissions:**
+- **Admin/HR Manager**: Can create for any user
+- **Employee**: Can create for themselves
+
+**Request Body:**
+
+```json
+{
+  "user": 5,
+  "company_name": "Pacific Shipping Ltd",
+  "rank": "2nd Officer",
+  "vessel_name_imo": "MV Ocean Queen / IMO1234567",
+  "flag": "Liberia",
+  "signed_on": "2023-01-20",
+  "signed_off": "2023-08-20",
+  "period": "7 months",
+  "vessel_type": "Bulk Carrier",
+  "dwt_grt": "75,000 DWT",
+  "engine_type_bh_kw": "Wartsila 15,000 BHP",
+  "reason_for_sign_off": "Promotion"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 2,
+  "user": 5,
+  "company_name": "Pacific Shipping Ltd",
+  "rank": "2nd Officer",
+  "vessel_name_imo": "MV Ocean Queen / IMO1234567",
+  "signed_on": "2023-01-20",
+  "signed_off": "2023-08-20",
+  "period": "7 months"
+}
+```
+
+#### Update Sea Service Record
+
+**PUT** `/api/users/sea-services/{id}/`  
+**PATCH** `/api/users/sea-services/{id}/`
+
+Update sea service details.
+
+**Permissions:**
+- **Admin/HR Manager**: Can update any record
+- **Employee**: Can update their own records
+- **Recruiter**: Read-only access
+
+#### Delete Sea Service Record
+
+**DELETE** `/api/users/sea-services/{id}/`
+
+**Permissions:**
+- **Admin/HR Manager**: Can delete any record
+
+**Response (204 No Content)**
+
+---
+
+### References
+
+Professional references from previous employers or supervisors.
+
+#### List References
+
+**GET** `/api/users/references/`
+
+Retrieve all reference records.
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "user": 5,
+    "number": "01200",
+    "name": "Captain John Smith",
+    "company_name": "Maersk Line",
+    "management": "Deck Department",
+    "country": "Egypt",
+    "position": "Master",
+    "email": "john.smith@maersk.com",
+    "tel": "+45-1234-5678"
+  }
+]
+```
+
+#### Create Reference
+
+**POST** `/api/users/references/`
+
+Add a new professional reference.
+
+**Request Body:**
+
+```json
+{
+  "user": 5,
+  "number": "0120000",
+  "name": "Captain Sarah Johnson",
+  "company_name": "MSC Cruises",
+  "management": "Bridge Team",
+  "country": "Egypt",
+  "position": "Chief Officer",
+  "email": "sarah.johnson@msc.com",
+  "tel": "+41-22-123-4567"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 2,
+  "user": 5,
+  "number": "0120000",
+  "name": "Captain Sarah Johnson",
+  "company_name": "MSC Cruises",
+  "management": "Bridge Team",
+  "country": "Egypt",
+  "position": "Chief Officer",
+  "email": "sarah.johnson@msc.com",
+  "tel": "+41-22-123-4567"
+}
+```
+
+#### Update Reference
+
+**PUT** `/api/users/references/{id}/`  
+**PATCH** `/api/users/references/{id}/`
+
+Update reference details.
+
+**Request Body (PATCH example):**
+
+```json
+{
+  "tel": "+41-22-987-6543",
+  "email": "sarah.j@msc.com",
+  "country": "Switzerland"
+}
+```
+
+
+#### Delete Reference
+
+**DELETE** `/api/users/references/{id}/`
+
+Remove a reference record.
+
+**Response (204 No Content)**
+
+
+---
+
+## 10. Core (Reference Data)
+
+
 
 ### Vessel Types
 
@@ -465,7 +860,7 @@ Body: `{"name": "Panama", "icon": <file>}`
 
 ---
 
-## 9. AI Agents & Documents
+## 11. AI Agents & Documents
 
 ### Document Upload (Parsed)
 

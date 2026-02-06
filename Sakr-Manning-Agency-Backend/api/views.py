@@ -305,7 +305,7 @@ from .filters import CompanyFilter, InterviewFilter, CVSubmissionFilter
 
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
-    Company, Interview, CVSubmission
+    Company, Interview, CVSubmission, UserCertificate
 )
 from .serializer import (
     UsersSerializer, UserRankSerializer, ContractSerializer, ContractListSerializer,
@@ -314,7 +314,8 @@ from .serializer import (
     CompanySerializer, CompanyListSerializer,
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
-    CVSubmissionSerializer, CVSubmissionListSerializer
+    CVSubmissionSerializer, CVSubmissionListSerializer,
+    UserCertificateSerializer
 )
 from .filters import UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, CompanyFilter
 from .permissions import (
@@ -779,6 +780,101 @@ class RankViewSet(viewsets.ModelViewSet):
     queryset = Rank.objects.all()
     serializer_class = RankSerializer
     permission_classes = [IsAuthenticated, IsHROrReadOnly]
+
+
+class UserCertificateViewSet(viewsets.ModelViewSet):
+    """
+    User Certificate/Course Instances - Role-based access:
+    - Admin/HR: Full access to all certificates
+    - Recruiter: Read only  
+    - Employee: Own certificates only
+    """
+    queryset = UserCertificate.objects.select_related(
+        'user', 'certificate_type', 'rank'
+    ).all()
+    serializer_class = UserCertificateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = UserCertificate.objects.select_related(
+            'user', 'certificate_type', 'rank'
+        )
+        
+        # Filter by user based on role
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            queryset = queryset.all()
+        else:
+            queryset = queryset.filter(user=user)
+        
+        # Filter by category (Certificate or Course) if specified
+        category = self.request.query_params.get('category', None)
+        if category:
+            queryset = queryset.filter(category=category)
+        
+        # Filter by user_id if specified (for HR/Admin viewing specific user)
+        user_id = self.request.query_params.get('user_id', None)
+        if user_id and user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            queryset = queryset.filter(user_id=user_id)
+        
+        return queryset
+    
+    def perform_create(self, serializer):
+        """Set the user when creating a certificate"""
+        if self.request.user.role == 'Employee':
+            # Employee can only create certificates for themselves
+            serializer.save(user=self.request.user)
+        else:
+            # HR/Admin can specify the user
+            serializer.save()
+    
+    def perform_update(self, serializer):
+        """Permission check for updates"""
+        instance = self.get_object()
+        user = self.request.user
+        
+        # Employee can only update their own certificates
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only edit your own certificates")
+        
+        # Recruiter cannot edit
+        if user.role == 'Recruiter':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Recruiters have read-only access")
+        
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        """Permission check for deletion"""
+        user = self.request.user
+        
+        # Only Admin and HR can delete
+        if user.role not in ['Admin', 'HR Manager']:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only Admin and HR can delete certificates")
+        
+        instance.delete()
+    
+    @action(detail=False, methods=['get'], url_path='stats')
+    def stats(self, request):
+        """Certificate statistics"""
+        queryset = self.get_queryset()
+        today = timezone.now().date()
+        
+        return Response({
+            'total_certificates': queryset.count(),
+            'certificates': queryset.filter(category='Certificate').count(),
+            'courses': queryset.filter(category='Course').count(),
+            'expired': queryset.filter(expiry_date__lt=today).count(),
+            'expiring_soon': queryset.filter(
+                expiry_date__gte=today,
+                expiry_date__lte=today + timedelta(days=30)
+            ).count(),
+        })
+
+
+
 
 
 # --- User-specific endpoints ---
