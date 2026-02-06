@@ -282,7 +282,7 @@
 from rest_framework import serializers, validators
 from .models import (
     Users, UserRank, Certificate, Rank, Contract, Reference, SeaService,
-    Interview, CVSubmission, UserCertificate
+    Interview, CVSubmission, UserCertificate, Declaration
 )
 from companies.models import Company
 from finance.models import FinanceRecord
@@ -759,3 +759,52 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data['first_name']
         )
         return user
+
+
+# =====================
+# DECLARATION SERIALIZER
+# =====================
+
+class DeclarationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Declaration model.
+    Includes user information for display purposes.
+    """
+    user_name = serializers.SerializerMethodField()
+    user_email = serializers.CharField(source='user.email', read_only=True)
+    
+    class Meta:
+        model = Declaration
+        fields = [
+            'id',
+            'user',
+            'user_name',
+            'user_email',
+            # Question 1: Disease
+            'has_disease',
+            'disease_details',
+            # Question 2: Accident
+            'has_accident',
+            'accident_details',
+            # Question 3: Psychiatric Treatment
+            'has_psychiatric_treatment',
+            'psychiatric_treatment_details',
+            # Question 4: Addiction
+            'has_addiction',
+            'addiction_details',
+            # Consent and Signature
+            'consent_given',
+            'declaration_place',
+            'declaration_date',
+            'signature',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+        extra_kwargs = {
+            'user': {'required': False}  # Will be set automatically for employees
+        }
+    
+    def get_user_name(self, obj):
+        """Return full name of the user"""
+        return f"{obj.user.first_name} {obj.user.middle_name} {obj.user.last_name}".strip()

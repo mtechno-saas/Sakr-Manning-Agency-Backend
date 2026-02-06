@@ -182,7 +182,7 @@ from django.contrib import admin
 from django import forms
 from .models import (
     Users, Rank, Certificate, UserRank, Contract, Reference, SeaService,
-    Company, Interview, CVSubmission  # Add new models, NO FinanceRecord
+    Company, Interview, CVSubmission, Declaration  # Add Declaration model
 )
 #from finance.models import FinanceRecord  # Import from finance app
 
@@ -375,3 +375,10 @@ class CVSubmissionAdmin(admin.ModelAdmin):
     ordering = ('-submitted_date',)
 
 
+@admin.register(Declaration)
+class DeclarationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'declaration_date', 'declaration_place', 'consent_given', 'created_at')
+    list_filter = ('consent_given', 'declaration_date')
+    search_fields = ('user__email', 'user__first_name', 'declaration_place')
+    ordering = ('-created_at',)
+    readonly_fields = ('created_at', 'updated_at')

@@ -316,6 +316,23 @@ Create a new company.
 - Full Crew Management Companies
 - Other
 
+**For Frontend (JSON Array):**
+
+```json
+[
+  "Shipping Manning Companies",
+  "Cargo Manning Companies",
+  "Cruise & Hospitality Manning Companies",
+  "Offshore & Oil/Gas Manning Companies",
+  "Fishing Fleet Manning Companies",
+  "General Crew Manning Companies",
+  "Specialized Marine Manning Companies",
+  "Temporary / Contract Manning Agencies",
+  "Full Crew Management Companies",
+  "Other"
+]
+```
+
 **Response (201 Created):**
 
 ```json
@@ -842,7 +859,215 @@ Remove a reference record.
 
 ---
 
-## 10. Core (Reference Data)
+## 10. Health Declarations
+
+Health declarations capture medical history and consent information required for seafarers.
+
+### List Declarations
+
+**GET** `/api/declarations/`
+
+Retrieve all health declarations based on user permissions.
+
+**Permissions:**
+- **Admin/HR Manager**: View all declarations
+- **Recruiter**: View all declarations (read-only)
+- **Employee**: View only their own declarations
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "user": 5,
+    "user_name": "Ahmed Ali Mohamed",
+    "user_email": "ahmed.ali@example.com",
+    "has_disease": false,
+    "disease_details": "",
+    "has_accident": false,
+    "accident_details": "",
+    "has_psychiatric_treatment": false,
+    "psychiatric_treatment_details": "",
+    "has_addiction": false,
+    "addiction_details": "",
+    "consent_given": true,
+    "declaration_place": "Cairo",
+    "declaration_date": "2026-02-06",
+    "signature": "Ahmed Ali",
+    "created_at": "2026-02-06T19:30:00Z",
+    "updated_at": "2026-02-06T19:30:00Z"
+  }
+]
+```
+
+### Create Declaration
+
+**POST** `/api/declarations/`
+
+Create a new health declaration.
+
+**Permissions:**
+- **Admin/HR Manager**: Can create for any user
+- **Employee**: Can create for themselves
+
+**Request Body:**
+
+```json
+{
+  "user": 5,
+  "has_disease": false,
+  "disease_details": "",
+  "has_accident": true,
+  "accident_details": "Minor ankle sprain in 2022, fully recovered",
+  "has_psychiatric_treatment": false,
+  "psychiatric_treatment_details": "",
+  "has_addiction": false,
+  "addiction_details": "",
+  "consent_given": true,
+  "declaration_place": "Cairo",
+  "declaration_date": "2026-02-06",
+  "signature": "Ahmed Ali"
+}
+```
+
+**Field Descriptions:**
+- `has_disease` (boolean): YES/NO - Did you suffer any disease that might render you unfit for sea service?
+- `disease_details` (string, optional): Details if `has_disease` is true
+- `has_accident` (boolean): YES/NO - Did you suffer any accident causing disability?
+- `accident_details` (string, optional): Details if `has_accident` is true
+- `has_psychiatric_treatment` (boolean): YES/NO - Did you undergo psychiatric treatment?
+- `psychiatric_treatment_details` (string, optional): Details if `has_psychiatric_treatment` is true
+- `has_addiction` (boolean): YES/NO - Are you addicted to alcohol or drugs?
+- `addiction_details` (string, optional): Details if `has_addiction` is true
+- `consent_given` (boolean): Whether user consents to data processing
+- `declaration_place` (string): Location where declaration was signed
+- `declaration_date` (date): Date of declaration
+- `signature` (string, optional): Signature or name
+
+**Note:** For Employee role, the `user` field is automatically set to the authenticated user and can be omitted.
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 1,
+  "user": 5,
+  "user_name": "Ahmed Ali Mohamed",
+  "user_email": "ahmed.ali@example.com",
+  "has_disease": false,
+  "disease_details": "",
+  "has_accident": true,
+  "accident_details": "Minor ankle sprain in 2022, fully recovered",
+  "has_psychiatric_treatment": false,
+  "psychiatric_treatment_details": "",
+  "has_addiction": false,
+  "addiction_details": "",
+  "consent_given": true,
+  "declaration_place": "Cairo",
+  "declaration_date": "2026-02-06",
+  "signature": "Ahmed Ali",
+  "created_at": "2026-02-06T19:30:00Z",
+  "updated_at": "2026-02-06T19:30:00Z"
+}
+```
+
+### Get Declaration Details
+
+**GET** `/api/declarations/{id}/`
+
+Retrieve detailed information for a specific declaration.
+
+**Permissions:**
+- **Admin/HR Manager/Recruiter**: Can view any declaration
+- **Employee**: Can only view their own declarations
+
+**Response (200 OK):**
+
+```json
+{
+  "id": 1,
+  "user": 5,
+  "user_name": "Ahmed Ali Mohamed",
+  "user_email": "ahmed.ali@example.com",
+  "has_disease": false,
+  "disease_details": "",
+  "has_accident": true,
+  "accident_details": "Minor ankle sprain in 2022, fully recovered",
+  "has_psychiatric_treatment": false,
+  "psychiatric_treatment_details": "",
+  "has_addiction": false,
+  "addiction_details": "",
+  "consent_given": true,
+  "declaration_place": "Cairo",
+  "declaration_date": "2026-02-06",
+  "signature": "Ahmed Ali",
+  "created_at": "2026-02-06T19:30:00Z",
+  "updated_at": "2026-02-06T19:30:00Z"
+}
+```
+
+### Update Declaration
+
+**PUT** `/api/declarations/{id}/`  
+**PATCH** `/api/declarations/{id}/`
+
+Update declaration details.
+
+**Permissions:**
+- **Admin/HR Manager**: Can update any declaration
+- **Employee**: Can update their own declarations
+- **Recruiter**: Cannot update (read-only)
+
+**Request Body (PATCH example):**
+
+```json
+{
+  "has_disease": true,
+  "disease_details": "Updated: Minor asthma, well-controlled with medication",
+  "consent_given": true
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "id": 1,
+  "user": 5,
+  "user_name": "Ahmed Ali Mohamed",
+  "user_email": "ahmed.ali@example.com",
+  "has_disease": true,
+  "disease_details": "Updated: Minor asthma, well-controlled with medication",
+  "has_accident": true,
+  "accident_details": "Minor ankle sprain in 2022, fully recovered",
+  "has_psychiatric_treatment": false,
+  "psychiatric_treatment_details": "",
+  "has_addiction": false,
+  "addiction_details": "",
+  "consent_given": true,
+  "declaration_place": "Cairo",
+  "declaration_date": "2026-02-06",
+  "signature": "Ahmed Ali",
+  "created_at": "2026-02-06T19:30:00Z",
+  "updated_at": "2026-02-06T20:15:00Z"
+}
+```
+
+### Delete Declaration
+
+**DELETE** `/api/declarations/{id}/`
+
+Delete a health declaration.
+
+**Permissions:**
+- **Admin/HR Manager only**: Can delete declarations
+
+**Response (204 No Content)**
+
+---
+
+## 11. Core (Reference Data)
 
 
 
