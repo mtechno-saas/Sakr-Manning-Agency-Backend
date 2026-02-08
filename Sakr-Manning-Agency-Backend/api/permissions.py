@@ -101,6 +101,12 @@ class IsHROrReadOnly(BasePermission):
 
 class IsOwnerOrHR(BasePermission):
     """User can access own data, HR/Admin can access all"""
+    def has_permission(self, request, view):
+        # Allow authenticated users to create (POST)
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return True
+    
     def has_object_permission(self, request, view, obj):
         if request.user.role in ['Admin', 'HR Manager']:
             return True

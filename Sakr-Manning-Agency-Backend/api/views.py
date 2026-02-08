@@ -757,15 +757,57 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
 
 
 class ReferenceViewSet(viewsets.ModelViewSet):
+    """
+    Reference Management - Role-based access:
+    - Admin/HR: Full access to all records
+    - Recruiter: Read only
+    - Employee: Can manage own references
+    """
     queryset = Reference.objects.all()
     serializer_class = ReferenceSerializer
-    permission_classes = [IsAuthenticated, IsHROrReadOnly]
+    permission_classes = [IsAuthenticated, IsOwnerOrHR]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return Reference.objects.all()
+        # Employee can only see their own references
+        return Reference.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        # Employee can only create reference for themselves
+        if self.request.user.role == 'Employee':
+            serializer.save(user=self.request.user)
+        else:
+            # HR/Admin can create for any user
+            serializer.save()
 
 
 class SeaServiceViewSet(viewsets.ModelViewSet):
+    """
+    Sea Service Management - Role-based access:
+    - Admin/HR: Full access to all records
+    - Recruiter: Read only
+    - Employee: Can manage own sea service records
+    """
     queryset = SeaService.objects.all()
     serializer_class = SeaServiceSerializer
-    permission_classes = [IsAuthenticated, IsHROrReadOnly]
+    permission_classes = [IsAuthenticated, IsOwnerOrHR]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return SeaService.objects.all()
+        # Employee can only see their own sea services
+        return SeaService.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        # Employee can only create sea service for themselves
+        if self.request.user.role == 'Employee':
+            serializer.save(user=self.request.user)
+        else:
+            # HR/Admin can create for any user
+            serializer.save()
 
 
 class CertificateViewSet(viewsets.ModelViewSet):
