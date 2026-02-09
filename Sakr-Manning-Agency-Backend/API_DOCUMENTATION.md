@@ -153,7 +153,7 @@ Retrieve a paginated list of all users.
 
 - `page`: Page number (default: 1)
 - `search`: Search by name or email
-- `role`: Filter by role (Admin, Recruiter, Employee)
+- `role`: Filter by role (Admin, HR Manager, Recruiter, Employee)
 
 **Response (200 OK):**
 
@@ -167,40 +167,241 @@ Retrieve a paginated list of all users.
       "id": 1,
       "email": "crew@sakr.com",
       "first_name": "Ahmed",
-      "last_name": "Ali",
+      "middle_name": "Mohamed",
       "role": "Employee",
       "nationality": "Egyptian",
-      "rank": "Captain"
+      "phone_number": "+20-123-456-7890",
+      "sea_services": [...],
+      "references": [...]
     }
   ]
 }
 ```
 
-### Create User
+### Create User (Single-Submit)
 
 **POST** `/api/users/`
 
-Create a new user profile.
+Create a complete user profile including Next of Kin, Documents, Education, Sea Services, and References in **one API call**.
 
-**Request Body:**
+**Permissions:**
+- **Admin/HR Manager**: Can create users with any role
+- **Public**: Can register as Employee (via `/api/register/`)
+
+**Request Body (Complete Profile):**
 
 ```json
 {
-  "email": "newuser@example.com",
-  "password": "password123",
-  "first_name": "New",
-  "last_name": "User",
+  "email": "john.doe@maritime.com",
+  "password": "SecurePass123!",
+  "first_name": "John",
+  "middle_name": "Michael",
+  "phone_number": "+1-555-0123",
+  "nationality": "USA",
+  "date_of_birth": "1985-05-15",
+  "marital_status": "Married",
   "role": "Employee",
-  "nationality": "Filipino",
-  "date_of_birth": "1990-01-01"
+  
+  "next_of_kin_full_name": "Jane Doe",
+  "next_of_kin_relationship": "Wife",
+  "next_of_kin_phone": "+1-555-0124",
+  "next_of_kin_email": "jane.doe@example.com",
+  "next_of_kin_address_country": "USA",
+  
+  "passport_no": "A12345678",
+  "passport_issue_date": "2020-01-15",
+  "passport_expiry_date": "2030-01-15",
+  "passport_issued_by": "US Department of State",
+  
+  "seaman_book_no": "SB987654",
+  "seaman_book_issue_date": "2019-06-01",
+  "seaman_book_expiry_date": "2029-06-01",
+  
+  "college_or_school": "California Maritime Academy",
+  
+  "sea_services_data": [
+    {
+      "company_name": "Pacific Shipping Ltd",
+      "rank": "2nd Officer",
+      "vessel_name_imo": "MV Ocean Explorer / IMO1234567",
+      "flag": "Liberia",
+      "signed_on": "2023-01-15",
+      "signed_off": "2023-06-30",
+      "period": "5 months 15 days",
+      "vessel_type": "Container",
+      "dwt_grt": "50000 DWT",
+      "engine_type_bh_kw": "Diesel 15000 KW",
+      "reason_for_sign_off": "Contract completion"
+    }
+  ],
+  
+  "references_data": [
+    {
+      "company_name": "Ocean Freight Ltd",
+      "position": "Fleet Manager",
+      "name": "Captain John Smith",
+      "tel": "+65-1234-5678",
+      "email": "j.smith@oceanfreight.com",
+      "country": "Singapore"
+    }
+  ]
 }
 ```
+
+**Request Body (Minimal):**
+
+```json
+{
+  "email": "simple@example.com",
+  "password": "password123",
+  "first_name": "Simple",
+  "middle_name": "User"
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "id": 15,
+  "email": "john.doe@maritime.com",
+  "first_name": "John",
+  "middle_name": "Michael",
+  "next_of_kin_full_name": "Jane Doe",
+  "passport_no": "A12345678",
+  "college_or_school": "California Maritime Academy",
+  "sea_services": [
+    {
+      "id": 1,
+      "user": 15,
+      "company_name": "Pacific Shipping Ltd",
+      "rank": "2nd Officer",
+      "vessel_name_imo": "MV Ocean Explorer / IMO1234567",
+      "signed_on": "2023-01-15",
+      "signed_off": "2023-06-30"
+    }
+  ],
+  "references": [
+    {
+      "id": 1,
+      "user": 15,
+      "company_name": "Ocean Freight Ltd",
+      "name": "Captain John Smith",
+      "position": "Fleet Manager"
+    }
+  ],
+  "created_at": "2026-02-09T20:30:00Z"
+}
+```
+
+**Logic:**
+1. User record created in `api_users` table
+2. Each sea service in `sea_services_data` creates a record in `api_seaservice` table
+3. Each reference in `references_data` creates a record in `api_reference` table
+4. All data validated before any database writes
+5. Returns complete user profile with all nested data
 
 ### Get User Details
 
 **GET** `/api/users/{id}/`
 
-Retrieve detailed profile for a specific user.
+Retrieve complete user profile including all sea services and references.
+
+**Permissions:**
+- **Admin/HR Manager**: Can view any user
+- **Recruiter**: Can view any user (read-only)
+- **Employee**: Can only view their own profile
+
+**Response (200 OK):**
+
+```json
+{
+  "id": 10,
+  "email": "user@example.com",
+  "first_name": "John",
+  "middle_name": "Michael",
+  "phone_number": "+1-555-0123",
+  "nationality": "USA",
+  "next_of_kin_full_name": "Jane Doe",
+  "next_of_kin_phone": "+1-555-0124",
+  "passport_no": "A12345678",
+  "seaman_book_no": "SB987654",
+  "college_or_school": "Maritime Academy",
+  "sea_services": [
+    {
+      "id": 1,
+      "user": 10,
+      "company_name": "Pacific Shipping",
+      "rank": "2nd Officer",
+      "vessel_name_imo": "MV Explorer / IMO123",
+      "flag": "Liberia",
+      "signed_on": "2023-01-15",
+      "signed_off": "2023-06-30",
+      "period": "5 months 15 days",
+      "vessel_type": "Container",
+      "dwt_grt": "50000 DWT",
+      "engine_type_bh_kw": "Diesel 15000 KW",
+      "reason_for_sign_off": "Contract completion"
+    }
+  ],
+  "references": [
+    {
+      "id": 1,
+      "user": 10,
+      "company_name": "Ocean Freight",
+      "name": "Captain Smith",
+      "position": "Fleet Manager",
+      "tel": "+65-1234-5678",
+      "email": "smith@ocean.com"
+    }
+  ],
+  "created_at": "2026-02-09T18:00:00Z",
+  "updated_at": "2026-02-09T20:00:00Z"
+}
+```
+
+**Logic:**
+- Fetches user data from `api_users` table
+- Joins sea services from `api_seaservice` where `user_id = {id}`
+- Joins references from `api_reference` where `user_id = {id}`
+- Returns combined data in single response
+
+### Update User
+
+**PUT** `/api/users/{id}/`  
+**PATCH** `/api/users/{id}/`
+
+Update user profile. Can optionally replace all sea services and references.
+
+**Permissions:**
+- **Admin/HR Manager**: Can update any user
+- **Employee**: Can update their own profile
+
+**Request Body (PATCH example):**
+
+```json
+{
+  "phone_number": "+1-555-9999",
+  "next_of_kin_phone": "+1-555-8888",
+  "sea_services_data": [
+    {
+      "company_name": "New Company",
+      "rank": "Chief Officer",
+      "vessel_name_imo": "MV New Ship / IMO999",
+      "flag": "Panama",
+      "signed_on": "2024-01-01",
+      "signed_off": "2024-06-01",
+      "period": "5 months",
+      "vessel_type": "Tanker",
+      "dwt_grt": "80000 DWT",
+      "engine_type_bh_kw": "MAN 20000 KW",
+      "reason_for_sign_off": "Promotion"
+    }
+  ]
+}
+```
+
+**Note:** Including `sea_services_data` or `references_data` will **replace all** existing records. To add without replacing, use individual endpoints.
 
 ---
 

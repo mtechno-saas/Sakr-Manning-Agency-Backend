@@ -329,6 +329,9 @@ class ReferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reference
         fields = '__all__'
+        extra_kwargs = {
+            'user': {'required': False}
+        }
 
 
 class UserCertificateSerializer(serializers.ModelSerializer):
@@ -374,6 +377,9 @@ class SeaServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = SeaService
         fields = '__all__'
+        extra_kwargs = {
+            'user': {'required': False}
+        }
 
 
 class UserMeSerializer(serializers.ModelSerializer):
@@ -597,6 +603,20 @@ class UsersSerializer(serializers.ModelSerializer):
 
     # Password field for user creation (write-only)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
+    
+    # Write-only fields for nested creation of sea services and references
+    sea_services_data = serializers.ListField(
+        child=serializers.DictField(),
+        write_only=True,
+        required=False,
+        help_text="List of sea service records to create"
+    )
+    references_data = serializers.ListField(
+        child=serializers.DictField(),
+        write_only=True,
+        required=False,
+        help_text="List of references to create"
+    )
 
     class Meta:
         model = Users
@@ -638,7 +658,8 @@ class UsersSerializer(serializers.ModelSerializer):
             'declaration_consent', 'declaration_date', 'declaration_place',
             'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
             # Relationships
-            'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services'
+            'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services',
+            'sea_services_data', 'references_data'
         ]
         extra_kwargs = {
             'profile_image': {'required': False},
@@ -682,6 +703,8 @@ class UsersSerializer(serializers.ModelSerializer):
         # Pop the relationship data first
         codes_data = validated_data.pop('codes', [])
         certificates_data = validated_data.pop('certificates', [])
+        sea_services_data = validated_data.pop('sea_services_data', [])
+        references_data = validated_data.pop('references_data', [])
         profile_image_data = validated_data.pop('profile_image', None)
         password = validated_data.pop('password', None)
 
@@ -706,12 +729,22 @@ class UsersSerializer(serializers.ModelSerializer):
         if certificates_data:
             user.certificates.set(certificates_data)
 
+        # Create sea services
+        for sea_service in sea_services_data:
+            SeaService.objects.create(user=user, **sea_service)
+        
+        # Create references
+        for reference in references_data:
+            Reference.objects.create(user=user, **reference)
+
         return user
 
     def update(self, instance, validated_data):
         # Pop relationship and file data
         codes_data = validated_data.pop('codes', None)
         certificates_data = validated_data.pop('certificates', None)
+        sea_services_data = validated_data.pop('sea_services_data', None)
+        references_data = validated_data.pop('references_data', None)
         profile_image_data = validated_data.pop('profile_image', None)
 
         # Update standard fields using the default DRF update method
@@ -729,6 +762,18 @@ class UsersSerializer(serializers.ModelSerializer):
                 UserRank.objects.create(user=instance, rank=rank)
         if certificates_data is not None:
             instance.certificates.set(certificates_data)
+
+        # Handle sea services update (replace all)
+        if sea_services_data is not None:
+            instance.sea_services.all().delete()
+            for sea_service in sea_services_data:
+                SeaService.objects.create(user=instance, **sea_service)
+        
+        # Handle references update (replace all)
+        if references_data is not None:
+            instance.references.all().delete()
+            for reference in references_data:
+                Reference.objects.create(user=instance, **reference)
 
         return instance
 
