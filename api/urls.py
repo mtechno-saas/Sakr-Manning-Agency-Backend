@@ -12,6 +12,7 @@ from .views import (
     InterviewViewSet,
     FinanceRecordViewSet,
     CVSubmissionViewSet,
+    DeclarationViewSet,
     get_all_users,
     create_user,
     get_filter_users,
@@ -41,6 +42,7 @@ router.register(r'ranks', RankViewSet, basename="rank")
 router.register(r'interviews', InterviewViewSet, basename="interview")
 router.register(r'finance-records', FinanceRecordViewSet, basename="financerecord")
 router.register(r'cv-submissions', CVSubmissionViewSet, basename="cvsubmission")
+router.register(r'declarations', DeclarationViewSet, basename="declaration")
 router.register(r'documents', DocumentViewSet, basename="document")
 router.register(r'my-languages', LanguageProficiencyViewSet, basename='my-languages')
 router.register(r'user-languages', UserLanguageViewSet, basename="userlanguage")

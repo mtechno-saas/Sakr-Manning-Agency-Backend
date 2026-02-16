@@ -28,12 +28,12 @@ from rest_framework.views import APIView
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
     Company, Interview, CVSubmission, Document, LanguageProficiency,
-    UserLanguage, PersonalDocument
+    UserLanguage, PersonalDocument, Declaration
 )
 from .serializer import (
     UsersSerializer, UserRankSerializer, ContractSerializer, ContractListSerializer,
     ReferenceSerializer, SeaServiceSerializer, CertificateSerializer,
-    RankSerializer, RegisterSerializer, UserMeSerializer,
+    RankSerializer, RegisterSerializer, UserMeSerializer, DeclarationSerializer,
     CompanySerializer, CompanyListSerializer,
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
@@ -558,9 +558,48 @@ class ReferenceViewSet(viewsets.ModelViewSet):
 
 
 class SeaServiceViewSet(viewsets.ModelViewSet):
+    """
+    Sea Service Management - Role-based access:
+    - Admin/HR Manager: Full access to all records
+    - Recruiter: Read-only access to all records
+    - Employee: Full access to their own records only
+    """
     queryset = SeaService.objects.all()
     serializer_class = SeaServiceSerializer
-    permission_classes = [IsAuthenticated, IsHROrReadOnly]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return SeaService.objects.all()
+        return SeaService.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        if self.request.user.role == 'Employee':
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save()
+
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        user = self.request.user
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only edit your own sea services")
+        if user.role == 'Recruiter':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Recruiters have read-only access")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        if user.role == 'Recruiter':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Recruiters have read-only access")
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only delete your own sea services")
+        instance.delete()
 
 
 class DocumentViewSet(viewsets.ModelViewSet):
@@ -990,3 +1029,57 @@ class PersonalDocumentViewSet(viewsets.ModelViewSet):
                 serializer.save(user=self.request.user)
             else:
                 serializer.save()
+
+
+class DeclarationViewSet(viewsets.ModelViewSet):
+    """
+    Health Declaration Management - Role-based access:
+    - Admin/HR Manager: Full access to all declarations
+    - Recruiter: Read-only access to all declarations
+    - Employee: Full access to their own declarations only
+    """
+    queryset = Declaration.objects.select_related('user').all()
+    serializer_class = DeclarationSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Filter declarations based on user role"""
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return Declaration.objects.select_related('user').all()
+        # Employee can only see their own declarations
+        return Declaration.objects.filter(user=user)
+    
+    def perform_create(self, serializer):
+        """Set the user when creating a declaration"""
+        if self.request.user.role == 'Employee':
+            # Employee can only create declarations for themselves
+            serializer.save(user=self.request.user)
+        else:
+            # HR/Admin can specify the user
+            serializer.save()
+    
+    def perform_update(self, serializer):
+        """Permission check for updates"""
+        instance = self.get_object()
+        user = self.request.user
+        
+        # Employee can only update their own declarations
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only edit your own declarations")
+        
+        # Recruiter cannot edit
+        if user.role == 'Recruiter':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Recruiters have read-only access")
+        
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        """Permission check for deletion - Admin/HR only"""
+        user = self.request.user
+        if user.role not in ['Admin', 'HR Manager']:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only Admin and HR Manager can delete declarations")
+        instance.delete()

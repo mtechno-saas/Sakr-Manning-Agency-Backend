@@ -5,7 +5,7 @@ from django.db.models import Count, Sum
 from .models import Company, JobOrder, JobOrderPosition
 from .models import Company, JobOrder, JobOrderPosition
 from .serializers import CompanySerializer, JobOrderSerializer, JobOrderPositionSerializer
-from api.filters import CompanyFilter
+from .filters import CompanyFilter
 
 
 class CompanyViewSet(viewsets.ModelViewSet):

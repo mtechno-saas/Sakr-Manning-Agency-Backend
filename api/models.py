@@ -864,3 +864,98 @@ class PersonalDocument(models.Model):
 
     def __str__(self):
         return f"{self.document_type} - {self.user.email}"
+
+
+# =====================
+# DECLARATION MODEL
+# =====================
+class Declaration(models.Model):
+    """
+    Health Declaration for seafarers.
+    Tracks medical history and consent information required for sea service.
+    """
+    user = models.ForeignKey(
+        Users, 
+        on_delete=models.CASCADE, 
+        related_name='declarations',
+        help_text="User making the declaration"
+    )
+    
+    # Question 1: Disease History
+    has_disease = models.BooleanField(
+        default=False,
+        help_text="Did you suffer, or presently suffer from, any disease likely to render you unfit for sea service?"
+    )
+    disease_details = models.TextField(
+        blank=True, 
+        null=True,
+        help_text="If yes, please provide details about the disease"
+    )
+    
+    # Question 2: Accident History
+    has_accident = models.BooleanField(
+        default=False,
+        help_text="Did you suffer any accident which rendered you temporary and/or partially disabled?"
+    )
+    accident_details = models.TextField(
+        blank=True, 
+        null=True,
+        help_text="If yes, please provide details about the accident"
+    )
+    
+    # Question 3: Psychiatric Treatment
+    has_psychiatric_treatment = models.BooleanField(
+        default=False,
+        help_text="Did you ever undergo psychiatric treatment?"
+    )
+    psychiatric_treatment_details = models.TextField(
+        blank=True, 
+        null=True,
+        help_text="If yes, please provide details about the psychiatric treatment"
+    )
+    
+    # Question 4: Addiction Status
+    has_addiction = models.BooleanField(
+        default=False,
+        help_text="Are you addicted to alcohol or drugs of any kind?"
+    )
+    addiction_details = models.TextField(
+        blank=True, 
+        null=True,
+        help_text="If yes, please provide details about the addiction"
+    )
+    
+    # Consent and Declaration Info
+    consent_given = models.BooleanField(
+        default=False,
+        help_text="Whether user has given consent for data processing"
+    )
+    declaration_place = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True,
+        help_text="Location where declaration was signed"
+    )
+    declaration_date = models.DateField(
+        blank=True, 
+        null=True,
+        help_text="Date when declaration was signed"
+    )
+    signature = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True,
+        help_text="Digital signature or signature reference"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Declaration"
+        verbose_name_plural = "Declarations"
+    
+    def __str__(self):
+        return f"Declaration by {self.user.email} on {self.declaration_date or 'N/A'}"

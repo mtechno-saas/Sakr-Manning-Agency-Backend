@@ -509,3 +509,62 @@ class PersonalDocumentSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+
+# =====================
+# DECLARATION SERIALIZERS
+# =====================
+from .models import Declaration
+
+class DeclarationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Declaration model.
+    Includes user information for display purposes.
+    """
+    user_name = serializers.SerializerMethodField()
+    user_email = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Declaration
+        fields = [
+            'id',
+            'user',
+            'user_name',
+            'user_email',
+            # Question 1: Disease
+            'has_disease',
+            'disease_details',
+            # Question 2: Accident
+            'has_accident',
+            'accident_details',
+            # Question 3: Psychiatric Treatment
+            'has_psychiatric_treatment',
+            'psychiatric_treatment_details',
+            # Question 4: Addiction
+            'has_addiction',
+            'addiction_details',
+            # Consent and Signature
+            'consent_given',
+            'declaration_place',
+            'declaration_date',
+            'signature',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+        extra_kwargs = {
+            'user': {'required': False}  # Will be set automatically for employees
+        }
+    
+    def get_user_email(self, obj):
+        """Return user email safely"""
+        return obj.user.email if obj.user else ""
+    
+    def get_user_name(self, obj):
+        """Return full name of the user"""
+        if not obj.user:
+            return ""
+        first = obj.user.first_name or ""
+        middle = obj.user.middle_name or ""
+        last = getattr(obj.user, 'last_name', '') or ""
+        return f"{first} {middle} {last}".strip()
