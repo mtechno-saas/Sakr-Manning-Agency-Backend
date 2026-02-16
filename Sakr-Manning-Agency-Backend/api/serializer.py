@@ -816,7 +816,7 @@ class DeclarationSerializer(serializers.ModelSerializer):
     Includes user information for display purposes.
     """
     user_name = serializers.SerializerMethodField()
-    user_email = serializers.CharField(source='user.email', read_only=True)
+    user_email = serializers.SerializerMethodField()
     
     class Meta:
         model = Declaration
@@ -850,6 +850,15 @@ class DeclarationSerializer(serializers.ModelSerializer):
             'user': {'required': False}  # Will be set automatically for employees
         }
     
+    def get_user_email(self, obj):
+        """Return user email safely"""
+        return obj.user.email if obj.user else ""
+    
     def get_user_name(self, obj):
         """Return full name of the user"""
-        return f"{obj.user.first_name} {obj.user.middle_name} {obj.user.last_name}".strip()
+        if not obj.user:
+            return ""
+        first = obj.user.first_name or ""
+        middle = obj.user.middle_name or ""
+        last = getattr(obj.user, 'last_name', '') or ""
+        return f"{first} {middle} {last}".strip()
