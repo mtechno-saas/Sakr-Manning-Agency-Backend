@@ -1,4 +1,6 @@
+# ========================
 # Python
+# ========================
 __pycache__/
 *.py[cod]
 *.pyo
@@ -8,51 +10,27 @@ __pycache__/
 *.egg
 *.log
 
-# Virtual environments
+# ========================
+# Virtual Environments
+# ========================
 venv/
 env/
 .venv/
 .env
+django_project/lib/
+django_project/bin/
+django_project/include/
 
-# Environment variables
-*.env
-.env.*
+# ========================
+# Django
+# ========================
 
-# Django stuff
-db.sqlite3
 media/
 staticfiles/
-static/
-local_settings.py
 
-# Migrations (optional: uncomment if auto-generated and not needed)
-# **/migrations/
-# !**/migrations/__init__.py
-
-# Secrets and configs
-*.pem
-
-# IDEs and editors
+# ========================
+# IDEs
+# ========================
 .vscode/
 .idea/
-*.swp
 
-# Byte-compiled / C extensions
-build/
-dist/
-pip-wheel-metadata/
-
-# Coverage reports
-htmlcov/
-.coverage*
-.cache/
-
-# Docker related
-docker-compose.override.yml
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# pytest
-.pytest_cache/
