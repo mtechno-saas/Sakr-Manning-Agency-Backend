@@ -636,17 +636,17 @@ class Reference(models.Model):
 
 class SeaService(models.Model):
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='sea_services')
-    company_name = models.CharField(max_length=255)
-    rank = models.CharField(max_length=255)
-    vessel_name_imo = models.CharField(max_length=255)
-    flag = models.CharField(max_length=100)
-    signed_on = models.DateField()
-    signed_off = models.DateField()
-    period = models.CharField(max_length=100)
-    vessel_type = models.CharField(max_length=100)
-    dwt_grt = models.CharField(max_length=100)
-    engine_type_bh_kw = models.CharField(max_length=100)
-    reason_for_sign_off = models.CharField(max_length=255)
+    company_name = models.CharField(max_length=255, blank=True, default='')
+    rank = models.CharField(max_length=255, blank=True, default='')
+    vessel_name_imo = models.CharField(max_length=255, blank=True, default='')
+    flag = models.CharField(max_length=100, blank=True, default='')
+    signed_on = models.DateField(blank=True, null=True)
+    signed_off = models.DateField(blank=True, null=True)
+    period = models.CharField(max_length=100, blank=True, default='')
+    vessel_type = models.CharField(max_length=100, blank=True, default='')
+    dwt_grt = models.CharField(max_length=100, blank=True, default='')
+    engine_type_bh_kw = models.CharField(max_length=100, blank=True, default='')
+    reason_for_sign_off = models.CharField(max_length=255, blank=True, default='')
 
     def __str__(self):
         return f"Sea service for {self.user.email} on {self.vessel_name_imo}"
