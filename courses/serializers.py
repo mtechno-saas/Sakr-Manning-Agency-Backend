@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.core.files.uploadedfile import UploadedFile
 from .models import Course
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -9,8 +10,11 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['user']
 
-    def validate_document(self, value):
-        """Accept empty strings as None for JSON submissions"""
-        if value == '' or value is None:
-            return None
-        return value
+    def to_internal_value(self, data):
+        """Strip document field if it's not an actual file upload"""
+        if isinstance(data, dict):
+            doc = data.get('document')
+            if doc is not None and not isinstance(doc, UploadedFile):
+                data = data.copy()
+                data.pop('document', None)
+        return super().to_internal_value(data)
