@@ -28,11 +28,12 @@ from rest_framework.views import APIView
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
     Company, Interview, CVSubmission, Document, LanguageProficiency,
-    UserLanguage, PersonalDocument, Declaration, NextOfKin
+    UserLanguage, PersonalDocument, Declaration, NextOfKin, Passport, SeamanBook
 )
 from .serializer import (
     UsersSerializer, UserRankSerializer, ContractSerializer, ContractListSerializer,
     ReferenceSerializer, SeaServiceSerializer, CertificateSerializer, NextOfKinSerializer,
+    PassportSerializer, SeamanBookSerializer,
     RankSerializer, RegisterSerializer, UserMeSerializer, DeclarationSerializer,
     CompanySerializer, CompanyListSerializer,
     InterviewSerializer, InterviewCalendarSerializer,
@@ -1149,4 +1150,88 @@ class NextOfKinViewSet(viewsets.ModelViewSet):
         if user.role == 'Employee' and instance.user != user:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only delete your own emergency contacts")
+        instance.delete()
+
+
+class PassportViewSet(viewsets.ModelViewSet):
+    """
+    Passport Management - All roles have access:
+    - Admin/HR Manager/Recruiter: Full access to all records
+    - Employee: Full access to their own records only
+    """
+    queryset = Passport.objects.all()
+    serializer_class = PassportSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return Passport.objects.all()
+        return Passport.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        if self.request.user.role == 'Employee':
+            serializer.save(user=self.request.user)
+        else:
+            if 'user' not in serializer.validated_data:
+                serializer.save(user=self.request.user)
+            else:
+                serializer.save()
+
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        user = self.request.user
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only edit your own passports")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only delete your own passports")
+        instance.delete()
+
+
+class SeamanBookViewSet(viewsets.ModelViewSet):
+    """
+    Seaman Book Management - All roles have access:
+    - Admin/HR Manager/Recruiter: Full access to all records
+    - Employee: Full access to their own records only
+    """
+    queryset = SeamanBook.objects.all()
+    serializer_class = SeamanBookSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return SeamanBook.objects.all()
+        return SeamanBook.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        if self.request.user.role == 'Employee':
+            serializer.save(user=self.request.user)
+        else:
+            if 'user' not in serializer.validated_data:
+                serializer.save(user=self.request.user)
+            else:
+                serializer.save()
+
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        user = self.request.user
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only edit your own seaman books")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only delete your own seaman books")
         instance.delete()

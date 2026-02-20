@@ -30,7 +30,9 @@ from .views import (
     PersonalDocumentViewSet,
     VerifyEmailView,
     get_positions,
-    NextOfKinViewSet
+    NextOfKinViewSet,
+    PassportViewSet,
+    SeamanBookViewSet
 )
 
 router = DefaultRouter()
@@ -50,6 +52,8 @@ router.register(r'my-languages', LanguageProficiencyViewSet, basename='my-langua
 router.register(r'user-languages', UserLanguageViewSet, basename="userlanguage")
 router.register(r'personal-documents', PersonalDocumentViewSet, basename="personaldocument")
 router.register(r'next-of-kin', NextOfKinViewSet, basename="nextofkin")
+router.register(r'passports', PassportViewSet, basename="passport")
+router.register(r'seaman-books', SeamanBookViewSet, basename="seamanbook")
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),
