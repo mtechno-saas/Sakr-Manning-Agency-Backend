@@ -29,7 +29,8 @@ from .views import (
     UserLanguageViewSet,
     PersonalDocumentViewSet,
     VerifyEmailView,
-    get_positions
+    get_positions,
+    NextOfKinViewSet
 )
 
 router = DefaultRouter()
@@ -48,6 +49,7 @@ router.register(r'documents', DocumentViewSet, basename="document")
 router.register(r'my-languages', LanguageProficiencyViewSet, basename='my-languages')
 router.register(r'user-languages', UserLanguageViewSet, basename="userlanguage")
 router.register(r'personal-documents', PersonalDocumentViewSet, basename="personaldocument")
+router.register(r'next-of-kin', NextOfKinViewSet, basename="nextofkin")
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),

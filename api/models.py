@@ -818,6 +818,45 @@ class UserLanguage(models.Model):
 
 
 # =====================
+# NEXT OF KIN MODEL
+# =====================
+class NextOfKin(models.Model):
+    """Emergency Contact / Next of Kin - multiple per user"""
+    RELATIONSHIP_CHOICES = [
+        ('Father', 'Father'),
+        ('Mother', 'Mother'),
+        ('Brother', 'Brother'),
+        ('Sister', 'Sister'),
+        ('Wife', 'Wife'),
+        ('Husband', 'Husband'),
+        ('Son', 'Son'),
+        ('Daughter', 'Daughter'),
+        ('Uncle', 'Uncle'),
+        ('Aunt', 'Aunt'),
+        ('Friend', 'Friend'),
+        ('Other', 'Other'),
+    ]
+
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='next_of_kins')
+    full_name = models.CharField(max_length=255)
+    relationship = models.CharField(max_length=100, choices=RELATIONSHIP_CHOICES)
+    address_country = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=50)
+    email = models.EmailField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Next of Kin"
+        verbose_name_plural = "Next of Kin"
+
+    def __str__(self):
+        return f"{self.full_name} ({self.relationship}) - {self.user.email}"
+
+
+# =====================
 # PERSONAL DOCUMENT MODEL
 # =====================
 class PersonalDocument(models.Model):

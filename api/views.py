@@ -28,11 +28,11 @@ from rest_framework.views import APIView
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
     Company, Interview, CVSubmission, Document, LanguageProficiency,
-    UserLanguage, PersonalDocument, Declaration
+    UserLanguage, PersonalDocument, Declaration, NextOfKin
 )
 from .serializer import (
     UsersSerializer, UserRankSerializer, ContractSerializer, ContractListSerializer,
-    ReferenceSerializer, SeaServiceSerializer, CertificateSerializer,
+    ReferenceSerializer, SeaServiceSerializer, CertificateSerializer, NextOfKinSerializer,
     RankSerializer, RegisterSerializer, UserMeSerializer, DeclarationSerializer,
     CompanySerializer, CompanyListSerializer,
     InterviewSerializer, InterviewCalendarSerializer,
@@ -1102,3 +1102,51 @@ def get_positions(request):
         for value, label in Document.POSITION_CHOICES
     ]
     return Response(positions)
+
+
+class NextOfKinViewSet(viewsets.ModelViewSet):
+    """
+    Next of Kin / Emergency Contact - Role-based access:
+    - Admin/HR Manager: Full access to all records
+    - Recruiter: Read-only access
+    - Employee: Full access to their own records only
+    """
+    queryset = NextOfKin.objects.all()
+    serializer_class = NextOfKinSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return NextOfKin.objects.all()
+        return NextOfKin.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        if self.request.user.role == 'Employee':
+            serializer.save(user=self.request.user)
+        else:
+            if 'user' not in serializer.validated_data:
+                serializer.save(user=self.request.user)
+            else:
+                serializer.save()
+
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        user = self.request.user
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only edit your own emergency contacts")
+        if user.role == 'Recruiter':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Recruiters have read-only access")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        user = self.request.user
+        if user.role == 'Recruiter':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Recruiters have read-only access")
+        if user.role == 'Employee' and instance.user != user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only delete your own emergency contacts")
+        instance.delete()

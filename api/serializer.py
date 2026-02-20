@@ -511,6 +511,22 @@ class PersonalDocumentSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
 
+from .models import NextOfKin
+
+class NextOfKinSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NextOfKin
+        fields = [
+            'id', 'user', 'full_name', 'relationship',
+            'address_country', 'phone', 'email',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+        extra_kwargs = {
+            'user': {'required': False}
+        }
+
+
 # =====================
 # DECLARATION SERIALIZERS
 # =====================
