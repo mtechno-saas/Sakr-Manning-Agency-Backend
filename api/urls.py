@@ -28,7 +28,8 @@ from .views import (
     LanguageProficiencyViewSet,
     UserLanguageViewSet,
     PersonalDocumentViewSet,
-    VerifyEmailView
+    VerifyEmailView,
+    get_positions
 )
 
 router = DefaultRouter()
@@ -65,4 +66,5 @@ urlpatterns = [
     path('users/<int:user_id>/certificates/<int:certificate_id>/remove/', remove_user_certificate, name='remove-user-certificate'),
     path('users/<int:user_id>/ranks/<int:rank_id>/remove/', remove_user_rank, name='remove-user-rank'),
     path('verify-email/<uidb64>/<token>/', VerifyEmailView.as_view(), name='verify-email'),
+    path('positions/', get_positions, name='get-positions'),
 ]

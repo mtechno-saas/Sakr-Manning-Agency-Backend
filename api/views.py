@@ -6,7 +6,7 @@ import random
 import string
 from django.core.mail import send_mail
 from django.conf import settings
-from rest_framework.decorators import api_view, parser_classes, action
+from rest_framework.decorators import api_view, parser_classes, action, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from django.http import FileResponse, HttpResponseRedirect
@@ -54,6 +54,7 @@ from rest_framework.views import APIView
 
 class RegisterView(generics.CreateAPIView):
     queryset = Users.objects.all()
+    authentication_classes = []
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
 
@@ -1083,3 +1084,21 @@ class DeclarationViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only Admin and HR Manager can delete declarations")
         instance.delete()
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_positions(request):
+    """
+    Return all available positions.
+    Accessible by Employee, HR Manager, and Admin.
+    GET /api/positions/
+    """
+    if request.user.role not in ['Admin', 'HR Manager', 'Employee']:
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+    positions = [
+        {"value": value, "label": label}
+        for value, label in Document.POSITION_CHOICES
+    ]
+    return Response(positions)
