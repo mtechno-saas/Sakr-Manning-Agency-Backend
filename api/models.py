@@ -890,10 +890,11 @@ class PersonalDocument(models.Model):
     issue_date = models.DateField(blank=True, null=True)
     expiry_date = models.DateField(blank=True, null=True)
     issuing_country = models.CharField(max_length=100, blank=True, null=True)
+    place_of_issue = models.CharField(max_length=255, blank=True, null=True, help_text="City or office where the document was issued")
     
     file = models.FileField(
         upload_to='personal_documents/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png'])],
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'])],
         blank=True,
         null=True
     )

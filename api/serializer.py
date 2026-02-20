@@ -505,7 +505,7 @@ class PersonalDocumentSerializer(serializers.ModelSerializer):
         model = PersonalDocument
         fields = [
             'id', 'user', 'document_type', 'document_number',
-            'issue_date', 'expiry_date', 'issuing_country', 'file',
+            'issue_date', 'expiry_date', 'issuing_country', 'place_of_issue', 'file',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
