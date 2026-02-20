@@ -646,6 +646,12 @@ class SeaService(models.Model):
     vessel_type = models.CharField(max_length=100, blank=True, default='')
     dwt_grt = models.CharField(max_length=100, blank=True, default='')
     engine_type_bh_kw = models.CharField(max_length=100, blank=True, default='')
+    # Separate ship detail fields
+    dwt = models.CharField(max_length=100, blank=True, default='', help_text='Deadweight Tonnage')
+    gwt = models.CharField(max_length=100, blank=True, default='', help_text='Gross Weight Tonnage')
+    engine_type = models.CharField(max_length=100, blank=True, default='', help_text='Engine Type')
+    bh = models.CharField(max_length=100, blank=True, default='', help_text='Brake Horsepower')
+    kw = models.CharField(max_length=100, blank=True, default='', help_text='Kilowatts')
     reason_for_sign_off = models.CharField(max_length=255, blank=True, default='')
 
     def __str__(self):

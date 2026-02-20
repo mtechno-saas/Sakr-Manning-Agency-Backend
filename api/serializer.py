@@ -55,6 +55,47 @@ class SeaServiceSerializer(serializers.ModelSerializer):
         model = SeaService
         fields = '__all__'
 
+    def _calculate_period(self, signed_on, signed_off):
+        """Calculate the time period between signed_on and signed_off."""
+        if not signed_on or not signed_off:
+            return ''
+        # Calculate years, months, days manually
+        years = signed_off.year - signed_on.year
+        months = signed_off.month - signed_on.month
+        days = signed_off.day - signed_on.day
+        if days < 0:
+            months -= 1
+            # Get days in previous month
+            import calendar
+            prev_month = signed_off.month - 1 or 12
+            prev_year = signed_off.year if signed_off.month > 1 else signed_off.year - 1
+            days += calendar.monthrange(prev_year, prev_month)[1]
+        if months < 0:
+            years -= 1
+            months += 12
+        parts = []
+        if years:
+            parts.append(f"{years}y")
+        if months:
+            parts.append(f"{months}m")
+        if days:
+            parts.append(f"{days}d")
+        return ' '.join(parts) if parts else '0d'
+
+    def create(self, validated_data):
+        signed_on = validated_data.get('signed_on')
+        signed_off = validated_data.get('signed_off')
+        if signed_on and signed_off and not validated_data.get('period'):
+            validated_data['period'] = self._calculate_period(signed_on, signed_off)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        signed_on = validated_data.get('signed_on', instance.signed_on)
+        signed_off = validated_data.get('signed_off', instance.signed_off)
+        if signed_on and signed_off:
+            validated_data['period'] = self._calculate_period(signed_on, signed_off)
+        return super().update(instance, validated_data)
+
 
 class UserMeSerializer(serializers.ModelSerializer):
     class Meta:
