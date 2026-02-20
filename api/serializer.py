@@ -475,7 +475,25 @@ class LanguageProficiencySerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ('email', 'password', 'first_name')
+        fields = (
+            'email', 'password', 'first_name', 'middle_name', 'role',
+            'profile_image', 'date_of_birth', 'age', 'nationality',
+            'Place_Of_Birth', 'Nearest_Port', 'marital_status',
+            'blood_type', 'smoker', 'Height_Cm', 'Weight_Kg',
+            'college_or_school', 'address', 'phone_number', 'tel_number',
+            'country', 'city', 'salary',
+            'us_visa_status', 'schengen_visa_status',
+            'marlins_test_result', 'marlins_test_issued_date',
+            'marlins_test_issued_by', 'marlins_test_issued_at',
+            # Position Information
+            'application_for_position', 'other_position', 'available_date',
+            'register_code', 'register_date',
+            # Travel Documents
+            'passport_no', 'passport_issue_date', 'passport_expiry_date',
+            'passport_issued_by', 'passport_place_of_issue',
+            'seaman_book_no', 'seaman_book_issue_date', 'seaman_book_expiry_date',
+            'seaman_book_issued_by', 'seaman_book_place_of_issue',
+        )
 
         extra_kwargs = {
             "password": {"write_only": True},
@@ -492,11 +510,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        user = Users.objects.create_user(
-            email=validated_data['email'],
-            password=validated_data['password'],
-            first_name=validated_data['first_name']
-        )
+        password = validated_data.pop('password')
+        user = Users(**validated_data)
+        user.set_password(password)
+        user.save()
         return user
 
 class DocumentSerializer(serializers.ModelSerializer):
