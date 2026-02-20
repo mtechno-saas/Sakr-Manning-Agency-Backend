@@ -505,10 +505,12 @@ class PersonalDocumentSerializer(serializers.ModelSerializer):
         model = PersonalDocument
         fields = [
             'id', 'user', 'document_type', 'document_number',
-            'issue_date', 'expiry_date', 'issuing_country', 'place_of_issue', 'file',
+            'issue_date', 'expiry_date', 'issuing_country', 'issued_by',
+            'place_of_issue', 'file',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
+        extra_kwargs = {'user': {'required': False}}
 
 
 
@@ -526,32 +528,6 @@ class NextOfKinSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'required': False}
         }
-
-
-from .models import Passport, SeamanBook
-
-class PassportSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Passport
-        fields = [
-            'id', 'user', 'passport_no', 'issue_date', 'expiry_date',
-            'issued_by', 'place_of_issue', 'file',
-            'created_at', 'updated_at'
-        ]
-        read_only_fields = ['created_at', 'updated_at']
-        extra_kwargs = {'user': {'required': False}}
-
-
-class SeamanBookSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SeamanBook
-        fields = [
-            'id', 'user', 'seaman_book_no', 'issue_date', 'expiry_date',
-            'issued_by', 'place_of_issue', 'file',
-            'created_at', 'updated_at'
-        ]
-        read_only_fields = ['created_at', 'updated_at']
-        extra_kwargs = {'user': {'required': False}}
 
 
 # =====================

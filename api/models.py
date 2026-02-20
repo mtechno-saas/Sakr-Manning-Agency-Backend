@@ -856,59 +856,6 @@ class NextOfKin(models.Model):
         return f"{self.full_name} ({self.relationship}) - {self.user.email}"
 
 
-# =====================
-# PASSPORT MODEL
-# =====================
-class Passport(models.Model):
-    """Multiple passports per user"""
-    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='passports')
-    passport_no = models.CharField(max_length=50)
-    issue_date = models.DateField(blank=True, null=True)
-    expiry_date = models.DateField(blank=True, null=True)
-    issued_by = models.CharField(max_length=100, blank=True, null=True)
-    place_of_issue = models.CharField(max_length=100, blank=True, null=True)
-    file = models.FileField(
-        upload_to='passports/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'])],
-        blank=True, null=True
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Passport {self.passport_no} - {self.user.email}"
-
-
-# =====================
-# SEAMAN BOOK MODEL
-# =====================
-class SeamanBook(models.Model):
-    """Multiple seaman books per user"""
-    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='seaman_books')
-    seaman_book_no = models.CharField(max_length=50)
-    issue_date = models.DateField(blank=True, null=True)
-    expiry_date = models.DateField(blank=True, null=True)
-    issued_by = models.CharField(max_length=100, blank=True, null=True)
-    place_of_issue = models.CharField(max_length=100, blank=True, null=True)
-    file = models.FileField(
-        upload_to='seaman_books/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'])],
-        blank=True, null=True
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Seaman Book {self.seaman_book_no} - {self.user.email}"
-
 
 # =====================
 # PERSONAL DOCUMENT MODEL
@@ -944,6 +891,7 @@ class PersonalDocument(models.Model):
     issue_date = models.DateField(blank=True, null=True)
     expiry_date = models.DateField(blank=True, null=True)
     issuing_country = models.CharField(max_length=100, blank=True, null=True)
+    issued_by = models.CharField(max_length=255, blank=True, null=True, help_text="Authority or entity that issued the document")
     place_of_issue = models.CharField(max_length=255, blank=True, null=True, help_text="City or office where the document was issued")
     
     file = models.FileField(
