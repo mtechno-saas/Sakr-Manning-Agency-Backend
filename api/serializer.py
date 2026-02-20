@@ -329,8 +329,9 @@ class UsersSerializer(serializers.ModelSerializer):
             'college_or_school', 'marlins_test_issued_date', 'marlins_test_result',
             'marlins_test_issued_by', 'marlins_test_issued_at', 'salary', 'address',
             'phone_number', 'tel_number', 'created_at', 'updated_at', 'role', "register_code",
-            "register_date",
-            "last_updated_date",
+            'register_date',
+            'last_updated_date',
+            'application_for_position', 'other_position', 'available_date',
             # Travel Documents
             'passport_no', 'passport_issue_date', 'passport_expiry_date',
             'passport_issued_by', 'passport_place_of_issue',

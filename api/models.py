@@ -265,6 +265,41 @@ class Users(AbstractBaseUser, PermissionsMixin):
         help_text="Registration code from system or document"
     )
 
+    # Position Information
+    APPLICATION_POSITION_CHOICES = [
+        ('Master', 'Master'),
+        ('1st. Officer – Chief Off.', '1st. Officer – Chief Off.'),
+        ('2nd. Officer', '2nd. Officer'),
+        ('3rd. Officer', '3rd. Officer'),
+        ('Tug Master', 'Tug Master'),
+        ('Boson', 'Boson'),
+        ('A.B – O.S', 'A.B – O.S'),
+        ('Steward / Galley Boy', 'Steward / Galley Boy'),
+        ('Cook / 2nd. Cook / Ass. Cook / Baker / Pastry', 'Cook / 2nd. Cook / Ass. Cook / Baker / Pastry'),
+        ('Carpenter', 'Carpenter'),
+        ('Waiter', 'Waiter'),
+        ('Purser', 'Purser'),
+        ('Doctor', 'Doctor'),
+        ('1st. Engineer', '1st. Engineer'),
+        ('2nd. Engineer', '2nd. Engineer'),
+        ('3rd. Engineer', '3rd. Engineer'),
+        ('Electrical Engineer – E/E – ETO', 'Electrical Engineer – E/E – ETO'),
+        ('Assistant Electrician', 'Assistant Electrician'),
+        ('4th. Engineer', '4th. Engineer'),
+        ('Electrician', 'Electrician'),
+        ('Motor Man / Mechanic', 'Motor Man / Mechanic'),
+        ('Oiler', 'Oiler'),
+        ('Fitter – Welder', 'Fitter – Welder'),
+        ('Wiper', 'Wiper'),
+        ('Other', 'Other'),
+    ]
+    application_for_position = models.CharField(
+        max_length=100, choices=APPLICATION_POSITION_CHOICES,
+        blank=True, null=True, help_text="Application for position"
+    )
+    other_position = models.CharField(max_length=255, blank=True, null=True, help_text="Other position if not in the list")
+    available_date = models.DateField(blank=True, null=True, help_text="Date of availability")
+
     register_date = models.DateField(
         null=True,
         blank=True,
