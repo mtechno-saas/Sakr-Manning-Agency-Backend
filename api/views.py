@@ -555,7 +555,7 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
 class ReferenceViewSet(viewsets.ModelViewSet):
     queryset = Reference.objects.all()
     serializer_class = ReferenceSerializer
-    permission_classes = [IsAuthenticated, IsHROrReadOnly]
+    permission_classes = [IsAuthenticated]
 
 
 class SeaServiceViewSet(viewsets.ModelViewSet):
