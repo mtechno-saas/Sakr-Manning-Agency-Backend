@@ -674,6 +674,8 @@ class SeaService(models.Model):
     company_name = models.CharField(max_length=255, blank=True, default='')
     rank = models.CharField(max_length=255, blank=True, default='')
     vessel_name_imo = models.CharField(max_length=255, blank=True, default='')
+    vessel_name = models.CharField(max_length=255, blank=True, default='', help_text='Vessel Name')
+    imo_number = models.CharField(max_length=50, blank=True, default='', help_text='IMO Number')
     flag = models.CharField(max_length=100, blank=True, default='')
     signed_on = models.DateField(blank=True, null=True)
     signed_off = models.DateField(blank=True, null=True)
@@ -690,7 +692,7 @@ class SeaService(models.Model):
     reason_for_sign_off = models.CharField(max_length=255, blank=True, default='')
 
     def __str__(self):
-        return f"Sea service for {self.user.email} on {self.vessel_name_imo}"
+        return f"Sea service for {self.user.email} on {self.vessel_name}"
 
 
 class BlacklistRecord(models.Model):
