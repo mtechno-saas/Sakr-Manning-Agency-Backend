@@ -689,6 +689,11 @@ class SeaService(models.Model):
     engine_type = models.CharField(max_length=100, blank=True, default='', help_text='Engine Type')
     bh = models.CharField(max_length=100, blank=True, default='', help_text='Brake Horsepower')
     kw = models.CharField(max_length=100, blank=True, default='', help_text='Kilowatts')
+    file = models.FileField(
+        upload_to='sea_services/',
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'])],
+        blank=True, null=True
+    )
     reason_for_sign_off = models.CharField(max_length=255, blank=True, default='')
 
     def __str__(self):

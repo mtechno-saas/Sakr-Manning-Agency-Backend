@@ -567,6 +567,7 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
     queryset = SeaService.objects.all()
     serializer_class = SeaServiceSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         user = self.request.user
