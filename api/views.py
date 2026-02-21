@@ -560,9 +560,8 @@ class ReferenceViewSet(viewsets.ModelViewSet):
 
 class SeaServiceViewSet(viewsets.ModelViewSet):
     """
-    Sea Service Management - Role-based access:
-    - Admin/HR Manager: Full access to all records
-    - Recruiter: Read-only access to all records
+    Sea Service Management - All roles have full CRUD access:
+    - Admin/HR Manager/Recruiter: Full access to all records
     - Employee: Full access to their own records only
     """
     queryset = SeaService.objects.all()
@@ -579,7 +578,10 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
         if self.request.user.role == 'Employee':
             serializer.save(user=self.request.user)
         else:
-            serializer.save()
+            if 'user' not in serializer.validated_data:
+                serializer.save(user=self.request.user)
+            else:
+                serializer.save()
 
     def perform_update(self, serializer):
         instance = self.get_object()
@@ -587,16 +589,10 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
         if user.role == 'Employee' and instance.user != user:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only edit your own sea services")
-        if user.role == 'Recruiter':
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Recruiters have read-only access")
         serializer.save()
 
     def perform_destroy(self, instance):
         user = self.request.user
-        if user.role == 'Recruiter':
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Recruiters have read-only access")
         if user.role == 'Employee' and instance.user != user:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only delete your own sea services")
