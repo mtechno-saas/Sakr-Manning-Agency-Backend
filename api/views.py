@@ -560,20 +560,21 @@ class ReferenceViewSet(viewsets.ModelViewSet):
 
 class SeaServiceViewSet(viewsets.ModelViewSet):
     """
-    Sea Service Management - All roles have full CRUD access:
-    - Admin/HR Manager/Recruiter: Full access to all records
-    - Employee: Full access to their own records only
+    Sea Service Management - Role-based access:
+    - Admin/HR Manager/Employee: Full access to all records
     """
     queryset = SeaService.objects.all()
     serializer_class = SeaServiceSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    def check_permissions(self, request):
+        super().check_permissions(request)
+        if request.user.role not in ['Admin', 'HR Manager', 'Employee']:
+            self.permission_denied(request, message="Only Admin, HR Manager, and Employee roles can access this endpoint.")
+
     def get_queryset(self):
-        user = self.request.user
-        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
-            return SeaService.objects.all()
-        return SeaService.objects.filter(user=user)
+        return SeaService.objects.all()
 
     def perform_create(self, serializer):
         if self.request.user.role == 'Employee':
@@ -583,21 +584,6 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
                 serializer.save(user=self.request.user)
             else:
                 serializer.save()
-
-    def perform_update(self, serializer):
-        instance = self.get_object()
-        user = self.request.user
-        if user.role == 'Employee' and instance.user != user:
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("You can only edit your own sea services")
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        user = self.request.user
-        if user.role == 'Employee' and instance.user != user:
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("You can only delete your own sea services")
-        instance.delete()
 
 
 class DocumentViewSet(viewsets.ModelViewSet):
@@ -978,19 +964,21 @@ def remove_user_rank(request, user_id, rank_id):
 class UserLanguageViewSet(viewsets.ModelViewSet):
     """
     User Languages - Role-based access:
-    - Admin/HR/Recruiter: Full access
-    - Employee: Own languages only
+    - Admin/HR Manager: Full access to all records
+    - Employee: Full access to all records
     """
     queryset = UserLanguage.objects.all()
     serializer_class = UserLanguageSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    def check_permissions(self, request):
+        super().check_permissions(request)
+        if request.user.role not in ['Admin', 'HR Manager', 'Employee']:
+            self.permission_denied(request, message="Only Admin, HR Manager, and Employee roles can access this endpoint.")
+
     def get_queryset(self):
-        user = self.request.user
-        if user.role in ['Admin', 'HR Manager', 'Recruiter']:
-            return UserLanguage.objects.all()
-        return UserLanguage.objects.filter(user=user)
+        return UserLanguage.objects.all()
 
     def perform_create(self, serializer):
         if self.request.user.role == 'Employee':
