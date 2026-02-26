@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count, Sum
 from .models import Company, JobOrder, JobOrderPosition
 from .models import Company, JobOrder, JobOrderPosition
@@ -12,6 +13,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     filterset_class = CompanyFilter
+    permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
@@ -66,10 +68,12 @@ class JobOrderViewSet(viewsets.ModelViewSet):
     queryset = JobOrder.objects.all()
     serializer_class = JobOrderSerializer
     filterset_class = JobOrderFilter
+    permission_classes = [IsAuthenticated]
 
 
 class JobOrderPositionViewSet(viewsets.ModelViewSet):
     queryset = JobOrderPosition.objects.all()
     serializer_class = JobOrderPositionSerializer
     filterset_fields = ['job_order', 'rank']
+    permission_classes = [IsAuthenticated]
 

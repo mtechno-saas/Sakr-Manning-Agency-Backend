@@ -811,10 +811,10 @@ class CertificateViewSet(viewsets.ModelViewSet):
 
 
 class RankViewSet(viewsets.ModelViewSet):
-    """Ranks - Admin/HR can edit, others read only"""
+    """Ranks - All authenticated users can access"""
     queryset = Rank.objects.all()
     serializer_class = RankSerializer
-    permission_classes = [IsAuthenticated, IsHROrReadOnly]
+    permission_classes = [IsAuthenticated]
 
 
 # --- User-specific endpoints ---
@@ -1076,12 +1076,9 @@ class DeclarationViewSet(viewsets.ModelViewSet):
 def get_positions(request):
     """
     Return all available positions.
-    Accessible by Employee, HR Manager, and Admin.
+    Accessible by any authenticated user.
     GET /api/positions/
     """
-    if request.user.role not in ['Admin', 'HR Manager', 'Employee']:
-        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
-
     positions = [
         {"value": value, "label": label}
         for value, label in Document.POSITION_CHOICES
@@ -1094,11 +1091,9 @@ def get_positions(request):
 def get_flags(request):
     """
     Return all available maritime flag states.
-    Accessible by Employee, HR Manager, and Admin.
+    Accessible by any authenticated user.
     GET /api/flags/
     """
-    if request.user.role not in ['Admin', 'HR Manager', 'Employee']:
-        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
 
     FLAGS = [
         ("Algeria", "Algeria"),
