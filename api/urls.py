@@ -30,6 +30,7 @@ from .views import (
     PersonalDocumentViewSet,
     VerifyEmailView,
     get_positions,
+    get_flags,
     NextOfKinViewSet
 )
 
@@ -69,4 +70,5 @@ urlpatterns = [
     path('users/<int:user_id>/ranks/<int:rank_id>/remove/', remove_user_rank, name='remove-user-rank'),
     path('verify-email/<uidb64>/<token>/', VerifyEmailView.as_view(), name='verify-email'),
     path('positions/', get_positions, name='get-positions'),
+    path('flags/', get_flags, name='get-flags'),
 ]
