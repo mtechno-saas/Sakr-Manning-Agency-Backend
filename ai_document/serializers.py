@@ -404,8 +404,11 @@
 #     signed_off = serializers.DateField()
 #     period = serializers.CharField()
 #     vessel_type = serializers.CharField()
-#     dwt_grt = serializers.CharField()
-#     engine_type_bh_kw = serializers.CharField()
+#     dwt = serializers.CharField()
+#     grt = serializers.CharField()
+#     engine_type = serializers.CharField()
+#     bh = serializers.CharField()
+#     kw = serializers.CharField()
 #     reason_for_sign_off = serializers.CharField()
 
 
@@ -584,8 +587,11 @@
 #                 'signed_off': service.get('signed_off'),
 #                 'period': service.get('period', ''),
 #                 'vessel_type': service.get('vessel_type', ''),
-#                 'dwt_grt': service.get('dwt_grt', ''),
-#                 'engine_type_bh_kw': service.get('engine_type_bh_kw', ''),
+#                 'dwt': service.get('dwt', ''),
+#                 'grt': service.get('grt', ''),
+#                 'engine_type': service.get('engine_type', ''),
+#                 'bh': service.get('bh', ''),
+#                 'kw': service.get('kw', ''),
 #                 'reason_for_sign_off': service.get('reason_for_sign_off', '')
 #             }
 #             for idx, service in enumerate(sea_services_data)
@@ -1255,8 +1261,11 @@
 #                 'signed_off': service.get('signed_off'),
 #                 'period': service.get('period', ''),
 #                 'vessel_type': service.get('vessel_type', ''),
-#                 'dwt_grt': service.get('dwt_grt', ''),
-#                 'engine_type_bh_kw': service.get('engine_type_bh_kw', ''),
+#                 'dwt': service.get('dwt', ''),
+#                 'grt': service.get('grt', ''),
+#                 'engine_type': service.get('engine_type', ''),
+#                 'bh': service.get('bh', ''),
+#                 'kw': service.get('kw', ''),
 #                 'reason_for_sign_off': service.get('reason_for_sign_off', '')
 #             }
 #             for idx, service in enumerate(sea_services_data)

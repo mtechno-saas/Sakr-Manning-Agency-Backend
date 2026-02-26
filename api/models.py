@@ -681,14 +681,14 @@ class SeaService(models.Model):
     signed_off = models.DateField(blank=True, null=True)
     period = models.CharField(max_length=100, blank=True, default='')
     vessel_type = models.CharField(max_length=100, blank=True, default='')
-    dwt_grt = models.CharField(max_length=100, blank=True, default='')
-    engine_type_bh_kw = models.CharField(max_length=100, blank=True, default='')
+    
     # Separate ship detail fields
     dwt = models.CharField(max_length=100, blank=True, default='', help_text='Deadweight Tonnage')
-    gwt = models.CharField(max_length=100, blank=True, default='', help_text='Gross Weight Tonnage')
+    grt = models.CharField(max_length=100, blank=True, default='', help_text='Gross Register Tonnage')
     engine_type = models.CharField(max_length=100, blank=True, default='', help_text='Engine Type')
     bh = models.CharField(max_length=100, blank=True, default='', help_text='Brake Horsepower')
     kw = models.CharField(max_length=100, blank=True, default='', help_text='Kilowatts')
+    
     file = models.FileField(
         upload_to='sea_services/',
         validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'])],

@@ -1873,8 +1873,11 @@ class DataMapperService:
                             'signed_off': DataMapperService.parse_date_string(service.get('Signed_Off', '') or service.get('signed_off', '')),
                             'period': service.get('Period', '') or service.get('period', ''),
                             'vessel_type': service.get('Vessel_Type', '') or service.get('vessel_type', ''),
-                            'dwt_grt': service.get('DWT_GRT', '') or service.get('dwt_grt', ''),
-                            'engine_type_bh_kw': service.get('Engine_Type', '') or service.get('BH_KW', '') or service.get('engine_type_bh_kw', ''),
+                            'dwt': service.get('DWT', '') or service.get('dwt', ''),
+                            'grt': service.get('GRT', '') or service.get('grt', ''),
+                            'engine_type': service.get('Engine_Type', '') or service.get('engine_type', ''),
+                            'bh': service.get('BH', '') or service.get('bh', ''),
+                            'kw': service.get('KW', '') or service.get('kw', ''),
                             'reason_for_sign_off': service.get('Reason_for_Sign_off', '') or service.get('reason_for_sign_off', ''),
                         })
         
