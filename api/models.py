@@ -218,9 +218,17 @@ class LanguageProficiency(models.Model):
     # Fields as requested
     language = models.CharField(max_length=100, choices=LANGUAGE_CHOICES)
     general_marks = models.IntegerField(default=0)
-    speaking = models.IntegerField(default=0)
-    writing = models.IntegerField(default=0)
-    reading = models.IntegerField(default=0)
+    
+    # Proficiency Levels
+    PROFICIENCY_CHOICES = [
+        ('Elementary', 'Elementary'),
+        ('Intermediate', 'Intermediate'),
+        ('Advanced', 'Advanced'),
+        ('Native', 'Native'),
+    ]
+    speaking_level = models.CharField(max_length=50, choices=PROFICIENCY_CHOICES, blank=True, null=True)
+    writing_level = models.CharField(max_length=50, choices=PROFICIENCY_CHOICES, blank=True, null=True)
+    reading_level = models.CharField(max_length=50, choices=PROFICIENCY_CHOICES, blank=True, null=True)
     
     cefr_level = models.CharField(
         max_length=2, 
@@ -232,6 +240,8 @@ class LanguageProficiency(models.Model):
         null=True, 
         help_text="Detailed description of the language ability based on CEFR"
     )
+
+    attachment = models.FileField(upload_to='languages/', blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

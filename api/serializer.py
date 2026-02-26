@@ -468,8 +468,9 @@ class LanguageProficiencySerializer(serializers.ModelSerializer):
         model = LanguageProficiency
         # We exclude 'user' because we will inject the logged-in user automatically in the view
         fields = [
-            'id', 'language', 'general_marks', 'speaking', 
-            'writing', 'reading', 'cefr_level', 'cefr_description'
+            'id', 'language', 'general_marks', 'speaking_level', 
+            'writing_level', 'reading_level', 'cefr_level', 'cefr_description',
+            'attachment'
         ]
 
 class RegisterSerializer(serializers.ModelSerializer):
