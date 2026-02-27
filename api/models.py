@@ -435,11 +435,13 @@ class Users(AbstractBaseUser, PermissionsMixin):
     marlins_test_issued_date = models.DateField(null=True, blank=True)
     marlins_test_issued_at = models.CharField(max_length=100, blank=True, null=True)
     marlins_test_issued_by = models.CharField(max_length=100, blank=True, null=True)
+    marlins_test_attachment = models.FileField(upload_to='marlins_tests/', blank=True, null=True)
 
     ces_test_result = models.CharField(max_length=100, blank=True, null=True)
     ces_test_issued_date = models.DateField(null=True, blank=True)
     ces_test_issued_at = models.CharField(max_length=100, blank=True, null=True)
     ces_test_issued_by = models.CharField(max_length=100, blank=True, null=True)
+    ces_test_attachment = models.FileField(upload_to='ces_tests/', blank=True, null=True)
 
     certificates = models.ManyToManyField(Certificate, blank=True)
     codes = models.ManyToManyField(Rank, blank=True)

@@ -327,7 +327,9 @@ class UsersSerializer(serializers.ModelSerializer):
             'schengen_visa_status', 'date_of_birth', 'marital_status', 'user_status',
             'nationality', 'Place_Of_Birth', 'Nearest_Port', 'Height_Cm', 'Weight_Kg',
             'college_or_school', 'marlins_test_issued_date', 'marlins_test_result',
-            'marlins_test_issued_by', 'marlins_test_issued_at', 'salary', 'address',
+            'marlins_test_issued_by', 'marlins_test_issued_at', 'marlins_test_attachment',
+            'ces_test_result', 'ces_test_issued_date', 'ces_test_issued_at', 'ces_test_issued_by',
+            'ces_test_attachment', 'salary', 'address',
             'phone_number', 'tel_number', 'created_at', 'updated_at', 'role', "register_code",
             'register_date',
             'last_updated_date',
@@ -344,7 +346,6 @@ class UsersSerializer(serializers.ModelSerializer):
             'coc_expiry_date', 'coc_issued_by', 'coc_issued_at',
             'goc_certificate_number', 'goc_issue_date', 'goc_expiry_date',
             'goc_issued_by', 'goc_issued_at',
-            'ces_test_result', 'ces_test_issued_date', 'ces_test_issued_at', 'ces_test_issued_by',
             # Next of Kin
             'next_of_kin_full_name', 'next_of_kin_relationship', 'next_of_kin_address_country',
             'next_of_kin_phone', 'next_of_kin_email',
