@@ -52,6 +52,10 @@ DOCUMENT_NAME_CHOICES = [
     ("Qualified Ship’s Cook (MLC 2006) Endorsement", "Qualified Ship’s Cook (MLC 2006) Endorsement"),
     ("Navigational Watch Rating (Reg. II/4)", "Navigational Watch Rating (Reg. II/4)"),
     ("Navigational Watch Rating (Reg. II/4) Endorsement", "Navigational Watch Rating (Reg. II/4) Endorsement"),
+    ("COC – Certificate of Competency", "COC – Certificate of Competency"),
+    ("COC – Certificate of Competency Endorsement", "COC – Certificate of Competency Endorsement"),
+    ("GOC – General Operator Certificate", "GOC – General Operator Certificate"),
+    ("GOC – General Operator Certificate Endorsement", "GOC – General Operator Certificate Endorsement"),
 ]
 
 class UserLicense(models.Model):
