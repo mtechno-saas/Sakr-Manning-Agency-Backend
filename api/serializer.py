@@ -348,7 +348,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'goc_issued_by', 'goc_issued_at',
             # Next of Kin
             'next_of_kin_full_name', 'next_of_kin_relationship', 'next_of_kin_address_country',
-            'next_of_kin_phone', 'next_of_kin_email',
+            'next_of_kin_phone', 'next_of_kin_phone2', 'next_of_kin_email',
             # Health Certificates
             'health_flag_state', 'health_number', 'health_issue_date', 'health_expiry_date',
             'health_issued_by', 'health_issued_at', 'international_medical_number',
@@ -603,7 +603,7 @@ class NextOfKinSerializer(serializers.ModelSerializer):
         model = NextOfKin
         fields = [
             'id', 'user', 'full_name', 'relationship',
-            'address_country', 'phone', 'email',
+            'address_country', 'phone', 'phone2', 'email',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']

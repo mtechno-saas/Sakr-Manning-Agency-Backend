@@ -383,6 +383,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     next_of_kin_relationship = models.CharField(max_length=100, blank=True, null=True)
     next_of_kin_address_country = models.CharField(max_length=255, blank=True, null=True)
     next_of_kin_phone = models.CharField(max_length=50, blank=True, null=True)
+    next_of_kin_phone2 = models.CharField(max_length=50, blank=True, null=True)
     next_of_kin_email = models.EmailField(blank=True, null=True)
 
     # Health Certificates & Vaccinations
@@ -902,6 +903,7 @@ class NextOfKin(models.Model):
     relationship = models.CharField(max_length=100, choices=RELATIONSHIP_CHOICES)
     address_country = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=50)
+    phone2 = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
