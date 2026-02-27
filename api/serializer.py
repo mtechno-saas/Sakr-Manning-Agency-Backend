@@ -364,7 +364,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
             # Relationships
             'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services',
-            'generated_id'
+            'generated_id', 'bmi'
         ]
         extra_kwargs = {
             'profile_image': {'required': False},
@@ -407,6 +407,27 @@ class UsersSerializer(serializers.ModelSerializer):
 
         # Remove the codes field from output (internal use only)
         representation.pop('codes', None)
+
+        # Calculate BMI from Height_Cm and Weight_Kg
+        height_cm = instance.Height_Cm or 0
+        weight_kg = instance.Weight_Kg or 0
+        if height_cm > 0 and weight_kg > 0:
+            height_m = height_cm / 100
+            bmi_value = round(weight_kg / (height_m ** 2), 1)
+            if bmi_value < 18.5:
+                bmi_category = 'Underweight'
+            elif bmi_value < 25:
+                bmi_category = 'Normal'
+            elif bmi_value < 30:
+                bmi_category = 'Overweight'
+            else:
+                bmi_category = 'Obese'
+            representation['bmi'] = {
+                'value': bmi_value,
+                'category': bmi_category
+            }
+        else:
+            representation['bmi'] = None
 
         return representation
 
