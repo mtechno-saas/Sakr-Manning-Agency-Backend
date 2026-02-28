@@ -365,7 +365,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
             # Relationships
             'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services',
-            'generated_id', 'bmi'
+            'generated_id'
         ]
         extra_kwargs = {
             'profile_image': {'required': False},
