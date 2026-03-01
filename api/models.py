@@ -431,7 +431,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     responsible_person_name = models.CharField(max_length=100, blank=True, null=True)
     assessment_date = models.DateField(blank=True, null=True)
 
-    salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    salary = models.CharField(max_length=100, blank=True, null=True)
     marlins_test_result = models.CharField(max_length=100, blank=True, null=True)
     marlins_test_issued_date = models.DateField(null=True, blank=True)
     marlins_test_issued_at = models.CharField(max_length=100, blank=True, null=True)
