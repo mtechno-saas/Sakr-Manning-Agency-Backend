@@ -370,7 +370,8 @@ class UsersSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'profile_image': {'required': False},
             'password': {'write_only': True, 'required': False},
-            'generated_id': {'read_only': True}
+            'generated_id': {'read_only': True},
+            'salary': {'required': False, 'allow_null': True},
         }
 
     def to_representation(self, instance):
