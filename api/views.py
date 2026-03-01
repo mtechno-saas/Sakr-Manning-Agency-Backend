@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import get_object_or_404
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
@@ -149,6 +150,28 @@ class UserViewSet(viewsets.ModelViewSet):
             'employees': users.filter(role='Employee').count(),
             'active_users': users.filter(is_active=True).count(),
         })
+
+    @action(detail=True, methods=['get'], url_path='download-marlins')
+    def download_marlins(self, request, pk=None):
+        """Download Marlins test attachment"""
+        user = self.get_object()
+        if not user.marlins_test_attachment:
+            return Response({'error': 'No Marlins test file uploaded'}, status=404)
+        file_path = user.marlins_test_attachment.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found'}, status=404)
+
+    @action(detail=True, methods=['get'], url_path='download-ces')
+    def download_ces(self, request, pk=None):
+        """Download CES test attachment"""
+        user = self.get_object()
+        if not user.ces_test_attachment:
+            return Response({'error': 'No CES test file uploaded'}, status=404)
+        file_path = user.ces_test_attachment.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found'}, status=404)
 
 
 # --- Function-based views with permission checks ---
