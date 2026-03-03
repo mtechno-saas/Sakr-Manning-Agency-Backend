@@ -631,10 +631,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
-        user = self.request.user
-        if user.role in ['Admin', 'HR Manager', 'Recruiter'] or user.is_superuser:
-            return Document.objects.all()
-        return Document.objects.filter(user=user)
+        return Document.objects.all()
 
     def perform_create(self, serializer):
         # Assign current user if not Admin/HR or if they want to
