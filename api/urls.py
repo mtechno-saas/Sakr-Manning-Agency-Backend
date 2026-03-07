@@ -31,6 +31,7 @@ from .views import (
     VerifyEmailView,
     get_positions,
     get_flags,
+    get_coc_choices,
     NextOfKinViewSet
 )
 
@@ -71,4 +72,5 @@ urlpatterns = [
     path('verify-email/<uidb64>/<token>/', VerifyEmailView.as_view(), name='verify-email'),
     path('positions/', get_positions, name='get-positions'),
     path('flags/', get_flags, name='get-flags'),
+    path('coc-choices/', get_coc_choices, name='get-coc-choices'),
 ]

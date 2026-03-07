@@ -1108,6 +1108,20 @@ def get_positions(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def get_coc_choices(request):
+    """
+    Return all available COC certificate name choices.
+    GET /api/coc-choices/
+    """
+    choices = [
+        {"value": value, "label": label}
+        for value, label in Users.COC_CERTIFICATE_CHOICES
+    ]
+    return Response(choices)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_flags(request):
     """
     Return all available maritime flag states.
