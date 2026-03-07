@@ -351,18 +351,21 @@ class Users(AbstractBaseUser, PermissionsMixin):
     passport_expiry_date = models.DateField(null=True, blank=True)
     passport_issued_by = models.CharField(max_length=100, null=True, blank=True)
     passport_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
+    passport_attachment = models.FileField(upload_to='passports/', blank=True, null=True)
 
     seaman_book_no = models.CharField(max_length=50, null=True, blank=True)
     seaman_book_issue_date = models.DateField(null=True, blank=True)
     seaman_book_expiry_date = models.DateField(null=True, blank=True)
     seaman_book_issued_by = models.CharField(max_length=100, null=True, blank=True)
     seaman_book_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
+    seaman_book_attachment = models.FileField(upload_to='seaman_books/', blank=True, null=True)
 
     other_seaman_book_no = models.CharField(max_length=50, null=True, blank=True)
     other_seaman_book_issue_date = models.DateField(null=True, blank=True)
     other_seaman_book_expiry_date = models.DateField(null=True, blank=True)
     other_seaman_book_issued_by = models.CharField(max_length=100, null=True, blank=True)
     other_seaman_book_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
+    other_seaman_book_attachment = models.FileField(upload_to='other_seaman_books/', blank=True, null=True)
 
     # Professional Qualification / Certificate of Competency
     COC_CERTIFICATE_CHOICES = [

@@ -336,11 +336,11 @@ class UsersSerializer(serializers.ModelSerializer):
             'application_for_position', 'other_position', 'available_date',
             # Travel Documents
             'passport_no', 'passport_issue_date', 'passport_expiry_date',
-            'passport_issued_by', 'passport_place_of_issue',
+            'passport_issued_by', 'passport_place_of_issue', 'passport_attachment',
             'seaman_book_no', 'seaman_book_issue_date', 'seaman_book_expiry_date',
-            'seaman_book_issued_by', 'seaman_book_place_of_issue',
+            'seaman_book_issued_by', 'seaman_book_place_of_issue', 'seaman_book_attachment',
             'other_seaman_book_no', 'other_seaman_book_issue_date', 'other_seaman_book_expiry_date',
-            'other_seaman_book_issued_by', 'other_seaman_book_place_of_issue',
+            'other_seaman_book_issued_by', 'other_seaman_book_place_of_issue', 'other_seaman_book_attachment',
             # Professional Qualifications
             'coc_certificate_name', 'coc_certificate_number', 'coc_issue_date',
             'coc_expiry_date', 'coc_issued_by', 'coc_issued_at',
