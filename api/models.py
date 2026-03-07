@@ -365,7 +365,18 @@ class Users(AbstractBaseUser, PermissionsMixin):
     other_seaman_book_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
 
     # Professional Qualification / Certificate of Competency
-    coc_certificate_name = models.CharField(max_length=100, blank=True, null=True)
+    COC_CERTIFICATE_CHOICES = [
+        ('MASTER', 'MASTER'),
+        ('CHIEF MATE', 'CHIEF MATE'),
+        ('2ND OFFICER', '2ND OFFICER'),
+        ('3RD OFFICER', '3RD OFFICER'),
+        ('MARINE CHIEF ENG.', 'MARINE CHIEF ENG.'),
+        ('2ND MARINE ENG.', '2ND MARINE ENG.'),
+        ('3RD MARINE ENG.', '3RD MARINE ENG.'),
+        ('ELECTRO -TECHNICAL OFFICER', 'ELECTRO -TECHNICAL OFFICER'),
+        ('GMDSS General Operator', 'GMDSS General Operator'),
+    ]
+    coc_certificate_name = models.CharField(max_length=100, choices=COC_CERTIFICATE_CHOICES, blank=True, null=True)
     coc_certificate_number = models.CharField(max_length=50, blank=True, null=True)
     coc_issue_date = models.DateField(blank=True, null=True)
     coc_expiry_date = models.DateField(blank=True, null=True)
