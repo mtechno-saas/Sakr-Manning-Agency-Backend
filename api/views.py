@@ -580,6 +580,19 @@ class ReferenceViewSet(viewsets.ModelViewSet):
     serializer_class = ReferenceSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user')
+        if user_id:
+            return Reference.objects.filter(user_id=user_id)
+        return Reference.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        user_id = self.request.data.get('user')
+        if user_id:
+            serializer.save(user_id=user_id)
+        else:
+            serializer.save(user=self.request.user)
+
 
 class SeaServiceViewSet(viewsets.ModelViewSet):
     """
@@ -591,16 +604,17 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
-    def check_permissions(self, request):
-        super().check_permissions(request)
-        if request.user.role not in ['Admin', 'HR Manager', 'Employee']:
-            self.permission_denied(request, message="Only Admin, HR Manager, and Employee roles can access this endpoint.")
-
     def get_queryset(self):
-        return SeaService.objects.all()
+        user_id = self.request.query_params.get('user')
+        if user_id:
+            return SeaService.objects.filter(user_id=user_id)
+        return SeaService.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        if self.request.user.role == 'Employee':
+        user_id = self.request.data.get('user')
+        if user_id:
+            serializer.save(user_id=user_id)
+        elif self.request.user.role == 'Employee':
             serializer.save(user=self.request.user)
         else:
             if 'user' not in serializer.validated_data:
