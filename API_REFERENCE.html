@@ -1,0 +1,3367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sakr Manning Agency - API Reference</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--heading:#f0f6fc;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--orange:#d29922;--code-bg:#1f2937}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:20px}
+.container{max-width:1100px;margin:0 auto}
+h1{color:var(--heading);font-size:2rem;margin:40px 0 10px;padding-bottom:10px;border-bottom:2px solid var(--accent)}
+h2{color:var(--accent);font-size:1.5rem;margin:30px 0 10px;padding:8px 12px;background:var(--card);border-left:4px solid var(--accent);border-radius:4px}
+h3{color:var(--green);font-size:1.1rem;margin:20px 0 8px}
+p{margin:8px 0}
+hr{border:none;border-top:1px solid var(--border);margin:30px 0}
+code{background:var(--code-bg);color:var(--orange);padding:2px 6px;border-radius:4px;font-size:0.9em;font-family:'Fira Code',monospace}
+strong{color:var(--heading)}
+li{margin:4px 0 4px 20px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.table-wrapper{overflow-x:auto;margin:10px 0;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:0.9rem}
+thead{background:var(--card)}
+th{text-align:left;padding:10px 14px;color:var(--heading);font-weight:600;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:8px 14px;border-bottom:1px solid var(--border)}
+tr:hover{background:rgba(88,166,255,0.05)}
+td:first-child{font-weight:500;color:var(--heading)}
+.search{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;margin:20px 0}
+.search:focus{outline:none;border-color:var(--accent)}
+.nav{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:10;border-bottom:1px solid var(--border);margin-bottom:20px}
+.nav-links{display:flex;flex-wrap:wrap;gap:8px}
+.nav-links a{padding:4px 12px;background:var(--card);border-radius:20px;font-size:0.85rem;border:1px solid var(--border)}
+.nav-links a:hover{background:var(--accent);color:#000;text-decoration:none}
+@media(max-width:768px){body{padding:10px}h1{font-size:1.5rem}h2{font-size:1.2rem}table{font-size:0.8rem}th,td{padding:6px 8px}.nav-links{gap:4px}.nav-links a{font-size:0.75rem;padding:3px 8px}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav">
+<input type="text" class="search" placeholder="Search endpoints, fields, choices..." id="search">
+<div class="nav-links">
+<a href="#authentication">Auth</a>
+<a href="#users">Users</a>
+<a href="#references">References</a>
+<a href="#sea-services">Sea Services</a>
+<a href="#professional-qualifications--licenses">Licenses</a>
+<a href="#personal-documents">Personal Docs</a>
+<a href="#next-of-kin">Next of Kin</a>
+<a href="#languages">Languages</a>
+<a href="#courses">Courses</a>
+<a href="#vaccinations">Vaccinations</a>
+<a href="#documents-cv-quick-apply">Documents</a>
+<a href="#declarations">Declarations</a>
+<a href="#companies">Companies</a>
+<a href="#ships">Ships</a>
+<a href="#contracts">Contracts</a>
+<a href="#interviews">Interviews</a>
+<a href="#all-choice-fields">Choices</a>
+</div>
+</div>
+<h1 id="sakr-manning-agency--api-reference">Sakr Manning Agency — API Reference</h1>
+<hr>
+<h2 id="authentication">Authentication</h2>
+<h3>Login</h3>
+<li><strong>POST</strong> <code>/api/login/</code></li>
+<li><strong>Body:</strong> <code>{"email": "...", "password": "..."}</code></li>
+<li><strong>Response:</strong> <code>{"access": "JWT_TOKEN", "refresh": "..."}</code></li>
+<li><strong>Permission:</strong> AllowAny</li>
+<h3>Register</h3>
+<li><strong>POST</strong> <code>/api/users/register/</code></li>
+<li><strong>Permission:</strong> AllowAny</li>
+<h3>Logout</h3>
+<li><strong>POST</strong> <code>/api/users/logout/</code></li>
+<li><strong>Permission:</strong> IsAuthenticated</li>
+<h3>Refresh Token</h3>
+<li><strong>POST</strong> <code>/api/login/refresh/</code></li>
+<li><strong>Body:</strong> <code>{"refresh": "REFRESH_TOKEN"}</code></li>
+<li><strong>Permission:</strong> AllowAny</li>
+<hr>
+<h2 id="users">Users</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/users/</code></td>
+<td>List all users</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/users/users/{id}/</code></td>
+<td>Get user by ID</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/users/</code></td>
+<td>Create user</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/users/{id}/</code></td>
+<td>Update user</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/users/users/{id}/</code></td>
+<td>Delete user</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/users/all/</code></td>
+<td>Get all users (flat list)</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/create/</code></td>
+<td>Create user (alt)</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/users/filter/</code></td>
+<td>Filter users</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>User Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td>Auto-generated</td>
+</tr>
+<tr>
+<td>email</td>
+<td>string</td>
+<td>✅</td>
+<td>Unique</td>
+</tr>
+<tr>
+<td>password</td>
+<td>string</td>
+<td>✅ (create)</td>
+<td>Write-only</td>
+</tr>
+<tr>
+<td>first_name</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>middle_name</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>profile_image</td>
+<td>file</td>
+<td>❌</td>
+<td>Image upload</td>
+</tr>
+<tr>
+<td>age</td>
+<td>int</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>blood_type</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>smoker</td>
+<td>bool</td>
+<td>❌</td>
+<td>Default: false</td>
+</tr>
+<tr>
+<td>date_of_birth</td>
+<td>date</td>
+<td>❌</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>marital_status</td>
+<td>string</td>
+<td>❌</td>
+<td>Default: "Single"</td>
+</tr>
+<tr>
+<td>user_status</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices below</td>
+</tr>
+<tr>
+<td>nationality</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>Place_Of_Birth</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>Nearest_Port</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>Height_Cm</td>
+<td>int</td>
+<td>❌</td>
+<td>For BMI calculation</td>
+</tr>
+<tr>
+<td>Weight_Kg</td>
+<td>int</td>
+<td>❌</td>
+<td>For BMI calculation</td>
+</tr>
+<tr>
+<td>college_or_school</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>salary</td>
+<td>string</td>
+<td>❌</td>
+<td>String field (accepts any format)</td>
+</tr>
+<tr>
+<td>address</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>phone_number</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>tel_number</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>country</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>city</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>role</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>register_code</td>
+<td>string</td>
+<td>read-only</td>
+<td>Auto-generated</td>
+</tr>
+<tr>
+<td>register_date</td>
+<td>date</td>
+<td>❌</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>last_updated_date</td>
+<td>datetime</td>
+<td>read-only</td>
+<td>Auto-updated</td>
+</tr>
+<tr>
+<td>generated_id</td>
+<td>string</td>
+<td>read-only</td>
+<td>12-digit ID</td>
+</tr>
+<tr>
+<td>application_for_position</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>other_position</td>
+<td>string</td>
+<td>❌</td>
+<td>Free text</td>
+</tr>
+<tr>
+<td>available_date</td>
+<td>date</td>
+<td>❌</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>us_visa_status</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>schengen_visa_status</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>is_blacklisted</td>
+<td>bool</td>
+<td>❌</td>
+<td>Default: false</td>
+</tr>
+<tr>
+<td>blacklist_reason</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>datetime</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>datetime</td>
+<td>read-only</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h3>Travel Documents (on User)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>passport_no</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>passport_issue_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>passport_expiry_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>passport_issued_by</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>passport_place_of_issue</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>passport_attachment</td>
+<td>file</td>
+<td>Upload via multipart/form-data</td>
+</tr>
+<tr>
+<td>seaman_book_no</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>seaman_book_issue_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>seaman_book_expiry_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>seaman_book_issued_by</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>seaman_book_place_of_issue</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>seaman_book_attachment</td>
+<td>file</td>
+<td>Upload via multipart/form-data</td>
+</tr>
+<tr>
+<td>other_seaman_book_no</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>other_seaman_book_issue_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>other_seaman_book_expiry_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>other_seaman_book_issued_by</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>other_seaman_book_place_of_issue</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>other_seaman_book_attachment</td>
+<td>file</td>
+<td>Upload via multipart/form-data</td>
+</tr>
+</tbody></table></div>
+<h3>COC — Certificate of Competency (on User)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>coc_certificate_name</td>
+<td>string</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>coc_certificate_number</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>coc_issue_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>coc_expiry_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>coc_issued_by</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>coc_issued_at</td>
+<td>string</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h3>GOC — General Operator Certificate (on User)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>goc_certificate_number</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>goc_issue_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>goc_expiry_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>goc_issued_by</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>goc_issued_at</td>
+<td>string</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h3>Marlins & CES Tests (on User)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>marlins_test_result</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>marlins_test_issued_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>marlins_test_issued_by</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>marlins_test_issued_at</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>marlins_test_attachment</td>
+<td>file</td>
+<td>Upload via multipart/form-data</td>
+</tr>
+<tr>
+<td>ces_test_result</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>ces_test_issued_date</td>
+<td>date</td>
+<td></td>
+</tr>
+<tr>
+<td>ces_test_issued_by</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>ces_test_issued_at</td>
+<td>string</td>
+<td></td>
+</tr>
+<tr>
+<td>ces_test_attachment</td>
+<td>file</td>
+<td>Upload via multipart/form-data</td>
+</tr>
+</tbody></table></div>
+<h3>Health Certificates (on User)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+</tr></thead><tbody>
+<tr>
+<td>health_flag_state</td>
+<td>string</td>
+</tr>
+<tr>
+<td>health_number</td>
+<td>string</td>
+</tr>
+<tr>
+<td>health_issue_date</td>
+<td>date</td>
+</tr>
+<tr>
+<td>health_expiry_date</td>
+<td>date</td>
+</tr>
+<tr>
+<td>health_issued_by</td>
+<td>string</td>
+</tr>
+<tr>
+<td>health_issued_at</td>
+<td>string</td>
+</tr>
+<tr>
+<td>international_medical_number</td>
+<td>string</td>
+</tr>
+<tr>
+<td>international_medical_issue_date</td>
+<td>date</td>
+</tr>
+<tr>
+<td>international_medical_expiry_date</td>
+<td>date</td>
+</tr>
+<tr>
+<td>yellow_fever_number</td>
+<td>string</td>
+</tr>
+<tr>
+<td>yellow_fever_issue_date</td>
+<td>date</td>
+</tr>
+<tr>
+<td>yellow_fever_expiry_date</td>
+<td>date</td>
+</tr>
+<tr>
+<td>cholera_number</td>
+<td>string</td>
+</tr>
+<tr>
+<td>cholera_issue_date</td>
+<td>date</td>
+</tr>
+<tr>
+<td>cholera_expiry_date</td>
+<td>date</td>
+</tr>
+<tr>
+<td>covid_vaccine_name</td>
+<td>string</td>
+</tr>
+<tr>
+<td>covid_first_dose</td>
+<td>date</td>
+</tr>
+<tr>
+<td>covid_second_dose</td>
+<td>date</td>
+</tr>
+<tr>
+<td>covid_other_doses_or_remarks</td>
+<td>string</td>
+</tr>
+</tbody></table></div>
+<h3>Next of Kin (flat on User)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+</tr></thead><tbody>
+<tr>
+<td>next_of_kin_full_name</td>
+<td>string</td>
+</tr>
+<tr>
+<td>next_of_kin_relationship</td>
+<td>string</td>
+</tr>
+<tr>
+<td>next_of_kin_address_country</td>
+<td>string</td>
+</tr>
+<tr>
+<td>next_of_kin_phone</td>
+<td>string</td>
+</tr>
+<tr>
+<td>next_of_kin_phone2</td>
+<td>string</td>
+</tr>
+<tr>
+<td>next_of_kin_email</td>
+<td>string</td>
+</tr>
+</tbody></table></div>
+<h3>Other Fields (on User)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+</tr></thead><tbody>
+<tr>
+<td>overall_size</td>
+<td>string</td>
+</tr>
+<tr>
+<td>shirt_size</td>
+<td>string</td>
+</tr>
+<tr>
+<td>trouser_size</td>
+<td>string</td>
+</tr>
+<tr>
+<td>shoes_size</td>
+<td>string</td>
+</tr>
+<tr>
+<td>english_language_level</td>
+<td>string</td>
+</tr>
+<tr>
+<td>other_language</td>
+<td>string</td>
+</tr>
+<tr>
+<td>other_language_level</td>
+<td>string</td>
+</tr>
+<tr>
+<td>disease_history</td>
+<td>string</td>
+</tr>
+<tr>
+<td>accident_history</td>
+<td>string</td>
+</tr>
+<tr>
+<td>psychiatric_treatment_history</td>
+<td>string</td>
+</tr>
+<tr>
+<td>addiction_history</td>
+<td>string</td>
+</tr>
+<tr>
+<td>declaration_consent</td>
+<td>bool</td>
+</tr>
+<tr>
+<td>declaration_date</td>
+<td>date</td>
+</tr>
+<tr>
+<td>declaration_place</td>
+<td>string</td>
+</tr>
+<tr>
+<td>initial_assessment_comments</td>
+<td>string</td>
+</tr>
+<tr>
+<td>responsible_person_name</td>
+<td>string</td>
+</tr>
+<tr>
+<td>assessment_date</td>
+<td>date</td>
+</tr>
+</tbody></table></div>
+<h3>Nested (Read-Only in Response)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>ranks</td>
+<td>array</td>
+<td>User's assigned ranks</td>
+</tr>
+<tr>
+<td>certificates</td>
+<td>array</td>
+<td>User's certificates</td>
+</tr>
+<tr>
+<td>references</td>
+<td>array</td>
+<td>User's references</td>
+</tr>
+<tr>
+<td>sea_services</td>
+<td>array</td>
+<td>User's sea service records</td>
+</tr>
+<tr>
+<td>bmi</td>
+<td>object</td>
+<td><code>{"value": 26.1, "category": "Overweight"}</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="references">References</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/references/?user={id}</code></td>
+<td>List user's references</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/references/</code></td>
+<td>Create reference</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/references/{id}/</code></td>
+<td>Update reference</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/users/references/{id}/</code></td>
+<td>Delete reference</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>✅ (in body for other users)</td>
+</tr>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>company_name</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>position</td>
+<td>string</td>
+<td>❌ (choice field — see Positions)</td>
+</tr>
+<tr>
+<td>email</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>tel</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="sea-services">Sea Services</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/sea-services/?user={id}</code></td>
+<td>List user's sea services</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/sea-services/</code></td>
+<td>Create sea service</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/sea-services/{id}/</code></td>
+<td>Update sea service</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/users/sea-services/{id}/</code></td>
+<td>Delete sea service</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>company_name</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>rank</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>vessel_name</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>imo_number</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>flag</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>signed_on</td>
+<td>date</td>
+<td>❌</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>signed_off</td>
+<td>date</td>
+<td>❌</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>period</td>
+<td>string</td>
+<td>read-only</td>
+<td>Auto-calculated</td>
+</tr>
+<tr>
+<td>vessel_type</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>dwt</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>grt</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>engine_type</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>bh</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>kw</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>file</td>
+<td>file</td>
+<td>❌</td>
+<td>Upload via multipart/form-data</td>
+</tr>
+<tr>
+<td>reason_for_sign_off</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="professional-qualifications---licenses">Professional Qualifications / Licenses</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/my-licenses/?user={id}</code></td>
+<td>List user's licenses</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/my-licenses/</code></td>
+<td>Create license</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/my-licenses/{id}/</code></td>
+<td>Update license</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/my-licenses/{id}/</code></td>
+<td>Delete license</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/my-licenses/{id}/download/</code></td>
+<td>Download license file</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>auto/optional</td>
+<td>Send user ID to create for another user</td>
+</tr>
+<tr>
+<td>document_name</td>
+<td>string</td>
+<td>✅</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>document_number</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>country_of_issue</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>issue_date</td>
+<td>date</td>
+<td>✅</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>expiration_date</td>
+<td>date</td>
+<td>✅</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>document_file</td>
+<td>file</td>
+<td>❌</td>
+<td>PDF only</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>datetime</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>datetime</td>
+<td>read-only</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="personal-documents">Personal Documents</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/personal-documents/?user={id}</code></td>
+<td>List personal docs</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/users/personal-documents/{id}/</code></td>
+<td>Get single doc</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/personal-documents/</code></td>
+<td>Create personal doc</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/personal-documents/{id}/</code></td>
+<td>Update personal doc</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/users/personal-documents/{id}/</code></td>
+<td>Delete personal doc</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>❌</td>
+<td>Auto-set to logged-in user</td>
+</tr>
+<tr>
+<td>document_type</td>
+<td>string</td>
+<td>✅</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>document_number</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>issue_date</td>
+<td>date</td>
+<td>❌</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>expiry_date</td>
+<td>date</td>
+<td>❌</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>issuing_country</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>issued_by</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>place_of_issue</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>file</td>
+<td>file</td>
+<td>❌</td>
+<td>PDF, DOCX, DOC, JPG, JPEG, PNG</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>datetime</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>datetime</td>
+<td>read-only</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="next-of-kin">Next of Kin</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/next-of-kin/?user={id}</code></td>
+<td>List next of kin</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/next-of-kin/</code></td>
+<td>Create next of kin</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/next-of-kin/{id}/</code></td>
+<td>Update</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/users/next-of-kin/{id}/</code></td>
+<td>Delete</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>❌ (auto-set)</td>
+</tr>
+<tr>
+<td>full_name</td>
+<td>string</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>relationship</td>
+<td>string</td>
+<td>✅ (choice)</td>
+</tr>
+<tr>
+<td>address_country</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>phone</td>
+<td>string</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>phone2</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>email</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="languages">Languages</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/user-languages/?user={id}</code></td>
+<td>List languages</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/user-languages/</code></td>
+<td>Create language</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/user-languages/{id}/</code></td>
+<td>Update</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/users/user-languages/{id}/</code></td>
+<td>Delete</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>language</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>general_remarks</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>speaking_level</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>writing_level</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>reading_level</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>cefr_level</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>cefr_description</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>attachment</td>
+<td>file</td>
+<td>❌</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="courses">Courses</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/courses/?user={id}</code></td>
+<td>List courses</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/courses/</code></td>
+<td>Create course</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/courses/{id}/</code></td>
+<td>Update course</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/courses/{id}/</code></td>
+<td>Delete course</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/courses/{id}/download/</code></td>
+<td>Download document</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>course_name</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>course_number</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>issue_date</td>
+<td>date</td>
+<td>✅</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>expiry_date</td>
+<td>date</td>
+<td>✅</td>
+<td>YYYY-MM-DD</td>
+</tr>
+<tr>
+<td>issued_by</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>issued_at</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>country_of_issue</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>document</td>
+<td>file</td>
+<td>❌</td>
+<td>Upload via multipart/form-data</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="vaccinations">Vaccinations</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/vaccinations/?user={id}</code></td>
+<td>List vaccinations</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/vaccinations/</code></td>
+<td>Create vaccination</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/vaccinations/{id}/</code></td>
+<td>Update vaccination</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/vaccinations/{id}/</code></td>
+<td>Delete vaccination</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>✅</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>number</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>issue_date</td>
+<td>date</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>expiry_date</td>
+<td>date</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>issued_by</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>issued_at</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>disease</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>first_date</td>
+<td>date</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>last_date</td>
+<td>date</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>remarks</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>document</td>
+<td>file</td>
+<td>❌</td>
+<td>PDF only</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="documents-cv-quick-apply">Documents (CV/Quick Apply)</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/documents/</code></td>
+<td>List documents</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/documents/</code></td>
+<td>Upload CV/document</td>
+<td>AllowAny</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/documents/{id}/</code></td>
+<td>Update</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/users/documents/{id}/</code></td>
+<td>Delete</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>title</td>
+<td>string</td>
+<td>❌</td>
+<td>Auto-set from filename</td>
+</tr>
+<tr>
+<td>file</td>
+<td>file</td>
+<td>✅</td>
+<td>PDF or DOCX only</td>
+</tr>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>❌</td>
+<td>Applicant name</td>
+</tr>
+<tr>
+<td>email</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>phone_number</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>position</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>generated_id</td>
+<td>string</td>
+<td>read-only</td>
+<td>Visible to Admin/HR/Recruiter only</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="declarations">Declarations</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/declarations/</code></td>
+<td>List declarations</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/declarations/</code></td>
+<td>Create declaration</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/declarations/{id}/</code></td>
+<td>Update</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>❌ (auto-set)</td>
+</tr>
+<tr>
+<td>has_disease</td>
+<td>bool</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>disease_details</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>has_accident</td>
+<td>bool</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>accident_details</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>has_psychiatric_treatment</td>
+<td>bool</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>psychiatric_treatment_details</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>has_addiction</td>
+<td>bool</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>addiction_details</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>consent_given</td>
+<td>bool</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>declaration_place</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>declaration_date</td>
+<td>date</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>signature</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="companies">Companies</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/companies/</code></td>
+<td>List companies</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/companies/</code></td>
+<td>Create company</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/companies/{id}/</code></td>
+<td>Get company</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/companies/{id}/</code></td>
+<td>Update company</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/companies/{id}/</code></td>
+<td>Delete company</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/companies/stats/</code></td>
+<td>Company statistics</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>company_name</td>
+<td>string</td>
+<td>✅</td>
+<td>Unique</td>
+</tr>
+<tr>
+<td>company_type</td>
+<td>string</td>
+<td>✅</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>open_positions</td>
+<td>int</td>
+<td>❌</td>
+<td>Default: 0</td>
+</tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>contact_email</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>hourly_rate</td>
+<td>decimal</td>
+<td>❌</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="ships">Ships</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/ships/</code></td>
+<td>List ships</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/ships/</code></td>
+<td>Create ship</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/ships/{id}/</code></td>
+<td>Get ship</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/ships/{id}/</code></td>
+<td>Update ship</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/ships/{id}/</code></td>
+<td>Delete ship</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>ship_name</td>
+<td>string</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>imo_number</td>
+<td>string</td>
+<td>✅</td>
+<td>Unique</td>
+</tr>
+<tr>
+<td>company</td>
+<td>int</td>
+<td>✅</td>
+<td>Company ID</td>
+</tr>
+<tr>
+<td>ship_type</td>
+<td>int</td>
+<td>❌</td>
+<td>VesselType FK</td>
+</tr>
+<tr>
+<td>flag</td>
+<td>int</td>
+<td>❌</td>
+<td>Flag FK</td>
+</tr>
+<tr>
+<td>official_no</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>call_sign</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>mmsi_no</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>port_of_registry</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>gross_tonnage</td>
+<td>int</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>deadweight</td>
+<td>int</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>year_built</td>
+<td>int</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>builder</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>engine_type</td>
+<td>string</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>engine_power_kw</td>
+<td>int</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="contracts">Contracts</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/contracts/</code></td>
+<td>List contracts</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/contracts/</code></td>
+<td>Create contract</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/users/contracts/{id}/</code></td>
+<td>Get contract</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/contracts/{id}/</code></td>
+<td>Update contract</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+<td></td>
+</tr>
+<tr>
+<td>user</td>
+<td>int</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>ship</td>
+<td>int</td>
+<td>✅</td>
+<td>Ship ID</td>
+</tr>
+<tr>
+<td>company</td>
+<td>int</td>
+<td>❌</td>
+<td>Company ID</td>
+</tr>
+<tr>
+<td>rank</td>
+<td>int</td>
+<td>❌</td>
+<td>Rank ID</td>
+</tr>
+<tr>
+<td>sign_on_date</td>
+<td>date</td>
+<td>✅</td>
+<td></td>
+</tr>
+<tr>
+<td>sign_off_date</td>
+<td>date</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>salary</td>
+<td>decimal</td>
+<td>❌</td>
+<td></td>
+</tr>
+<tr>
+<td>currency</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>❌</td>
+<td>See choices</td>
+</tr>
+<tr>
+<td>signed_file</td>
+<td>file</td>
+<td>❌</td>
+<td></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="interviews">Interviews</h2>
+<h3>Endpoints</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/interviews/</code></td>
+<td>List interviews</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/users/interviews/</code></td>
+<td>Create interview</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/users/interviews/{id}/</code></td>
+<td>Update</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<h3>Fields</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+</tr></thead><tbody>
+<tr>
+<td>id</td>
+<td>int</td>
+<td>read-only</td>
+</tr>
+<tr>
+<td>candidate</td>
+<td>int</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>company</td>
+<td>int</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>position</td>
+<td>int</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>scheduled_date</td>
+<td>date</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>scheduled_time</td>
+<td>time</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>duration_minutes</td>
+<td>int</td>
+<td>❌ (default: 30)</td>
+</tr>
+<tr>
+<td>interview_type</td>
+<td>string</td>
+<td>❌ (choice)</td>
+</tr>
+<tr>
+<td>location</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>meeting_link</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>interviewer_name</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>interviewer_email</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>❌ (choice)</td>
+</tr>
+<tr>
+<td>result</td>
+<td>string</td>
+<td>❌ (choice)</td>
+</tr>
+<tr>
+<td>notes</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>feedback</td>
+<td>string</td>
+<td>❌</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="lookup-endpoints">Lookup Endpoints</h2>
+<div class="table-wrapper"><table><thead><tr>
+<th>Method</th>
+<th>URL</th>
+<th>Description</th>
+<th>Permission</th>
+</tr></thead><tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/users/positions/</code></td>
+<td>All position choices</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/users/flags/</code></td>
+<td>All country flags</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/users/coc-choices/</code></td>
+<td>COC certificate name choices</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/core/flags/</code></td>
+<td>Flag list (id, name)</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/core/vessel-types/</code></td>
+<td>Vessel types (id, name)</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/users/ranks/</code></td>
+<td>Rank list (id, code, name)</td>
+<td>IsAuthenticated</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/users/certificates/</code></td>
+<td>Certificate list (id, code, name)</td>
+<td>IsAuthenticated</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="all-choice-fields">All Choice Fields</h2>
+<h3>User Roles</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Admin</td>
+<td>Admin</td>
+</tr>
+<tr>
+<td>HR Manager</td>
+<td>HR Manager</td>
+</tr>
+<tr>
+<td>Recruiter</td>
+<td>Recruiter</td>
+</tr>
+<tr>
+<td>Employee</td>
+<td>Employee</td>
+</tr>
+</tbody></table></div>
+<h3>User Status</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>ON_SITE</td>
+<td>On Site</td>
+</tr>
+<tr>
+<td>ON_LEAVE</td>
+<td>On Leave</td>
+</tr>
+<tr>
+<td>VACATION</td>
+<td>Vacation</td>
+</tr>
+<tr>
+<td>TERMINATED</td>
+<td>Terminated</td>
+</tr>
+</tbody></table></div>
+<h3>Application Position</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Master</td>
+<td>Master</td>
+</tr>
+<tr>
+<td>1st. Officer – Chief Off.</td>
+<td>1st. Officer – Chief Off.</td>
+</tr>
+<tr>
+<td>2nd. Officer</td>
+<td>2nd. Officer</td>
+</tr>
+<tr>
+<td>3rd. Officer</td>
+<td>3rd. Officer</td>
+</tr>
+<tr>
+<td>Tug Master</td>
+<td>Tug Master</td>
+</tr>
+<tr>
+<td>Boson</td>
+<td>Boson</td>
+</tr>
+<tr>
+<td>A.B – O.S</td>
+<td>A.B – O.S</td>
+</tr>
+<tr>
+<td>Steward / Galley Boy</td>
+<td>Steward / Galley Boy</td>
+</tr>
+<tr>
+<td>Cook / 2nd. Cook / Ass. Cook / Baker / Pastry</td>
+<td>Cook / 2nd. Cook / Ass. Cook / Baker / Pastry</td>
+</tr>
+<tr>
+<td>Carpenter</td>
+<td>Carpenter</td>
+</tr>
+<tr>
+<td>Waiter</td>
+<td>Waiter</td>
+</tr>
+<tr>
+<td>Purser</td>
+<td>Purser</td>
+</tr>
+<tr>
+<td>Doctor</td>
+<td>Doctor</td>
+</tr>
+<tr>
+<td>1st. Engineer</td>
+<td>1st. Engineer</td>
+</tr>
+<tr>
+<td>2nd. Engineer</td>
+<td>2nd. Engineer</td>
+</tr>
+<tr>
+<td>3rd. Engineer</td>
+<td>3rd. Engineer</td>
+</tr>
+<tr>
+<td>Electrical Engineer – E/E – ETO</td>
+<td>Electrical Engineer – E/E – ETO</td>
+</tr>
+<tr>
+<td>Assistant Electrician</td>
+<td>Assistant Electrician</td>
+</tr>
+<tr>
+<td>4th. Engineer</td>
+<td>4th. Engineer</td>
+</tr>
+<tr>
+<td>Electrician</td>
+<td>Electrician</td>
+</tr>
+<tr>
+<td>Motor Man / Mechanic</td>
+<td>Motor Man / Mechanic</td>
+</tr>
+<tr>
+<td>Oiler</td>
+<td>Oiler</td>
+</tr>
+<tr>
+<td>Fitter – Welder</td>
+<td>Fitter – Welder</td>
+</tr>
+<tr>
+<td>Wiper</td>
+<td>Wiper</td>
+</tr>
+<tr>
+<td>Other</td>
+<td>Other</td>
+</tr>
+</tbody></table></div>
+<h3>COC Certificate Names</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Master</td>
+<td>Master</td>
+</tr>
+<tr>
+<td>Chief Mate</td>
+<td>Chief Mate</td>
+</tr>
+<tr>
+<td>2nd Officer</td>
+<td>2nd Officer</td>
+</tr>
+<tr>
+<td>3rd Officer</td>
+<td>3rd Officer</td>
+</tr>
+<tr>
+<td>Marine Chief Eng.</td>
+<td>Marine Chief Eng.</td>
+</tr>
+<tr>
+<td>2nd Marine Eng.</td>
+<td>2nd Marine Eng.</td>
+</tr>
+<tr>
+<td>3rd Marine Eng.</td>
+<td>3rd Marine Eng.</td>
+</tr>
+<tr>
+<td>Electro-Technical Officer</td>
+<td>Electro-Technical Officer</td>
+</tr>
+<tr>
+<td>Gmdss General Operator</td>
+<td>Gmdss General Operator</td>
+</tr>
+</tbody></table></div>
+<h3>Relationship (Next of Kin)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Father</td>
+<td>Father</td>
+</tr>
+<tr>
+<td>Mother</td>
+<td>Mother</td>
+</tr>
+<tr>
+<td>Brother</td>
+<td>Brother</td>
+</tr>
+<tr>
+<td>Sister</td>
+<td>Sister</td>
+</tr>
+<tr>
+<td>Wife</td>
+<td>Wife</td>
+</tr>
+<tr>
+<td>Husband</td>
+<td>Husband</td>
+</tr>
+<tr>
+<td>Son</td>
+<td>Son</td>
+</tr>
+<tr>
+<td>Daughter</td>
+<td>Daughter</td>
+</tr>
+<tr>
+<td>Uncle</td>
+<td>Uncle</td>
+</tr>
+<tr>
+<td>Aunt</td>
+<td>Aunt</td>
+</tr>
+<tr>
+<td>Friend</td>
+<td>Friend</td>
+</tr>
+<tr>
+<td>Other</td>
+<td>Other</td>
+</tr>
+</tbody></table></div>
+<h3>Personal Document Types</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Bahamas Seaman's Book</td>
+<td>Bahamas Seaman's Book</td>
+</tr>
+<tr>
+<td>Belize Seaman's Book</td>
+<td>Belize Seaman's Book</td>
+</tr>
+<tr>
+<td>Bermuda Seaman's Book</td>
+<td>Bermuda Seaman's Book</td>
+</tr>
+<tr>
+<td>Eu National Id</td>
+<td>Eu National Id</td>
+</tr>
+<tr>
+<td>Exit Interview</td>
+<td>Exit Interview</td>
+</tr>
+<tr>
+<td>Liberian Seaman's Book</td>
+<td>Liberian Seaman's Book</td>
+</tr>
+<tr>
+<td>Local Id Card</td>
+<td>Local Id Card</td>
+</tr>
+<tr>
+<td>Luxembourg Seaman's Book</td>
+<td>Luxembourg Seaman's Book</td>
+</tr>
+<tr>
+<td>Palau Seaman's Book</td>
+<td>Palau Seaman's Book</td>
+</tr>
+<tr>
+<td>Panama Seaman's Book</td>
+<td>Panama Seaman's Book</td>
+</tr>
+<tr>
+<td>Passport</td>
+<td>Passport</td>
+</tr>
+<tr>
+<td>Permesso Soggiorno Permanente</td>
+<td>Permesso Soggiorno Permanente</td>
+</tr>
+<tr>
+<td>Permesso Soggiorno Temporaneo</td>
+<td>Permesso Soggiorno Temporaneo</td>
+</tr>
+<tr>
+<td>Personal Record Sheet</td>
+<td>Personal Record Sheet</td>
+</tr>
+<tr>
+<td>Residence Certificate</td>
+<td>Residence Certificate</td>
+</tr>
+<tr>
+<td>Seafarers' Id. Doc. Ilo 185</td>
+<td>Seafarers' Id. Doc. Ilo 185</td>
+</tr>
+<tr>
+<td>Seaman's Book</td>
+<td>Seaman's Book</td>
+</tr>
+<tr>
+<td>Seaman's Book/Card Or Id</td>
+<td>Seaman's Book/Card Or Id</td>
+</tr>
+<tr>
+<td>U.K. Seaman's Book</td>
+<td>U.K. Seaman's Book</td>
+</tr>
+</tbody></table></div>
+<h3>License Document Names</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Master (Reg. II/2 Par. 1-2)</td>
+<td>Master (Reg. II/2 Par. 1-2)</td>
+</tr>
+<tr>
+<td>Master (Reg. II/2 Par. 1-2) Endorsement</td>
+<td>Master (Reg. II/2 Par. 1-2) Endorsement</td>
+</tr>
+<tr>
+<td>Master <3,000 GRT (Reg. II/2 Par. 3-4)</td>
+<td>Master <3,000 GRT (Reg. II/2 Par. 3-4)</td>
+</tr>
+<tr>
+<td>Master <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement</td>
+<td>Master <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement</td>
+</tr>
+<tr>
+<td>Master <500 GRT (Reg. II/3 Par. 5-6)</td>
+<td>Master <500 GRT (Reg. II/3 Par. 5-6)</td>
+</tr>
+<tr>
+<td>Master <500 GRT (Reg. II/3 Par. 5-6) Endorsement</td>
+<td>Master <500 GRT (Reg. II/3 Par. 5-6) Endorsement</td>
+</tr>
+<tr>
+<td>Yachtmaster Coastal</td>
+<td>Yachtmaster Coastal</td>
+</tr>
+<tr>
+<td>Chief Officer (Reg. II/2 Par. 1-2)</td>
+<td>Chief Officer (Reg. II/2 Par. 1-2)</td>
+</tr>
+<tr>
+<td>Chief Officer (Reg. II/2 Par. 1-2) Endorsement</td>
+<td>Chief Officer (Reg. II/2 Par. 1-2) Endorsement</td>
+</tr>
+<tr>
+<td>Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4)</td>
+<td>Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4)</td>
+</tr>
+<tr>
+<td>Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement</td>
+<td>Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement</td>
+</tr>
+<tr>
+<td>Navigational Watch Officer (Reg. II/1)</td>
+<td>Navigational Watch Officer (Reg. II/1)</td>
+</tr>
+<tr>
+<td>Navigational Watch Officer (Reg. II/1) Endorsement</td>
+<td>Navigational Watch Officer (Reg. II/1) Endorsement</td>
+</tr>
+<tr>
+<td>Navigational Watch Officer <500 GRT (II/3 Par. 3-4)</td>
+<td>Navigational Watch Officer <500 GRT (II/3 Par. 3-4)</td>
+</tr>
+<tr>
+<td>Chief Engineer (Reg. III/2)</td>
+<td>Chief Engineer (Reg. III/2)</td>
+</tr>
+<tr>
+<td>Chief Engineer (Reg. III/2) Endorsement</td>
+<td>Chief Engineer (Reg. III/2) Endorsement</td>
+</tr>
+<tr>
+<td>Chief Engineer – Steam (Reg. III/2)</td>
+<td>Chief Engineer – Steam (Reg. III/2)</td>
+</tr>
+<tr>
+<td>Chief Engineer – Steam (Reg. III/2) Endorsement</td>
+<td>Chief Engineer – Steam (Reg. III/2) Endorsement</td>
+</tr>
+<tr>
+<td>Chief Engineer <3,000 KW (Reg. III/3)</td>
+<td>Chief Engineer <3,000 KW (Reg. III/3)</td>
+</tr>
+<tr>
+<td>2nd Engineer (Reg. III/2)</td>
+<td>2nd Engineer (Reg. III/2)</td>
+</tr>
+<tr>
+<td>2nd Engineer (Reg. III/2) Endorsement</td>
+<td>2nd Engineer (Reg. III/2) Endorsement</td>
+</tr>
+<tr>
+<td>2nd Engineer – Steam (Reg. III/3)</td>
+<td>2nd Engineer – Steam (Reg. III/3)</td>
+</tr>
+<tr>
+<td>2nd Engineer – Steam (Reg. III/3) Endorsement</td>
+<td>2nd Engineer – Steam (Reg. III/3) Endorsement</td>
+</tr>
+<tr>
+<td>2nd Engineer <3,000 KW (Reg. III/3)</td>
+<td>2nd Engineer <3,000 KW (Reg. III/3)</td>
+</tr>
+<tr>
+<td>Engineering Watch Officer (Reg. III/1)</td>
+<td>Engineering Watch Officer (Reg. III/1)</td>
+</tr>
+<tr>
+<td>Engineering Watch Officer (Reg. III/1) Endorsement</td>
+<td>Engineering Watch Officer (Reg. III/1) Endorsement</td>
+</tr>
+<tr>
+<td>Electro Technical Officer (Reg. III/6)</td>
+<td>Electro Technical Officer (Reg. III/6)</td>
+</tr>
+<tr>
+<td>Electro Technical Officer (Reg. III/6) Endorsement</td>
+<td>Electro Technical Officer (Reg. III/6) Endorsement</td>
+</tr>
+<tr>
+<td>Electro Technical Rating (Reg. III/7)</td>
+<td>Electro Technical Rating (Reg. III/7)</td>
+</tr>
+<tr>
+<td>Able Seaman Deck (Reg. II/5)</td>
+<td>Able Seaman Deck (Reg. II/5)</td>
+</tr>
+<tr>
+<td>Able Seaman Deck (Reg. II/5) Endorsement</td>
+<td>Able Seaman Deck (Reg. II/5) Endorsement</td>
+</tr>
+<tr>
+<td>Able Seaman Engine (Reg. III/5)</td>
+<td>Able Seaman Engine (Reg. III/5)</td>
+</tr>
+<tr>
+<td>Able Seaman Engine (Reg. III/5) Endorsement</td>
+<td>Able Seaman Engine (Reg. III/5) Endorsement</td>
+</tr>
+<tr>
+<td>Qualified Steward/Messman Endorsement</td>
+<td>Qualified Steward/Messman Endorsement</td>
+</tr>
+<tr>
+<td>GMDSS Radio Operator (Reg. IV/2)</td>
+<td>GMDSS Radio Operator (Reg. IV/2)</td>
+</tr>
+<tr>
+<td>GMDSS Radio Operator (Reg. IV/2) Endorsement</td>
+<td>GMDSS Radio Operator (Reg. IV/2) Endorsement</td>
+</tr>
+<tr>
+<td>GMDSS Endorsement (Reg. IV/2) Flag CRA</td>
+<td>GMDSS Endorsement (Reg. IV/2) Flag CRA</td>
+</tr>
+<tr>
+<td>GMDSS Restricted Operator (ROC) (Reg. IV/2)</td>
+<td>GMDSS Restricted Operator (ROC) (Reg. IV/2)</td>
+</tr>
+<tr>
+<td>GMDSS Restricted Operator (ROC) (Reg. IV/2) Endorsement</td>
+<td>GMDSS Restricted Operator (ROC) (Reg. IV/2) Endorsement</td>
+</tr>
+<tr>
+<td>GMDSS Restricted Operator (ROC) (Reg. IV/2) CRA</td>
+<td>GMDSS Restricted Operator (ROC) (Reg. IV/2) CRA</td>
+</tr>
+<tr>
+<td>Qualified Ship's Cook (MLC 2006)</td>
+<td>Qualified Ship's Cook (MLC 2006)</td>
+</tr>
+<tr>
+<td>Qualified Ship's Cook (MLC 2006) Endorsement</td>
+<td>Qualified Ship's Cook (MLC 2006) Endorsement</td>
+</tr>
+<tr>
+<td>Navigational Watch Rating (Reg. II/4)</td>
+<td>Navigational Watch Rating (Reg. II/4)</td>
+</tr>
+<tr>
+<td>Navigational Watch Rating (Reg. II/4) Endorsement</td>
+<td>Navigational Watch Rating (Reg. II/4) Endorsement</td>
+</tr>
+<tr>
+<td>COC – Certificate of Competency</td>
+<td>COC – Certificate of Competency</td>
+</tr>
+<tr>
+<td>COC – Certificate of Competency Endorsement</td>
+<td>COC – Certificate of Competency Endorsement</td>
+</tr>
+<tr>
+<td>GOC – General Operator Certificate</td>
+<td>GOC – General Operator Certificate</td>
+</tr>
+<tr>
+<td>GOC – General Operator Certificate Endorsement</td>
+<td>GOC – General Operator Certificate Endorsement</td>
+</tr>
+</tbody></table></div>
+<h3>Vaccination Names</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>QUARANTINE LETTER</td>
+<td>Quarantine Letter</td>
+</tr>
+<tr>
+<td>RUBELLA IMMUNITY</td>
+<td>Rubella Immunity</td>
+</tr>
+<tr>
+<td>TESSERA SANITARIA</td>
+<td>Tessera Sanitaria</td>
+</tr>
+<tr>
+<td>TUBERCULOSIS_LAB_SCREEN</td>
+<td>Tuberculosis Laboratory Screen</td>
+</tr>
+<tr>
+<td>TYPHOID_VACCINATION</td>
+<td>Typhoid Vaccination</td>
+</tr>
+<tr>
+<td>VARICELLA_IMMUNIZATION</td>
+<td>Varicella Immunization</td>
+</tr>
+<tr>
+<td>YELLOW_FEVER_IMMUNIZATION</td>
+<td>Yellow Fever Immunization</td>
+</tr>
+<tr>
+<td>CHICKENPOX_IMMUNITY_SCREENING</td>
+<td>Chickenpox Immunity Screening</td>
+</tr>
+<tr>
+<td>COLOR_VISION_CERTIFICATE</td>
+<td>Color Vision Certificate</td>
+</tr>
+<tr>
+<td>COVID_SARS_VACCINATION</td>
+<td>COVID-SARS Vaccination</td>
+</tr>
+<tr>
+<td>COVID_FORM</td>
+<td>COVID Form</td>
+</tr>
+<tr>
+<td>FOODHANDLER_EXAMS</td>
+<td>Foodhandler Exams</td>
+</tr>
+<tr>
+<td>HEALTH_QUESTIONNAIRE</td>
+<td>Health Questionnaire</td>
+</tr>
+<tr>
+<td>HEPATITIS_A_IMMUNIZATION</td>
+<td>Hepatitis A Immunization</td>
+</tr>
+<tr>
+<td>HEPATITIS_B_IMMUNIZATION</td>
+<td>Hepatitis B Immunization</td>
+</tr>
+<tr>
+<td>ITALIAN_MEDICAL_PRE_EMBARK</td>
+<td>Italian Medical Pre-Embark Examination</td>
+</tr>
+<tr>
+<td>MEASLES_IMMUNITY</td>
+<td>Measles Immunity</td>
+</tr>
+<tr>
+<td>MEDICAL_CERT_SEAFARERS</td>
+<td>Medical Certificate for Seafarers</td>
+</tr>
+<tr>
+<td>MMR_BOOSTER_2</td>
+<td>MMR Booster 2</td>
+</tr>
+<tr>
+<td>MMR_VACC_IMMUNIZATION</td>
+<td>MMR Vaccination / Immunization</td>
+</tr>
+<tr>
+<td>MUMPS_IMMUNITY</td>
+<td>Mumps Immunity</td>
+</tr>
+<tr>
+<td>PERTUSSIS_IMMUNIZATION</td>
+<td>Pertussis Immunization</td>
+</tr>
+</tbody></table></div>
+<h3>Proficiency Levels (Languages)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Elementary</td>
+<td>Elementary</td>
+</tr>
+<tr>
+<td>Intermediate</td>
+<td>Intermediate</td>
+</tr>
+<tr>
+<td>Advanced</td>
+<td>Advanced</td>
+</tr>
+<tr>
+<td>Native</td>
+<td>Native</td>
+</tr>
+</tbody></table></div>
+<h3>CEFR Levels (Languages)</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>A1</td>
+<td>A1</td>
+</tr>
+<tr>
+<td>A2</td>
+<td>A2</td>
+</tr>
+<tr>
+<td>B1</td>
+<td>B1</td>
+</tr>
+<tr>
+<td>B2</td>
+<td>B2</td>
+</tr>
+<tr>
+<td>C1</td>
+<td>C1</td>
+</tr>
+<tr>
+<td>C2</td>
+<td>C2</td>
+</tr>
+</tbody></table></div>
+<h3>Company Types</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Shipping Manning Companies</td>
+<td>Shipping Manning Companies</td>
+</tr>
+<tr>
+<td>Cargo Manning Companies</td>
+<td>Cargo Manning Companies</td>
+</tr>
+<tr>
+<td>Cruise & Hospitality Manning Companies</td>
+<td>Cruise & Hospitality Manning Companies</td>
+</tr>
+<tr>
+<td>Offshore & Oil/Gas Manning Companies</td>
+<td>Offshore & Oil/Gas Manning Companies</td>
+</tr>
+<tr>
+<td>Fishing Fleet Manning Companies</td>
+<td>Fishing Fleet Manning Companies</td>
+</tr>
+<tr>
+<td>General Crew Manning Companies</td>
+<td>General Crew Manning Companies</td>
+</tr>
+<tr>
+<td>Specialized Marine Manning Companies</td>
+<td>Specialized Marine Manning Companies</td>
+</tr>
+<tr>
+<td>Temporary / Contract Manning Agencies</td>
+<td>Temporary / Contract Manning Agencies</td>
+</tr>
+<tr>
+<td>Full Crew Management Companies</td>
+<td>Full Crew Management Companies</td>
+</tr>
+<tr>
+<td>Other</td>
+<td>Other</td>
+</tr>
+</tbody></table></div>
+<h3>Company Status</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Active</td>
+<td>Active</td>
+</tr>
+<tr>
+<td>Inactive</td>
+<td>Inactive</td>
+</tr>
+<tr>
+<td>Prospect</td>
+<td>Prospect</td>
+</tr>
+</tbody></table></div>
+<h3>Ship Status</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Active</td>
+<td>Active</td>
+</tr>
+<tr>
+<td>Under Maintenance</td>
+<td>Under Maintenance</td>
+</tr>
+<tr>
+<td>Inactive</td>
+<td>Inactive</td>
+</tr>
+</tbody></table></div>
+<h3>Contract Status</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Pending</td>
+<td>Pending</td>
+</tr>
+<tr>
+<td>Active</td>
+<td>Active</td>
+</tr>
+<tr>
+<td>Completed</td>
+<td>Completed</td>
+</tr>
+<tr>
+<td>Cancelled</td>
+<td>Cancelled</td>
+</tr>
+</tbody></table></div>
+<h3>Contract Currency</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>USD</td>
+<td>US Dollar</td>
+</tr>
+<tr>
+<td>EUR</td>
+<td>Euro</td>
+</tr>
+<tr>
+<td>GBP</td>
+<td>British Pound</td>
+</tr>
+<tr>
+<td>EGP</td>
+<td>Egyptian Pound</td>
+</tr>
+</tbody></table></div>
+<h3>Interview Type</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Phone</td>
+<td>Phone</td>
+</tr>
+<tr>
+<td>Video</td>
+<td>Video</td>
+</tr>
+<tr>
+<td>In-Person</td>
+<td>In-Person</td>
+</tr>
+<tr>
+<td>Technical</td>
+<td>Technical</td>
+</tr>
+</tbody></table></div>
+<h3>Interview Status</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Scheduled</td>
+<td>Scheduled</td>
+</tr>
+<tr>
+<td>Completed</td>
+<td>Completed</td>
+</tr>
+<tr>
+<td>Cancelled</td>
+<td>Cancelled</td>
+</tr>
+<tr>
+<td>Rescheduled</td>
+<td>Rescheduled</td>
+</tr>
+<tr>
+<td>No Show</td>
+<td>No Show</td>
+</tr>
+</tbody></table></div>
+<h3>Interview Result</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Pending</td>
+<td>Pending</td>
+</tr>
+<tr>
+<td>Passed</td>
+<td>Passed</td>
+</tr>
+<tr>
+<td>Failed</td>
+<td>Failed</td>
+</tr>
+<tr>
+<td>On Hold</td>
+<td>On Hold</td>
+</tr>
+</tbody></table></div>
+<h3>CV Submission Status</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Pending</td>
+<td>Pending</td>
+</tr>
+<tr>
+<td>Under Review</td>
+<td>Under Review</td>
+</tr>
+<tr>
+<td>Interviewed</td>
+<td>Interviewed</td>
+</tr>
+<tr>
+<td>Shortlisted</td>
+<td>Shortlisted</td>
+</tr>
+<tr>
+<td>Approved</td>
+<td>Approved</td>
+</tr>
+<tr>
+<td>Rejected</td>
+<td>Rejected</td>
+</tr>
+<tr>
+<td>Hired</td>
+<td>Hired</td>
+</tr>
+</tbody></table></div>
+<h3>Document Status</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Pending</td>
+<td>Pending</td>
+</tr>
+<tr>
+<td>Active</td>
+<td>Active</td>
+</tr>
+<tr>
+<td>Blacklist</td>
+<td>Blacklist</td>
+</tr>
+</tbody></table></div>
+<h3>Job Order Status</h3>
+<div class="table-wrapper"><table><thead><tr>
+<th>Value</th>
+<th>Label</th>
+</tr></thead><tbody>
+<tr>
+<td>Pending</td>
+<td>Pending Review</td>
+</tr>
+<tr>
+<td>Open</td>
+<td>Open / Sourcing</td>
+</tr>
+<tr>
+<td>In Progress</td>
+<td>In Progress / Interviewing</td>
+</tr>
+<tr>
+<td>Fulfilled</td>
+<td>Fulfilled</td>
+</tr>
+<tr>
+<td>Cancelled</td>
+<td>Cancelled</td>
+</tr>
+</tbody></table></div>
+</div>
+<script>
+document.getElementById('search').addEventListener('input',function(e){
+var q=e.target.value.toLowerCase();
+document.querySelectorAll('h1,h2,h3,p,li,tr,td').forEach(function(el){
+if(el.tagName==='TR'&&el.closest('thead'))return;
+var text=el.textContent.toLowerCase();
+el.style.display=text.includes(q)||!q?'':'none';
+});
+});
+</script>
+</body>
+</html>
