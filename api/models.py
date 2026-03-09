@@ -369,15 +369,15 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     # Professional Qualification / Certificate of Competency
     COC_CERTIFICATE_CHOICES = [
-        ('MASTER', 'MASTER'),
-        ('CHIEF MATE', 'CHIEF MATE'),
-        ('2ND OFFICER', '2ND OFFICER'),
-        ('3RD OFFICER', '3RD OFFICER'),
-        ('MARINE CHIEF ENG.', 'MARINE CHIEF ENG.'),
-        ('2ND MARINE ENG.', '2ND MARINE ENG.'),
-        ('3RD MARINE ENG.', '3RD MARINE ENG.'),
-        ('ELECTRO -TECHNICAL OFFICER', 'ELECTRO -TECHNICAL OFFICER'),
-        ('GMDSS General Operator', 'GMDSS General Operator'),
+        ('Master', 'Master'),
+        ('Chief Mate', 'Chief Mate'),
+        ('2nd Officer', '2nd Officer'),
+        ('3rd Officer', '3rd Officer'),
+        ('Marine Chief Eng.', 'Marine Chief Eng.'),
+        ('2nd Marine Eng.', '2nd Marine Eng.'),
+        ('3rd Marine Eng.', '3rd Marine Eng.'),
+        ('Electro-Technical Officer', 'Electro-Technical Officer'),
+        ('Gmdss General Operator', 'Gmdss General Operator'),
     ]
     coc_certificate_name = models.CharField(max_length=100, choices=COC_CERTIFICATE_CHOICES, blank=True, null=True)
     coc_certificate_number = models.CharField(max_length=50, blank=True, null=True)
@@ -939,25 +939,25 @@ class NextOfKin(models.Model):
 class PersonalDocument(models.Model):
     """Travel/Personal Documents"""
     DOCUMENT_TYPE_CHOICES = [
-        ("BAHAMAS SEAMAN'S BOOK", "BAHAMAS SEAMAN'S BOOK"),
-        ("BELIZE SEAMAN'S BOOK", "BELIZE SEAMAN'S BOOK"),
-        ("BERMUDA SEAMAN'S BOOK", "BERMUDA SEAMAN'S BOOK"),
-        ("EU national ID", "EU national ID"),
+        ("Bahamas Seaman's Book", "Bahamas Seaman's Book"),
+        ("Belize Seaman's Book", "Belize Seaman's Book"),
+        ("Bermuda Seaman's Book", "Bermuda Seaman's Book"),
+        ("Eu National Id", "Eu National Id"),
         ("Exit Interview", "Exit Interview"),
-        ("LIBERIAN SEAMAN'S BOOK", "LIBERIAN SEAMAN'S BOOK"),
-        ("Local ID Card", "Local ID Card"),
-        ("LUXEMBOURG SEAMAN'S BOOK", "LUXEMBOURG SEAMAN'S BOOK"),
-        ("PALAU SEAMAN'S BOOK", "PALAU SEAMAN'S BOOK"),
-        ("PANAMA SEAMAN'S BOOK", "PANAMA SEAMAN'S BOOK"),
+        ("Liberian Seaman's Book", "Liberian Seaman's Book"),
+        ("Local Id Card", "Local Id Card"),
+        ("Luxembourg Seaman's Book", "Luxembourg Seaman's Book"),
+        ("Palau Seaman's Book", "Palau Seaman's Book"),
+        ("Panama Seaman's Book", "Panama Seaman's Book"),
         ("Passport", "Passport"),
-        ("PERMESSO SOGGIORNO PERMANENTE", "PERMESSO SOGGIORNO PERMANENTE"),
-        ("PERMESSO SOGGIORNO TEMPORANEO", "PERMESSO SOGGIORNO TEMPORANEO"),
+        ("Permesso Soggiorno Permanente", "Permesso Soggiorno Permanente"),
+        ("Permesso Soggiorno Temporaneo", "Permesso Soggiorno Temporaneo"),
         ("Personal Record Sheet", "Personal Record Sheet"),
-        ("RESIDENCE CERTIFICATE", "RESIDENCE CERTIFICATE"),
-        ("SEAFARERS' ID. DOC. ILO 185", "SEAFARERS' ID. DOC. ILO 185"),
+        ("Residence Certificate", "Residence Certificate"),
+        ("Seafarers' Id. Doc. Ilo 185", "Seafarers' Id. Doc. Ilo 185"),
         ("Seaman's Book", "Seaman's Book"),
-        ("Seaman's Book/Card or ID", "Seaman's Book/Card or ID"),
-        ("U.K. SEAMAN'S BOOK", "U.K. SEAMAN'S BOOK"),
+        ("Seaman's Book/Card Or Id", "Seaman's Book/Card Or Id"),
+        ("U.K. Seaman's Book", "U.K. Seaman's Book"),
     ]
 
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='personal_documents')
