@@ -138,14 +138,10 @@
   "passport_no": "A12345678",
   "passport_issue_date": "2022-03-01",
   "passport_expiry_date": "2029-03-01",
-  "passport_issued_by": "Egypt",
   "coc_certificate_name": "Master",
   "coc_certificate_number": "COC-5432",
   "coc_issue_date": "2021-06-01",
-  "coc_expiry_date": "2026-06-01",
-  "goc_certificate_number": "GOC-1234",
-  "goc_issue_date": "2022-08-10",
-  "goc_expiry_date": "2027-08-10"
+  "coc_expiry_date": "2026-06-01"
 }
 ```
 
@@ -160,25 +156,16 @@
   "role": "Employee",
   "salary": "3500.00",
   "application_for_position": "1st. Engineer",
-  "available_date": "2025-04-01",
   "passport_no": "A12345678",
-  "passport_issue_date": "2022-03-01",
-  "passport_expiry_date": "2029-03-01",
   "passport_attachment": "/media/passports/scan.pdf",
-  "seaman_book_no": "SB-98765",
   "seaman_book_attachment": "/media/seaman_books/book.pdf",
   "coc_certificate_name": "Master",
-  "coc_certificate_number": "COC-5432",
-  "marlins_test_result": "92%",
-  "marlins_test_attachment": "/media/marlins_tests/cert.pdf",
-  "ces_test_attachment": "/media/ces_tests/cert.pdf",
   "ranks": [{"id": 1, "rank_name": "1st. Engineer", "assigned_code": "EO-1.001"}],
   "certificates": [{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}],
   "references": [],
   "sea_services": [],
   "bmi": {"value": 26.1, "category": "Overweight"},
-  "created_at": "2024-01-10T10:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
+  "created_at": "2024-01-10T10:00:00Z"
 }
 ```
 
@@ -188,34 +175,19 @@
 ### Endpoints
 | Method | URL | Description |
 |--------|-----|-------------|
-| GET | `/api/users/references/?user={id}` | List references for user |
-| POST | `/api/users/references/` | Create reference |
-| PATCH | `/api/users/references/{id}/` | Update reference |
-| DELETE | `/api/users/references/{id}/` | Delete reference |
+| GET | `/api/users/references/?user={id}` | List |
+| POST | `/api/users/references/` | Create |
+| PATCH | `/api/users/references/{id}/` | Update |
+| DELETE | `/api/users/references/{id}/` | Delete |
 
 ### Request Body — POST
 ```json
-{
-  "user": 5,
-  "name": "Capt. Ahmed Ali",
-  "company_name": "Maersk Line",
-  "position": "Master",
-  "email": "ahmed@maersk.com",
-  "tel": "+201555123456"
-}
+{"user": 5, "name": "Capt. Ahmed", "company_name": "Maersk", "position": "Master", "email": "ahmed@maersk.com", "tel": "+201555123456"}
 ```
 
 ### Response Body
 ```json
-{
-  "id": 1,
-  "user": 5,
-  "name": "Capt. Ahmed Ali",
-  "company_name": "Maersk Line",
-  "position": "Master",
-  "email": "ahmed@maersk.com",
-  "tel": "+201555123456"
-}
+{"id": 1, "user": 5, "name": "Capt. Ahmed", "company_name": "Maersk", "position": "Master", "email": "ahmed@maersk.com", "tel": "+201555123456"}
 ```
 
 ---
@@ -224,53 +196,28 @@
 ### Endpoints
 | Method | URL | Description |
 |--------|-----|-------------|
-| GET | `/api/users/sea-services/?user={id}` | List sea services |
-| POST | `/api/users/sea-services/` | Create sea service |
+| GET | `/api/users/sea-services/?user={id}` | List |
+| POST | `/api/users/sea-services/` | Create |
 | PATCH | `/api/users/sea-services/{id}/` | Update |
 | DELETE | `/api/users/sea-services/{id}/` | Delete |
 
 ### Request Body — POST (`multipart/form-data`)
 ```json
 {
-  "user": 5,
-  "company_name": "Maersk Line",
-  "rank": "1st. Engineer",
-  "vessel_name": "MV Explorer",
-  "imo_number": "9876543",
-  "flag": "Panama",
-  "signed_on": "2024-03-01",
-  "signed_off": "2024-09-15",
-  "vessel_type": "Bulk Carrier",
-  "dwt": "75000",
-  "grt": "42000",
-  "engine_type": "MAN B&W 6S60ME-C",
-  "bh": "15000",
-  "kw": "11190",
-  "reason_for_sign_off": "End of contract"
+  "user": 5, "company_name": "Maersk", "rank": "1st. Engineer",
+  "vessel_name": "MV Explorer", "imo_number": "9876543", "flag": "Panama",
+  "signed_on": "2024-03-01", "signed_off": "2024-09-15",
+  "vessel_type": "Bulk Carrier", "dwt": "75000", "grt": "42000",
+  "engine_type": "MAN B&W", "reason_for_sign_off": "End of contract"
 }
 ```
 
 ### Response Body
 ```json
 {
-  "id": 1,
-  "user": 5,
-  "company_name": "Maersk Line",
-  "rank": "1st. Engineer",
-  "vessel_name": "MV Explorer",
-  "imo_number": "9876543",
-  "flag": "Panama",
-  "signed_on": "2024-03-01",
-  "signed_off": "2024-09-15",
-  "period": "6m 14d",
-  "vessel_type": "Bulk Carrier",
-  "dwt": "75000",
-  "grt": "42000",
-  "engine_type": "MAN B&W 6S60ME-C",
-  "bh": "15000",
-  "kw": "11190",
-  "file": null,
-  "reason_for_sign_off": "End of contract"
+  "id": 1, "user": 5, "company_name": "Maersk", "rank": "1st. Engineer",
+  "vessel_name": "MV Explorer", "signed_on": "2024-03-01", "signed_off": "2024-09-15",
+  "period": "6m 14d", "vessel_type": "Bulk Carrier", "file": null
 }
 ```
 
@@ -280,11 +227,11 @@
 ### Endpoints
 | Method | URL | Description |
 |--------|-----|-------------|
-| GET | `/api/my-licenses/?user={id}` | List licenses |
-| POST | `/api/my-licenses/` | Create license |
-| PATCH | `/api/my-licenses/{id}/` | Update license |
+| GET | `/api/my-licenses/?user={id}` | List |
+| POST | `/api/my-licenses/` | Create |
+| PATCH | `/api/my-licenses/{id}/` | Update |
 | DELETE | `/api/my-licenses/{id}/` | Delete |
-| GET | `/api/my-licenses/{id}/download/` | Download file |
+| GET | `/api/my-licenses/{id}/download/` | Download |
 
 #### `document_name` choices:
 | Value |
@@ -340,31 +287,12 @@
 
 ### Request Body — POST (`multipart/form-data`)
 ```json
-{
-  "user": 5,
-  "document_name": "Master (Reg. II/2 Par. 1-2)",
-  "document_number": "COC-9999",
-  "country_of_issue": "Egypt",
-  "issue_date": "2024-01-01",
-  "expiration_date": "2029-01-01",
-  "document_file": "(PDF file)"
-}
+{"user": 5, "document_name": "Master (Reg. II/2 Par. 1-2)", "document_number": "COC-9999", "country_of_issue": "Egypt", "issue_date": "2024-01-01", "expiration_date": "2029-01-01", "document_file": "(PDF)"}
 ```
 
 ### Response Body
 ```json
-{
-  "id": 1,
-  "user": 5,
-  "document_name": "Master (Reg. II/2 Par. 1-2)",
-  "document_number": "COC-9999",
-  "country_of_issue": "Egypt",
-  "issue_date": "2024-01-01",
-  "expiration_date": "2029-01-01",
-  "document_file": "/media/user_5/licenses/coc.pdf",
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}
+{"id": 1, "user": 5, "document_name": "Master (Reg. II/2 Par. 1-2)", "document_number": "COC-9999", "country_of_issue": "Egypt", "issue_date": "2024-01-01", "expiration_date": "2029-01-01", "document_file": "/media/user_5/licenses/coc.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}
 ```
 
 ---
@@ -374,7 +302,6 @@
 | Method | URL | Description |
 |--------|-----|-------------|
 | GET | `/api/users/personal-documents/?user={id}` | List |
-| GET | `/api/users/personal-documents/{id}/` | Get single |
 | POST | `/api/users/personal-documents/` | Create |
 | PATCH | `/api/users/personal-documents/{id}/` | Update |
 | DELETE | `/api/users/personal-documents/{id}/` | Delete |
@@ -406,35 +333,12 @@
 
 ### Request Body — POST (`multipart/form-data`)
 ```json
-{
-  "user": 5,
-  "document_type": "Passport",
-  "document_number": "A12345678",
-  "issue_date": "2022-03-01",
-  "expiry_date": "2029-03-01",
-  "issuing_country": "Egypt",
-  "issued_by": "Ministry of Interior",
-  "place_of_issue": "Cairo",
-  "file": "(file upload)"
-}
+{"user": 5, "document_type": "Passport", "document_number": "A12345678", "issue_date": "2022-03-01", "expiry_date": "2029-03-01", "issuing_country": "Egypt", "issued_by": "Ministry of Interior", "place_of_issue": "Cairo", "file": "(file)"}
 ```
 
 ### Response Body
 ```json
-{
-  "id": 14,
-  "user": 5,
-  "document_type": "Passport",
-  "document_number": "A12345678",
-  "issue_date": "2022-03-01",
-  "expiry_date": "2029-03-01",
-  "issuing_country": "Egypt",
-  "issued_by": "Ministry of Interior",
-  "place_of_issue": "Cairo",
-  "file": "/media/personal_documents/passport.pdf",
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}
+{"id": 14, "user": 5, "document_type": "Passport", "document_number": "A12345678", "issue_date": "2022-03-01", "expiry_date": "2029-03-01", "issuing_country": "Egypt", "issued_by": "Ministry of Interior", "place_of_issue": "Cairo", "file": "/media/personal_documents/passport.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}
 ```
 
 ---
@@ -466,31 +370,12 @@
 
 ### Request Body — POST
 ```json
-{
-  "user": 5,
-  "full_name": "Jane Doe",
-  "relationship": "Wife",
-  "address_country": "Egypt, Alexandria",
-  "phone": "+201098765432",
-  "phone2": "+201555666777",
-  "email": "jane@example.com"
-}
+{"user": 5, "full_name": "Jane Doe", "relationship": "Wife", "address_country": "Egypt", "phone": "+201098765432", "phone2": "+201555666777", "email": "jane@example.com"}
 ```
 
 ### Response Body
 ```json
-{
-  "id": 1,
-  "user": 5,
-  "full_name": "Jane Doe",
-  "relationship": "Wife",
-  "address_country": "Egypt, Alexandria",
-  "phone": "+201098765432",
-  "phone2": "+201555666777",
-  "email": "jane@example.com",
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}
+{"id": 1, "user": 5, "full_name": "Jane Doe", "relationship": "Wife", "address_country": "Egypt", "phone": "+201098765432", "phone2": "+201555666777", "email": "jane@example.com", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}
 ```
 
 ---
@@ -524,34 +409,12 @@
 
 ### Request Body — POST
 ```json
-{
-  "user": 5,
-  "language": "English",
-  "general_remarks": "Fluent",
-  "speaking_level": "Advanced",
-  "writing_level": "Advanced",
-  "reading_level": "Native",
-  "cefr_level": "C1",
-  "cefr_description": "Can understand complex texts"
-}
+{"user": 5, "language": "English", "general_remarks": "Fluent", "speaking_level": "Advanced", "writing_level": "Advanced", "reading_level": "Native", "cefr_level": "C1", "cefr_description": "Can understand complex texts"}
 ```
 
 ### Response Body
 ```json
-{
-  "id": 1,
-  "user": 5,
-  "language": "English",
-  "general_remarks": "Fluent",
-  "speaking_level": "Advanced",
-  "writing_level": "Advanced",
-  "reading_level": "Native",
-  "cefr_level": "C1",
-  "cefr_description": "Can understand complex texts",
-  "attachment": null,
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}
+{"id": 1, "user": 5, "language": "English", "speaking_level": "Advanced", "writing_level": "Advanced", "reading_level": "Native", "cefr_level": "C1", "attachment": null, "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}
 ```
 
 ---
@@ -560,41 +423,20 @@
 ### Endpoints
 | Method | URL | Description |
 |--------|-----|-------------|
-| GET | `/api/courses/?user={id}` | List courses |
+| GET | `/api/courses/?user={id}` | List |
 | POST | `/api/courses/` | Create |
 | PATCH | `/api/courses/{id}/` | Update |
 | DELETE | `/api/courses/{id}/` | Delete |
-| GET | `/api/courses/{id}/download/` | Download doc |
+| GET | `/api/courses/{id}/download/` | Download |
 
 ### Request Body — POST (`multipart/form-data`)
 ```json
-{
-  "user": 5,
-  "course_name": "Fire Prevention and Fire Fighting",
-  "course_number": "FPFF-2024",
-  "issue_date": "2024-06-01",
-  "expiry_date": "2029-06-01",
-  "issued_by": "AASTMT",
-  "issued_at": "Alexandria",
-  "country_of_issue": "Egypt",
-  "document": "(file upload)"
-}
+{"user": 5, "course_name": "Fire Prevention", "course_number": "FPFF-2024", "issue_date": "2024-06-01", "expiry_date": "2029-06-01", "issued_by": "AASTMT", "issued_at": "Alexandria", "country_of_issue": "Egypt", "document": "(file)"}
 ```
 
 ### Response Body
 ```json
-{
-  "id": 1,
-  "user": 5,
-  "course_name": "Fire Prevention and Fire Fighting",
-  "course_number": "FPFF-2024",
-  "issue_date": "2024-06-01",
-  "expiry_date": "2029-06-01",
-  "issued_by": "AASTMT",
-  "issued_at": "Alexandria",
-  "country_of_issue": "Egypt",
-  "document": "/media/course_docs/fire_cert.pdf"
-}
+{"id": 1, "user": 5, "course_name": "Fire Prevention", "course_number": "FPFF-2024", "issue_date": "2024-06-01", "expiry_date": "2029-06-01", "issued_by": "AASTMT", "issued_at": "Alexandria", "country_of_issue": "Egypt", "document": "/media/course_docs/fire_cert.pdf"}
 ```
 
 ---
@@ -609,68 +451,41 @@
 | DELETE | `/api/vaccinations/{id}/` | Delete |
 
 #### `name` choices:
-| Value | Label |
-|-------|-------|
-| QUARANTINE LETTER | QUARANTINE LETTER |
-| RUBELLA IMMUNITY | RUBELLA IMMUNITY |
-| TESSERA SANITARIA | TESSERA SANITARIA |
-| TUBERCULOSIS_LAB_SCREEN | Tuberculosis Laboratory Screen |
-| TYPHOID_VACCINATION | Typhoid Vaccination |
-| VARICELLA_IMMUNIZATION | Varicella Immunization |
-| YELLOW_FEVER_IMMUNIZATION | Yellow Fever Immunization |
-| CHICKENPOX_IMMUNITY_SCREENING | Chickenpox Immunity Screening |
-| COLOR_VISION_CERTIFICATE | Color Vision Certificate |
-| COVID_SARS_VACCINATION | COVID-SARS Vaccination |
-| COVID_FORM | COVID Form |
-| FOODHANDLER_EXAMS | Foodhandler Exams |
-| HEALTH_QUESTIONNAIRE | Health Questionnaire |
-| HEPATITIS_A_IMMUNIZATION | Hepatitis A Immunization |
-| HEPATITIS_B_IMMUNIZATION | Hepatitis B Immunization |
-| ITALIAN_MEDICAL_PRE_EMBARK | Italian Medical Pre-Embark Examination |
-| MEASLES_IMMUNITY | Measles Immunity |
-| MEDICAL_CERT_SEAFARERS | Medical Certificate for Seafarers |
-| MMR_BOOSTER_2 | MMR Booster 2 |
-| MMR_VACC_IMMUNIZATION | MMR Vaccination / Immunization |
-| MUMPS_IMMUNITY | Mumps Immunity |
-| PERTUSSIS_IMMUNIZATION | Pertussis Immunization |
+| Value |
+|-------|
+| Quarantine Letter |
+| Rubella Immunity |
+| Tessera Sanitaria |
+| Tuberculosis Laboratory Screen |
+| Typhoid Vaccination |
+| Varicella Immunization |
+| Yellow Fever Immunization |
+| Chickenpox Immunity Screening |
+| Color Vision Certificate |
+| Covid-Sars Vaccination |
+| Covid Form |
+| Foodhandler Exams |
+| Health Questionnaire |
+| Hepatitis A Immunization |
+| Hepatitis B Immunization |
+| Italian Medical Pre-Embark Examination |
+| Measles Immunity |
+| Medical Certificate For Seafarers |
+| Mmr Booster 2 |
+| Mmr Vaccination / Immunization |
+| Mumps Immunity |
+| Pertussis Immunization |
 
 **Accepted files:** PDF only
 
 ### Request Body — POST (`multipart/form-data`)
 ```json
-{
-  "user": 5,
-  "name": "YELLOW_FEVER_IMMUNIZATION",
-  "number": "YF-9012",
-  "issue_date": "2023-09-01",
-  "expiry_date": "2033-09-01",
-  "issued_by": "Port Health Authority",
-  "issued_at": "Alexandria",
-  "disease": "Yellow Fever",
-  "remarks": "Valid for 10 years",
-  "document": "(PDF file)"
-}
+{"user": 5, "name": "Yellow Fever Immunization", "number": "YF-9012", "issue_date": "2023-09-01", "expiry_date": "2033-09-01", "issued_by": "Port Health Authority", "issued_at": "Alexandria", "disease": "Yellow Fever", "remarks": "Valid for 10 years", "document": "(PDF)"}
 ```
 
 ### Response Body
 ```json
-{
-  "id": 1,
-  "user": 5,
-  "name": "YELLOW_FEVER_IMMUNIZATION",
-  "number": "YF-9012",
-  "issue_date": "2023-09-01",
-  "expiry_date": "2033-09-01",
-  "issued_by": "Port Health Authority",
-  "issued_at": "Alexandria",
-  "disease": "Yellow Fever",
-  "first_date": null,
-  "last_date": null,
-  "remarks": "Valid for 10 years",
-  "document": "/media/vaccinations/yf_cert.pdf",
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}
+{"id": 1, "user": 5, "name": "Yellow Fever Immunization", "number": "YF-9012", "issue_date": "2023-09-01", "expiry_date": "2033-09-01", "issued_by": "Port Health Authority", "issued_at": "Alexandria", "disease": "Yellow Fever", "first_date": null, "last_date": null, "remarks": "Valid for 10 years", "document": "/media/vaccinations/yf_cert.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}
 ```
 
 ---
@@ -724,31 +539,12 @@
 
 ### Request Body — POST (`multipart/form-data`)
 ```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "phone_number": "+201234567890",
-  "position": "1st. Engineer",
-  "file": "(PDF or DOCX file)"
-}
+{"name": "John Doe", "email": "john@example.com", "phone_number": "+201234567890", "position": "1st. Engineer", "file": "(PDF or DOCX)"}
 ```
 
 ### Response Body
 ```json
-{
-  "id": 1,
-  "user": 33,
-  "title": "cv_john.pdf",
-  "file": "/media/documents/cv_john.pdf",
-  "name": "John Doe",
-  "email": "john@example.com",
-  "phone_number": "+201234567890",
-  "position": "1st. Engineer",
-  "status": "Pending",
-  "generated_id": null,
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}
+{"id": 1, "user": 33, "title": "cv_john.pdf", "file": "/media/documents/cv_john.pdf", "name": "John Doe", "email": "john@example.com", "phone_number": "+201234567890", "position": "1st. Engineer", "status": "Pending", "generated_id": null, "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}
 ```
 
 ---
@@ -763,21 +559,7 @@
 
 ### Request Body — POST
 ```json
-{
-  "user": 5,
-  "has_disease": false,
-  "disease_details": "",
-  "has_accident": false,
-  "accident_details": "",
-  "has_psychiatric_treatment": false,
-  "psychiatric_treatment_details": "",
-  "has_addiction": false,
-  "addiction_details": "",
-  "consent_given": true,
-  "declaration_place": "Alexandria",
-  "declaration_date": "2026-03-10",
-  "signature": "John Doe"
-}
+{"user": 5, "has_disease": false, "disease_details": "", "has_accident": false, "has_psychiatric_treatment": false, "has_addiction": false, "consent_given": true, "declaration_place": "Alexandria", "declaration_date": "2026-03-10", "signature": "John Doe"}
 ```
 
 ---
@@ -786,7 +568,7 @@
 ### Endpoints
 | Method | URL | Description |
 |--------|-----|-------------|
-| GET | `/api/companies/` | List companies |
+| GET | `/api/companies/` | List |
 | POST | `/api/companies/` | Create |
 | GET | `/api/companies/{id}/` | Get |
 | PATCH | `/api/companies/{id}/` | Update |
@@ -816,14 +598,7 @@
 
 ### Request Body — POST
 ```json
-{
-  "company_name": "Maersk Line",
-  "company_type": "Shipping Manning Companies",
-  "open_positions": 5,
-  "status": "Active",
-  "contact_email": "hr@maersk.com",
-  "hourly_rate": 50.00
-}
+{"company_name": "Maersk Line", "company_type": "Shipping Manning Companies", "open_positions": 5, "status": "Active", "contact_email": "hr@maersk.com", "hourly_rate": 50.00}
 ```
 
 ---
@@ -832,7 +607,7 @@
 ### Endpoints
 | Method | URL | Description |
 |--------|-----|-------------|
-| GET | `/api/ships/` | List ships |
+| GET | `/api/ships/` | List |
 | POST | `/api/ships/` | Create |
 | GET | `/api/ships/{id}/` | Get |
 | PATCH | `/api/ships/{id}/` | Update |
@@ -847,19 +622,7 @@
 
 ### Request Body — POST
 ```json
-{
-  "ship_name": "MV Explorer",
-  "imo_number": "9876543",
-  "company": 1,
-  "ship_type": 1,
-  "flag": 1,
-  "gross_tonnage": 42000,
-  "deadweight": 75000,
-  "year_built": 2015,
-  "engine_type": "MAN B&W",
-  "engine_power_kw": 11190,
-  "status": "Active"
-}
+{"ship_name": "MV Explorer", "imo_number": "9876543", "company": 1, "ship_type": 1, "flag": 1, "gross_tonnage": 42000, "deadweight": 75000, "year_built": 2015, "engine_type": "MAN B&W", "engine_power_kw": 11190, "status": "Active"}
 ```
 
 ---
@@ -890,17 +653,7 @@
 
 ### Request Body — POST
 ```json
-{
-  "user": 5,
-  "ship": 1,
-  "company": 1,
-  "rank": 1,
-  "sign_on_date": "2024-03-01",
-  "sign_off_date": "2024-09-15",
-  "salary": 3500.00,
-  "currency": "USD",
-  "status": "Active"
-}
+{"user": 5, "ship": 1, "company": 1, "rank": 1, "sign_on_date": "2024-03-01", "sign_off_date": "2024-09-15", "salary": 3500.00, "currency": "USD", "status": "Active"}
 ```
 
 ---
@@ -940,19 +693,7 @@
 
 ### Request Body — POST
 ```json
-{
-  "candidate": 5,
-  "company": 1,
-  "position": 1,
-  "scheduled_date": "2026-04-01",
-  "scheduled_time": "10:00",
-  "duration_minutes": 30,
-  "interview_type": "Video",
-  "meeting_link": "https://zoom.us/j/123456",
-  "interviewer_name": "HR Manager",
-  "status": "Scheduled",
-  "result": "Pending"
-}
+{"candidate": 5, "company": 1, "position": 1, "scheduled_date": "2026-04-01", "scheduled_time": "10:00", "duration_minutes": 30, "interview_type": "Video", "meeting_link": "https://zoom.us/j/123456", "status": "Scheduled", "result": "Pending"}
 ```
 
 ---
@@ -960,13 +701,13 @@
 
 | Method | URL | Returns |
 |--------|-----|---------|
-| GET | `/api/users/positions/` | All position choices `[{"value": "...", "label": "..."}]` |
-| GET | `/api/users/flags/` | All country flags `[{"value": "...", "label": "..."}]` |
-| GET | `/api/users/coc-choices/` | COC certificate choices `[{"value": "...", "label": "..."}]` |
-| GET | `/api/core/flags/` | Flag list `[{"id": 1, "name": "Egypt"}]` |
+| GET | `/api/users/positions/` | Position choices `[{"value": "...", "label": "..."}]` |
+| GET | `/api/users/flags/` | Country flags `[{"value": "...", "label": "..."}]` |
+| GET | `/api/users/coc-choices/` | COC choices `[{"value": "...", "label": "..."}]` |
+| GET | `/api/core/flags/` | Flags `[{"id": 1, "name": "Egypt"}]` |
 | GET | `/api/core/vessel-types/` | Vessel types `[{"id": 1, "name": "Bulk Carrier"}]` |
-| GET | `/api/users/ranks/` | Rank list `[{"id": 1, "code": "MAS", "name": "Master"}]` |
-| GET | `/api/users/certificates/` | Cert list `[{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}]` |
+| GET | `/api/users/ranks/` | Ranks `[{"id": 1, "code": "MAS", "name": "Master"}]` |
+| GET | `/api/users/certificates/` | Certificates `[{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}]` |
 
 ---
 ## Job Orders
@@ -989,12 +730,5 @@
 
 ### Request Body — POST
 ```json
-{
-  "company": 1,
-  "ship": 1,
-  "reference_number": "JO-2024-001",
-  "request_date": "2024-01-15",
-  "target_joining_date": "2024-03-01",
-  "status": "Open"
-}
+{"company": 1, "ship": 1, "reference_number": "JO-2024-001", "request_date": "2024-01-15", "target_joining_date": "2024-03-01", "status": "Open"}
 ```

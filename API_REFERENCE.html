@@ -1,71 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sakr Manning Agency - API Reference</title>
-<style>
-:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--heading:#f0f6fc;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--orange:#d29922;--code-bg:#1f2937;--purple:#bc8cff}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:20px}
-.container{max-width:1100px;margin:0 auto}
-h1{color:var(--heading);font-size:2rem;margin:40px 0 10px;padding-bottom:10px;border-bottom:2px solid var(--accent)}
-h2{color:var(--accent);font-size:1.5rem;margin:30px 0 10px;padding:8px 12px;background:var(--card);border-left:4px solid var(--accent);border-radius:4px}
-h3{color:var(--green);font-size:1.1rem;margin:20px 0 8px}
-h4{color:var(--purple);font-size:0.95rem;margin:16px 0 6px}
-p{margin:8px 0}
-hr{border:none;border-top:1px solid var(--border);margin:30px 0}
-code{background:var(--code-bg);color:var(--orange);padding:2px 6px;border-radius:4px;font-size:0.9em;font-family:'Fira Code',monospace}
-strong{color:var(--heading)}
-li{margin:4px 0 4px 20px}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
-blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:10px 0;background:rgba(88,166,255,0.05);border-radius:0 4px 4px 0;color:var(--text);font-style:italic}
-.code-block{margin:10px 0;border-radius:8px;border:1px solid var(--border);overflow:hidden}
-.code-block pre{background:var(--code-bg);padding:16px;overflow-x:auto;margin:0}
-.code-block code{background:none;color:var(--green);padding:0;font-size:0.85rem;line-height:1.5}
-.table-wrapper{overflow-x:auto;margin:10px 0;border-radius:8px;border:1px solid var(--border)}
-table{width:100%;border-collapse:collapse;font-size:0.9rem}
-thead{background:var(--card)}
-th{text-align:left;padding:10px 14px;color:var(--heading);font-weight:600;border-bottom:2px solid var(--border);white-space:nowrap}
-td{padding:8px 14px;border-bottom:1px solid var(--border)}
-tr:hover{background:rgba(88,166,255,0.05)}
-td:first-child{font-weight:500;color:var(--heading)}
-.search{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;margin:20px 0}
-.search:focus{outline:none;border-color:var(--accent)}
-.nav{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:10;border-bottom:1px solid var(--border);margin-bottom:20px}
-.nav-links{display:flex;flex-wrap:wrap;gap:8px}
-.nav-links a{padding:4px 12px;background:var(--card);border-radius:20px;font-size:0.85rem;border:1px solid var(--border);transition:all 0.2s}
-.nav-links a:hover{background:var(--accent);color:#000;text-decoration:none}
-@media(max-width:768px){body{padding:10px}h1{font-size:1.5rem}h2{font-size:1.2rem}table{font-size:0.8rem}th,td{padding:6px 8px}.nav-links{gap:4px}.nav-links a{font-size:0.75rem;padding:3px 8px}.code-block pre{padding:10px;font-size:0.8rem}}
-</style>
-</head>
-<body>
-<div class="container">
-<div class="nav">
-<input type="text" class="search" placeholder="🔍 Search endpoints, fields, choices..." id="search">
-<div class="nav-links">
-<a href="#authentication">Auth</a>
-<a href="#users">Users</a>
-<a href="#references">References</a>
-<a href="#sea-services">Sea Services</a>
-<a href="#professional-qualifications-licenses">Licenses</a>
-<a href="#personal-documents">Personal Docs</a>
-<a href="#next-of-kin">Next of Kin</a>
-<a href="#languages">Languages</a>
-<a href="#courses">Courses</a>
-<a href="#vaccinations">Vaccinations</a>
-<a href="#documents-cv-quick-apply">Documents</a>
-<a href="#declarations">Declarations</a>
-<a href="#companies">Companies</a>
-<a href="#ships">Ships</a>
-<a href="#contracts">Contracts</a>
-<a href="#interviews">Interviews</a>
-<a href="#lookup-endpoints">Lookups</a>
-<a href="#job-orders">Job Orders</a>
-</div>
-</div>
-<h1 id="sakr-manning-agency-complete-api-reference">Sakr Manning Agency — Complete API Reference</h1>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Sakr Manning Agency - API Reference</title><style>:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--heading:#f0f6fc;--accent:#58a6ff;--green:#3fb950;--orange:#d29922;--code-bg:#1f2937;--purple:#bc8cff}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:20px}.container{max-width:1100px;margin:0 auto}h1{color:var(--heading);font-size:2rem;margin:40px 0 10px;padding-bottom:10px;border-bottom:2px solid var(--accent)}h2{color:var(--accent);font-size:1.5rem;margin:30px 0 10px;padding:8px 12px;background:var(--card);border-left:4px solid var(--accent);border-radius:4px}h3{color:var(--green);font-size:1.1rem;margin:20px 0 8px}h4{color:var(--purple);font-size:.95rem;margin:16px 0 6px}p{margin:8px 0}hr{border:none;border-top:1px solid var(--border);margin:30px 0}code{background:var(--code-bg);color:var(--orange);padding:2px 6px;border-radius:4px;font-size:.9em;font-family:monospace}strong{color:var(--heading)}li{margin:4px 0 4px 20px}a{color:var(--accent);text-decoration:none}blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:10px 0;background:rgba(88,166,255,.05);border-radius:0 4px 4px 0;font-style:italic}.code-block{margin:10px 0;border-radius:8px;border:1px solid var(--border);overflow:hidden}.code-block pre{background:var(--code-bg);padding:16px;overflow-x:auto;margin:0}.code-block code{background:none;color:var(--green);padding:0;font-size:.85rem;line-height:1.5}.table-wrapper{overflow-x:auto;margin:10px 0;border-radius:8px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:.9rem}thead{background:var(--card)}th{text-align:left;padding:10px 14px;color:var(--heading);font-weight:600;border-bottom:2px solid var(--border);white-space:nowrap}td{padding:8px 14px;border-bottom:1px solid var(--border)}tr:hover{background:rgba(88,166,255,.05)}td:first-child{font-weight:500;color:var(--heading)}.search{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;margin:20px 0}.search:focus{outline:none;border-color:var(--accent)}.nav{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:10;border-bottom:1px solid var(--border);margin-bottom:20px}.nav-links{display:flex;flex-wrap:wrap;gap:8px}.nav-links a{padding:4px 12px;background:var(--card);border-radius:20px;font-size:.85rem;border:1px solid var(--border);transition:all .2s}.nav-links a:hover{background:var(--accent);color:#000;text-decoration:none}@media(max-width:768px){body{padding:10px}h1{font-size:1.5rem}h2{font-size:1.2rem}table{font-size:.8rem}th,td{padding:6px 8px}.nav-links{gap:4px}.nav-links a{font-size:.75rem;padding:3px 8px}.code-block pre{padding:10px;font-size:.8rem}}</style></head><body><div class="container"><div class="nav"><input type="text" class="search" placeholder="Search endpoints, fields, choices..." id="search"><div class="nav-links"><a href="#authentication">Auth</a><a href="#users">Users</a><a href="#references">References</a><a href="#sea-services">Sea Services</a><a href="#professional-qualifications-licenses">Licenses</a><a href="#personal-documents">Personal Docs</a><a href="#next-of-kin">Next of Kin</a><a href="#languages">Languages</a><a href="#courses">Courses</a><a href="#vaccinations">Vaccinations</a><a href="#documents-cv-quick-apply">Documents</a><a href="#declarations">Declarations</a><a href="#companies">Companies</a><a href="#ships">Ships</a><a href="#contracts">Contracts</a><a href="#interviews">Interviews</a><a href="#lookup-endpoints">Lookups</a><a href="#job-orders">Job Orders</a></div></div><h1 id="sakr-manning-agency-complete-api-reference">Sakr Manning Agency — Complete API Reference</h1>
 <blockquote>All dates use <strong>YYYY-MM-DD</strong> format. All file uploads use <strong>multipart/form-data</strong>.</blockquote>
 <blockquote>All endpoints require <strong>Authorization: Bearer {token}</strong> unless noted.</blockquote>
 <hr>
@@ -296,14 +229,10 @@ td:first-child{font-weight:500;color:var(--heading)}
   "passport_no": "A12345678",
   "passport_issue_date": "2022-03-01",
   "passport_expiry_date": "2029-03-01",
-  "passport_issued_by": "Egypt",
   "coc_certificate_name": "Master",
   "coc_certificate_number": "COC-5432",
   "coc_issue_date": "2021-06-01",
-  "coc_expiry_date": "2026-06-01",
-  "goc_certificate_number": "GOC-1234",
-  "goc_issue_date": "2022-08-10",
-  "goc_expiry_date": "2027-08-10"
+  "coc_expiry_date": "2026-06-01"
 }</code></pre></div>
 <h3>Response Body Example</h3>
 <div class="code-block"><pre><code>{
@@ -315,25 +244,16 @@ td:first-child{font-weight:500;color:var(--heading)}
   "role": "Employee",
   "salary": "3500.00",
   "application_for_position": "1st. Engineer",
-  "available_date": "2025-04-01",
   "passport_no": "A12345678",
-  "passport_issue_date": "2022-03-01",
-  "passport_expiry_date": "2029-03-01",
   "passport_attachment": "/media/passports/scan.pdf",
-  "seaman_book_no": "SB-98765",
   "seaman_book_attachment": "/media/seaman_books/book.pdf",
   "coc_certificate_name": "Master",
-  "coc_certificate_number": "COC-5432",
-  "marlins_test_result": "92%",
-  "marlins_test_attachment": "/media/marlins_tests/cert.pdf",
-  "ces_test_attachment": "/media/ces_tests/cert.pdf",
   "ranks": [{"id": 1, "rank_name": "1st. Engineer", "assigned_code": "EO-1.001"}],
   "certificates": [{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}],
   "references": [],
   "sea_services": [],
   "bmi": {"value": 26.1, "category": "Overweight"},
-  "created_at": "2024-01-10T10:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
+  "created_at": "2024-01-10T10:00:00Z"
 }</code></pre></div>
 <hr>
 <h2 id="references">References</h2>
@@ -346,43 +266,28 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/users/references/?user={id}</code></td>
-<td>List references for user</td>
+<td>List</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/references/</code></td>
-<td>Create reference</td>
+<td>Create</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/references/{id}/</code></td>
-<td>Update reference</td>
+<td>Update</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/users/references/{id}/</code></td>
-<td>Delete reference</td>
+<td>Delete</td>
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{
-  "user": 5,
-  "name": "Capt. Ahmed Ali",
-  "company_name": "Maersk Line",
-  "position": "Master",
-  "email": "ahmed@maersk.com",
-  "tel": "+201555123456"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"user": 5, "name": "Capt. Ahmed", "company_name": "Maersk", "position": "Master", "email": "ahmed@maersk.com", "tel": "+201555123456"}</code></pre></div>
 <h3>Response Body</h3>
-<div class="code-block"><pre><code>{
-  "id": 1,
-  "user": 5,
-  "name": "Capt. Ahmed Ali",
-  "company_name": "Maersk Line",
-  "position": "Master",
-  "email": "ahmed@maersk.com",
-  "tel": "+201555123456"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"id": 1, "user": 5, "name": "Capt. Ahmed", "company_name": "Maersk", "position": "Master", "email": "ahmed@maersk.com", "tel": "+201555123456"}</code></pre></div>
 <hr>
 <h2 id="sea-services">Sea Services</h2>
 <h3>Endpoints</h3>
@@ -394,12 +299,12 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/users/sea-services/?user={id}</code></td>
-<td>List sea services</td>
+<td>List</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/sea-services/</code></td>
-<td>Create sea service</td>
+<td>Create</td>
 </tr>
 <tr>
 <td>PATCH</td>
@@ -414,42 +319,17 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tbody></table></div>
 <h3>Request Body — POST (`multipart/form-data`)</h3>
 <div class="code-block"><pre><code>{
-  "user": 5,
-  "company_name": "Maersk Line",
-  "rank": "1st. Engineer",
-  "vessel_name": "MV Explorer",
-  "imo_number": "9876543",
-  "flag": "Panama",
-  "signed_on": "2024-03-01",
-  "signed_off": "2024-09-15",
-  "vessel_type": "Bulk Carrier",
-  "dwt": "75000",
-  "grt": "42000",
-  "engine_type": "MAN B&amp;W 6S60ME-C",
-  "bh": "15000",
-  "kw": "11190",
-  "reason_for_sign_off": "End of contract"
+  "user": 5, "company_name": "Maersk", "rank": "1st. Engineer",
+  "vessel_name": "MV Explorer", "imo_number": "9876543", "flag": "Panama",
+  "signed_on": "2024-03-01", "signed_off": "2024-09-15",
+  "vessel_type": "Bulk Carrier", "dwt": "75000", "grt": "42000",
+  "engine_type": "MAN B&amp;W", "reason_for_sign_off": "End of contract"
 }</code></pre></div>
 <h3>Response Body</h3>
 <div class="code-block"><pre><code>{
-  "id": 1,
-  "user": 5,
-  "company_name": "Maersk Line",
-  "rank": "1st. Engineer",
-  "vessel_name": "MV Explorer",
-  "imo_number": "9876543",
-  "flag": "Panama",
-  "signed_on": "2024-03-01",
-  "signed_off": "2024-09-15",
-  "period": "6m 14d",
-  "vessel_type": "Bulk Carrier",
-  "dwt": "75000",
-  "grt": "42000",
-  "engine_type": "MAN B&amp;W 6S60ME-C",
-  "bh": "15000",
-  "kw": "11190",
-  "file": null,
-  "reason_for_sign_off": "End of contract"
+  "id": 1, "user": 5, "company_name": "Maersk", "rank": "1st. Engineer",
+  "vessel_name": "MV Explorer", "signed_on": "2024-03-01", "signed_off": "2024-09-15",
+  "period": "6m 14d", "vessel_type": "Bulk Carrier", "file": null
 }</code></pre></div>
 <hr>
 <h2 id="professional-qualifications-licenses">Professional Qualifications / Licenses</h2>
@@ -462,17 +342,17 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/my-licenses/?user={id}</code></td>
-<td>List licenses</td>
+<td>List</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/my-licenses/</code></td>
-<td>Create license</td>
+<td>Create</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/my-licenses/{id}/</code></td>
-<td>Update license</td>
+<td>Update</td>
 </tr>
 <tr>
 <td>DELETE</td>
@@ -482,7 +362,7 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/my-licenses/{id}/download/</code></td>
-<td>Download file</td>
+<td>Download</td>
 </tr>
 </tbody></table></div>
 <h4><code>document_name</code> choices:</h4>
@@ -635,28 +515,9 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{
-  "user": 5,
-  "document_name": "Master (Reg. II/2 Par. 1-2)",
-  "document_number": "COC-9999",
-  "country_of_issue": "Egypt",
-  "issue_date": "2024-01-01",
-  "expiration_date": "2029-01-01",
-  "document_file": "(PDF file)"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"user": 5, "document_name": "Master (Reg. II/2 Par. 1-2)", "document_number": "COC-9999", "country_of_issue": "Egypt", "issue_date": "2024-01-01", "expiration_date": "2029-01-01", "document_file": "(PDF)"}</code></pre></div>
 <h3>Response Body</h3>
-<div class="code-block"><pre><code>{
-  "id": 1,
-  "user": 5,
-  "document_name": "Master (Reg. II/2 Par. 1-2)",
-  "document_number": "COC-9999",
-  "country_of_issue": "Egypt",
-  "issue_date": "2024-01-01",
-  "expiration_date": "2029-01-01",
-  "document_file": "/media/user_5/licenses/coc.pdf",
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"id": 1, "user": 5, "document_name": "Master (Reg. II/2 Par. 1-2)", "document_number": "COC-9999", "country_of_issue": "Egypt", "issue_date": "2024-01-01", "expiration_date": "2029-01-01", "document_file": "/media/user_5/licenses/coc.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
 <hr>
 <h2 id="personal-documents">Personal Documents</h2>
 <h3>Endpoints</h3>
@@ -669,11 +530,6 @@ td:first-child{font-weight:500;color:var(--heading)}
 <td>GET</td>
 <td><code>/api/users/personal-documents/?user={id}</code></td>
 <td>List</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/users/personal-documents/{id}/</code></td>
-<td>Get single</td>
 </tr>
 <tr>
 <td>POST</td>
@@ -755,32 +611,9 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tbody></table></div>
 <p><strong>Accepted files:</strong> PDF, DOCX, DOC, JPG, JPEG, PNG</p>
 <h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{
-  "user": 5,
-  "document_type": "Passport",
-  "document_number": "A12345678",
-  "issue_date": "2022-03-01",
-  "expiry_date": "2029-03-01",
-  "issuing_country": "Egypt",
-  "issued_by": "Ministry of Interior",
-  "place_of_issue": "Cairo",
-  "file": "(file upload)"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"user": 5, "document_type": "Passport", "document_number": "A12345678", "issue_date": "2022-03-01", "expiry_date": "2029-03-01", "issuing_country": "Egypt", "issued_by": "Ministry of Interior", "place_of_issue": "Cairo", "file": "(file)"}</code></pre></div>
 <h3>Response Body</h3>
-<div class="code-block"><pre><code>{
-  "id": 14,
-  "user": 5,
-  "document_type": "Passport",
-  "document_number": "A12345678",
-  "issue_date": "2022-03-01",
-  "expiry_date": "2029-03-01",
-  "issuing_country": "Egypt",
-  "issued_by": "Ministry of Interior",
-  "place_of_issue": "Cairo",
-  "file": "/media/personal_documents/passport.pdf",
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"id": 14, "user": 5, "document_type": "Passport", "document_number": "A12345678", "issue_date": "2022-03-01", "expiry_date": "2029-03-01", "issuing_country": "Egypt", "issued_by": "Ministry of Interior", "place_of_issue": "Cairo", "file": "/media/personal_documents/passport.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
 <hr>
 <h2 id="next-of-kin">Next of Kin</h2>
 <h3>Endpoints</h3>
@@ -852,28 +685,9 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{
-  "user": 5,
-  "full_name": "Jane Doe",
-  "relationship": "Wife",
-  "address_country": "Egypt, Alexandria",
-  "phone": "+201098765432",
-  "phone2": "+201555666777",
-  "email": "jane@example.com"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"user": 5, "full_name": "Jane Doe", "relationship": "Wife", "address_country": "Egypt", "phone": "+201098765432", "phone2": "+201555666777", "email": "jane@example.com"}</code></pre></div>
 <h3>Response Body</h3>
-<div class="code-block"><pre><code>{
-  "id": 1,
-  "user": 5,
-  "full_name": "Jane Doe",
-  "relationship": "Wife",
-  "address_country": "Egypt, Alexandria",
-  "phone": "+201098765432",
-  "phone2": "+201555666777",
-  "email": "jane@example.com",
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"id": 1, "user": 5, "full_name": "Jane Doe", "relationship": "Wife", "address_country": "Egypt", "phone": "+201098765432", "phone2": "+201555666777", "email": "jane@example.com", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
 <hr>
 <h2 id="languages">Languages</h2>
 <h3>Endpoints</h3>
@@ -944,31 +758,9 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{
-  "user": 5,
-  "language": "English",
-  "general_remarks": "Fluent",
-  "speaking_level": "Advanced",
-  "writing_level": "Advanced",
-  "reading_level": "Native",
-  "cefr_level": "C1",
-  "cefr_description": "Can understand complex texts"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"user": 5, "language": "English", "general_remarks": "Fluent", "speaking_level": "Advanced", "writing_level": "Advanced", "reading_level": "Native", "cefr_level": "C1", "cefr_description": "Can understand complex texts"}</code></pre></div>
 <h3>Response Body</h3>
-<div class="code-block"><pre><code>{
-  "id": 1,
-  "user": 5,
-  "language": "English",
-  "general_remarks": "Fluent",
-  "speaking_level": "Advanced",
-  "writing_level": "Advanced",
-  "reading_level": "Native",
-  "cefr_level": "C1",
-  "cefr_description": "Can understand complex texts",
-  "attachment": null,
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"id": 1, "user": 5, "language": "English", "speaking_level": "Advanced", "writing_level": "Advanced", "reading_level": "Native", "cefr_level": "C1", "attachment": null, "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
 <hr>
 <h2 id="courses">Courses</h2>
 <h3>Endpoints</h3>
@@ -980,7 +772,7 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/courses/?user={id}</code></td>
-<td>List courses</td>
+<td>List</td>
 </tr>
 <tr>
 <td>POST</td>
@@ -1000,34 +792,13 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/courses/{id}/download/</code></td>
-<td>Download doc</td>
+<td>Download</td>
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{
-  "user": 5,
-  "course_name": "Fire Prevention and Fire Fighting",
-  "course_number": "FPFF-2024",
-  "issue_date": "2024-06-01",
-  "expiry_date": "2029-06-01",
-  "issued_by": "AASTMT",
-  "issued_at": "Alexandria",
-  "country_of_issue": "Egypt",
-  "document": "(file upload)"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"user": 5, "course_name": "Fire Prevention", "course_number": "FPFF-2024", "issue_date": "2024-06-01", "expiry_date": "2029-06-01", "issued_by": "AASTMT", "issued_at": "Alexandria", "country_of_issue": "Egypt", "document": "(file)"}</code></pre></div>
 <h3>Response Body</h3>
-<div class="code-block"><pre><code>{
-  "id": 1,
-  "user": 5,
-  "course_name": "Fire Prevention and Fire Fighting",
-  "course_number": "FPFF-2024",
-  "issue_date": "2024-06-01",
-  "expiry_date": "2029-06-01",
-  "issued_by": "AASTMT",
-  "issued_at": "Alexandria",
-  "country_of_issue": "Egypt",
-  "document": "/media/course_docs/fire_cert.pdf"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"id": 1, "user": 5, "course_name": "Fire Prevention", "course_number": "FPFF-2024", "issue_date": "2024-06-01", "expiry_date": "2029-06-01", "issued_by": "AASTMT", "issued_at": "Alexandria", "country_of_issue": "Egypt", "document": "/media/course_docs/fire_cert.pdf"}</code></pre></div>
 <hr>
 <h2 id="vaccinations">Vaccinations</h2>
 <h3>Endpoints</h3>
@@ -1060,129 +831,79 @@ td:first-child{font-weight:500;color:var(--heading)}
 <h4><code>name</code> choices:</h4>
 <div class="table-wrapper"><table><thead><tr>
 <th>Value</th>
-<th>Label</th>
 </tr></thead><tbody>
 <tr>
-<td>QUARANTINE LETTER</td>
-<td>QUARANTINE LETTER</td>
+<td>Quarantine Letter</td>
 </tr>
 <tr>
-<td>RUBELLA IMMUNITY</td>
-<td>RUBELLA IMMUNITY</td>
+<td>Rubella Immunity</td>
 </tr>
 <tr>
-<td>TESSERA SANITARIA</td>
-<td>TESSERA SANITARIA</td>
+<td>Tessera Sanitaria</td>
 </tr>
 <tr>
-<td>TUBERCULOSIS_LAB_SCREEN</td>
 <td>Tuberculosis Laboratory Screen</td>
 </tr>
 <tr>
-<td>TYPHOID_VACCINATION</td>
 <td>Typhoid Vaccination</td>
 </tr>
 <tr>
-<td>VARICELLA_IMMUNIZATION</td>
 <td>Varicella Immunization</td>
 </tr>
 <tr>
-<td>YELLOW_FEVER_IMMUNIZATION</td>
 <td>Yellow Fever Immunization</td>
 </tr>
 <tr>
-<td>CHICKENPOX_IMMUNITY_SCREENING</td>
 <td>Chickenpox Immunity Screening</td>
 </tr>
 <tr>
-<td>COLOR_VISION_CERTIFICATE</td>
 <td>Color Vision Certificate</td>
 </tr>
 <tr>
-<td>COVID_SARS_VACCINATION</td>
-<td>COVID-SARS Vaccination</td>
+<td>Covid-Sars Vaccination</td>
 </tr>
 <tr>
-<td>COVID_FORM</td>
-<td>COVID Form</td>
+<td>Covid Form</td>
 </tr>
 <tr>
-<td>FOODHANDLER_EXAMS</td>
 <td>Foodhandler Exams</td>
 </tr>
 <tr>
-<td>HEALTH_QUESTIONNAIRE</td>
 <td>Health Questionnaire</td>
 </tr>
 <tr>
-<td>HEPATITIS_A_IMMUNIZATION</td>
 <td>Hepatitis A Immunization</td>
 </tr>
 <tr>
-<td>HEPATITIS_B_IMMUNIZATION</td>
 <td>Hepatitis B Immunization</td>
 </tr>
 <tr>
-<td>ITALIAN_MEDICAL_PRE_EMBARK</td>
 <td>Italian Medical Pre-Embark Examination</td>
 </tr>
 <tr>
-<td>MEASLES_IMMUNITY</td>
 <td>Measles Immunity</td>
 </tr>
 <tr>
-<td>MEDICAL_CERT_SEAFARERS</td>
-<td>Medical Certificate for Seafarers</td>
+<td>Medical Certificate For Seafarers</td>
 </tr>
 <tr>
-<td>MMR_BOOSTER_2</td>
-<td>MMR Booster 2</td>
+<td>Mmr Booster 2</td>
 </tr>
 <tr>
-<td>MMR_VACC_IMMUNIZATION</td>
-<td>MMR Vaccination / Immunization</td>
+<td>Mmr Vaccination / Immunization</td>
 </tr>
 <tr>
-<td>MUMPS_IMMUNITY</td>
 <td>Mumps Immunity</td>
 </tr>
 <tr>
-<td>PERTUSSIS_IMMUNIZATION</td>
 <td>Pertussis Immunization</td>
 </tr>
 </tbody></table></div>
 <p><strong>Accepted files:</strong> PDF only</p>
 <h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{
-  "user": 5,
-  "name": "YELLOW_FEVER_IMMUNIZATION",
-  "number": "YF-9012",
-  "issue_date": "2023-09-01",
-  "expiry_date": "2033-09-01",
-  "issued_by": "Port Health Authority",
-  "issued_at": "Alexandria",
-  "disease": "Yellow Fever",
-  "remarks": "Valid for 10 years",
-  "document": "(PDF file)"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"user": 5, "name": "Yellow Fever Immunization", "number": "YF-9012", "issue_date": "2023-09-01", "expiry_date": "2033-09-01", "issued_by": "Port Health Authority", "issued_at": "Alexandria", "disease": "Yellow Fever", "remarks": "Valid for 10 years", "document": "(PDF)"}</code></pre></div>
 <h3>Response Body</h3>
-<div class="code-block"><pre><code>{
-  "id": 1,
-  "user": 5,
-  "name": "YELLOW_FEVER_IMMUNIZATION",
-  "number": "YF-9012",
-  "issue_date": "2023-09-01",
-  "expiry_date": "2033-09-01",
-  "issued_by": "Port Health Authority",
-  "issued_at": "Alexandria",
-  "disease": "Yellow Fever",
-  "first_date": null,
-  "last_date": null,
-  "remarks": "Valid for 10 years",
-  "document": "/media/vaccinations/yf_cert.pdf",
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"id": 1, "user": 5, "name": "Yellow Fever Immunization", "number": "YF-9012", "issue_date": "2023-09-01", "expiry_date": "2033-09-01", "issued_by": "Port Health Authority", "issued_at": "Alexandria", "disease": "Yellow Fever", "first_date": null, "last_date": null, "remarks": "Valid for 10 years", "document": "/media/vaccinations/yf_cert.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
 <hr>
 <h2 id="documents-cv-quick-apply">Documents (CV / Quick Apply)</h2>
 <h3>Endpoints</h3>
@@ -1313,28 +1034,9 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tbody></table></div>
 <p><strong>Accepted files:</strong> PDF, DOCX</p>
 <h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "phone_number": "+201234567890",
-  "position": "1st. Engineer",
-  "file": "(PDF or DOCX file)"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"name": "John Doe", "email": "john@example.com", "phone_number": "+201234567890", "position": "1st. Engineer", "file": "(PDF or DOCX)"}</code></pre></div>
 <h3>Response Body</h3>
-<div class="code-block"><pre><code>{
-  "id": 1,
-  "user": 33,
-  "title": "cv_john.pdf",
-  "file": "/media/documents/cv_john.pdf",
-  "name": "John Doe",
-  "email": "john@example.com",
-  "phone_number": "+201234567890",
-  "position": "1st. Engineer",
-  "status": "Pending",
-  "generated_id": null,
-  "created_at": "2026-03-10T00:00:00Z",
-  "updated_at": "2026-03-10T00:00:00Z"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"id": 1, "user": 33, "title": "cv_john.pdf", "file": "/media/documents/cv_john.pdf", "name": "John Doe", "email": "john@example.com", "phone_number": "+201234567890", "position": "1st. Engineer", "status": "Pending", "generated_id": null, "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
 <hr>
 <h2 id="declarations">Declarations</h2>
 <h3>Endpoints</h3>
@@ -1360,21 +1062,7 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{
-  "user": 5,
-  "has_disease": false,
-  "disease_details": "",
-  "has_accident": false,
-  "accident_details": "",
-  "has_psychiatric_treatment": false,
-  "psychiatric_treatment_details": "",
-  "has_addiction": false,
-  "addiction_details": "",
-  "consent_given": true,
-  "declaration_place": "Alexandria",
-  "declaration_date": "2026-03-10",
-  "signature": "John Doe"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"user": 5, "has_disease": false, "disease_details": "", "has_accident": false, "has_psychiatric_treatment": false, "has_addiction": false, "consent_given": true, "declaration_place": "Alexandria", "declaration_date": "2026-03-10", "signature": "John Doe"}</code></pre></div>
 <hr>
 <h2 id="companies">Companies</h2>
 <h3>Endpoints</h3>
@@ -1386,7 +1074,7 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/companies/</code></td>
-<td>List companies</td>
+<td>List</td>
 </tr>
 <tr>
 <td>POST</td>
@@ -1464,14 +1152,7 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{
-  "company_name": "Maersk Line",
-  "company_type": "Shipping Manning Companies",
-  "open_positions": 5,
-  "status": "Active",
-  "contact_email": "hr@maersk.com",
-  "hourly_rate": 50.00
-}</code></pre></div>
+<div class="code-block"><pre><code>{"company_name": "Maersk Line", "company_type": "Shipping Manning Companies", "open_positions": 5, "status": "Active", "contact_email": "hr@maersk.com", "hourly_rate": 50.00}</code></pre></div>
 <hr>
 <h2 id="ships">Ships</h2>
 <h3>Endpoints</h3>
@@ -1483,7 +1164,7 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/ships/</code></td>
-<td>List ships</td>
+<td>List</td>
 </tr>
 <tr>
 <td>POST</td>
@@ -1521,19 +1202,7 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{
-  "ship_name": "MV Explorer",
-  "imo_number": "9876543",
-  "company": 1,
-  "ship_type": 1,
-  "flag": 1,
-  "gross_tonnage": 42000,
-  "deadweight": 75000,
-  "year_built": 2015,
-  "engine_type": "MAN B&amp;W",
-  "engine_power_kw": 11190,
-  "status": "Active"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"ship_name": "MV Explorer", "imo_number": "9876543", "company": 1, "ship_type": 1, "flag": 1, "gross_tonnage": 42000, "deadweight": 75000, "year_built": 2015, "engine_type": "MAN B&amp;W", "engine_power_kw": 11190, "status": "Active"}</code></pre></div>
 <hr>
 <h2 id="contracts">Contracts</h2>
 <h3>Endpoints</h3>
@@ -1598,17 +1267,7 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{
-  "user": 5,
-  "ship": 1,
-  "company": 1,
-  "rank": 1,
-  "sign_on_date": "2024-03-01",
-  "sign_off_date": "2024-09-15",
-  "salary": 3500.00,
-  "currency": "USD",
-  "status": "Active"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"user": 5, "ship": 1, "company": 1, "rank": 1, "sign_on_date": "2024-03-01", "sign_off_date": "2024-09-15", "salary": 3500.00, "currency": "USD", "status": "Active"}</code></pre></div>
 <hr>
 <h2 id="interviews">Interviews</h2>
 <h3>Endpoints</h3>
@@ -1688,19 +1347,7 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{
-  "candidate": 5,
-  "company": 1,
-  "position": 1,
-  "scheduled_date": "2026-04-01",
-  "scheduled_time": "10:00",
-  "duration_minutes": 30,
-  "interview_type": "Video",
-  "meeting_link": "https://zoom.us/j/123456",
-  "interviewer_name": "HR Manager",
-  "status": "Scheduled",
-  "result": "Pending"
-}</code></pre></div>
+<div class="code-block"><pre><code>{"candidate": 5, "company": 1, "position": 1, "scheduled_date": "2026-04-01", "scheduled_time": "10:00", "duration_minutes": 30, "interview_type": "Video", "meeting_link": "https://zoom.us/j/123456", "status": "Scheduled", "result": "Pending"}</code></pre></div>
 <hr>
 <h2 id="lookup-endpoints">Lookup Endpoints</h2>
 <div class="table-wrapper"><table><thead><tr>
@@ -1711,22 +1358,22 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/users/positions/</code></td>
-<td>All position choices <code>[{"value": "...", "label": "..."}]</code></td>
+<td>Position choices <code>[{"value": "...", "label": "..."}]</code></td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/users/flags/</code></td>
-<td>All country flags <code>[{"value": "...", "label": "..."}]</code></td>
+<td>Country flags <code>[{"value": "...", "label": "..."}]</code></td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/users/coc-choices/</code></td>
-<td>COC certificate choices <code>[{"value": "...", "label": "..."}]</code></td>
+<td>COC choices <code>[{"value": "...", "label": "..."}]</code></td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/core/flags/</code></td>
-<td>Flag list <code>[{"id": 1, "name": "Egypt"}]</code></td>
+<td>Flags <code>[{"id": 1, "name": "Egypt"}]</code></td>
 </tr>
 <tr>
 <td>GET</td>
@@ -1736,12 +1383,12 @@ td:first-child{font-weight:500;color:var(--heading)}
 <tr>
 <td>GET</td>
 <td><code>/api/users/ranks/</code></td>
-<td>Rank list <code>[{"id": 1, "code": "MAS", "name": "Master"}]</code></td>
+<td>Ranks <code>[{"id": 1, "code": "MAS", "name": "Master"}]</code></td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/users/certificates/</code></td>
-<td>Cert list <code>[{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}]</code></td>
+<td>Certificates <code>[{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}]</code></td>
 </tr>
 </tbody></table></div>
 <hr>
@@ -1795,25 +1442,4 @@ td:first-child{font-weight:500;color:var(--heading)}
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{
-  "company": 1,
-  "ship": 1,
-  "reference_number": "JO-2024-001",
-  "request_date": "2024-01-15",
-  "target_joining_date": "2024-03-01",
-  "status": "Open"
-}</code></pre></div>
-</div>
-<script>
-document.getElementById('search').addEventListener('input',function(e){
-var q=e.target.value.toLowerCase();
-var sections=document.querySelectorAll('h1,h2,h3,h4,p,li,tr,.code-block,blockquote');
-sections.forEach(function(el){
-if(el.tagName==='TR'&&el.closest('thead'))return;
-var text=el.textContent.toLowerCase();
-el.style.display=text.includes(q)||!q?'':'none';
-});
-});
-</script>
-</body>
-</html>
+<div class="code-block"><pre><code>{"company": 1, "ship": 1, "reference_number": "JO-2024-001", "request_date": "2024-01-15", "target_joining_date": "2024-03-01", "status": "Open"}</code></pre></div></div><script>document.getElementById("search").addEventListener("input",function(e){var q=e.target.value.toLowerCase();document.querySelectorAll("h1,h2,h3,h4,p,li,tr,.code-block,blockquote").forEach(function(el){if(el.tagName==="TR"&&el.closest("thead"))return;el.style.display=el.textContent.toLowerCase().includes(q)||!q?"":"none"})});</script></body></html>
