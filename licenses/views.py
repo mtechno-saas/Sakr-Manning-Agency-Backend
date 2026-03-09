@@ -11,10 +11,17 @@ class UserLicenseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        user_id = self.request.query_params.get('user')
+        if user_id:
+            return UserLicense.objects.filter(user_id=user_id)
         return UserLicense.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        user_id = self.request.data.get('user')
+        if user_id:
+            serializer.save(user_id=user_id)
+        else:
+            serializer.save(user=self.request.user)
 
     # Add this custom action
     @action(detail=True, methods=['get'])
