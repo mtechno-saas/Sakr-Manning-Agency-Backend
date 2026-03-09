@@ -4,28 +4,28 @@ from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 
 VACCINE_CHOICES = [
-    ("QUARANTINE LETTER", "QUARANTINE LETTER"),
-    ("RUBELLA IMMUNITY", "RUBELLA IMMUNITY"),
-    ("TESSERA SANITARIA", "TESSERA SANITARIA"),
-    ("TUBERCULOSIS_LAB_SCREEN", "Tuberculosis Laboratory Screen"),
-    ("TYPHOID_VACCINATION", "Typhoid Vaccination"),
-    ("VARICELLA_IMMUNIZATION", "Varicella Immunization"),
-    ("YELLOW_FEVER_IMMUNIZATION", "Yellow Fever Immunization"),
-    ("CHICKENPOX_IMMUNITY_SCREENING", "Chickenpox Immunity Screening"),
-    ("COLOR_VISION_CERTIFICATE", "Color Vision Certificate"),
-    ("COVID_SARS_VACCINATION", "COVID-SARS Vaccination"),
-    ("COVID_FORM", "COVID Form"),
-    ("FOODHANDLER_EXAMS", "Foodhandler Exams"),
-    ("HEALTH_QUESTIONNAIRE", "Health Questionnaire"),
-    ("HEPATITIS_A_IMMUNIZATION", "Hepatitis A Immunization"),
-    ("HEPATITIS_B_IMMUNIZATION", "Hepatitis B Immunization"),
-    ("ITALIAN_MEDICAL_PRE_EMBARK", "Italian Medical Pre-Embark Examination"),
-    ("MEASLES_IMMUNITY", "Measles Immunity"),
-    ("MEDICAL_CERT_SEAFARERS", "Medical Certificate for Seafarers"),
-    ("MMR_BOOSTER_2", "MMR Booster 2"),
-    ("MMR_VACC_IMMUNIZATION", "MMR Vaccination / Immunization"),
-    ("MUMPS_IMMUNITY", "Mumps Immunity"),
-    ("PERTUSSIS_IMMUNIZATION", "Pertussis Immunization"),
+    ("Quarantine Letter", "Quarantine Letter"),
+    ("Rubella Immunity", "Rubella Immunity"),
+    ("Tessera Sanitaria", "Tessera Sanitaria"),
+    ("Tuberculosis Laboratory Screen", "Tuberculosis Laboratory Screen"),
+    ("Typhoid Vaccination", "Typhoid Vaccination"),
+    ("Varicella Immunization", "Varicella Immunization"),
+    ("Yellow Fever Immunization", "Yellow Fever Immunization"),
+    ("Chickenpox Immunity Screening", "Chickenpox Immunity Screening"),
+    ("Color Vision Certificate", "Color Vision Certificate"),
+    ("Covid-Sars Vaccination", "Covid-Sars Vaccination"),
+    ("Covid Form", "Covid Form"),
+    ("Foodhandler Exams", "Foodhandler Exams"),
+    ("Health Questionnaire", "Health Questionnaire"),
+    ("Hepatitis A Immunization", "Hepatitis A Immunization"),
+    ("Hepatitis B Immunization", "Hepatitis B Immunization"),
+    ("Italian Medical Pre-Embark Examination", "Italian Medical Pre-Embark Examination"),
+    ("Measles Immunity", "Measles Immunity"),
+    ("Medical Certificate For Seafarers", "Medical Certificate For Seafarers"),
+    ("Mmr Booster 2", "Mmr Booster 2"),
+    ("Mmr Vaccination / Immunization", "Mmr Vaccination / Immunization"),
+    ("Mumps Immunity", "Mumps Immunity"),
+    ("Pertussis Immunization", "Pertussis Immunization"),
 ]
 
 class Vaccination(models.Model):
@@ -35,7 +35,7 @@ class Vaccination(models.Model):
         related_name="vaccinations"
     )
 
-    name = models.CharField(max_length=50, choices=VACCINE_CHOICES)
+    name = models.CharField(max_length=100, choices=VACCINE_CHOICES)
     number = models.CharField(max_length=200, blank=True, null=True)
 
     issue_date = models.DateField(blank=True, null=True)
