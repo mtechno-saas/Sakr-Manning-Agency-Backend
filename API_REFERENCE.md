@@ -447,8 +447,8 @@
 |--------|-----|-------------|------------|
 | GET | `/api/vaccinations/?user={id}` | List | All authenticated (own records) |
 | POST | `/api/vaccinations/` | Create | All authenticated (own records) |
-| PATCH | `/api/vaccinations/{id}/` | Update | Owner only |
-| DELETE | `/api/vaccinations/{id}/` | Delete | Owner only |
+| PATCH | `/api/vaccinations/{id}/` | Update | All authenticated (own records) |
+| DELETE | `/api/vaccinations/{id}/` | Delete | All authenticated (own records) |
 
 #### `name` choices:
 | Value |

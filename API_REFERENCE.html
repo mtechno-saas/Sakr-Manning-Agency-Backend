@@ -1,223 +1,539 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Sakr Manning Agency - API Reference</title><style>:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--heading:#f0f6fc;--accent:#58a6ff;--green:#3fb950;--orange:#d29922;--code-bg:#1f2937;--purple:#bc8cff}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:20px}.container{max-width:1100px;margin:0 auto}h1{color:var(--heading);font-size:2rem;margin:40px 0 10px;padding-bottom:10px;border-bottom:2px solid var(--accent)}h2{color:var(--accent);font-size:1.5rem;margin:30px 0 10px;padding:8px 12px;background:var(--card);border-left:4px solid var(--accent);border-radius:4px}h3{color:var(--green);font-size:1.1rem;margin:20px 0 8px}h4{color:var(--purple);font-size:.95rem;margin:16px 0 6px}p{margin:8px 0}hr{border:none;border-top:1px solid var(--border);margin:30px 0}code{background:var(--code-bg);color:var(--orange);padding:2px 6px;border-radius:4px;font-size:.9em;font-family:monospace}strong{color:var(--heading)}li{margin:4px 0 4px 20px}a{color:var(--accent);text-decoration:none}blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:10px 0;background:rgba(88,166,255,.05);border-radius:0 4px 4px 0;font-style:italic}.code-block{margin:10px 0;border-radius:8px;border:1px solid var(--border);overflow:hidden}.code-block pre{background:var(--code-bg);padding:16px;overflow-x:auto;margin:0}.code-block code{background:none;color:var(--green);padding:0;font-size:.85rem;line-height:1.5}.table-wrapper{overflow-x:auto;margin:10px 0;border-radius:8px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:.9rem}thead{background:var(--card)}th{text-align:left;padding:10px 14px;color:var(--heading);font-weight:600;border-bottom:2px solid var(--border);white-space:nowrap}td{padding:8px 14px;border-bottom:1px solid var(--border)}tr:hover{background:rgba(88,166,255,.05)}td:first-child{font-weight:500;color:var(--heading)}.search{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;margin:20px 0}.search:focus{outline:none;border-color:var(--accent)}.nav{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:10;border-bottom:1px solid var(--border);margin-bottom:20px}.nav-links{display:flex;flex-wrap:wrap;gap:8px}.nav-links a{padding:4px 12px;background:var(--card);border-radius:20px;font-size:.85rem;border:1px solid var(--border);transition:all .2s}.nav-links a:hover{background:var(--accent);color:#000;text-decoration:none}@media(max-width:768px){body{padding:10px}h1{font-size:1.5rem}h2{font-size:1.2rem}table{font-size:.8rem}th,td{padding:6px 8px}.nav-links{gap:4px}.nav-links a{font-size:.75rem;padding:3px 8px}.code-block pre{padding:10px;font-size:.8rem}}</style></head><body><div class="container"><div class="nav"><input type="text" class="search" placeholder="Search endpoints, fields, choices..." id="search"><div class="nav-links"><a href="#authentication">Auth</a><a href="#users">Users</a><a href="#references">References</a><a href="#sea-services">Sea Services</a><a href="#professional-qualifications-licenses">Licenses</a><a href="#personal-documents">Personal Docs</a><a href="#next-of-kin">Next of Kin</a><a href="#languages">Languages</a><a href="#courses">Courses</a><a href="#vaccinations">Vaccinations</a><a href="#documents-cv-quick-apply">Documents</a><a href="#declarations">Declarations</a><a href="#companies">Companies</a><a href="#ships">Ships</a><a href="#contracts">Contracts</a><a href="#interviews">Interviews</a><a href="#lookup-endpoints">Lookups</a><a href="#job-orders">Job Orders</a></div></div><h1 id="sakr-manning-agency-complete-api-reference">Sakr Manning Agency — Complete API Reference</h1>
-<blockquote>All dates use <strong>YYYY-MM-DD</strong> format. All file uploads use <strong>multipart/form-data</strong>.</blockquote>
-<blockquote>All endpoints require <strong>Authorization: Bearer {token}</strong> unless noted.</blockquote>
-<hr>
-<h2 id="authentication">Authentication</h2>
-<h3>POST `/api/login/`</h3>
-<p><strong>Permission:</strong> AllowAny</p>
-<p><strong>Request Body:</strong></p>
-<div class="code-block"><pre><code>{"email": "user@example.com", "password": "YourPassword123"}</code></pre></div>
-<p><strong>Response:</strong></p>
-<div class="code-block"><pre><code>{
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Sakr Manning Agency - API Reference</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --orange: #d29922;
+      --code-bg: #1f2937;
+      --purple: #bc8cff
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: Segoe UI, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto
+    }
+
+    h1 {
+      color: var(--heading);
+      font-size: 2rem;
+      margin: 40px 0 10px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--accent)
+    }
+
+    h2 {
+      color: var(--accent);
+      font-size: 1.5rem;
+      margin: 30px 0 10px;
+      padding: 8px 12px;
+      background: var(--card);
+      border-left: 4px solid var(--accent);
+      border-radius: 4px
+    }
+
+    h3 {
+      color: var(--green);
+      font-size: 1.1rem;
+      margin: 20px 0 8px
+    }
+
+    h4 {
+      color: var(--purple);
+      font-size: .95rem;
+      margin: 16px 0 6px
+    }
+
+    p {
+      margin: 8px 0
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 30px 0
+    }
+
+    code {
+      background: var(--code-bg);
+      color: var(--orange);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: .9em;
+      font-family: monospace
+    }
+
+    strong {
+      color: var(--heading)
+    }
+
+    li {
+      margin: 4px 0 4px 20px
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none
+    }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 8px 16px;
+      margin: 10px 0;
+      background: rgba(88, 166, 255, .05);
+      border-radius: 0 4px 4px 0;
+      font-style: italic
+    }
+
+    .code-block {
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow: hidden
+    }
+
+    .code-block pre {
+      background: var(--code-bg);
+      padding: 16px;
+      overflow-x: auto;
+      margin: 0
+    }
+
+    .code-block code {
+      background: none;
+      color: var(--green);
+      padding: 0;
+      font-size: .85rem;
+      line-height: 1.5
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .9rem
+    }
+
+    thead {
+      background: var(--card)
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      color: var(--heading);
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap
+    }
+
+    td {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    tr:hover {
+      background: rgba(88, 166, 255, .05)
+    }
+
+    td:first-child {
+      font-weight: 500;
+      color: var(--heading)
+    }
+
+    .search {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      margin: 20px 0
+    }
+
+    .search:focus {
+      outline: none;
+      border-color: var(--accent)
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      padding: 10px 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px
+    }
+
+    .nav-links a {
+      padding: 4px 12px;
+      background: var(--card);
+      border-radius: 20px;
+      font-size: .85rem;
+      border: 1px solid var(--border);
+      transition: all .2s
+    }
+
+    .nav-links a:hover {
+      background: var(--accent);
+      color: #000;
+      text-decoration: none
+    }
+
+    @media(max-width:768px) {
+      body {
+        padding: 10px
+      }
+
+      h1 {
+        font-size: 1.5rem
+      }
+
+      h2 {
+        font-size: 1.2rem
+      }
+
+      table {
+        font-size: .8rem
+      }
+
+      th,
+      td {
+        padding: 6px 8px
+      }
+
+      .nav-links {
+        gap: 4px
+      }
+
+      .nav-links a {
+        font-size: .75rem;
+        padding: 3px 8px
+      }
+
+      .code-block pre {
+        padding: 10px;
+        font-size: .8rem
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="nav"><input type="text" class="search" placeholder="Search endpoints, fields, choices..." id="search">
+      <div class="nav-links"><a href="#authentication">Auth</a><a href="#users">Users</a><a
+          href="#references">References</a><a href="#sea-services">Sea Services</a><a
+          href="#professional-qualifications-licenses">Licenses</a><a href="#personal-documents">Personal Docs</a><a
+          href="#next-of-kin">Next of Kin</a><a href="#languages">Languages</a><a href="#courses">Courses</a><a
+          href="#vaccinations">Vaccinations</a><a href="#documents-cv-quick-apply">Documents</a><a
+          href="#declarations">Declarations</a><a href="#companies">Companies</a><a href="#ships">Ships</a><a
+          href="#contracts">Contracts</a><a href="#interviews">Interviews</a><a href="#lookup-endpoints">Lookups</a><a
+          href="#job-orders">Job Orders</a></div>
+    </div>
+    <h1 id="sakr-manning-agency-complete-api-reference">Sakr Manning Agency — Complete API Reference</h1>
+    <blockquote>All dates use <strong>YYYY-MM-DD</strong> format. All file uploads use
+      <strong>multipart/form-data</strong>.</blockquote>
+    <blockquote>All endpoints require <strong>Authorization: Bearer {token}</strong> unless noted.</blockquote>
+    <hr>
+    <h2 id="authentication">Authentication</h2>
+    <h3>POST `/api/login/`</h3>
+    <p><strong>Permission:</strong> AllowAny</p>
+    <p><strong>Request Body:</strong></p>
+    <div class="code-block">
+      <pre><code>{"email": "user@example.com", "password": "YourPassword123"}</code></pre>
+    </div>
+    <p><strong>Response:</strong></p>
+    <div class="code-block">
+      <pre><code>{
   "access": "eyJhbGciOiJIUzI1NiIs...",
   "refresh": "eyJhbGciOiJIUzI1NiIs..."
-}</code></pre></div>
-<h3>POST `/api/login/refresh/`</h3>
-<p><strong>Permission:</strong> AllowAny</p>
-<p><strong>Request Body:</strong></p>
-<div class="code-block"><pre><code>{"refresh": "eyJhbGciOiJIUzI1NiIs..."}</code></pre></div>
-<h3>POST `/api/users/register/`</h3>
-<p><strong>Permission:</strong> AllowAny</p>
-<p><strong>Request Body:</strong></p>
-<div class="code-block"><pre><code>{
+}</code></pre>
+    </div>
+    <h3>POST `/api/login/refresh/`</h3>
+    <p><strong>Permission:</strong> AllowAny</p>
+    <p><strong>Request Body:</strong></p>
+    <div class="code-block">
+      <pre><code>{"refresh": "eyJhbGciOiJIUzI1NiIs..."}</code></pre>
+    </div>
+    <h3>POST `/api/users/register/`</h3>
+    <p><strong>Permission:</strong> AllowAny</p>
+    <p><strong>Request Body:</strong></p>
+    <div class="code-block">
+      <pre><code>{
   "email": "newuser@example.com",
   "password": "SecurePass123",
   "first_name": "John",
   "middle_name": "Michael",
   "role": "Employee"
-}</code></pre></div>
-<h3>POST `/api/users/logout/`</h3>
-<p><strong>Permission:</strong> IsAuthenticated</p>
-<hr>
-<h2 id="users">Users</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/users/</code></td>
-<td>List all users</td>
-<td>Admin, HR Manager, Recruiter (read-only), Employee (own)</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/users/users/{id}/</code></td>
-<td>Get user by ID</td>
-<td>Admin, HR Manager, Recruiter (read-only), Employee (own)</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/users/</code></td>
-<td>Create user</td>
-<td>Admin (all), HR Manager (non-admin)</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/users/{id}/</code></td>
-<td>Update user</td>
-<td>Admin (all), HR Manager (non-admin), Employee (own)</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/users/users/{id}/</code></td>
-<td>Delete user</td>
-<td>Admin only</td>
-</tr>
-</tbody></table></div>
-<h3>User Fields & Choices</h3>
-<h4><code>role</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Admin</td>
-</tr>
-<tr>
-<td>HR Manager</td>
-</tr>
-<tr>
-<td>Recruiter</td>
-</tr>
-<tr>
-<td>Employee</td>
-</tr>
-</tbody></table></div>
-<h4><code>application_for_position</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Master</td>
-</tr>
-<tr>
-<td>1st. Officer – Chief Off.</td>
-</tr>
-<tr>
-<td>2nd. Officer</td>
-</tr>
-<tr>
-<td>3rd. Officer</td>
-</tr>
-<tr>
-<td>Tug Master</td>
-</tr>
-<tr>
-<td>Boson</td>
-</tr>
-<tr>
-<td>A.B – O.S</td>
-</tr>
-<tr>
-<td>Steward / Galley Boy</td>
-</tr>
-<tr>
-<td>Cook / 2nd. Cook / Ass. Cook / Baker / Pastry</td>
-</tr>
-<tr>
-<td>Carpenter</td>
-</tr>
-<tr>
-<td>Waiter</td>
-</tr>
-<tr>
-<td>Purser</td>
-</tr>
-<tr>
-<td>Doctor</td>
-</tr>
-<tr>
-<td>1st. Engineer</td>
-</tr>
-<tr>
-<td>2nd. Engineer</td>
-</tr>
-<tr>
-<td>3rd. Engineer</td>
-</tr>
-<tr>
-<td>Electrical Engineer – E/E – ETO</td>
-</tr>
-<tr>
-<td>Assistant Electrician</td>
-</tr>
-<tr>
-<td>4th. Engineer</td>
-</tr>
-<tr>
-<td>Electrician</td>
-</tr>
-<tr>
-<td>Motor Man / Mechanic</td>
-</tr>
-<tr>
-<td>Oiler</td>
-</tr>
-<tr>
-<td>Fitter – Welder</td>
-</tr>
-<tr>
-<td>Wiper</td>
-</tr>
-<tr>
-<td>Other</td>
-</tr>
-</tbody></table></div>
-<h4><code>coc_certificate_name</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Master</td>
-</tr>
-<tr>
-<td>Chief Mate</td>
-</tr>
-<tr>
-<td>2nd Officer</td>
-</tr>
-<tr>
-<td>3rd Officer</td>
-</tr>
-<tr>
-<td>Marine Chief Eng.</td>
-</tr>
-<tr>
-<td>2nd Marine Eng.</td>
-</tr>
-<tr>
-<td>3rd Marine Eng.</td>
-</tr>
-<tr>
-<td>Electro-Technical Officer</td>
-</tr>
-<tr>
-<td>Gmdss General Operator</td>
-</tr>
-</tbody></table></div>
-<h4><code>user_status</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-<th>Label</th>
-</tr></thead><tbody>
-<tr>
-<td>VACATION</td>
-<td>VACATION</td>
-</tr>
-<tr>
-<td>ON_SITE</td>
-<td>ON_SITE</td>
-</tr>
-<tr>
-<td>MEDICAL VACATION</td>
-<td>MEDICAL VACATION</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body Example — PATCH `/api/users/users/{id}/`</h3>
-<div class="code-block"><pre><code>{
+}</code></pre>
+    </div>
+    <h3>POST `/api/users/logout/`</h3>
+    <p><strong>Permission:</strong> IsAuthenticated</p>
+    <hr>
+    <h2 id="users">Users</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/users/</code></td>
+            <td>List all users</td>
+            <td>Admin, HR Manager, Recruiter (read-only), Employee (own)</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/users/{id}/</code></td>
+            <td>Get user by ID</td>
+            <td>Admin, HR Manager, Recruiter (read-only), Employee (own)</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/users/</code></td>
+            <td>Create user</td>
+            <td>Admin (all), HR Manager (non-admin)</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/users/{id}/</code></td>
+            <td>Update user</td>
+            <td>Admin (all), HR Manager (non-admin), Employee (own)</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/users/users/{id}/</code></td>
+            <td>Delete user</td>
+            <td>Admin only</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>User Fields & Choices</h3>
+    <h4><code>role</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Admin</td>
+          </tr>
+          <tr>
+            <td>HR Manager</td>
+          </tr>
+          <tr>
+            <td>Recruiter</td>
+          </tr>
+          <tr>
+            <td>Employee</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>application_for_position</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Master</td>
+          </tr>
+          <tr>
+            <td>1st. Officer – Chief Off.</td>
+          </tr>
+          <tr>
+            <td>2nd. Officer</td>
+          </tr>
+          <tr>
+            <td>3rd. Officer</td>
+          </tr>
+          <tr>
+            <td>Tug Master</td>
+          </tr>
+          <tr>
+            <td>Boson</td>
+          </tr>
+          <tr>
+            <td>A.B – O.S</td>
+          </tr>
+          <tr>
+            <td>Steward / Galley Boy</td>
+          </tr>
+          <tr>
+            <td>Cook / 2nd. Cook / Ass. Cook / Baker / Pastry</td>
+          </tr>
+          <tr>
+            <td>Carpenter</td>
+          </tr>
+          <tr>
+            <td>Waiter</td>
+          </tr>
+          <tr>
+            <td>Purser</td>
+          </tr>
+          <tr>
+            <td>Doctor</td>
+          </tr>
+          <tr>
+            <td>1st. Engineer</td>
+          </tr>
+          <tr>
+            <td>2nd. Engineer</td>
+          </tr>
+          <tr>
+            <td>3rd. Engineer</td>
+          </tr>
+          <tr>
+            <td>Electrical Engineer – E/E – ETO</td>
+          </tr>
+          <tr>
+            <td>Assistant Electrician</td>
+          </tr>
+          <tr>
+            <td>4th. Engineer</td>
+          </tr>
+          <tr>
+            <td>Electrician</td>
+          </tr>
+          <tr>
+            <td>Motor Man / Mechanic</td>
+          </tr>
+          <tr>
+            <td>Oiler</td>
+          </tr>
+          <tr>
+            <td>Fitter – Welder</td>
+          </tr>
+          <tr>
+            <td>Wiper</td>
+          </tr>
+          <tr>
+            <td>Other</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>coc_certificate_name</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Master</td>
+          </tr>
+          <tr>
+            <td>Chief Mate</td>
+          </tr>
+          <tr>
+            <td>2nd Officer</td>
+          </tr>
+          <tr>
+            <td>3rd Officer</td>
+          </tr>
+          <tr>
+            <td>Marine Chief Eng.</td>
+          </tr>
+          <tr>
+            <td>2nd Marine Eng.</td>
+          </tr>
+          <tr>
+            <td>3rd Marine Eng.</td>
+          </tr>
+          <tr>
+            <td>Electro-Technical Officer</td>
+          </tr>
+          <tr>
+            <td>Gmdss General Operator</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>user_status</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+            <th>Label</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>VACATION</td>
+            <td>VACATION</td>
+          </tr>
+          <tr>
+            <td>ON_SITE</td>
+            <td>ON_SITE</td>
+          </tr>
+          <tr>
+            <td>MEDICAL VACATION</td>
+            <td>MEDICAL VACATION</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body Example — PATCH `/api/users/users/{id}/`</h3>
+    <div class="code-block">
+      <pre><code>{
   "first_name": "John",
   "middle_name": "Michael",
   "date_of_birth": "1991-05-15",
@@ -239,9 +555,11 @@
   "coc_certificate_number": "COC-5432",
   "coc_issue_date": "2021-06-01",
   "coc_expiry_date": "2026-06-01"
-}</code></pre></div>
-<h3>Response Body Example</h3>
-<div class="code-block"><pre><code>{
+}</code></pre>
+    </div>
+    <h3>Response Body Example</h3>
+    <div class="code-block">
+      <pre><code>{
   "id": 33,
   "email": "john@example.com",
   "first_name": "John",
@@ -260,1271 +578,1556 @@
   "sea_services": [],
   "bmi": {"value": 26.1, "category": "Overweight"},
   "created_at": "2024-01-10T10:00:00Z"
-}</code></pre></div>
-<hr>
-<h2 id="references">References</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/references/?user={id}</code></td>
-<td>List</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/references/</code></td>
-<td>Create</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/references/{id}/</code></td>
-<td>Update</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/users/references/{id}/</code></td>
-<td>Delete</td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{"user": 5, "name": "Capt. Ahmed", "company_name": "Maersk", "position": "Master", "email": "ahmed@maersk.com", "tel": "+201555123456"}</code></pre></div>
-<h3>Response Body</h3>
-<div class="code-block"><pre><code>{"id": 1, "user": 5, "name": "Capt. Ahmed", "company_name": "Maersk", "position": "Master", "email": "ahmed@maersk.com", "tel": "+201555123456"}</code></pre></div>
-<hr>
-<h2 id="sea-services">Sea Services</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/sea-services/?user={id}</code></td>
-<td>List</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/sea-services/</code></td>
-<td>Create</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/sea-services/{id}/</code></td>
-<td>Update</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/users/sea-services/{id}/</code></td>
-<td>Delete</td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{
+}</code></pre>
+    </div>
+    <hr>
+    <h2 id="references">References</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/references/?user={id}</code></td>
+            <td>List</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/references/</code></td>
+            <td>Create</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/references/{id}/</code></td>
+            <td>Update</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/users/references/{id}/</code></td>
+            <td>Delete</td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST</h3>
+    <div class="code-block">
+      <pre><code>{"user": 5, "name": "Capt. Ahmed", "company_name": "Maersk", "position": "Master", "email": "ahmed@maersk.com", "tel": "+201555123456"}</code></pre>
+    </div>
+    <h3>Response Body</h3>
+    <div class="code-block">
+      <pre><code>{"id": 1, "user": 5, "name": "Capt. Ahmed", "company_name": "Maersk", "position": "Master", "email": "ahmed@maersk.com", "tel": "+201555123456"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="sea-services">Sea Services</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/sea-services/?user={id}</code></td>
+            <td>List</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/sea-services/</code></td>
+            <td>Create</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/sea-services/{id}/</code></td>
+            <td>Update</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/users/sea-services/{id}/</code></td>
+            <td>Delete</td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST (`multipart/form-data`)</h3>
+    <div class="code-block">
+      <pre><code>{
   "user": 5, "company_name": "Maersk", "rank": "1st. Engineer",
   "vessel_name": "MV Explorer", "imo_number": "9876543", "flag": "Panama",
   "signed_on": "2024-03-01", "signed_off": "2024-09-15",
   "vessel_type": "Bulk Carrier", "dwt": "75000", "grt": "42000",
   "engine_type": "MAN B&amp;W", "reason_for_sign_off": "End of contract"
-}</code></pre></div>
-<h3>Response Body</h3>
-<div class="code-block"><pre><code>{
+}</code></pre>
+    </div>
+    <h3>Response Body</h3>
+    <div class="code-block">
+      <pre><code>{
   "id": 1, "user": 5, "company_name": "Maersk", "rank": "1st. Engineer",
   "vessel_name": "MV Explorer", "signed_on": "2024-03-01", "signed_off": "2024-09-15",
   "period": "6m 14d", "vessel_type": "Bulk Carrier", "file": null
-}</code></pre></div>
-<hr>
-<h2 id="professional-qualifications-licenses">Professional Qualifications / Licenses</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/my-licenses/?user={id}</code></td>
-<td>List</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/my-licenses/</code></td>
-<td>Create</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/my-licenses/{id}/</code></td>
-<td>Update</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/my-licenses/{id}/</code></td>
-<td>Delete</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/my-licenses/{id}/download/</code></td>
-<td>Download</td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<h4><code>document_name</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Master (Reg. II/2 Par. 1-2)</td>
-</tr>
-<tr>
-<td>Master (Reg. II/2 Par. 1-2) Endorsement</td>
-</tr>
-<tr>
-<td>Master <3,000 GRT (Reg. II/2 Par. 3-4)</td>
-</tr>
-<tr>
-<td>Master <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement</td>
-</tr>
-<tr>
-<td>Master <500 GRT (Reg. II/3 Par. 5-6)</td>
-</tr>
-<tr>
-<td>Master <500 GRT (Reg. II/3 Par. 5-6) Endorsement</td>
-</tr>
-<tr>
-<td>Yachtmaster Coastal</td>
-</tr>
-<tr>
-<td>Chief Officer (Reg. II/2 Par. 1-2)</td>
-</tr>
-<tr>
-<td>Chief Officer (Reg. II/2 Par. 1-2) Endorsement</td>
-</tr>
-<tr>
-<td>Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4)</td>
-</tr>
-<tr>
-<td>Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement</td>
-</tr>
-<tr>
-<td>Navigational Watch Officer (Reg. II/1)</td>
-</tr>
-<tr>
-<td>Navigational Watch Officer (Reg. II/1) Endorsement</td>
-</tr>
-<tr>
-<td>Navigational Watch Officer <500 GRT (II/3 Par. 3-4)</td>
-</tr>
-<tr>
-<td>Chief Engineer (Reg. III/2)</td>
-</tr>
-<tr>
-<td>Chief Engineer (Reg. III/2) Endorsement</td>
-</tr>
-<tr>
-<td>Chief Engineer – Steam (Reg. III/2)</td>
-</tr>
-<tr>
-<td>Chief Engineer – Steam (Reg. III/2) Endorsement</td>
-</tr>
-<tr>
-<td>Chief Engineer <3,000 KW (Reg. III/3)</td>
-</tr>
-<tr>
-<td>2nd Engineer (Reg. III/2)</td>
-</tr>
-<tr>
-<td>2nd Engineer (Reg. III/2) Endorsement</td>
-</tr>
-<tr>
-<td>2nd Engineer – Steam (Reg. III/3)</td>
-</tr>
-<tr>
-<td>2nd Engineer – Steam (Reg. III/3) Endorsement</td>
-</tr>
-<tr>
-<td>2nd Engineer <3,000 KW (Reg. III/3)</td>
-</tr>
-<tr>
-<td>Engineering Watch Officer (Reg. III/1)</td>
-</tr>
-<tr>
-<td>Engineering Watch Officer (Reg. III/1) Endorsement</td>
-</tr>
-<tr>
-<td>Electro Technical Officer (Reg. III/6)</td>
-</tr>
-<tr>
-<td>Electro Technical Officer (Reg. III/6) Endorsement</td>
-</tr>
-<tr>
-<td>Electro Technical Rating (Reg. III/7)</td>
-</tr>
-<tr>
-<td>Able Seaman Deck (Reg. II/5)</td>
-</tr>
-<tr>
-<td>Able Seaman Deck (Reg. II/5) Endorsement</td>
-</tr>
-<tr>
-<td>Able Seaman Engine (Reg. III/5)</td>
-</tr>
-<tr>
-<td>Able Seaman Engine (Reg. III/5) Endorsement</td>
-</tr>
-<tr>
-<td>Qualified Steward/Messman Endorsement</td>
-</tr>
-<tr>
-<td>GMDSS Radio Operator (Reg. IV/2)</td>
-</tr>
-<tr>
-<td>GMDSS Radio Operator (Reg. IV/2) Endorsement</td>
-</tr>
-<tr>
-<td>GMDSS Endorsement (Reg. IV/2) Flag CRA</td>
-</tr>
-<tr>
-<td>GMDSS Restricted Operator (ROC) (Reg. IV/2)</td>
-</tr>
-<tr>
-<td>GMDSS Restricted Operator (ROC) (Reg. IV/2) Endorsement</td>
-</tr>
-<tr>
-<td>GMDSS Restricted Operator (ROC) (Reg. IV/2) CRA</td>
-</tr>
-<tr>
-<td>Qualified Ship’s Cook (MLC 2006)</td>
-</tr>
-<tr>
-<td>Qualified Ship’s Cook (MLC 2006) Endorsement</td>
-</tr>
-<tr>
-<td>Navigational Watch Rating (Reg. II/4)</td>
-</tr>
-<tr>
-<td>Navigational Watch Rating (Reg. II/4) Endorsement</td>
-</tr>
-<tr>
-<td>COC – Certificate of Competency</td>
-</tr>
-<tr>
-<td>COC – Certificate of Competency Endorsement</td>
-</tr>
-<tr>
-<td>GOC – General Operator Certificate</td>
-</tr>
-<tr>
-<td>GOC – General Operator Certificate Endorsement</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{"user": 5, "document_name": "Master (Reg. II/2 Par. 1-2)", "document_number": "COC-9999", "country_of_issue": "Egypt", "issue_date": "2024-01-01", "expiration_date": "2029-01-01", "document_file": "(PDF)"}</code></pre></div>
-<h3>Response Body</h3>
-<div class="code-block"><pre><code>{"id": 1, "user": 5, "document_name": "Master (Reg. II/2 Par. 1-2)", "document_number": "COC-9999", "country_of_issue": "Egypt", "issue_date": "2024-01-01", "expiration_date": "2029-01-01", "document_file": "/media/user_5/licenses/coc.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
-<hr>
-<h2 id="personal-documents">Personal Documents</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/personal-documents/?user={id}</code></td>
-<td>List</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/personal-documents/</code></td>
-<td>Create</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/personal-documents/{id}/</code></td>
-<td>Update</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/users/personal-documents/{id}/</code></td>
-<td>Delete</td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<h4><code>document_type</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Bahamas Seaman's Book</td>
-</tr>
-<tr>
-<td>Belize Seaman's Book</td>
-</tr>
-<tr>
-<td>Bermuda Seaman's Book</td>
-</tr>
-<tr>
-<td>Eu National Id</td>
-</tr>
-<tr>
-<td>Exit Interview</td>
-</tr>
-<tr>
-<td>Liberian Seaman's Book</td>
-</tr>
-<tr>
-<td>Local Id Card</td>
-</tr>
-<tr>
-<td>Luxembourg Seaman's Book</td>
-</tr>
-<tr>
-<td>Palau Seaman's Book</td>
-</tr>
-<tr>
-<td>Panama Seaman's Book</td>
-</tr>
-<tr>
-<td>Passport</td>
-</tr>
-<tr>
-<td>Permesso Soggiorno Permanente</td>
-</tr>
-<tr>
-<td>Permesso Soggiorno Temporaneo</td>
-</tr>
-<tr>
-<td>Personal Record Sheet</td>
-</tr>
-<tr>
-<td>Residence Certificate</td>
-</tr>
-<tr>
-<td>Seafarers' Id. Doc. Ilo 185</td>
-</tr>
-<tr>
-<td>Seaman's Book</td>
-</tr>
-<tr>
-<td>Seaman's Book/Card Or Id</td>
-</tr>
-<tr>
-<td>U.K. Seaman's Book</td>
-</tr>
-</tbody></table></div>
-<p><strong>Accepted files:</strong> PDF, DOCX, DOC, JPG, JPEG, PNG</p>
-<h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{"user": 5, "document_type": "Passport", "document_number": "A12345678", "issue_date": "2022-03-01", "expiry_date": "2029-03-01", "issuing_country": "Egypt", "issued_by": "Ministry of Interior", "place_of_issue": "Cairo", "file": "(file)"}</code></pre></div>
-<h3>Response Body</h3>
-<div class="code-block"><pre><code>{"id": 14, "user": 5, "document_type": "Passport", "document_number": "A12345678", "issue_date": "2022-03-01", "expiry_date": "2029-03-01", "issuing_country": "Egypt", "issued_by": "Ministry of Interior", "place_of_issue": "Cairo", "file": "/media/personal_documents/passport.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
-<hr>
-<h2 id="next-of-kin">Next of Kin</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/next-of-kin/?user={id}</code></td>
-<td>List</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/next-of-kin/</code></td>
-<td>Create</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/next-of-kin/{id}/</code></td>
-<td>Update</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/users/next-of-kin/{id}/</code></td>
-<td>Delete</td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<h4><code>relationship</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Father</td>
-</tr>
-<tr>
-<td>Mother</td>
-</tr>
-<tr>
-<td>Brother</td>
-</tr>
-<tr>
-<td>Sister</td>
-</tr>
-<tr>
-<td>Wife</td>
-</tr>
-<tr>
-<td>Husband</td>
-</tr>
-<tr>
-<td>Son</td>
-</tr>
-<tr>
-<td>Daughter</td>
-</tr>
-<tr>
-<td>Uncle</td>
-</tr>
-<tr>
-<td>Aunt</td>
-</tr>
-<tr>
-<td>Friend</td>
-</tr>
-<tr>
-<td>Other</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{"user": 5, "full_name": "Jane Doe", "relationship": "Wife", "address_country": "Egypt", "phone": "+201098765432", "phone2": "+201555666777", "email": "jane@example.com"}</code></pre></div>
-<h3>Response Body</h3>
-<div class="code-block"><pre><code>{"id": 1, "user": 5, "full_name": "Jane Doe", "relationship": "Wife", "address_country": "Egypt", "phone": "+201098765432", "phone2": "+201555666777", "email": "jane@example.com", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
-<hr>
-<h2 id="languages">Languages</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/user-languages/?user={id}</code></td>
-<td>List</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/user-languages/</code></td>
-<td>Create</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/user-languages/{id}/</code></td>
-<td>Update</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/users/user-languages/{id}/</code></td>
-<td>Delete</td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<h4><code>speaking_level</code> / <code>writing_level</code> / <code>reading_level</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Elementary</td>
-</tr>
-<tr>
-<td>Intermediate</td>
-</tr>
-<tr>
-<td>Advanced</td>
-</tr>
-<tr>
-<td>Native</td>
-</tr>
-</tbody></table></div>
-<h4><code>cefr_level</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>A1</td>
-</tr>
-<tr>
-<td>A2</td>
-</tr>
-<tr>
-<td>B1</td>
-</tr>
-<tr>
-<td>B2</td>
-</tr>
-<tr>
-<td>C1</td>
-</tr>
-<tr>
-<td>C2</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{"user": 5, "language": "English", "general_remarks": "Fluent", "speaking_level": "Advanced", "writing_level": "Advanced", "reading_level": "Native", "cefr_level": "C1", "cefr_description": "Can understand complex texts"}</code></pre></div>
-<h3>Response Body</h3>
-<div class="code-block"><pre><code>{"id": 1, "user": 5, "language": "English", "speaking_level": "Advanced", "writing_level": "Advanced", "reading_level": "Native", "cefr_level": "C1", "attachment": null, "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
-<hr>
-<h2 id="courses">Courses</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/courses/?user={id}</code></td>
-<td>List</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/courses/</code></td>
-<td>Create</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/courses/{id}/</code></td>
-<td>Update</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/courses/{id}/</code></td>
-<td>Delete</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/courses/{id}/download/</code></td>
-<td>Download</td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{"user": 5, "course_name": "Fire Prevention", "course_number": "FPFF-2024", "issue_date": "2024-06-01", "expiry_date": "2029-06-01", "issued_by": "AASTMT", "issued_at": "Alexandria", "country_of_issue": "Egypt", "document": "(file)"}</code></pre></div>
-<h3>Response Body</h3>
-<div class="code-block"><pre><code>{"id": 1, "user": 5, "course_name": "Fire Prevention", "course_number": "FPFF-2024", "issue_date": "2024-06-01", "expiry_date": "2029-06-01", "issued_by": "AASTMT", "issued_at": "Alexandria", "country_of_issue": "Egypt", "document": "/media/course_docs/fire_cert.pdf"}</code></pre></div>
-<hr>
-<h2 id="vaccinations">Vaccinations</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/vaccinations/?user={id}</code></td>
-<td>List</td>
-<td>All authenticated (own records)</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/vaccinations/</code></td>
-<td>Create</td>
-<td>All authenticated (own records)</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/vaccinations/{id}/</code></td>
-<td>Update</td>
-<td>Owner only</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/vaccinations/{id}/</code></td>
-<td>Delete</td>
-<td>Owner only</td>
-</tr>
-</tbody></table></div>
-<h4><code>name</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Quarantine Letter</td>
-</tr>
-<tr>
-<td>Rubella Immunity</td>
-</tr>
-<tr>
-<td>Tessera Sanitaria</td>
-</tr>
-<tr>
-<td>Tuberculosis Laboratory Screen</td>
-</tr>
-<tr>
-<td>Typhoid Vaccination</td>
-</tr>
-<tr>
-<td>Varicella Immunization</td>
-</tr>
-<tr>
-<td>Yellow Fever Immunization</td>
-</tr>
-<tr>
-<td>Chickenpox Immunity Screening</td>
-</tr>
-<tr>
-<td>Color Vision Certificate</td>
-</tr>
-<tr>
-<td>Covid-Sars Vaccination</td>
-</tr>
-<tr>
-<td>Covid Form</td>
-</tr>
-<tr>
-<td>Foodhandler Exams</td>
-</tr>
-<tr>
-<td>Health Questionnaire</td>
-</tr>
-<tr>
-<td>Hepatitis A Immunization</td>
-</tr>
-<tr>
-<td>Hepatitis B Immunization</td>
-</tr>
-<tr>
-<td>Italian Medical Pre-Embark Examination</td>
-</tr>
-<tr>
-<td>Measles Immunity</td>
-</tr>
-<tr>
-<td>Medical Certificate For Seafarers</td>
-</tr>
-<tr>
-<td>Mmr Booster 2</td>
-</tr>
-<tr>
-<td>Mmr Vaccination / Immunization</td>
-</tr>
-<tr>
-<td>Mumps Immunity</td>
-</tr>
-<tr>
-<td>Pertussis Immunization</td>
-</tr>
-</tbody></table></div>
-<p><strong>Accepted files:</strong> PDF only</p>
-<h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{"user": 5, "name": "Yellow Fever Immunization", "number": "YF-9012", "issue_date": "2023-09-01", "expiry_date": "2033-09-01", "issued_by": "Port Health Authority", "issued_at": "Alexandria", "disease": "Yellow Fever", "remarks": "Valid for 10 years", "document": "(PDF)"}</code></pre></div>
-<h3>Response Body</h3>
-<div class="code-block"><pre><code>{"id": 1, "user": 5, "name": "Yellow Fever Immunization", "number": "YF-9012", "issue_date": "2023-09-01", "expiry_date": "2033-09-01", "issued_by": "Port Health Authority", "issued_at": "Alexandria", "disease": "Yellow Fever", "first_date": null, "last_date": null, "remarks": "Valid for 10 years", "document": "/media/vaccinations/yf_cert.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
-<hr>
-<h2 id="documents-cv-quick-apply">Documents (CV / Quick Apply)</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/documents/</code></td>
-<td>List</td>
-<td>Admin, HR Manager (all), Recruiter (view), Employee (own)</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/documents/</code></td>
-<td>Upload CV</td>
-<td><strong>AllowAny</strong> (public)</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/documents/{id}/</code></td>
-<td>Update status</td>
-<td>Admin, HR Manager, Recruiter</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/users/documents/{id}/</code></td>
-<td>Delete</td>
-<td>Admin, HR Manager</td>
-</tr>
-</tbody></table></div>
-<h4><code>position</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Master</td>
-</tr>
-<tr>
-<td>1st. Officer – Chief Off.</td>
-</tr>
-<tr>
-<td>2nd. Officer</td>
-</tr>
-<tr>
-<td>3rd. Officer</td>
-</tr>
-<tr>
-<td>Tug Master</td>
-</tr>
-<tr>
-<td>Boson</td>
-</tr>
-<tr>
-<td>A.B – O.S</td>
-</tr>
-<tr>
-<td>Steward / Galley Boy</td>
-</tr>
-<tr>
-<td>Cook / 2nd. Cook / Ass. Cook / Baker / Pastry</td>
-</tr>
-<tr>
-<td>Carpenter</td>
-</tr>
-<tr>
-<td>Waiter</td>
-</tr>
-<tr>
-<td>Purser</td>
-</tr>
-<tr>
-<td>Doctor</td>
-</tr>
-<tr>
-<td>1st. Engineer</td>
-</tr>
-<tr>
-<td>2nd. Engineer</td>
-</tr>
-<tr>
-<td>3rd. Engineer</td>
-</tr>
-<tr>
-<td>Electrical Engineer – E/E – ETO</td>
-</tr>
-<tr>
-<td>Assistant Electrician</td>
-</tr>
-<tr>
-<td>4th. Engineer</td>
-</tr>
-<tr>
-<td>Electrician</td>
-</tr>
-<tr>
-<td>Motor Man / Mechanic</td>
-</tr>
-<tr>
-<td>Oiler</td>
-</tr>
-<tr>
-<td>Fitter – Welder</td>
-</tr>
-<tr>
-<td>Wiper</td>
-</tr>
-<tr>
-<td>Other</td>
-</tr>
-</tbody></table></div>
-<h4><code>status</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Pending</td>
-</tr>
-<tr>
-<td>Active</td>
-</tr>
-<tr>
-<td>Blacklist</td>
-</tr>
-</tbody></table></div>
-<p><strong>Accepted files:</strong> PDF, DOCX</p>
-<h3>Request Body — POST (`multipart/form-data`)</h3>
-<div class="code-block"><pre><code>{"name": "John Doe", "email": "john@example.com", "phone_number": "+201234567890", "position": "1st. Engineer", "file": "(PDF or DOCX)"}</code></pre></div>
-<h3>Response Body</h3>
-<div class="code-block"><pre><code>{"id": 1, "user": 33, "title": "cv_john.pdf", "file": "/media/documents/cv_john.pdf", "name": "John Doe", "email": "john@example.com", "phone_number": "+201234567890", "position": "1st. Engineer", "status": "Pending", "generated_id": null, "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre></div>
-<hr>
-<h2 id="declarations">Declarations</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/declarations/</code></td>
-<td>List</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/declarations/</code></td>
-<td>Create</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/declarations/{id}/</code></td>
-<td>Update</td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{"user": 5, "has_disease": false, "disease_details": "", "has_accident": false, "has_psychiatric_treatment": false, "has_addiction": false, "consent_given": true, "declaration_place": "Alexandria", "declaration_date": "2026-03-10", "signature": "John Doe"}</code></pre></div>
-<hr>
-<h2 id="companies">Companies</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/companies/</code></td>
-<td>List</td>
-<td>All authenticated (read-only for Employee)</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/companies/</code></td>
-<td>Create</td>
-<td>Admin only</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/companies/{id}/</code></td>
-<td>Get</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/companies/{id}/</code></td>
-<td>Update</td>
-<td>Admin, HR Manager, Recruiter</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/companies/{id}/</code></td>
-<td>Delete</td>
-<td>Admin only</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/companies/stats/</code></td>
-<td>Stats</td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<h4><code>company_type</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Shipping Manning Companies</td>
-</tr>
-<tr>
-<td>Cargo Manning Companies</td>
-</tr>
-<tr>
-<td>Cruise & Hospitality Manning Companies</td>
-</tr>
-<tr>
-<td>Offshore & Oil/Gas Manning Companies</td>
-</tr>
-<tr>
-<td>Fishing Fleet Manning Companies</td>
-</tr>
-<tr>
-<td>General Crew Manning Companies</td>
-</tr>
-<tr>
-<td>Specialized Marine Manning Companies</td>
-</tr>
-<tr>
-<td>Temporary / Contract Manning Agencies</td>
-</tr>
-<tr>
-<td>Full Crew Management Companies</td>
-</tr>
-<tr>
-<td>Other</td>
-</tr>
-</tbody></table></div>
-<h4><code>status</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Active</td>
-</tr>
-<tr>
-<td>Inactive</td>
-</tr>
-<tr>
-<td>Prospect</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{"company_name": "Maersk Line", "company_type": "Shipping Manning Companies", "open_positions": 5, "status": "Active", "contact_email": "hr@maersk.com", "hourly_rate": 50.00}</code></pre></div>
-<hr>
-<h2 id="ships">Ships</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/ships/</code></td>
-<td>List</td>
-<td>All authenticated (read-only)</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/ships/</code></td>
-<td>Create</td>
-<td>Admin, Ship Manager</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/ships/{id}/</code></td>
-<td>Get</td>
-<td>All authenticated (read-only)</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/ships/{id}/</code></td>
-<td>Update</td>
-<td>Admin, Ship Manager</td>
-</tr>
-<tr>
-<td>DELETE</td>
-<td><code>/api/ships/{id}/</code></td>
-<td>Delete</td>
-<td>Admin, Ship Manager</td>
-</tr>
-</tbody></table></div>
-<h4><code>status</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Active</td>
-</tr>
-<tr>
-<td>Under Maintenance</td>
-</tr>
-<tr>
-<td>Inactive</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{"ship_name": "MV Explorer", "imo_number": "9876543", "company": 1, "ship_type": 1, "flag": 1, "gross_tonnage": 42000, "deadweight": 75000, "year_built": 2015, "engine_type": "MAN B&amp;W", "engine_power_kw": 11190, "status": "Active"}</code></pre></div>
-<hr>
-<h2 id="contracts">Contracts</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/contracts/</code></td>
-<td>List</td>
-<td>Admin, HR Manager (all), Recruiter/Employee (own, read-only)</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/contracts/</code></td>
-<td>Create</td>
-<td>Admin, HR Manager</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/contracts/{id}/</code></td>
-<td>Update</td>
-<td>Admin, HR Manager</td>
-</tr>
-</tbody></table></div>
-<h4><code>status</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Pending</td>
-</tr>
-<tr>
-<td>Active</td>
-</tr>
-<tr>
-<td>Completed</td>
-</tr>
-<tr>
-<td>Cancelled</td>
-</tr>
-</tbody></table></div>
-<h4><code>currency</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-<th>Label</th>
-</tr></thead><tbody>
-<tr>
-<td>USD</td>
-<td>US Dollar</td>
-</tr>
-<tr>
-<td>EUR</td>
-<td>Euro</td>
-</tr>
-<tr>
-<td>GBP</td>
-<td>British Pound</td>
-</tr>
-<tr>
-<td>EGP</td>
-<td>Egyptian Pound</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{"user": 5, "ship": 1, "company": 1, "rank": 1, "sign_on_date": "2024-03-01", "sign_off_date": "2024-09-15", "salary": 3500.00, "currency": "USD", "status": "Active"}</code></pre></div>
-<hr>
-<h2 id="interviews">Interviews</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/interviews/</code></td>
-<td>List</td>
-<td>Admin, HR Manager, Recruiter (all), Employee (own, read-only)</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/users/interviews/</code></td>
-<td>Create</td>
-<td>Admin, HR Manager, Recruiter</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/users/interviews/{id}/</code></td>
-<td>Update</td>
-<td>Admin, HR Manager, Recruiter</td>
-</tr>
-</tbody></table></div>
-<h4><code>interview_type</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Phone</td>
-</tr>
-<tr>
-<td>Video</td>
-</tr>
-<tr>
-<td>In-Person</td>
-</tr>
-<tr>
-<td>Technical</td>
-</tr>
-</tbody></table></div>
-<h4><code>status</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Scheduled</td>
-</tr>
-<tr>
-<td>Completed</td>
-</tr>
-<tr>
-<td>Cancelled</td>
-</tr>
-<tr>
-<td>Rescheduled</td>
-</tr>
-<tr>
-<td>No Show</td>
-</tr>
-</tbody></table></div>
-<h4><code>result</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-</tr></thead><tbody>
-<tr>
-<td>Pending</td>
-</tr>
-<tr>
-<td>Passed</td>
-</tr>
-<tr>
-<td>Failed</td>
-</tr>
-<tr>
-<td>On Hold</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{"candidate": 5, "company": 1, "position": 1, "scheduled_date": "2026-04-01", "scheduled_time": "10:00", "duration_minutes": 30, "interview_type": "Video", "meeting_link": "https://zoom.us/j/123456", "status": "Scheduled", "result": "Pending"}</code></pre></div>
-<hr>
-<h2 id="lookup-endpoints">Lookup Endpoints</h2>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Returns</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/users/positions/</code></td>
-<td>Position choices <code>[{"value": "...", "label": "..."}]</code></td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/users/flags/</code></td>
-<td>Country flags <code>[{"value": "...", "label": "..."}]</code></td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/users/coc-choices/</code></td>
-<td>COC choices <code>[{"value": "...", "label": "..."}]</code></td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/core/flags/</code></td>
-<td>Flags <code>[{"id": 1, "name": "Egypt"}]</code></td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/core/vessel-types/</code></td>
-<td>Vessel types <code>[{"id": 1, "name": "Bulk Carrier"}]</code></td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/users/ranks/</code></td>
-<td>Ranks <code>[{"id": 1, "code": "MAS", "name": "Master"}]</code></td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>GET</td>
-<td><code>/api/users/certificates/</code></td>
-<td>Certificates <code>[{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}]</code></td>
-<td>All authenticated</td>
-</tr>
-</tbody></table></div>
-<hr>
-<h2 id="job-orders">Job Orders</h2>
-<h3>Endpoints</h3>
-<div class="table-wrapper"><table><thead><tr>
-<th>Method</th>
-<th>URL</th>
-<th>Description</th>
-<th>Permission</th>
-</tr></thead><tbody>
-<tr>
-<td>GET</td>
-<td><code>/api/companies/job-orders/</code></td>
-<td>List</td>
-<td>All authenticated</td>
-</tr>
-<tr>
-<td>POST</td>
-<td><code>/api/companies/job-orders/</code></td>
-<td>Create</td>
-<td>Admin, HR Manager</td>
-</tr>
-<tr>
-<td>PATCH</td>
-<td><code>/api/companies/job-orders/{id}/</code></td>
-<td>Update</td>
-<td>Admin, HR Manager</td>
-</tr>
-</tbody></table></div>
-<h4><code>status</code> choices:</h4>
-<div class="table-wrapper"><table><thead><tr>
-<th>Value</th>
-<th>Label</th>
-</tr></thead><tbody>
-<tr>
-<td>Pending</td>
-<td>Pending Review</td>
-</tr>
-<tr>
-<td>Open</td>
-<td>Open / Sourcing</td>
-</tr>
-<tr>
-<td>In Progress</td>
-<td>In Progress / Interviewing</td>
-</tr>
-<tr>
-<td>Fulfilled</td>
-<td>Fulfilled</td>
-</tr>
-<tr>
-<td>Cancelled</td>
-<td>Cancelled</td>
-</tr>
-</tbody></table></div>
-<h3>Request Body — POST</h3>
-<div class="code-block"><pre><code>{"company": 1, "ship": 1, "reference_number": "JO-2024-001", "request_date": "2024-01-15", "target_joining_date": "2024-03-01", "status": "Open"}</code></pre></div></div><script>document.getElementById("search").addEventListener("input",function(e){var q=e.target.value.toLowerCase();document.querySelectorAll("h1,h2,h3,h4,p,li,tr,.code-block,blockquote").forEach(function(el){if(el.tagName==="TR"&&el.closest("thead"))return;el.style.display=el.textContent.toLowerCase().includes(q)||!q?"":"none"})});</script></body></html>
+}</code></pre>
+    </div>
+    <hr>
+    <h2 id="professional-qualifications-licenses">Professional Qualifications / Licenses</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/my-licenses/?user={id}</code></td>
+            <td>List</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/my-licenses/</code></td>
+            <td>Create</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/my-licenses/{id}/</code></td>
+            <td>Update</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/my-licenses/{id}/</code></td>
+            <td>Delete</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/my-licenses/{id}/download/</code></td>
+            <td>Download</td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>document_name</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Master (Reg. II/2 Par. 1-2)</td>
+          </tr>
+          <tr>
+            <td>Master (Reg. II/2 Par. 1-2) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Master <3,000 GRT (Reg. II/2 Par. 3-4)</td>
+          </tr>
+          <tr>
+            <td>Master <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Master <500 GRT (Reg. II/3 Par. 5-6)</td>
+          </tr>
+          <tr>
+            <td>Master <500 GRT (Reg. II/3 Par. 5-6) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Yachtmaster Coastal</td>
+          </tr>
+          <tr>
+            <td>Chief Officer (Reg. II/2 Par. 1-2)</td>
+          </tr>
+          <tr>
+            <td>Chief Officer (Reg. II/2 Par. 1-2) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4)</td>
+          </tr>
+          <tr>
+            <td>Chief Officer <3,000 GRT (Reg. II/2 Par. 3-4) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Navigational Watch Officer (Reg. II/1)</td>
+          </tr>
+          <tr>
+            <td>Navigational Watch Officer (Reg. II/1) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Navigational Watch Officer <500 GRT (II/3 Par. 3-4)</td>
+          </tr>
+          <tr>
+            <td>Chief Engineer (Reg. III/2)</td>
+          </tr>
+          <tr>
+            <td>Chief Engineer (Reg. III/2) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Chief Engineer – Steam (Reg. III/2)</td>
+          </tr>
+          <tr>
+            <td>Chief Engineer – Steam (Reg. III/2) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Chief Engineer <3,000 KW (Reg. III/3)</td>
+          </tr>
+          <tr>
+            <td>2nd Engineer (Reg. III/2)</td>
+          </tr>
+          <tr>
+            <td>2nd Engineer (Reg. III/2) Endorsement</td>
+          </tr>
+          <tr>
+            <td>2nd Engineer – Steam (Reg. III/3)</td>
+          </tr>
+          <tr>
+            <td>2nd Engineer – Steam (Reg. III/3) Endorsement</td>
+          </tr>
+          <tr>
+            <td>2nd Engineer <3,000 KW (Reg. III/3)</td>
+          </tr>
+          <tr>
+            <td>Engineering Watch Officer (Reg. III/1)</td>
+          </tr>
+          <tr>
+            <td>Engineering Watch Officer (Reg. III/1) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Electro Technical Officer (Reg. III/6)</td>
+          </tr>
+          <tr>
+            <td>Electro Technical Officer (Reg. III/6) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Electro Technical Rating (Reg. III/7)</td>
+          </tr>
+          <tr>
+            <td>Able Seaman Deck (Reg. II/5)</td>
+          </tr>
+          <tr>
+            <td>Able Seaman Deck (Reg. II/5) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Able Seaman Engine (Reg. III/5)</td>
+          </tr>
+          <tr>
+            <td>Able Seaman Engine (Reg. III/5) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Qualified Steward/Messman Endorsement</td>
+          </tr>
+          <tr>
+            <td>GMDSS Radio Operator (Reg. IV/2)</td>
+          </tr>
+          <tr>
+            <td>GMDSS Radio Operator (Reg. IV/2) Endorsement</td>
+          </tr>
+          <tr>
+            <td>GMDSS Endorsement (Reg. IV/2) Flag CRA</td>
+          </tr>
+          <tr>
+            <td>GMDSS Restricted Operator (ROC) (Reg. IV/2)</td>
+          </tr>
+          <tr>
+            <td>GMDSS Restricted Operator (ROC) (Reg. IV/2) Endorsement</td>
+          </tr>
+          <tr>
+            <td>GMDSS Restricted Operator (ROC) (Reg. IV/2) CRA</td>
+          </tr>
+          <tr>
+            <td>Qualified Ship’s Cook (MLC 2006)</td>
+          </tr>
+          <tr>
+            <td>Qualified Ship’s Cook (MLC 2006) Endorsement</td>
+          </tr>
+          <tr>
+            <td>Navigational Watch Rating (Reg. II/4)</td>
+          </tr>
+          <tr>
+            <td>Navigational Watch Rating (Reg. II/4) Endorsement</td>
+          </tr>
+          <tr>
+            <td>COC – Certificate of Competency</td>
+          </tr>
+          <tr>
+            <td>COC – Certificate of Competency Endorsement</td>
+          </tr>
+          <tr>
+            <td>GOC – General Operator Certificate</td>
+          </tr>
+          <tr>
+            <td>GOC – General Operator Certificate Endorsement</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST (`multipart/form-data`)</h3>
+    <div class="code-block">
+      <pre><code>{"user": 5, "document_name": "Master (Reg. II/2 Par. 1-2)", "document_number": "COC-9999", "country_of_issue": "Egypt", "issue_date": "2024-01-01", "expiration_date": "2029-01-01", "document_file": "(PDF)"}</code></pre>
+    </div>
+    <h3>Response Body</h3>
+    <div class="code-block">
+      <pre><code>{"id": 1, "user": 5, "document_name": "Master (Reg. II/2 Par. 1-2)", "document_number": "COC-9999", "country_of_issue": "Egypt", "issue_date": "2024-01-01", "expiration_date": "2029-01-01", "document_file": "/media/user_5/licenses/coc.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="personal-documents">Personal Documents</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/personal-documents/?user={id}</code></td>
+            <td>List</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/personal-documents/</code></td>
+            <td>Create</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/personal-documents/{id}/</code></td>
+            <td>Update</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/users/personal-documents/{id}/</code></td>
+            <td>Delete</td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>document_type</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bahamas Seaman's Book</td>
+          </tr>
+          <tr>
+            <td>Belize Seaman's Book</td>
+          </tr>
+          <tr>
+            <td>Bermuda Seaman's Book</td>
+          </tr>
+          <tr>
+            <td>Eu National Id</td>
+          </tr>
+          <tr>
+            <td>Exit Interview</td>
+          </tr>
+          <tr>
+            <td>Liberian Seaman's Book</td>
+          </tr>
+          <tr>
+            <td>Local Id Card</td>
+          </tr>
+          <tr>
+            <td>Luxembourg Seaman's Book</td>
+          </tr>
+          <tr>
+            <td>Palau Seaman's Book</td>
+          </tr>
+          <tr>
+            <td>Panama Seaman's Book</td>
+          </tr>
+          <tr>
+            <td>Passport</td>
+          </tr>
+          <tr>
+            <td>Permesso Soggiorno Permanente</td>
+          </tr>
+          <tr>
+            <td>Permesso Soggiorno Temporaneo</td>
+          </tr>
+          <tr>
+            <td>Personal Record Sheet</td>
+          </tr>
+          <tr>
+            <td>Residence Certificate</td>
+          </tr>
+          <tr>
+            <td>Seafarers' Id. Doc. Ilo 185</td>
+          </tr>
+          <tr>
+            <td>Seaman's Book</td>
+          </tr>
+          <tr>
+            <td>Seaman's Book/Card Or Id</td>
+          </tr>
+          <tr>
+            <td>U.K. Seaman's Book</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Accepted files:</strong> PDF, DOCX, DOC, JPG, JPEG, PNG</p>
+    <h3>Request Body — POST (`multipart/form-data`)</h3>
+    <div class="code-block">
+      <pre><code>{"user": 5, "document_type": "Passport", "document_number": "A12345678", "issue_date": "2022-03-01", "expiry_date": "2029-03-01", "issuing_country": "Egypt", "issued_by": "Ministry of Interior", "place_of_issue": "Cairo", "file": "(file)"}</code></pre>
+    </div>
+    <h3>Response Body</h3>
+    <div class="code-block">
+      <pre><code>{"id": 14, "user": 5, "document_type": "Passport", "document_number": "A12345678", "issue_date": "2022-03-01", "expiry_date": "2029-03-01", "issuing_country": "Egypt", "issued_by": "Ministry of Interior", "place_of_issue": "Cairo", "file": "/media/personal_documents/passport.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="next-of-kin">Next of Kin</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/next-of-kin/?user={id}</code></td>
+            <td>List</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/next-of-kin/</code></td>
+            <td>Create</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/next-of-kin/{id}/</code></td>
+            <td>Update</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/users/next-of-kin/{id}/</code></td>
+            <td>Delete</td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>relationship</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Father</td>
+          </tr>
+          <tr>
+            <td>Mother</td>
+          </tr>
+          <tr>
+            <td>Brother</td>
+          </tr>
+          <tr>
+            <td>Sister</td>
+          </tr>
+          <tr>
+            <td>Wife</td>
+          </tr>
+          <tr>
+            <td>Husband</td>
+          </tr>
+          <tr>
+            <td>Son</td>
+          </tr>
+          <tr>
+            <td>Daughter</td>
+          </tr>
+          <tr>
+            <td>Uncle</td>
+          </tr>
+          <tr>
+            <td>Aunt</td>
+          </tr>
+          <tr>
+            <td>Friend</td>
+          </tr>
+          <tr>
+            <td>Other</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST</h3>
+    <div class="code-block">
+      <pre><code>{"user": 5, "full_name": "Jane Doe", "relationship": "Wife", "address_country": "Egypt", "phone": "+201098765432", "phone2": "+201555666777", "email": "jane@example.com"}</code></pre>
+    </div>
+    <h3>Response Body</h3>
+    <div class="code-block">
+      <pre><code>{"id": 1, "user": 5, "full_name": "Jane Doe", "relationship": "Wife", "address_country": "Egypt", "phone": "+201098765432", "phone2": "+201555666777", "email": "jane@example.com", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="languages">Languages</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/user-languages/?user={id}</code></td>
+            <td>List</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/user-languages/</code></td>
+            <td>Create</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/user-languages/{id}/</code></td>
+            <td>Update</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/users/user-languages/{id}/</code></td>
+            <td>Delete</td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>speaking_level</code> / <code>writing_level</code> / <code>reading_level</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Elementary</td>
+          </tr>
+          <tr>
+            <td>Intermediate</td>
+          </tr>
+          <tr>
+            <td>Advanced</td>
+          </tr>
+          <tr>
+            <td>Native</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>cefr_level</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A1</td>
+          </tr>
+          <tr>
+            <td>A2</td>
+          </tr>
+          <tr>
+            <td>B1</td>
+          </tr>
+          <tr>
+            <td>B2</td>
+          </tr>
+          <tr>
+            <td>C1</td>
+          </tr>
+          <tr>
+            <td>C2</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST</h3>
+    <div class="code-block">
+      <pre><code>{"user": 5, "language": "English", "general_remarks": "Fluent", "speaking_level": "Advanced", "writing_level": "Advanced", "reading_level": "Native", "cefr_level": "C1", "cefr_description": "Can understand complex texts"}</code></pre>
+    </div>
+    <h3>Response Body</h3>
+    <div class="code-block">
+      <pre><code>{"id": 1, "user": 5, "language": "English", "speaking_level": "Advanced", "writing_level": "Advanced", "reading_level": "Native", "cefr_level": "C1", "attachment": null, "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="courses">Courses</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/courses/?user={id}</code></td>
+            <td>List</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/courses/</code></td>
+            <td>Create</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/courses/{id}/</code></td>
+            <td>Update</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/courses/{id}/</code></td>
+            <td>Delete</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/courses/{id}/download/</code></td>
+            <td>Download</td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST (`multipart/form-data`)</h3>
+    <div class="code-block">
+      <pre><code>{"user": 5, "course_name": "Fire Prevention", "course_number": "FPFF-2024", "issue_date": "2024-06-01", "expiry_date": "2029-06-01", "issued_by": "AASTMT", "issued_at": "Alexandria", "country_of_issue": "Egypt", "document": "(file)"}</code></pre>
+    </div>
+    <h3>Response Body</h3>
+    <div class="code-block">
+      <pre><code>{"id": 1, "user": 5, "course_name": "Fire Prevention", "course_number": "FPFF-2024", "issue_date": "2024-06-01", "expiry_date": "2029-06-01", "issued_by": "AASTMT", "issued_at": "Alexandria", "country_of_issue": "Egypt", "document": "/media/course_docs/fire_cert.pdf"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="vaccinations">Vaccinations</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/vaccinations/?user={id}</code></td>
+            <td>List</td>
+            <td>All authenticated (own records)</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/vaccinations/</code></td>
+            <td>Create</td>
+            <td>All authenticated (own records)</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/vaccinations/{id}/</code></td>
+            <td>Update</td>
+            <td>All authenticated (own records)</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/vaccinations/{id}/</code></td>
+            <td>Delete</td>
+            <td>All authenticated (own records)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>name</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Quarantine Letter</td>
+          </tr>
+          <tr>
+            <td>Rubella Immunity</td>
+          </tr>
+          <tr>
+            <td>Tessera Sanitaria</td>
+          </tr>
+          <tr>
+            <td>Tuberculosis Laboratory Screen</td>
+          </tr>
+          <tr>
+            <td>Typhoid Vaccination</td>
+          </tr>
+          <tr>
+            <td>Varicella Immunization</td>
+          </tr>
+          <tr>
+            <td>Yellow Fever Immunization</td>
+          </tr>
+          <tr>
+            <td>Chickenpox Immunity Screening</td>
+          </tr>
+          <tr>
+            <td>Color Vision Certificate</td>
+          </tr>
+          <tr>
+            <td>Covid-Sars Vaccination</td>
+          </tr>
+          <tr>
+            <td>Covid Form</td>
+          </tr>
+          <tr>
+            <td>Foodhandler Exams</td>
+          </tr>
+          <tr>
+            <td>Health Questionnaire</td>
+          </tr>
+          <tr>
+            <td>Hepatitis A Immunization</td>
+          </tr>
+          <tr>
+            <td>Hepatitis B Immunization</td>
+          </tr>
+          <tr>
+            <td>Italian Medical Pre-Embark Examination</td>
+          </tr>
+          <tr>
+            <td>Measles Immunity</td>
+          </tr>
+          <tr>
+            <td>Medical Certificate For Seafarers</td>
+          </tr>
+          <tr>
+            <td>Mmr Booster 2</td>
+          </tr>
+          <tr>
+            <td>Mmr Vaccination / Immunization</td>
+          </tr>
+          <tr>
+            <td>Mumps Immunity</td>
+          </tr>
+          <tr>
+            <td>Pertussis Immunization</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Accepted files:</strong> PDF only</p>
+    <h3>Request Body — POST (`multipart/form-data`)</h3>
+    <div class="code-block">
+      <pre><code>{"user": 5, "name": "Yellow Fever Immunization", "number": "YF-9012", "issue_date": "2023-09-01", "expiry_date": "2033-09-01", "issued_by": "Port Health Authority", "issued_at": "Alexandria", "disease": "Yellow Fever", "remarks": "Valid for 10 years", "document": "(PDF)"}</code></pre>
+    </div>
+    <h3>Response Body</h3>
+    <div class="code-block">
+      <pre><code>{"id": 1, "user": 5, "name": "Yellow Fever Immunization", "number": "YF-9012", "issue_date": "2023-09-01", "expiry_date": "2033-09-01", "issued_by": "Port Health Authority", "issued_at": "Alexandria", "disease": "Yellow Fever", "first_date": null, "last_date": null, "remarks": "Valid for 10 years", "document": "/media/vaccinations/yf_cert.pdf", "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="documents-cv-quick-apply">Documents (CV / Quick Apply)</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/documents/</code></td>
+            <td>List</td>
+            <td>Admin, HR Manager (all), Recruiter (view), Employee (own)</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/documents/</code></td>
+            <td>Upload CV</td>
+            <td><strong>AllowAny</strong> (public)</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/documents/{id}/</code></td>
+            <td>Update status</td>
+            <td>Admin, HR Manager, Recruiter</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/users/documents/{id}/</code></td>
+            <td>Delete</td>
+            <td>Admin, HR Manager</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>position</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Master</td>
+          </tr>
+          <tr>
+            <td>1st. Officer – Chief Off.</td>
+          </tr>
+          <tr>
+            <td>2nd. Officer</td>
+          </tr>
+          <tr>
+            <td>3rd. Officer</td>
+          </tr>
+          <tr>
+            <td>Tug Master</td>
+          </tr>
+          <tr>
+            <td>Boson</td>
+          </tr>
+          <tr>
+            <td>A.B – O.S</td>
+          </tr>
+          <tr>
+            <td>Steward / Galley Boy</td>
+          </tr>
+          <tr>
+            <td>Cook / 2nd. Cook / Ass. Cook / Baker / Pastry</td>
+          </tr>
+          <tr>
+            <td>Carpenter</td>
+          </tr>
+          <tr>
+            <td>Waiter</td>
+          </tr>
+          <tr>
+            <td>Purser</td>
+          </tr>
+          <tr>
+            <td>Doctor</td>
+          </tr>
+          <tr>
+            <td>1st. Engineer</td>
+          </tr>
+          <tr>
+            <td>2nd. Engineer</td>
+          </tr>
+          <tr>
+            <td>3rd. Engineer</td>
+          </tr>
+          <tr>
+            <td>Electrical Engineer – E/E – ETO</td>
+          </tr>
+          <tr>
+            <td>Assistant Electrician</td>
+          </tr>
+          <tr>
+            <td>4th. Engineer</td>
+          </tr>
+          <tr>
+            <td>Electrician</td>
+          </tr>
+          <tr>
+            <td>Motor Man / Mechanic</td>
+          </tr>
+          <tr>
+            <td>Oiler</td>
+          </tr>
+          <tr>
+            <td>Fitter – Welder</td>
+          </tr>
+          <tr>
+            <td>Wiper</td>
+          </tr>
+          <tr>
+            <td>Other</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>status</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pending</td>
+          </tr>
+          <tr>
+            <td>Active</td>
+          </tr>
+          <tr>
+            <td>Blacklist</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Accepted files:</strong> PDF, DOCX</p>
+    <h3>Request Body — POST (`multipart/form-data`)</h3>
+    <div class="code-block">
+      <pre><code>{"name": "John Doe", "email": "john@example.com", "phone_number": "+201234567890", "position": "1st. Engineer", "file": "(PDF or DOCX)"}</code></pre>
+    </div>
+    <h3>Response Body</h3>
+    <div class="code-block">
+      <pre><code>{"id": 1, "user": 33, "title": "cv_john.pdf", "file": "/media/documents/cv_john.pdf", "name": "John Doe", "email": "john@example.com", "phone_number": "+201234567890", "position": "1st. Engineer", "status": "Pending", "generated_id": null, "created_at": "2026-03-10T00:00:00Z", "updated_at": "2026-03-10T00:00:00Z"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="declarations">Declarations</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/declarations/</code></td>
+            <td>List</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/declarations/</code></td>
+            <td>Create</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/declarations/{id}/</code></td>
+            <td>Update</td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST</h3>
+    <div class="code-block">
+      <pre><code>{"user": 5, "has_disease": false, "disease_details": "", "has_accident": false, "has_psychiatric_treatment": false, "has_addiction": false, "consent_given": true, "declaration_place": "Alexandria", "declaration_date": "2026-03-10", "signature": "John Doe"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="companies">Companies</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/companies/</code></td>
+            <td>List</td>
+            <td>All authenticated (read-only for Employee)</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/companies/</code></td>
+            <td>Create</td>
+            <td>Admin only</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/companies/{id}/</code></td>
+            <td>Get</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/companies/{id}/</code></td>
+            <td>Update</td>
+            <td>Admin, HR Manager, Recruiter</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/companies/{id}/</code></td>
+            <td>Delete</td>
+            <td>Admin only</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/companies/stats/</code></td>
+            <td>Stats</td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>company_type</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Shipping Manning Companies</td>
+          </tr>
+          <tr>
+            <td>Cargo Manning Companies</td>
+          </tr>
+          <tr>
+            <td>Cruise & Hospitality Manning Companies</td>
+          </tr>
+          <tr>
+            <td>Offshore & Oil/Gas Manning Companies</td>
+          </tr>
+          <tr>
+            <td>Fishing Fleet Manning Companies</td>
+          </tr>
+          <tr>
+            <td>General Crew Manning Companies</td>
+          </tr>
+          <tr>
+            <td>Specialized Marine Manning Companies</td>
+          </tr>
+          <tr>
+            <td>Temporary / Contract Manning Agencies</td>
+          </tr>
+          <tr>
+            <td>Full Crew Management Companies</td>
+          </tr>
+          <tr>
+            <td>Other</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>status</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Active</td>
+          </tr>
+          <tr>
+            <td>Inactive</td>
+          </tr>
+          <tr>
+            <td>Prospect</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST</h3>
+    <div class="code-block">
+      <pre><code>{"company_name": "Maersk Line", "company_type": "Shipping Manning Companies", "open_positions": 5, "status": "Active", "contact_email": "hr@maersk.com", "hourly_rate": 50.00}</code></pre>
+    </div>
+    <hr>
+    <h2 id="ships">Ships</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/ships/</code></td>
+            <td>List</td>
+            <td>All authenticated (read-only)</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/ships/</code></td>
+            <td>Create</td>
+            <td>Admin, Ship Manager</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/ships/{id}/</code></td>
+            <td>Get</td>
+            <td>All authenticated (read-only)</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/ships/{id}/</code></td>
+            <td>Update</td>
+            <td>Admin, Ship Manager</td>
+          </tr>
+          <tr>
+            <td>DELETE</td>
+            <td><code>/api/ships/{id}/</code></td>
+            <td>Delete</td>
+            <td>Admin, Ship Manager</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>status</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Active</td>
+          </tr>
+          <tr>
+            <td>Under Maintenance</td>
+          </tr>
+          <tr>
+            <td>Inactive</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST</h3>
+    <div class="code-block">
+      <pre><code>{"ship_name": "MV Explorer", "imo_number": "9876543", "company": 1, "ship_type": 1, "flag": 1, "gross_tonnage": 42000, "deadweight": 75000, "year_built": 2015, "engine_type": "MAN B&amp;W", "engine_power_kw": 11190, "status": "Active"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="contracts">Contracts</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/contracts/</code></td>
+            <td>List</td>
+            <td>Admin, HR Manager (all), Recruiter/Employee (own, read-only)</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/contracts/</code></td>
+            <td>Create</td>
+            <td>Admin, HR Manager</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/contracts/{id}/</code></td>
+            <td>Update</td>
+            <td>Admin, HR Manager</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>status</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pending</td>
+          </tr>
+          <tr>
+            <td>Active</td>
+          </tr>
+          <tr>
+            <td>Completed</td>
+          </tr>
+          <tr>
+            <td>Cancelled</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>currency</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+            <th>Label</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>USD</td>
+            <td>US Dollar</td>
+          </tr>
+          <tr>
+            <td>EUR</td>
+            <td>Euro</td>
+          </tr>
+          <tr>
+            <td>GBP</td>
+            <td>British Pound</td>
+          </tr>
+          <tr>
+            <td>EGP</td>
+            <td>Egyptian Pound</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST</h3>
+    <div class="code-block">
+      <pre><code>{"user": 5, "ship": 1, "company": 1, "rank": 1, "sign_on_date": "2024-03-01", "sign_off_date": "2024-09-15", "salary": 3500.00, "currency": "USD", "status": "Active"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="interviews">Interviews</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/interviews/</code></td>
+            <td>List</td>
+            <td>Admin, HR Manager, Recruiter (all), Employee (own, read-only)</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/users/interviews/</code></td>
+            <td>Create</td>
+            <td>Admin, HR Manager, Recruiter</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/users/interviews/{id}/</code></td>
+            <td>Update</td>
+            <td>Admin, HR Manager, Recruiter</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>interview_type</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Phone</td>
+          </tr>
+          <tr>
+            <td>Video</td>
+          </tr>
+          <tr>
+            <td>In-Person</td>
+          </tr>
+          <tr>
+            <td>Technical</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>status</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Scheduled</td>
+          </tr>
+          <tr>
+            <td>Completed</td>
+          </tr>
+          <tr>
+            <td>Cancelled</td>
+          </tr>
+          <tr>
+            <td>Rescheduled</td>
+          </tr>
+          <tr>
+            <td>No Show</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>result</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pending</td>
+          </tr>
+          <tr>
+            <td>Passed</td>
+          </tr>
+          <tr>
+            <td>Failed</td>
+          </tr>
+          <tr>
+            <td>On Hold</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST</h3>
+    <div class="code-block">
+      <pre><code>{"candidate": 5, "company": 1, "position": 1, "scheduled_date": "2026-04-01", "scheduled_time": "10:00", "duration_minutes": 30, "interview_type": "Video", "meeting_link": "https://zoom.us/j/123456", "status": "Scheduled", "result": "Pending"}</code></pre>
+    </div>
+    <hr>
+    <h2 id="lookup-endpoints">Lookup Endpoints</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Returns</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/positions/</code></td>
+            <td>Position choices <code>[{"value": "...", "label": "..."}]</code></td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/flags/</code></td>
+            <td>Country flags <code>[{"value": "...", "label": "..."}]</code></td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/coc-choices/</code></td>
+            <td>COC choices <code>[{"value": "...", "label": "..."}]</code></td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/core/flags/</code></td>
+            <td>Flags <code>[{"id": 1, "name": "Egypt"}]</code></td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/core/vessel-types/</code></td>
+            <td>Vessel types <code>[{"id": 1, "name": "Bulk Carrier"}]</code></td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/ranks/</code></td>
+            <td>Ranks <code>[{"id": 1, "code": "MAS", "name": "Master"}]</code></td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/users/certificates/</code></td>
+            <td>Certificates <code>[{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}]</code></td>
+            <td>All authenticated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <hr>
+    <h2 id="job-orders">Job Orders</h2>
+    <h3>Endpoints</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Description</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GET</td>
+            <td><code>/api/companies/job-orders/</code></td>
+            <td>List</td>
+            <td>All authenticated</td>
+          </tr>
+          <tr>
+            <td>POST</td>
+            <td><code>/api/companies/job-orders/</code></td>
+            <td>Create</td>
+            <td>Admin, HR Manager</td>
+          </tr>
+          <tr>
+            <td>PATCH</td>
+            <td><code>/api/companies/job-orders/{id}/</code></td>
+            <td>Update</td>
+            <td>Admin, HR Manager</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4><code>status</code> choices:</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+            <th>Label</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pending</td>
+            <td>Pending Review</td>
+          </tr>
+          <tr>
+            <td>Open</td>
+            <td>Open / Sourcing</td>
+          </tr>
+          <tr>
+            <td>In Progress</td>
+            <td>In Progress / Interviewing</td>
+          </tr>
+          <tr>
+            <td>Fulfilled</td>
+            <td>Fulfilled</td>
+          </tr>
+          <tr>
+            <td>Cancelled</td>
+            <td>Cancelled</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Request Body — POST</h3>
+    <div class="code-block">
+      <pre><code>{"company": 1, "ship": 1, "reference_number": "JO-2024-001", "request_date": "2024-01-15", "target_joining_date": "2024-03-01", "status": "Open"}</code></pre>
+    </div>
+  </div>
+  <script>document.getElementById("search").addEventListener("input", function (e) { var q = e.target.value.toLowerCase(); document.querySelectorAll("h1,h2,h3,h4,p,li,tr,.code-block,blockquote").forEach(function (el) { if (el.tagName === "TR" && el.closest("thead")) return; el.style.display = el.textContent.toLowerCase().includes(q) || !q ? "" : "none" }) });</script>
+</body>
+
+</html>
