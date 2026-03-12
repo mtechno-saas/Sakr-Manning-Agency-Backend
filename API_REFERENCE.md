@@ -607,11 +607,11 @@
 ### Endpoints
 | Method | URL | Description | Permission |
 |--------|-----|-------------|------------|
-| GET | `/api/ships/` | List | All authenticated (read-only) |
-| POST | `/api/ships/` | Create | Admin, Ship Manager |
-| GET | `/api/ships/{id}/` | Get | All authenticated (read-only) |
-| PATCH | `/api/ships/{id}/` | Update | Admin, Ship Manager |
-| DELETE | `/api/ships/{id}/` | Delete | Admin, Ship Manager |
+| GET | `/api/ships/` | List | All authenticated |
+| POST | `/api/ships/` | Create | All authenticated |
+| GET | `/api/ships/{id}/` | Get | All authenticated |
+| PATCH | `/api/ships/{id}/` | Update | All authenticated |
+| DELETE | `/api/ships/{id}/` | Delete | All authenticated |
 
 #### `status` choices:
 | Value |

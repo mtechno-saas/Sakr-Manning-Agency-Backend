@@ -271,7 +271,8 @@
     </div>
     <h1 id="sakr-manning-agency-complete-api-reference">Sakr Manning Agency — Complete API Reference</h1>
     <blockquote>All dates use <strong>YYYY-MM-DD</strong> format. All file uploads use
-      <strong>multipart/form-data</strong>.</blockquote>
+      <strong>multipart/form-data</strong>.
+    </blockquote>
     <blockquote>All endpoints require <strong>Authorization: Bearer {token}</strong> unless noted.</blockquote>
     <hr>
     <h2 id="authentication">Authentication</h2>
@@ -1736,31 +1737,31 @@
             <td>GET</td>
             <td><code>/api/ships/</code></td>
             <td>List</td>
-            <td>All authenticated (read-only)</td>
+            <td>All authenticated</td>
           </tr>
           <tr>
             <td>POST</td>
             <td><code>/api/ships/</code></td>
             <td>Create</td>
-            <td>Admin, Ship Manager</td>
+            <td>All authenticated</td>
           </tr>
           <tr>
             <td>GET</td>
             <td><code>/api/ships/{id}/</code></td>
             <td>Get</td>
-            <td>All authenticated (read-only)</td>
+            <td>All authenticated</td>
           </tr>
           <tr>
             <td>PATCH</td>
             <td><code>/api/ships/{id}/</code></td>
             <td>Update</td>
-            <td>Admin, Ship Manager</td>
+            <td>All authenticated</td>
           </tr>
           <tr>
             <td>DELETE</td>
             <td><code>/api/ships/{id}/</code></td>
             <td>Delete</td>
-            <td>Admin, Ship Manager</td>
+            <td>All authenticated</td>
           </tr>
         </tbody>
       </table>
