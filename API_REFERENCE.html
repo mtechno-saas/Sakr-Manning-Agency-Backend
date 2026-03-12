@@ -35,31 +35,37 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/users/</code></td>
 <td>List all users</td>
+<td>Admin, HR Manager, Recruiter (read-only), Employee (own)</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/users/users/{id}/</code></td>
 <td>Get user by ID</td>
+<td>Admin, HR Manager, Recruiter (read-only), Employee (own)</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/users/</code></td>
 <td>Create user</td>
+<td>Admin (all), HR Manager (non-admin)</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/users/{id}/</code></td>
 <td>Update user</td>
+<td>Admin (all), HR Manager (non-admin), Employee (own)</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/users/users/{id}/</code></td>
 <td>Delete user</td>
+<td>Admin only</td>
 </tr>
 </tbody></table></div>
 <h3>User Fields & Choices</h3>
@@ -262,26 +268,31 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/references/?user={id}</code></td>
 <td>List</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/references/</code></td>
 <td>Create</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/references/{id}/</code></td>
 <td>Update</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/users/references/{id}/</code></td>
 <td>Delete</td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
@@ -295,26 +306,31 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/sea-services/?user={id}</code></td>
 <td>List</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/sea-services/</code></td>
 <td>Create</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/sea-services/{id}/</code></td>
 <td>Update</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/users/sea-services/{id}/</code></td>
 <td>Delete</td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST (`multipart/form-data`)</h3>
@@ -338,31 +354,37 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/my-licenses/?user={id}</code></td>
 <td>List</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/my-licenses/</code></td>
 <td>Create</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/my-licenses/{id}/</code></td>
 <td>Update</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/my-licenses/{id}/</code></td>
 <td>Delete</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/my-licenses/{id}/download/</code></td>
 <td>Download</td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <h4><code>document_name</code> choices:</h4>
@@ -525,26 +547,31 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/personal-documents/?user={id}</code></td>
 <td>List</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/personal-documents/</code></td>
 <td>Create</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/personal-documents/{id}/</code></td>
 <td>Update</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/users/personal-documents/{id}/</code></td>
 <td>Delete</td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <h4><code>document_type</code> choices:</h4>
@@ -621,26 +648,31 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/next-of-kin/?user={id}</code></td>
 <td>List</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/next-of-kin/</code></td>
 <td>Create</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/next-of-kin/{id}/</code></td>
 <td>Update</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/users/next-of-kin/{id}/</code></td>
 <td>Delete</td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <h4><code>relationship</code> choices:</h4>
@@ -695,26 +727,31 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/user-languages/?user={id}</code></td>
 <td>List</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/user-languages/</code></td>
 <td>Create</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/user-languages/{id}/</code></td>
 <td>Update</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/users/user-languages/{id}/</code></td>
 <td>Delete</td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <h4><code>speaking_level</code> / <code>writing_level</code> / <code>reading_level</code> choices:</h4>
@@ -768,31 +805,37 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/courses/?user={id}</code></td>
 <td>List</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/courses/</code></td>
 <td>Create</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/courses/{id}/</code></td>
 <td>Update</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/courses/{id}/</code></td>
 <td>Delete</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/courses/{id}/download/</code></td>
 <td>Download</td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST (`multipart/form-data`)</h3>
@@ -806,26 +849,31 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/vaccinations/?user={id}</code></td>
 <td>List</td>
+<td>All authenticated (own records)</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/vaccinations/</code></td>
 <td>Create</td>
+<td>All authenticated (own records)</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/vaccinations/{id}/</code></td>
 <td>Update</td>
+<td>Owner only</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/vaccinations/{id}/</code></td>
 <td>Delete</td>
+<td>Owner only</td>
 </tr>
 </tbody></table></div>
 <h4><code>name</code> choices:</h4>
@@ -917,25 +965,25 @@
 <td>GET</td>
 <td><code>/api/users/documents/</code></td>
 <td>List</td>
-<td>IsAuthenticated</td>
+<td>Admin, HR Manager (all), Recruiter (view), Employee (own)</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/documents/</code></td>
 <td>Upload CV</td>
-<td><strong>AllowAny</strong></td>
+<td><strong>AllowAny</strong> (public)</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/documents/{id}/</code></td>
-<td>Update</td>
-<td>IsAuthenticated</td>
+<td>Update status</td>
+<td>Admin, HR Manager, Recruiter</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/users/documents/{id}/</code></td>
 <td>Delete</td>
-<td>IsAuthenticated</td>
+<td>Admin, HR Manager</td>
 </tr>
 </tbody></table></div>
 <h4><code>position</code> choices:</h4>
@@ -1044,21 +1092,25 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/declarations/</code></td>
 <td>List</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/declarations/</code></td>
 <td>Create</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/declarations/{id}/</code></td>
 <td>Update</td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <h3>Request Body — POST</h3>
@@ -1070,36 +1122,43 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/companies/</code></td>
 <td>List</td>
+<td>All authenticated (read-only for Employee)</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/companies/</code></td>
 <td>Create</td>
+<td>Admin only</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/companies/{id}/</code></td>
 <td>Get</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/companies/{id}/</code></td>
 <td>Update</td>
+<td>Admin, HR Manager, Recruiter</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/companies/{id}/</code></td>
 <td>Delete</td>
+<td>Admin only</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/companies/stats/</code></td>
 <td>Stats</td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <h4><code>company_type</code> choices:</h4>
@@ -1160,31 +1219,37 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/ships/</code></td>
 <td>List</td>
+<td>All authenticated (read-only)</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/ships/</code></td>
 <td>Create</td>
+<td>Admin, Ship Manager</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/ships/{id}/</code></td>
 <td>Get</td>
+<td>All authenticated (read-only)</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/ships/{id}/</code></td>
 <td>Update</td>
+<td>Admin, Ship Manager</td>
 </tr>
 <tr>
 <td>DELETE</td>
 <td><code>/api/ships/{id}/</code></td>
 <td>Delete</td>
+<td>Admin, Ship Manager</td>
 </tr>
 </tbody></table></div>
 <h4><code>status</code> choices:</h4>
@@ -1210,21 +1275,25 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/contracts/</code></td>
 <td>List</td>
+<td>Admin, HR Manager (all), Recruiter/Employee (own, read-only)</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/contracts/</code></td>
 <td>Create</td>
+<td>Admin, HR Manager</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/contracts/{id}/</code></td>
 <td>Update</td>
+<td>Admin, HR Manager</td>
 </tr>
 </tbody></table></div>
 <h4><code>status</code> choices:</h4>
@@ -1275,21 +1344,25 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/interviews/</code></td>
 <td>List</td>
+<td>Admin, HR Manager, Recruiter (all), Employee (own, read-only)</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/users/interviews/</code></td>
 <td>Create</td>
+<td>Admin, HR Manager, Recruiter</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/users/interviews/{id}/</code></td>
 <td>Update</td>
+<td>Admin, HR Manager, Recruiter</td>
 </tr>
 </tbody></table></div>
 <h4><code>interview_type</code> choices:</h4>
@@ -1354,41 +1427,49 @@
 <th>Method</th>
 <th>URL</th>
 <th>Returns</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/users/positions/</code></td>
 <td>Position choices <code>[{"value": "...", "label": "..."}]</code></td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/users/flags/</code></td>
 <td>Country flags <code>[{"value": "...", "label": "..."}]</code></td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/users/coc-choices/</code></td>
 <td>COC choices <code>[{"value": "...", "label": "..."}]</code></td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/core/flags/</code></td>
 <td>Flags <code>[{"id": 1, "name": "Egypt"}]</code></td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/core/vessel-types/</code></td>
 <td>Vessel types <code>[{"id": 1, "name": "Bulk Carrier"}]</code></td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/users/ranks/</code></td>
 <td>Ranks <code>[{"id": 1, "code": "MAS", "name": "Master"}]</code></td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/users/certificates/</code></td>
 <td>Certificates <code>[{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}]</code></td>
+<td>All authenticated</td>
 </tr>
 </tbody></table></div>
 <hr>
@@ -1398,21 +1479,25 @@
 <th>Method</th>
 <th>URL</th>
 <th>Description</th>
+<th>Permission</th>
 </tr></thead><tbody>
 <tr>
 <td>GET</td>
 <td><code>/api/companies/job-orders/</code></td>
 <td>List</td>
+<td>All authenticated</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/companies/job-orders/</code></td>
 <td>Create</td>
+<td>Admin, HR Manager</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/companies/job-orders/{id}/</code></td>
 <td>Update</td>
+<td>Admin, HR Manager</td>
 </tr>
 </tbody></table></div>
 <h4><code>status</code> choices:</h4>

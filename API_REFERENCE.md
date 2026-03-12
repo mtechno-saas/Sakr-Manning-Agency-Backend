@@ -51,13 +51,13 @@
 ## Users
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/users/users/` | List all users |
-| GET | `/api/users/users/{id}/` | Get user by ID |
-| POST | `/api/users/users/` | Create user |
-| PATCH | `/api/users/users/{id}/` | Update user |
-| DELETE | `/api/users/users/{id}/` | Delete user |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/users/users/` | List all users | Admin, HR Manager, Recruiter (read-only), Employee (own) |
+| GET | `/api/users/users/{id}/` | Get user by ID | Admin, HR Manager, Recruiter (read-only), Employee (own) |
+| POST | `/api/users/users/` | Create user | Admin (all), HR Manager (non-admin) |
+| PATCH | `/api/users/users/{id}/` | Update user | Admin (all), HR Manager (non-admin), Employee (own) |
+| DELETE | `/api/users/users/{id}/` | Delete user | Admin only |
 
 ### User Fields & Choices
 
@@ -173,12 +173,12 @@
 ## References
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/users/references/?user={id}` | List |
-| POST | `/api/users/references/` | Create |
-| PATCH | `/api/users/references/{id}/` | Update |
-| DELETE | `/api/users/references/{id}/` | Delete |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/users/references/?user={id}` | List | All authenticated |
+| POST | `/api/users/references/` | Create | All authenticated |
+| PATCH | `/api/users/references/{id}/` | Update | All authenticated |
+| DELETE | `/api/users/references/{id}/` | Delete | All authenticated |
 
 ### Request Body — POST
 ```json
@@ -194,12 +194,12 @@
 ## Sea Services
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/users/sea-services/?user={id}` | List |
-| POST | `/api/users/sea-services/` | Create |
-| PATCH | `/api/users/sea-services/{id}/` | Update |
-| DELETE | `/api/users/sea-services/{id}/` | Delete |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/users/sea-services/?user={id}` | List | All authenticated |
+| POST | `/api/users/sea-services/` | Create | All authenticated |
+| PATCH | `/api/users/sea-services/{id}/` | Update | All authenticated |
+| DELETE | `/api/users/sea-services/{id}/` | Delete | All authenticated |
 
 ### Request Body — POST (`multipart/form-data`)
 ```json
@@ -225,13 +225,13 @@
 ## Professional Qualifications / Licenses
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/my-licenses/?user={id}` | List |
-| POST | `/api/my-licenses/` | Create |
-| PATCH | `/api/my-licenses/{id}/` | Update |
-| DELETE | `/api/my-licenses/{id}/` | Delete |
-| GET | `/api/my-licenses/{id}/download/` | Download |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/my-licenses/?user={id}` | List | All authenticated |
+| POST | `/api/my-licenses/` | Create | All authenticated |
+| PATCH | `/api/my-licenses/{id}/` | Update | All authenticated |
+| DELETE | `/api/my-licenses/{id}/` | Delete | All authenticated |
+| GET | `/api/my-licenses/{id}/download/` | Download | All authenticated |
 
 #### `document_name` choices:
 | Value |
@@ -299,12 +299,12 @@
 ## Personal Documents
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/users/personal-documents/?user={id}` | List |
-| POST | `/api/users/personal-documents/` | Create |
-| PATCH | `/api/users/personal-documents/{id}/` | Update |
-| DELETE | `/api/users/personal-documents/{id}/` | Delete |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/users/personal-documents/?user={id}` | List | All authenticated |
+| POST | `/api/users/personal-documents/` | Create | All authenticated |
+| PATCH | `/api/users/personal-documents/{id}/` | Update | All authenticated |
+| DELETE | `/api/users/personal-documents/{id}/` | Delete | All authenticated |
 
 #### `document_type` choices:
 | Value |
@@ -345,12 +345,12 @@
 ## Next of Kin
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/users/next-of-kin/?user={id}` | List |
-| POST | `/api/users/next-of-kin/` | Create |
-| PATCH | `/api/users/next-of-kin/{id}/` | Update |
-| DELETE | `/api/users/next-of-kin/{id}/` | Delete |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/users/next-of-kin/?user={id}` | List | All authenticated |
+| POST | `/api/users/next-of-kin/` | Create | All authenticated |
+| PATCH | `/api/users/next-of-kin/{id}/` | Update | All authenticated |
+| DELETE | `/api/users/next-of-kin/{id}/` | Delete | All authenticated |
 
 #### `relationship` choices:
 | Value |
@@ -382,12 +382,12 @@
 ## Languages
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/users/user-languages/?user={id}` | List |
-| POST | `/api/users/user-languages/` | Create |
-| PATCH | `/api/users/user-languages/{id}/` | Update |
-| DELETE | `/api/users/user-languages/{id}/` | Delete |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/users/user-languages/?user={id}` | List | All authenticated |
+| POST | `/api/users/user-languages/` | Create | All authenticated |
+| PATCH | `/api/users/user-languages/{id}/` | Update | All authenticated |
+| DELETE | `/api/users/user-languages/{id}/` | Delete | All authenticated |
 
 #### `speaking_level` / `writing_level` / `reading_level` choices:
 | Value |
@@ -421,13 +421,13 @@
 ## Courses
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/courses/?user={id}` | List |
-| POST | `/api/courses/` | Create |
-| PATCH | `/api/courses/{id}/` | Update |
-| DELETE | `/api/courses/{id}/` | Delete |
-| GET | `/api/courses/{id}/download/` | Download |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/courses/?user={id}` | List | All authenticated |
+| POST | `/api/courses/` | Create | All authenticated |
+| PATCH | `/api/courses/{id}/` | Update | All authenticated |
+| DELETE | `/api/courses/{id}/` | Delete | All authenticated |
+| GET | `/api/courses/{id}/download/` | Download | All authenticated |
 
 ### Request Body — POST (`multipart/form-data`)
 ```json
@@ -443,12 +443,12 @@
 ## Vaccinations
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/vaccinations/?user={id}` | List |
-| POST | `/api/vaccinations/` | Create |
-| PATCH | `/api/vaccinations/{id}/` | Update |
-| DELETE | `/api/vaccinations/{id}/` | Delete |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/vaccinations/?user={id}` | List | All authenticated (own records) |
+| POST | `/api/vaccinations/` | Create | All authenticated (own records) |
+| PATCH | `/api/vaccinations/{id}/` | Update | Owner only |
+| DELETE | `/api/vaccinations/{id}/` | Delete | Owner only |
 
 #### `name` choices:
 | Value |
@@ -494,10 +494,10 @@
 ### Endpoints
 | Method | URL | Description | Permission |
 |--------|-----|-------------|------------|
-| GET | `/api/users/documents/` | List | IsAuthenticated |
-| POST | `/api/users/documents/` | Upload CV | **AllowAny** |
-| PATCH | `/api/users/documents/{id}/` | Update | IsAuthenticated |
-| DELETE | `/api/users/documents/{id}/` | Delete | IsAuthenticated |
+| GET | `/api/users/documents/` | List | Admin, HR Manager (all), Recruiter (view), Employee (own) |
+| POST | `/api/users/documents/` | Upload CV | **AllowAny** (public) |
+| PATCH | `/api/users/documents/{id}/` | Update status | Admin, HR Manager, Recruiter |
+| DELETE | `/api/users/documents/{id}/` | Delete | Admin, HR Manager |
 
 #### `position` choices:
 | Value |
@@ -551,11 +551,11 @@
 ## Declarations
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/users/declarations/` | List |
-| POST | `/api/users/declarations/` | Create |
-| PATCH | `/api/users/declarations/{id}/` | Update |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/users/declarations/` | List | All authenticated |
+| POST | `/api/users/declarations/` | Create | All authenticated |
+| PATCH | `/api/users/declarations/{id}/` | Update | All authenticated |
 
 ### Request Body — POST
 ```json
@@ -566,14 +566,14 @@
 ## Companies
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/companies/` | List |
-| POST | `/api/companies/` | Create |
-| GET | `/api/companies/{id}/` | Get |
-| PATCH | `/api/companies/{id}/` | Update |
-| DELETE | `/api/companies/{id}/` | Delete |
-| GET | `/api/companies/stats/` | Stats |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/companies/` | List | All authenticated (read-only for Employee) |
+| POST | `/api/companies/` | Create | Admin only |
+| GET | `/api/companies/{id}/` | Get | All authenticated |
+| PATCH | `/api/companies/{id}/` | Update | Admin, HR Manager, Recruiter |
+| DELETE | `/api/companies/{id}/` | Delete | Admin only |
+| GET | `/api/companies/stats/` | Stats | All authenticated |
 
 #### `company_type` choices:
 | Value |
@@ -605,13 +605,13 @@
 ## Ships
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/ships/` | List |
-| POST | `/api/ships/` | Create |
-| GET | `/api/ships/{id}/` | Get |
-| PATCH | `/api/ships/{id}/` | Update |
-| DELETE | `/api/ships/{id}/` | Delete |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/ships/` | List | All authenticated (read-only) |
+| POST | `/api/ships/` | Create | Admin, Ship Manager |
+| GET | `/api/ships/{id}/` | Get | All authenticated (read-only) |
+| PATCH | `/api/ships/{id}/` | Update | Admin, Ship Manager |
+| DELETE | `/api/ships/{id}/` | Delete | Admin, Ship Manager |
 
 #### `status` choices:
 | Value |
@@ -629,11 +629,11 @@
 ## Contracts
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/users/contracts/` | List |
-| POST | `/api/users/contracts/` | Create |
-| PATCH | `/api/users/contracts/{id}/` | Update |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/users/contracts/` | List | Admin, HR Manager (all), Recruiter/Employee (own, read-only) |
+| POST | `/api/users/contracts/` | Create | Admin, HR Manager |
+| PATCH | `/api/users/contracts/{id}/` | Update | Admin, HR Manager |
 
 #### `status` choices:
 | Value |
@@ -660,11 +660,11 @@
 ## Interviews
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/users/interviews/` | List |
-| POST | `/api/users/interviews/` | Create |
-| PATCH | `/api/users/interviews/{id}/` | Update |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/users/interviews/` | List | Admin, HR Manager, Recruiter (all), Employee (own, read-only) |
+| POST | `/api/users/interviews/` | Create | Admin, HR Manager, Recruiter |
+| PATCH | `/api/users/interviews/{id}/` | Update | Admin, HR Manager, Recruiter |
 
 #### `interview_type` choices:
 | Value |
@@ -699,25 +699,25 @@
 ---
 ## Lookup Endpoints
 
-| Method | URL | Returns |
-|--------|-----|---------|
-| GET | `/api/users/positions/` | Position choices `[{"value": "...", "label": "..."}]` |
-| GET | `/api/users/flags/` | Country flags `[{"value": "...", "label": "..."}]` |
-| GET | `/api/users/coc-choices/` | COC choices `[{"value": "...", "label": "..."}]` |
-| GET | `/api/core/flags/` | Flags `[{"id": 1, "name": "Egypt"}]` |
-| GET | `/api/core/vessel-types/` | Vessel types `[{"id": 1, "name": "Bulk Carrier"}]` |
-| GET | `/api/users/ranks/` | Ranks `[{"id": 1, "code": "MAS", "name": "Master"}]` |
-| GET | `/api/users/certificates/` | Certificates `[{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}]` |
+| Method | URL | Returns | Permission |
+|--------|-----|---------|------------|
+| GET | `/api/users/positions/` | Position choices `[{"value": "...", "label": "..."}]` | All authenticated |
+| GET | `/api/users/flags/` | Country flags `[{"value": "...", "label": "..."}]` | All authenticated |
+| GET | `/api/users/coc-choices/` | COC choices `[{"value": "...", "label": "..."}]` | All authenticated |
+| GET | `/api/core/flags/` | Flags `[{"id": 1, "name": "Egypt"}]` | All authenticated |
+| GET | `/api/core/vessel-types/` | Vessel types `[{"id": 1, "name": "Bulk Carrier"}]` | All authenticated |
+| GET | `/api/users/ranks/` | Ranks `[{"id": 1, "code": "MAS", "name": "Master"}]` | All authenticated |
+| GET | `/api/users/certificates/` | Certificates `[{"id": 1, "code": "GMDSS", "name": "G.M.D.S.S"}]` | All authenticated |
 
 ---
 ## Job Orders
 
 ### Endpoints
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/companies/job-orders/` | List |
-| POST | `/api/companies/job-orders/` | Create |
-| PATCH | `/api/companies/job-orders/{id}/` | Update |
+| Method | URL | Description | Permission |
+|--------|-----|-------------|------------|
+| GET | `/api/companies/job-orders/` | List | All authenticated |
+| POST | `/api/companies/job-orders/` | Create | Admin, HR Manager |
+| PATCH | `/api/companies/job-orders/{id}/` | Update | Admin, HR Manager |
 
 #### `status` choices:
 | Value | Label |
