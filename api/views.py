@@ -611,7 +611,7 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
         return SeaService.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        user_id = self.request.data.get('user')
+        user_id = self.request.data.get('user') or self.request.query_params.get('user')
         if user_id:
             serializer.save(user_id=user_id)
         elif self.request.user.role == 'Employee':

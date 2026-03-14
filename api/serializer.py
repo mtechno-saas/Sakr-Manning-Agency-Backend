@@ -58,12 +58,19 @@ class SeaServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = SeaService
         fields = '__all__'
+        read_only_fields = ['user']
 
     def validate(self, data):
         signed_on = data.get('signed_on', self.instance.signed_on if self.instance else None)
         signed_off = data.get('signed_off', self.instance.signed_off if self.instance else None)
-        user = data.get('user', self.instance.user if self.instance else None)
         
+        # Determine the user instance, because data.get('user') might be empty if derived from request.
+        user = data.get('user')
+        if not user and self.instance:
+            user = self.instance.user
+        if not user and 'request' in self.context and hasattr(self.context['request'], 'user'):
+            user = self.context['request'].user
+            
         if signed_on and signed_off and signed_off < signed_on:
             raise serializers.ValidationError({"signed_off": ["Signed off date cannot be before signed on date."]})
             
@@ -97,7 +104,7 @@ class SeaServiceSerializer(serializers.ModelSerializer):
                     e_on_str = e_on.strftime("%d-%m-%Y")
                     e_off_str = e_off.strftime("%d-%m-%Y") if e_off else "Present"
                     raise serializers.ValidationError({
-                        "non_field_errors": [f"Dates overlap with existing service ({e_on_str} to {e_off_str})."]
+                        "signed_on": [f"Dates overlap with existing service ({e_on_str} to {e_off_str})."]
                     })
                     
         return data
