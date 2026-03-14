@@ -8,6 +8,7 @@ from finance.models import FinanceRecord
 from tickets_papers.models import Ticket, TravelingPaper
 from ships.serializers import ShipSerializer
 from .models import LanguageProficiency
+from api.serializers import FlexibleDateField
 
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
@@ -51,9 +52,55 @@ class ReferenceSerializer(serializers.ModelSerializer):
 
 
 class SeaServiceSerializer(serializers.ModelSerializer):
+    signed_on = FlexibleDateField(required=False, allow_null=True)
+    signed_off = FlexibleDateField(required=False, allow_null=True)
+
     class Meta:
         model = SeaService
         fields = '__all__'
+
+    def validate(self, data):
+        signed_on = data.get('signed_on', self.instance.signed_on if self.instance else None)
+        signed_off = data.get('signed_off', self.instance.signed_off if self.instance else None)
+        user = data.get('user', self.instance.user if self.instance else None)
+        
+        if signed_on and signed_off and signed_off < signed_on:
+            raise serializers.ValidationError({"signed_off": ["Signed off date cannot be before signed on date."]})
+            
+        if signed_on and user:
+            # Check for overlaps
+            overlapping = SeaService.objects.filter(user=user)
+            if self.instance and self.instance.id:
+                overlapping = overlapping.exclude(id=self.instance.id)
+                
+            for existing in overlapping:
+                if not existing.signed_on:
+                    continue
+                    
+                e_on = existing.signed_on
+                e_off = existing.signed_off
+                
+                overlap = False
+                if signed_off is None and e_off is None:
+                    overlap = True
+                elif signed_off is None:
+                    if e_off >= signed_on:
+                        overlap = True
+                elif e_off is None:
+                    if signed_off >= e_on:
+                        overlap = True
+                else:
+                    if signed_on <= e_off and signed_off >= e_on:
+                        overlap = True
+                        
+                if overlap:
+                    e_on_str = e_on.strftime("%d-%m-%Y")
+                    e_off_str = e_off.strftime("%d-%m-%Y") if e_off else "Present"
+                    raise serializers.ValidationError({
+                        "non_field_errors": [f"Dates overlap with existing service ({e_on_str} to {e_off_str})."]
+                    })
+                    
+        return data
 
     def _calculate_period(self, signed_on, signed_off):
         """Calculate the time period between signed_on and signed_off."""

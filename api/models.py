@@ -727,6 +727,9 @@ class SeaService(models.Model):
     def __str__(self):
         return f"Sea service for {self.user.email} on {self.vessel_name}"
 
+    class Meta:
+        ordering = ['-signed_on']
+
 
 class BlacklistRecord(models.Model):
     """
