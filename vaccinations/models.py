@@ -55,7 +55,7 @@ class Vaccination(models.Model):
         upload_to="vaccinations/",
         blank=True,
         null=True,
-        validators=[FileExtensionValidator(["pdf"])]
+        validators=[FileExtensionValidator(["pdf", "jpg", "jpeg", "png"])]
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

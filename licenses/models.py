@@ -76,7 +76,7 @@ class UserLicense(models.Model):
     # PDF Upload Field
     document_file = models.FileField(
         upload_to=user_license_upload_path,
-        validators=[FileExtensionValidator(allowed_extensions=['pdf'])],
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png'])],
         null=True, 
         blank=True
     )
