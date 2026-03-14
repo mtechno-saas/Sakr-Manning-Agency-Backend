@@ -1,7 +1,13 @@
 from rest_framework import serializers
 from .models import Vaccination
+from api.serializers import FlexibleDateField
 
 class VaccinationSerializer(serializers.ModelSerializer):
+    issue_date = FlexibleDateField(required=False, allow_null=True)
+    expiry_date = FlexibleDateField(required=False, allow_null=True)
+    first_date = FlexibleDateField(required=False, allow_null=True)
+    last_date = FlexibleDateField(required=False, allow_null=True)
+
     class Meta:
         model = Vaccination
         fields = "__all__"
