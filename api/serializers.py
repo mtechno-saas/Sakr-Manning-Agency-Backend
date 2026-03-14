@@ -23,6 +23,10 @@ class FlexibleDateField(serializers.DateField):
             return None
             
         if isinstance(value, str):
+            # JS FormData often sends explicit "null" or "undefined"
+            if value.lower() in ('null', 'undefined'):
+                return None
+                
             for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%m-%d-%Y', '%d/%m/%Y', '%m/%d/%Y'):
                 try:
                     parsed_date = datetime.strptime(value.strip(), fmt).date()
