@@ -371,6 +371,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     COC_CERTIFICATE_CHOICES = [
         ('Master', 'Master'),
         ('Chief Mate', 'Chief Mate'),
+        ('Chief Officer', 'Chief Officer'),
         ('2nd Officer', '2nd Officer'),
         ('3rd Officer', '3rd Officer'),
         ('Marine Chief Eng.', 'Marine Chief Eng.'),

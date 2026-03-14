@@ -1,7 +1,10 @@
 from rest_framework import serializers
-from .models import UserLicense
+from .models import UserLicense, DOCUMENT_NAME_CHOICES
+from api.serializers import CaseInsensitiveChoiceField
 
 class UserLicenseSerializer(serializers.ModelSerializer):
+    document_name = CaseInsensitiveChoiceField(choices=DOCUMENT_NAME_CHOICES, required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = UserLicense
         fields = [
