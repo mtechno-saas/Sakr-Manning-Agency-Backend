@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
-from api.models import Users  
+from django.conf import settings
 
 def user_license_upload_path(instance, filename):
     # Files will be uploaded to MEDIA_ROOT/user_<id>/licenses/<filename>
@@ -60,7 +60,7 @@ DOCUMENT_NAME_CHOICES = [
 
 class UserLicense(models.Model):
     user = models.ForeignKey(
-        Users, 
+        settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
         related_name='licenses'
     )
@@ -70,8 +70,8 @@ class UserLicense(models.Model):
     )
     document_number = models.CharField(max_length=100)
     country_of_issue = models.CharField(max_length=100)
-    issue_date = models.DateField()
-    expiration_date = models.DateField()
+    issue_date = models.DateField(null=True, blank=True)
+    expiration_date = models.DateField(null=True, blank=True)
     
     # PDF Upload Field
     document_file = models.FileField(
