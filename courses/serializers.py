@@ -1,9 +1,12 @@
 from rest_framework import serializers
 from django.core.files.uploadedfile import UploadedFile
+from api.serializers import FlexibleDateField
 from .models import Course
 
 class CourseSerializer(serializers.ModelSerializer):
     document = serializers.FileField(required=False, allow_null=True, default=None)
+    issue_date = FlexibleDateField(required=False, allow_null=True)
+    expiry_date = FlexibleDateField(required=False, allow_null=True)
     
     class Meta:
         model = Course

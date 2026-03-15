@@ -7,8 +7,8 @@ class Course(models.Model):
     
     course_name = models.CharField(max_length=255)
     course_number = models.CharField(max_length=100)
-    issue_date = models.DateField()
-    expiry_date = models.DateField()
+    issue_date = models.DateField(null=True, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
     issued_by = models.CharField(max_length=255)
     issued_at = models.CharField(max_length=255)
     country_of_issue = models.CharField(max_length=100)
