@@ -101,6 +101,15 @@ CERTIFICATES = [
     ("OTHERS_CERTIFICATES", "Others"),
 ]
 
+SIZE_CHOICES = [
+    ("S", "S"),
+    ("M", "M"),
+    ("L", "L"),
+    ("XL", "XL"),
+    ("XXL", "XXL"),
+    ("XXXL", "XXXL"),
+]
+
 
 class Rank(models.Model):
     code = models.CharField(max_length=780, unique=True)
@@ -329,8 +338,8 @@ class Users(AbstractBaseUser, PermissionsMixin):
     nationality = models.CharField(max_length=50, null=True, blank=True)
     Place_Of_Birth = models.CharField(max_length=100, null=True, blank=True)
     Nearest_Port = models.CharField(max_length=200, null=True)
-    Height_Cm = models.IntegerField(default=0)
-    Weight_Kg = models.IntegerField(default=0)
+    Height_Cm = models.IntegerField(null=True, blank=True)
+    Weight_Kg = models.IntegerField(null=True, blank=True)
 
     # Education
     college_or_school = models.CharField(max_length=200, null=True, blank=True)
@@ -428,8 +437,8 @@ class Users(AbstractBaseUser, PermissionsMixin):
     covid_other_doses_or_remarks = models.TextField(blank=True, null=True)
 
     # New fields from Word document
-    overall_size = models.CharField(max_length=50, blank=True, null=True)
-    shirt_size = models.CharField(max_length=50, blank=True, null=True)
+    overall_size = models.CharField(max_length=50, blank=True, null=True, choices=SIZE_CHOICES)
+    shirt_size = models.CharField(max_length=50, blank=True, null=True, choices=SIZE_CHOICES)
     trouser_size = models.CharField(max_length=50, blank=True, null=True)
     shoes_size = models.CharField(max_length=50, blank=True, null=True)
     english_language_level = models.CharField(max_length=50, blank=True, null=True)

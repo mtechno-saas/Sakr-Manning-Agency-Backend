@@ -426,6 +426,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'password': {'write_only': True, 'required': False},
             'generated_id': {'read_only': True},
             'salary': {'required': False, 'allow_null': True},
+            'next_of_kin_email': {'required': False, 'allow_null': True},
         }
 
     def to_representation(self, instance):
