@@ -15,8 +15,13 @@ from rest_framework import status, viewsets, generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from finance.models import FinanceRecord
 from .models import Company, Interview, CVSubmission
-from .serializer import CompanySerializer, InterviewSerializer, CVSubmissionSerializer,LanguageProficiencySerializer
+from .serializer import CompanySerializer, InterviewSerializer, CVSubmissionSerializer
 from .filters import CompanyFilter, InterviewFilter, CVSubmissionFilter
+from .models import (
+    Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
+    Company, Interview, CVSubmission, Document,
+    UserLanguage, PersonalDocument, Declaration, NextOfKin
+)
 
 # For Verification Link
 from django.contrib.auth.tokens import default_token_generator
@@ -28,7 +33,7 @@ from rest_framework.views import APIView
 
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
-    Company, Interview, CVSubmission, Document, LanguageProficiency,
+    #Company, Interview, CVSubmission, Document,
     UserLanguage, PersonalDocument, Declaration, NextOfKin
 )
 from .serializer import (
@@ -93,16 +98,16 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-class LanguageProficiencyViewSet(viewsets.ModelViewSet):
-    serializer_class = LanguageProficiencySerializer
-    permission_classes = [permissions.IsAuthenticated]
+# class LanguageProficiencyViewSet(viewsets.ModelViewSet):
+#     serializer_class = LanguageProficiencySerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        """
-        This ensures users can ONLY see, edit, or delete 
-        their own language records.
-        """
-        return LanguageProficiency.objects.filter(user=self.request.user)
+#     def get_queryset(self):
+#         """
+#         This ensures users can ONLY see, edit, or delete 
+#         their own language records.
+#         """
+#         return LanguageProficiency.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         """
@@ -1015,13 +1020,13 @@ class UserLanguageViewSet(viewsets.ModelViewSet):
         return UserLanguage.objects.all()
 
     def perform_create(self, serializer):
+        from rest_framework.exceptions import ValidationError
         if self.request.user.role == 'Employee':
             serializer.save(user=self.request.user)
         else:
             if 'user' not in serializer.validated_data:
-                serializer.save(user=self.request.user)
-            else:
-                serializer.save()
+                raise ValidationError({"user": ["This field is required when creating a language record for another user."]})
+            serializer.save()
 
 
 class PersonalDocumentViewSet(viewsets.ModelViewSet):

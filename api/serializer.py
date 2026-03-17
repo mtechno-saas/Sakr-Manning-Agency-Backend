@@ -648,6 +648,11 @@ class UserLanguageSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at']
 
+    def validate_language(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Language field cannot be empty.")
+        return value
+
 
 class PersonalDocumentSerializer(serializers.ModelSerializer):
     class Meta:
