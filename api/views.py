@@ -33,12 +33,9 @@ from rest_framework.views import APIView
 
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
-<<<<<<< Updated upstream
     #Company, Interview, CVSubmission, Document,
-=======
     Company, Interview, CVSubmission, Document,
->>>>>>> Stashed changes
-    UserLanguage, PersonalDocument, Declaration, NextOfKin
+    UserLanguage, PersonalDocument, Declaration, NextOfKin, LanguageProficiency
 )
 from .serializer import (
     UsersSerializer, UserRankSerializer, ContractSerializer, ContractListSerializer,
@@ -48,7 +45,7 @@ from .serializer import (
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
     CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer,
-    UserLanguageSerializer, PersonalDocumentSerializer
+    UserLanguageSerializer, PersonalDocumentSerializer, LanguageProficiencySerializer
 )
 from .filters import UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, CompanyFilter
 from .permissions import (
@@ -102,16 +99,16 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-# class LanguageProficiencyViewSet(viewsets.ModelViewSet):
-#     serializer_class = LanguageProficiencySerializer
-#     permission_classes = [permissions.IsAuthenticated]
+class LanguageProficiencyViewSet(viewsets.ModelViewSet):
+    serializer_class = LanguageProficiencySerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-#     def get_queryset(self):
-#         """
-#         This ensures users can ONLY see, edit, or delete 
-#         their own language records.
-#         """
-#         return LanguageProficiency.objects.filter(user=self.request.user)
+    def get_queryset(self):
+        """
+        This ensures users can ONLY see, edit, or delete 
+        their own language records.
+        """
+        return LanguageProficiency.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         """

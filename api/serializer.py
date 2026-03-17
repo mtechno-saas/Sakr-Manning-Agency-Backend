@@ -562,6 +562,19 @@ class LanguageProficiencySerializer(serializers.ModelSerializer):
             'attachment'
         ]
 
+    def validate(self, attrs):
+        lang = attrs.get('language')
+        marks = attrs.get('general_marks')
+        cefr = attrs.get('cefr_level')
+        speaking = attrs.get('speaking_level')
+        
+        # The frontend automatically sends this exact test record upon creation 
+        if lang == 'French' and marks == 90 and cefr == 'B2' and speaking == 'Advanced':
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError("Please provide your actual language proficiency details instead of the default test data.")
+            
+        return attrs
+
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
