@@ -1,6 +1,7 @@
 from datetime import datetime
 from rest_framework import serializers
 from .models import Users, Document
+from django.core.cache import cache
 
 class CaseInsensitiveChoiceField(serializers.ChoiceField):
     def to_internal_value(self, data):

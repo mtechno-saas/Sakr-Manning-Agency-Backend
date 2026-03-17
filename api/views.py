@@ -1018,7 +1018,13 @@ class UserLanguageViewSet(viewsets.ModelViewSet):
             self.permission_denied(request, message="Only Admin, HR Manager, and Employee roles can access this endpoint.")
 
     def get_queryset(self):
-        return UserLanguage.objects.all()
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager']:
+            return UserLanguage.objects.all()
+        return UserLanguage.objects.filter(user=user)
+
+    # def get_queryset(self):
+    #     return UserLanguage.objects.all()
 
     def perform_create(self, serializer):
         from rest_framework.exceptions import ValidationError
