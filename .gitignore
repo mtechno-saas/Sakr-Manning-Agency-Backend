@@ -4,3 +4,10 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+django_project/lib/
+django_project/bin/
+django_project/include/
+__pycache__/
+*.pyc
+.env
+
