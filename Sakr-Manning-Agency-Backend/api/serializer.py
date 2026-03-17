@@ -282,7 +282,7 @@
 from rest_framework import serializers, validators
 from .models import (
     Users, UserRank, Certificate, Rank, Contract, Reference, SeaService,
-    Interview, CVSubmission
+    Interview, CVSubmission, UserCertificate
 )
 from companies.models import Company
 from finance.models import FinanceRecord
@@ -329,6 +329,45 @@ class ReferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reference
         fields = '__all__'
+
+
+class UserCertificateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for UserCertificate model.
+    Includes nested certificate type information and calculated fields.
+    """
+    certificate_type_name = serializers.CharField(source='certificate_type.name', read_only=True, allow_null=True)
+    certificate_type_code = serializers.CharField(source='certificate_type.code', read_only=True, allow_null=True)
+    rank_name = serializers.CharField(source='rank.name', read_only=True, allow_null=True)
+    is_expired = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = UserCertificate
+        fields = [
+            'id',
+            'user',
+            'certificate_type',
+            'certificate_type_name',
+            'certificate_type_code',
+            'document_name',
+            'document_number',
+            'country_of_issue',
+            'issue_date',
+            'expiry_date',
+            'issued_by',
+            'issued_at',
+            'certificate_file',
+            'category',
+            'rank',
+            'rank_name',
+            'is_expired',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at', 'is_expired']
+
+
+
 
 
 class SeaServiceSerializer(serializers.ModelSerializer):

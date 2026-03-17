@@ -580,7 +580,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
         return super().get_authenticators()
 
     def get_permissions(self):
-        if self.request.method == 'POST':
+        if self.action == 'create':
             return [AllowAny()]
         return [IsAuthenticated()]
 
