@@ -33,7 +33,11 @@ from rest_framework.views import APIView
 
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
+<<<<<<< Updated upstream
     #Company, Interview, CVSubmission, Document,
+=======
+    Company, Interview, CVSubmission, Document,
+>>>>>>> Stashed changes
     UserLanguage, PersonalDocument, Declaration, NextOfKin
 )
 from .serializer import (
