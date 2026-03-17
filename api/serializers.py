@@ -17,6 +17,24 @@ class CaseInsensitiveChoiceField(serializers.ChoiceField):
             
         self.fail('invalid_choice', input=data)
 
+class FlexibleFileField(serializers.FileField):
+    def to_internal_value(self, data):
+        if data is None:
+            return None
+            
+        if isinstance(data, str):
+            # JS FormData often sends explicit "null" or "undefined"
+            if data.lower() in ('null', 'undefined'):
+                return None
+            if data.strip() == '':
+                return None
+            
+            # If it's a string (URL), we treat it as "no change"
+            # Return a special marker to be handled in the serializer
+            return "KEEP_EXISTING"
+            
+        return super().to_internal_value(data)
+
 class FlexibleDateField(serializers.DateField):
     def to_internal_value(self, value):
         if not value:

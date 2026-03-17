@@ -8,7 +8,7 @@ from finance.models import FinanceRecord
 from tickets_papers.models import Ticket, TravelingPaper
 from ships.serializers import ShipSerializer
 from .models import LanguageProficiency
-from api.serializers import FlexibleDateField
+from api.serializers import FlexibleDateField, FlexibleFileField
 
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
@@ -373,6 +373,14 @@ class UsersSerializer(serializers.ModelSerializer):
     # Password field for user creation (write-only)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
 
+    # Use FlexibleFileField for file fields to handle existing URLs from frontend
+    profile_image = FlexibleFileField(required=False, allow_null=True)
+    marlins_test_attachment = FlexibleFileField(required=False, allow_null=True)
+    ces_test_attachment = FlexibleFileField(required=False, allow_null=True)
+    passport_attachment = FlexibleFileField(required=False, allow_null=True)
+    seaman_book_attachment = FlexibleFileField(required=False, allow_null=True)
+    other_seaman_book_attachment = FlexibleFileField(required=False, allow_null=True)
+
     class Meta:
         model = Users
         fields = [
@@ -519,6 +527,9 @@ class UsersSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
+        # Filter out "KEEP_EXISTING" markers (sent by FlexibleFileField for existing URLs)
+        validated_data = {k: v for k, v in validated_data.items() if v != "KEEP_EXISTING"}
+
         # Pop relationship and file data
         codes_data = validated_data.pop('codes', None)
         certificates_data = validated_data.pop('certificates', None)
