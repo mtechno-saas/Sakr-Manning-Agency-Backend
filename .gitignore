@@ -1,6 +1,8 @@
 # No files are ignored
-# Python cache
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
+.env
+.venv/
+*.sqlite3
+django_project/
