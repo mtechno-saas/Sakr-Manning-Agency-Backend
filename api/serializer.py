@@ -257,15 +257,45 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
 
+    # New fields pulled from the linked user profile
+    generated_id = serializers.SerializerMethodField()
+    salary = serializers.CharField(source='user.salary', read_only=True, default=None)
+    coded_rank = serializers.SerializerMethodField()
+
     class Meta:
         model = CVSubmission
         fields = [
             'id', 'user', 'user_name', 'position_name', 'company_name',
-            'experience_years', 'status', 'submitted_date'
+            'experience_years', 'status', 'submitted_date',
+            'generated_id', 'salary', 'coded_rank'
         ]
 
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+
+    def get_generated_id(self, obj):
+        """
+        Returns the user's generated_id (12-digit ID).
+        This is only set after a Document is approved via
+        POST /api/documents/{id}/set_status/ with status='Active'.
+        Returns null if the user has not been approved yet.
+        """
+        return obj.user.generated_id
+
+    def get_coded_rank(self, obj):
+        """
+        Returns all assigned rank codes for the user.
+        Each entry contains: assigned_code, rank_code, rank_name.
+        """
+        user_ranks = obj.user.user_ranks.select_related('rank').all()
+        return [
+            {
+                'assigned_code': ur.assigned_code,
+                'rank_code': ur.rank.code,
+                'rank_name': ur.rank.name,
+            }
+            for ur in user_ranks
+        ]
 
 
 class CVSubmissionSerializer(serializers.ModelSerializer):
@@ -274,6 +304,11 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
     reviewed_by_name = serializers.CharField(source='reviewed_by.first_name', read_only=True)
+
+    # Extra user profile fields
+    generated_id = serializers.SerializerMethodField()
+    salary = serializers.CharField(source='user.salary', read_only=True, default=None)
+    coded_rank = serializers.SerializerMethodField()
 
     class Meta:
         model = CVSubmission
@@ -284,7 +319,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'expected_salary', 'availability_date',
             'status', 'submitted_date',
             'reviewed_by', 'reviewed_by_name', 'reviewed_date',
-            'notes', 'rating', 'created_at', 'updated_at'
+            'notes', 'rating', 'created_at', 'updated_at',
+            'generated_id', 'salary', 'coded_rank'
         ]
         extra_kwargs = {
             'user': {'required': False}
@@ -292,6 +328,30 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
 
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+
+    def get_generated_id(self, obj):
+        """
+        Returns the user's generated_id (12-digit ID).
+        Only set after a Document is approved via
+        POST /api/documents/{id}/set_status/ with status='Active'.
+        Returns null if not yet approved.
+        """
+        return obj.user.generated_id
+
+    def get_coded_rank(self, obj):
+        """
+        Returns all assigned rank codes for the user.
+        Each entry contains: assigned_code, rank_code, rank_name.
+        """
+        user_ranks = obj.user.user_ranks.select_related('rank').all()
+        return [
+            {
+                'assigned_code': ur.assigned_code,
+                'rank_code': ur.rank.code,
+                'rank_name': ur.rank.name,
+            }
+            for ur in user_ranks
+        ]
 
 
 # =====================

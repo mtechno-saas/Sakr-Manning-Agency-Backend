@@ -1,4 +1,12 @@
 {
-    "python-envs.defaultEnvManager": "ms-python.python:venv",
-    "python-envs.defaultPackageManager": "ms-python.python:pip"
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:pip",
+    "python.defaultInterpreterPath": "/home/storm/anaconda3/envs/django_project/bin/python3.12",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/django_project/lib/python3.12/site-packages",
+        "/home/storm/anaconda3/envs/django_project/lib/python3.12/site-packages",
+        "${workspaceFolder}/Sakr-Manning-Agency-Backend/venv/lib/python3.12/site-packages",
+    ],
+    "python.analysis.typeCheckingMode": "basic",
+    "python.condaPath": "/home/storm/anaconda3/bin/conda"
 }

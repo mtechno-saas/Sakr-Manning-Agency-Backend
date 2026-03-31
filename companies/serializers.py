@@ -5,6 +5,18 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = '__all__'
+        extra_kwargs = {
+            'website': {
+                'required': False,
+                'allow_null': True,
+                'allow_blank': True,
+            },
+            'company_flag': {
+                'required': False,
+                'allow_null': True,
+                'allow_blank': True,
+            },
+        }
 
 
 class JobOrderPositionSerializer(serializers.ModelSerializer):
