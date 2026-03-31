@@ -383,15 +383,19 @@ class ContractSerializer(serializers.ModelSerializer):
     ship_name = serializers.CharField(source='ship.ship_name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
     rank_name = serializers.CharField(source='rank.name', read_only=True)
+    
+    # Extra fields
+    generated_id = serializers.CharField(source='user.generated_id', read_only=True)
+    assigned_code = serializers.SerializerMethodField()
 
     class Meta:
         model = Contract
         fields = [
             'id',
-            'user', 'user_name', 'user_email',
+            'user', 'user_name', 'user_email', 'generated_id',
             'ship', 'ship_name',
             'company', 'company_name',
-            'rank', 'rank_name',
+            'rank', 'rank_name', 'assigned_code',
             'sign_on_date', 'sign_off_date', 'salary', 'currency', 'status',
             'signed_file', 'signed_at',
             'created_at', 'updated_at'
@@ -399,6 +403,13 @@ class ContractSerializer(serializers.ModelSerializer):
 
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+
+    def get_assigned_code(self, obj):
+        if not obj.user or not obj.rank:
+            return None
+        # Use first() to safely handle cases where the user does not have this rank assigned
+        user_rank = obj.user.user_ranks.filter(rank=obj.rank).first()
+        return user_rank.assigned_code if user_rank else None
 
 
 # =====================
