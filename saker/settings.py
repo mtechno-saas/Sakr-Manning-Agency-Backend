@@ -228,6 +228,14 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = 'api.Users'
 
+# ========================
+# GOOGLE OAUTH2 SETTINGS
+# ========================
+# Replace the placeholder below with your actual Client ID from:
+# Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs
+GOOGLE_OAUTH2_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'
+
+
 CORS_ALLOWED_ORIGINS = [
     "https://sakr-maritime.vercel.app",
     "https://test.sakrshipping.com",

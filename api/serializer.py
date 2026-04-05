@@ -10,6 +10,20 @@ from ships.serializers import ShipSerializer
 from .models import LanguageProficiency
 from api.serializers import FlexibleDateField, FlexibleFileField
 
+
+# ========================
+# GOOGLE AUTH SERIALIZER
+# ========================
+
+class GoogleAuthSerializer(serializers.Serializer):
+    """
+    Accepts the Google ID token from the frontend (obtained after user
+    clicks 'Sign in with Google'). The backend verifies it and issues
+    our own JWT tokens.
+    """
+    id_token = serializers.CharField(required=True, help_text="Google ID token returned by the frontend Google Sign-In flow.")
+
+
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
