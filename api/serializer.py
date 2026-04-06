@@ -315,17 +315,22 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
 class CVSubmissionSerializer(serializers.ModelSerializer):
     user_first_name = serializers.CharField(write_only=True, required=False)
     user_middle_name = serializers.CharField(write_only=True, required=False)
-    user_email = serializers.EmailField(source='user.email', required=False)
+    # Declared as plain write_only fields (no source='user.*') to avoid DRF putting
+    # them inside validated_data['user'] as a Users instance, which breaks .pop()
+    user_email = serializers.EmailField(write_only=True, required=False)
     company_name_input = serializers.CharField(write_only=True, required=False)
     position_name_input = serializers.CharField(write_only=True, required=False)
     reviewed_by_name = serializers.CharField(write_only=True, required=False)
-    salary = serializers.CharField(source='user.salary', required=False, default=None)
+    salary = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True)
 
     # Read-only display fields (computed)
     user_name = serializers.SerializerMethodField()
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
     reviewed_by_name_display = serializers.CharField(source='reviewed_by.first_name', read_only=True)
+    # Read-only from the linked user (for output only; input handled by write_only fields above)
+    user_email_display = serializers.EmailField(source='user.email', read_only=True)
+    salary_display = serializers.CharField(source='user.salary', read_only=True)
     generated_id = serializers.SerializerMethodField()
     coded_rank = serializers.SerializerMethodField()
     coded_rank_input = serializers.ListField(write_only=True, required=False)
@@ -334,14 +339,14 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         model = CVSubmission
         fields = [
             'id', 'user', 'user_name', 'user_first_name', 'user_middle_name',
-            'user_email', 'company', 'company_name', 'company_name_input',
+            'user_email', 'user_email_display', 'company', 'company_name', 'company_name_input',
             'position', 'position_name', 'position_name_input',
             'cv_file', 'cover_letter', 'experience_years',
             'expected_salary', 'availability_date',
             'status', 'submitted_date',
             'reviewed_by', 'reviewed_by_name', 'reviewed_by_name_display', 'reviewed_date',
             'notes', 'rating', 'created_at', 'updated_at',
-            'generated_id', 'salary', 'coded_rank', 'coded_rank_input'
+            'generated_id', 'salary', 'salary_display', 'coded_rank', 'coded_rank_input'
         ]
         extra_kwargs = {
             'user': {'required': False},
@@ -351,14 +356,16 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         }
 
     def update(self, instance, validated_data):
-        # Pop writable-only fields that don't map directly to model fields
+        # Pop writable-only fields that don't map directly to model fields.
+        # NOTE: these are declared as plain write_only fields (no source='user.*')
+        # so DRF puts them as flat top-level keys in validated_data — safe to pop directly.
         user_first_name = validated_data.pop('user_first_name', None)
         user_middle_name = validated_data.pop('user_middle_name', None)
-        user_email = validated_data.pop('user', {}).pop('email', None)
+        user_email = validated_data.pop('user_email', None)
         company_name_input = validated_data.pop('company_name_input', None)
         position_name_input = validated_data.pop('position_name_input', None)
         reviewed_by_name = validated_data.pop('reviewed_by_name', None)
-        salary = validated_data.pop('user', {}).pop('salary', None)
+        salary = validated_data.pop('salary', None)
         coded_rank_input = validated_data.pop('coded_rank_input', None)
 
         # Propagate changes to the User model
