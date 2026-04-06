@@ -335,6 +335,11 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     coded_rank = serializers.SerializerMethodField()
     coded_rank_input = serializers.ListField(write_only=True, required=False)
 
+    # Flexible date fields — accept YYYY-MM-DD, DD-MM-YYYY, MM/DD/YYYY, etc.
+    availability_date = FlexibleDateField(required=False, allow_null=True)
+    submitted_date = FlexibleDateField(required=False, allow_null=True)
+    reviewed_date = FlexibleDateField(required=False, allow_null=True)
+
     class Meta:
         model = CVSubmission
         fields = [
