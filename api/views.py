@@ -878,6 +878,41 @@ class DocumentViewSet(viewsets.ModelViewSet):
             # Sync data to user profile
             self._sync_user_data(document)
 
+            # Auto-create a CVSubmission for this document if none exists yet.
+            # This ensures every approved CV document appears in the CV Submissions
+            # pipeline without requiring manual entry.
+            try:
+                # Resolve position: try to match Document.position text to a Rank record
+                position_rank = None
+                if document.position:
+                    position_rank = Rank.objects.filter(name__iexact=document.position).first()
+
+                existing_submission = CVSubmission.objects.filter(user=user).first()
+                if not existing_submission:
+                    CVSubmission.objects.create(
+                        user=user,
+                        position=position_rank,
+                        cv_file=document.file if document.file else None,
+                        status='Pending',
+                        notes=f"Auto-created from Document #{document.id} (approved CV)",
+                    )
+                    print(f"DEBUG: Auto-created CVSubmission for user {user.id} from document {document.id}")
+                else:
+                    # Update existing submission's cv_file if it has no file yet
+                    updated = False
+                    if not existing_submission.cv_file and document.file:
+                        existing_submission.cv_file = document.file
+                        updated = True
+                    if not existing_submission.position and position_rank:
+                        existing_submission.position = position_rank
+                        updated = True
+                    if updated:
+                        existing_submission.save()
+                        print(f"DEBUG: Updated existing CVSubmission {existing_submission.id} with file/position from document {document.id}")
+            except Exception as cv_err:
+                # Non-fatal — don't block the approval flow
+                print(f"DEBUG: Could not auto-create CVSubmission: {cv_err}")
+
             # Send acceptance email
             try:
                 if user.email:
