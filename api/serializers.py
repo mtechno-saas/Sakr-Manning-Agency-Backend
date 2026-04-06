@@ -40,20 +40,30 @@ class FlexibleDateField(serializers.DateField):
     def to_internal_value(self, value):
         if not value:
             return None
-            
+
         if isinstance(value, str):
             # JS FormData often sends explicit "null" or "undefined"
             if value.lower() in ('null', 'undefined'):
                 return None
-                
+
             for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%m-%d-%Y', '%d/%m/%Y', '%m/%d/%Y'):
                 try:
                     parsed_date = datetime.strptime(value.strip(), fmt).date()
                     return parsed_date
                 except ValueError:
                     pass
-                    
+
         return super().to_internal_value(value)
+
+    def to_representation(self, value):
+        # Model fields like submitted_date / reviewed_date are DateTimeField.
+        # DRF's DateField.to_representation() asserts the value is a date-only
+        # object and raises AssertionError when it gets a datetime.
+        # Safely coerce datetime → date before handing off to the parent.
+        if hasattr(value, 'date') and callable(value.date):
+            value = value.date()
+        return super().to_representation(value)
+
 
 class UserSerializer(serializers.ModelSerializer):
     is_online = serializers.SerializerMethodField()
