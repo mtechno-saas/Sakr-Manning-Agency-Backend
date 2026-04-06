@@ -313,32 +313,110 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
 
 
 class CVSubmissionSerializer(serializers.ModelSerializer):
+    user_first_name = serializers.CharField(write_only=True, required=False)
+    user_middle_name = serializers.CharField(write_only=True, required=False)
+    user_email = serializers.EmailField(source='user.email', required=False)
+    company_name_input = serializers.CharField(write_only=True, required=False)
+    position_name_input = serializers.CharField(write_only=True, required=False)
+    reviewed_by_name = serializers.CharField(write_only=True, required=False)
+    salary = serializers.CharField(source='user.salary', required=False, default=None)
+
+    # Read-only display fields (computed)
     user_name = serializers.SerializerMethodField()
-    user_email = serializers.CharField(source='user.email', read_only=True)
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
-    reviewed_by_name = serializers.CharField(source='reviewed_by.first_name', read_only=True)
-
-    # Extra user profile fields
+    reviewed_by_name_display = serializers.CharField(source='reviewed_by.first_name', read_only=True)
     generated_id = serializers.SerializerMethodField()
-    salary = serializers.CharField(source='user.salary', read_only=True, default=None)
     coded_rank = serializers.SerializerMethodField()
+    coded_rank_input = serializers.ListField(write_only=True, required=False)
 
     class Meta:
         model = CVSubmission
         fields = [
-            'id', 'user', 'user_name', 'user_email',
-            'company', 'company_name', 'position', 'position_name',
+            'id', 'user', 'user_name', 'user_first_name', 'user_middle_name',
+            'user_email', 'company', 'company_name', 'company_name_input',
+            'position', 'position_name', 'position_name_input',
             'cv_file', 'cover_letter', 'experience_years',
             'expected_salary', 'availability_date',
             'status', 'submitted_date',
-            'reviewed_by', 'reviewed_by_name', 'reviewed_date',
+            'reviewed_by', 'reviewed_by_name', 'reviewed_by_name_display', 'reviewed_date',
             'notes', 'rating', 'created_at', 'updated_at',
-            'generated_id', 'salary', 'coded_rank'
+            'generated_id', 'salary', 'coded_rank', 'coded_rank_input'
         ]
         extra_kwargs = {
-            'user': {'required': False}
+            'user': {'required': False},
+            'submitted_date': {'required': False},
+            'created_at': {'required': False},
+            'updated_at': {'required': False},
         }
+
+    def update(self, instance, validated_data):
+        # Pop writable-only fields that don't map directly to model fields
+        user_first_name = validated_data.pop('user_first_name', None)
+        user_middle_name = validated_data.pop('user_middle_name', None)
+        user_email = validated_data.pop('user', {}).pop('email', None)
+        company_name_input = validated_data.pop('company_name_input', None)
+        position_name_input = validated_data.pop('position_name_input', None)
+        reviewed_by_name = validated_data.pop('reviewed_by_name', None)
+        salary = validated_data.pop('user', {}).pop('salary', None)
+        coded_rank_input = validated_data.pop('coded_rank_input', None)
+
+        # Propagate changes to the User model
+        user = instance.user
+        if user_first_name is not None:
+            user.first_name = user_first_name
+        if user_middle_name is not None:
+            user.middle_name = user_middle_name
+        if user_email is not None:
+            user.email = user_email
+        if salary is not None:
+            user.salary = salary
+        if any(v is not None for v in [user_first_name, user_middle_name, user_email, salary]):
+            user.save()
+
+        # Propagate company name to the Company model
+        if company_name_input is not None and instance.company:
+            instance.company.name = company_name_input
+            instance.company.save()
+
+        # Propagate position name to the Rank model
+        if position_name_input is not None and instance.position:
+            instance.position.name = position_name_input
+            instance.position.save()
+
+        # Propagate reviewed_by_name to the reviewed_by User
+        if reviewed_by_name is not None and instance.reviewed_by:
+            instance.reviewed_by.first_name = reviewed_by_name
+            instance.reviewed_by.save()
+
+        # Handle coded_rank input — sync UserRank entries
+        if coded_rank_input is not None:
+            # Delete existing ranks
+            from api.models import UserRank
+            instance.user.user_ranks.all().delete()
+            for entry in coded_rank_input:
+                from api.models import Rank
+                rank_code = entry.get('rank_code') or entry.get('assigned_code', '').split('.')[0]
+                rank_name = entry.get('rank_name', '')
+                assigned_code = entry.get('assigned_code', '')
+                # Try to find existing rank, else create
+                rank, _ = Rank.objects.get_or_create(
+                    code=rank_code,
+                    defaults={'name': rank_name}
+                )
+                UserRank.objects.create(
+                    user=instance.user,
+                    rank=rank,
+                    assigned_code=assigned_code
+                )
+
+        return super().update(instance, validated_data)
+
+    def validate_position(self, value):
+        """Allow empty string to be treated as None"""
+        if value == '':
+            return None
+        return value
 
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()
@@ -346,9 +424,9 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     def get_generated_id(self, obj):
         """
         Returns the user's generated_id (12-digit ID).
-        Only set after a Document is approved via
+        This is only set after a Document is approved via
         POST /api/documents/{id}/set_status/ with status='Active'.
-        Returns null if not yet approved.
+        Returns null if the user has not been approved yet.
         """
         return obj.user.generated_id
 

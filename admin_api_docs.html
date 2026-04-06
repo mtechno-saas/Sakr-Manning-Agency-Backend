@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakr Manning Agency - API Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 1000px; margin: 0 auto; padding: 2rem; color: #333; background: #f8f9fa; }
+        .container { background: white; padding: 3rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        pre { background: #2d2d2d; color: #ccc; padding: 1rem; border-radius: 5px; overflow-x: auto; }
+        code { font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; font-size: 0.9em; }
+        table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 0.9em; }
+        th { background-color: #f2f2f2; }
+        h1, h2, h3 { color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 0.3em; margin-top: 2em; }
+        blockquote { border-left: 4px solid #3498db; margin: 0; padding-left: 1rem; color: #666; background: #f1f8ff; padding: 10px; border-radius: 0 4px 4px 0; }
+    </style>
+</head>
+<body>
+    <div class="container" id="content">Loading documentation...</div>
+    <script>
+        const markdownContent = `# Admin Panel — Section Breakdown
+> Based on actual database models in the Sakr Manning Agency backend
+
+---
+
+## 1. 🏠 Dashboard
+**Purpose:** High-level overview / KPIs at a glance
+
+| Widget | Data Source |
+|---|---|
+| Total registered seafarers | \`Users\` model (total count) |
+| Active / On Site seafarers | \`Users.user_status = ON_SITE\` |
+| Seafarers on Vacation | \`Users.user_status = VACATION\` |
+| Seafarers on Medical Leave | \`Users.user_status = MEDICAL VACATION\` |
+| Blacklisted seafarers | \`Users.is_blacklisted = True\` |
+| Total CVs submitted | \`CVSubmission\` model (count) |
+| Pending CV reviews | \`CVSubmission.status = Pending\` |
+| Upcoming interviews | \`Interview.status = Scheduled\` (upcoming dates) |
+| Total companies | \`Company\` model (count) |
+| Open job positions | \`Company.open_positions\` sum OR \`JobOrder.status = Open\` |
+| Documents expiring soon | \`UserLicense.expiration_date\` within 30–60 days |
+| Recent registrations | Latest \`Users\` by \`created_at\` |
+
+---
+
+## 2. 📋 CVs
+**Purpose:** Manage CV/profile documents uploaded for each seafarer (public applicants)
+**Model:** \`Document\` | **Base URL:** \`/api/documents/\`
+
+### Data Fields
+
+| What to Show | Data Source |
+|---|---|
+| List of all CV documents | \`Document\` model (PDF/DOCX files linked to users) |
+| Seafarer name + position | \`Document.name\`, \`Document.position\` |
+| Document status | \`Document.status\` (Pending / Active / Blacklist) |
+| Upload date | \`Document.created_at\` |
+| Download/view file | \`Document.file\` (PDF or DOCX) |
+| Linked user profile | \`Document.user\` → full \`Users\` record |
+| generated_id | \`Users.generated_id\` — revealed only when status is \`Active\` |
+
+> **Also relevant:** \`Users.file\` and \`Users.title\` — these are synced from documents and hold the latest file per user.
+
+### API Endpoints
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| \`GET\` | \`/api/documents/\` | List all CVs | Admin / HR / Recruiter |
+| \`POST\` | \`/api/documents/\` | Upload a new CV document | **Public (no auth required)** |
+| \`GET\` | \`/api/documents/{id}/\` | Get a single CV detail | Authenticated |
+| \`PATCH\` | \`/api/documents/{id}/\` | Update CV fields | Authenticated |
+| \`DELETE\` | \`/api/documents/{id}/\` | Delete a CV | Authenticated |
+| \`POST\` | \`/api/documents/{id}/set_status/\` | Change status (Pending → Active → Blacklist) | Admin / HR / Recruiter |
+| \`GET\` | \`/api/documents/{id}/download/\` | Stream/download the file | Authenticated |
+
+---
+
+#### \`POST /api/documents/\` — Upload a CV
+> \`Content-Type: multipart/form-data\` — **No authentication required**
+
+**Request Body:**
+\`\`\`
+file          = <PDF or DOCX file>
+name          = "Mohamed Ahmed"
+email         = "mohamed@example.com"
+phone_number  = "01012345678"
+position      = "Waiter"           # from POSITION_CHOICES list
+title         = "Mohamed Ahmed CV"  # optional — auto-set from filename if empty
+\`\`\`
+
+**Response \`201 Created\`:**
+\`\`\`json
+{
+  "id": 42,
+  "user": 7,
+  "title": "Mohamed Ahmed CV",
+  "file": "/media/documents/cv_mohamed.pdf",
+  "name": "Mohamed Ahmed",
+  "email": "mohamed@example.com",
+  "phone_number": "01012345678",
+  "position": "Waiter",
+  "status": "Pending",
+  "generated_id": null,
+  "created_at": "2026-03-30T21:00:00Z",
+  "updated_at": "2026-03-30T21:00:00Z"
+}
+\`\`\`
+
+---
+
+#### \`POST /api/documents/{id}/set_status/\` — Approve / Reject a CV
+> \`Content-Type: application/json\` | Requires Admin / HR / Recruiter token
+
+**Request Body:**
+\`\`\`json
+{ "status": "Active" }
+\`\`\`
+> Valid values: \`"Pending"\`, \`"Active"\`, \`"Blacklist"\`
+
+**Response \`200 OK\`:**
+\`\`\`json
+{
+  "id": 42,
+  "user": 7,
+  "title": "Mohamed Ahmed CV",
+  "file": "/media/documents/cv_mohamed.pdf",
+  "name": "Mohamed Ahmed",
+  "email": "mohamed@example.com",
+  "phone_number": "01012345678",
+  "position": "Waiter",
+  "status": "Active",
+  "generated_id": "384920174856",
+  "created_at": "2026-03-30T21:00:00Z",
+  "updated_at": "2026-03-30T21:05:00Z"
+}
+\`\`\`
+
+> ⚡ **Side-effects when status → \`"Active"\`:**
+> 1. Generates a unique 12-digit \`generated_id\` for the linked user
+> 2. Syncs \`name\`, \`email\`, \`phone_number\`, \`position\` → to the \`Users\` profile
+> 3. Sends a **welcome + email verification** email to the applicant
+
+---
+
+#### \`GET /api/documents/\` — List all CVs
+**Response \`200 OK\`:**
+\`\`\`json
+[
+  {
+    "id": 42,
+    "user": 7,
+    "title": "Mohamed Ahmed CV",
+    "file": "/media/documents/cv_mohamed.pdf",
+    "name": "Mohamed Ahmed",
+    "email": "mohamed@example.com",
+    "phone_number": "01012345678",
+    "position": "Waiter",
+    "status": "Pending",
+    "generated_id": null,
+    "created_at": "2026-03-30T21:00:00Z",
+    "updated_at": "2026-03-30T21:00:00Z"
+  }
+]
+\`\`\`
+
+---
+
+## 3. 👥 Management
+**Purpose:** Manage companies, ships, job orders, and rank/crew assignments
+
+---
+
+### 🏢 Companies — \`/api/companies/\`
+**Auth:** \`IsAuthenticated\`
+
+#### Data Fields
+| Field | Source |
+|---|---|
+| Company name & type | \`Company.company_name\`, \`Company.company_type\` |
+| Status | \`Company.status\` (Active / Inactive / Prospect) |
+| Contact email | \`Company.contact_email\` |
+| Website *(optional)* | \`Company.website\` |
+| Country flag *(optional)* | \`Company.company_flag\` (195 country choices) |
+| Hourly rate | \`Company.hourly_rate\` |
+| Open positions | \`Company.open_positions\` |
+
+#### Endpoints
+| Method | Endpoint | Description |
+|---|---|---|
+| \`GET\` | \`/api/companies/\` | List all companies |
+| \`POST\` | \`/api/companies/\` | Create a company |
+| \`GET\` | \`/api/companies/{id}/\` | Get company detail |
+| \`PATCH\` | \`/api/companies/{id}/\` | Update a company |
+| \`DELETE\` | \`/api/companies/{id}/\` | Delete a company |
+| \`GET\` | \`/api/companies/stats/\` | Aggregated statistics |
+
+**Query Filters:** \`?name=MSC\` · \`?company_type=Shipping Manning Companies\` · \`?status=Active\`
+
+---
+
+#### \`POST /api/companies/\` — Create a Company
+
+**Request Body (JSON):**
+\`\`\`json
+{
+  "company_name": "MSC Cruises Egypt",
+  "company_type": "Shipping Manning Companies",
+  "contact_email": "hr@msccruises.com",
+  "status": "Active",
+  "open_positions": 5,
+  "hourly_rate": "12.50",
+  "website": "https://www.msccruises.com",
+  "company_flag": "Egypt"
+}
+\`\`\`
+
+> **Required:** \`company_name\`, \`company_type\`, \`contact_email\`
+> **Optional:** \`website\`, \`company_flag\`, \`status\` (default: \`Active\`), \`open_positions\` (default: \`0\`), \`hourly_rate\` (default: \`0.00\`)
+
+**\`company_type\` choices:**
+\`\`\`
+Shipping Manning Companies · Cargo Manning Companies
+Cruise & Hospitality Manning Companies · Offshore & Oil/Gas Manning Companies
+Fishing Fleet Manning Companies · General Crew Manning Companies
+Specialized Marine Manning Companies · Temporary / Contract Manning Agencies
+Full Crew Management Companies · Other
+\`\`\`
+
+**\`status\` choices:** \`Active\` · \`Inactive\` · \`Prospect\`
+
+**\`company_flag\` choices:** Any of the 195 country names (Afghanistan → Zimbabwe)
+
+**Response \`201 Created\`:**
+\`\`\`json
+{
+  "id": 3,
+  "company_name": "MSC Cruises Egypt",
+  "company_type": "Shipping Manning Companies",
+  "contact_email": "hr@msccruises.com",
+  "status": "Active",
+  "open_positions": 5,
+  "hourly_rate": "12.50",
+  "website": "https://www.msccruises.com",
+  "company_flag": "Egypt",
+  "created_at": "2026-03-31T12:00:00Z",
+  "updated_at": "2026-03-31T12:00:00Z"
+}
+\`\`\`
+
+---
+
+#### \`GET /api/companies/stats/\` — Statistics
+
+**Response \`200 OK\`:**
+\`\`\`json
+{
+  "total_companies": 12,
+  "by_status": { "Active": 8, "Inactive": 2, "Prospect": 2 },
+  "by_type": {
+    "Shipping Manning Companies": 5,
+    "Cruise & Hospitality Manning Companies": 4,
+    "Other": 3
+  },
+  "open_positions": { "total": 47, "companies_with_openings": 6 },
+  "recent_companies": [
+    {
+      "id": 12,
+      "company_name": "MSC Cruises Egypt",
+      "company_type": "Shipping Manning Companies",
+      "status": "Active",
+      "created_at": "2026-03-31T12:00:00Z"
+    }
+  ]
+}
+\`\`\`
+
+---
+
+### 🚢 Ships — \`/api/ships/\`
+**Auth:** \`IsShipManagerOrAdmin\` (Admin / HR roles)
+
+#### Data Fields
+| Field | Source |
+|---|---|
+| Ship name & IMO | \`Ship.ship_name\`, \`Ship.imo_number\` |
+| Type & Flag | \`Ship.ship_type\` (→ \`VesselType\` ID), \`Ship.flag\` (→ \`Flag\` ID) |
+| Crew members | \`Ship.crew\` (ManyToMany → \`Users\`, read as nested objects) |
+| Technical details | \`gross_tonnage\`, \`deadweight\`, \`engine_type\`, \`engine_power_kw\` |
+| Status | \`Ship.status\` (Active / Under Maintenance / Inactive) |
+
+#### Endpoints
+| Method | Endpoint | Description |
+|---|---|---|
+| \`GET\` | \`/api/ships/\` | List all ships |
+| \`POST\` | \`/api/ships/\` | Create a ship |
+| \`GET\` | \`/api/ships/{id}/\` | Get ship detail |
+| \`PATCH\` | \`/api/ships/{id}/\` | Update a ship |
+| \`DELETE\` | \`/api/ships/{id}/\` | Delete a ship |
+| \`POST\` | \`/api/ships/{id}/assign-user/\` | Add a crew member |
+| \`POST\` | \`/api/ships/{id}/unassign-user/\` | Remove a crew member |
+
+---
+
+#### \`POST /api/ships/\` — Create a Ship
+
+**Request Body (JSON):**
+\`\`\`json
+{
+  "ship_name": "Nile Star",
+  "imo_number": "9876543",
+  "company": 3,
+  "ship_type": 2,
+  "flag": 1,
+  "status": "Active",
+  "official_no": "EG-2024-001",
+  "call_sign": "SUAN2",
+  "mmsi_no": "622123456",
+  "port_of_registry": "Alexandria",
+  "gross_tonnage": 15000,
+  "deadweight": 22000,
+  "year_built": 2018,
+  "builder": "Hyundai Heavy Industries",
+  "engine_type": "MAN B&W",
+  "engine_power_kw": 12000,
+  "crew_ids": [7, 12, 15]
+}
+\`\`\`
+
+> \`company\` → ID from \`/api/companies/\`
+> \`ship_type\` → ID from \`/api/core/vessel-types/\`
+> \`flag\` → ID from \`/api/core/flags/\`
+> \`crew_ids\` → list of user IDs *(write-only, assigns ManyToMany crew)*
+
+**Response \`201 Created\`:**
+\`\`\`json
+{
+  "id": 5,
+  "ship_name": "Nile Star",
+  "imo_number": "9876543",
+  "company": 3,
+  "ship_type": 2,
+  "flag": 1,
+  "status": "Active",
+  "official_no": "EG-2024-001",
+  "call_sign": "SUAN2",
+  "mmsi_no": "622123456",
+  "port_of_registry": "Alexandria",
+  "gross_tonnage": 15000,
+  "deadweight": 22000,
+  "year_built": 2018,
+  "builder": "Hyundai Heavy Industries",
+  "engine_type": "MAN B&W",
+  "engine_power_kw": 12000,
+  "crew": [
+    { "id": 7,  "first_name": "Mohamed", "middle_name": "Ahmed",  "email": "m.ahmed@example.com" },
+    { "id": 12, "first_name": "Ahmed",   "middle_name": "Hassan", "email": "a.hassan@example.com" }
+  ],
+  "created_at": "2026-03-31T12:00:00Z",
+  "updated_at": "2026-03-31T12:00:00Z"
+}
+\`\`\`
+
+---
+
+#### \`POST /api/ships/{id}/assign-user/\` — Add Crew Member
+\`\`\`json
+{ "user_id": 15 }
+\`\`\`
+**Response \`200 OK\`:** \`{ "status": "User Mohamed assigned to Nile Star" }\`
+
+#### \`POST /api/ships/{id}/unassign-user/\` — Remove Crew Member
+\`\`\`json
+{ "user_id": 15 }
+\`\`\`
+**Response \`200 OK\`:** \`{ "status": "User Mohamed unassigned from Nile Star" }\`
+
+---
+
+### 📋 Job Orders — \`/api/companies/job-orders/\`
+**Auth:** \`IsAuthenticated\`
+
+| Method | Endpoint | Description |
+|---|---|---|
+| \`GET\` | \`/api/companies/job-orders/\` | List all job orders |
+| \`POST\` | \`/api/companies/job-orders/\` | Create a job order |
+| \`GET\` | \`/api/companies/job-orders/{id}/\` | Detail (includes nested positions) |
+| \`PATCH\` | \`/api/companies/job-orders/{id}/\` | Update |
+| \`DELETE\` | \`/api/companies/job-orders/{id}/\` | Delete |
+
+#### \`POST /api/companies/job-orders/\` — Create Job Order
+
+**Request Body (JSON):**
+\`\`\`json
+{
+  "company": 3,
+  "ship": 5,
+  "reference_number": "JO-2026-001",
+  "request_date": "2026-03-31",
+  "target_joining_date": "2026-05-01",
+  "status": "Open",
+  "trading_area": "Mediterranean",
+  "notes": "Urgent requirement for summer season"
+}
+\`\`\`
+
+**Response \`201 Created\`:**
+\`\`\`json
+{
+  "id": 1,
+  "company": 3,
+  "company_name": "MSC Cruises Egypt",
+  "ship": 5,
+  "ship_name": "Nile Star",
+  "reference_number": "JO-2026-001",
+  "request_date": "2026-03-31",
+  "target_joining_date": "2026-05-01",
+  "status": "Open",
+  "trading_area": "Mediterranean",
+  "notes": "Urgent requirement for summer season",
+  "positions": [],
+  "created_at": "2026-03-31T12:00:00Z",
+  "updated_at": "2026-03-31T12:00:00Z"
+}
+\`\`\`
+
+---
+
+### 🏅 Rank Codes — \`/api/users/ranks/\`
+**Auth:** \`IsAuthenticated\`
+
+| Field | Source |
+|---|---|
+| All available ranks | \`Rank\` model (code + name) |
+| Users per rank | \`UserRank.user\` grouped by \`rank\` |
+
+---
+
+## 4. 📤 CV Submissions — \`/api/cv-submissions/\`
+**Purpose:** Track job application pipeline per seafarer + company
+**Auth:** \`IsAuthenticated\` (role-based inside)
+
+### Endpoints
+
+| Method | Endpoint | Description | Who |
+|---|---|---|---|
+| \`GET\` | \`/api/cv-submissions/\` | List all (lightweight) | Admin/HR/Recruiter = all · Employee = own |
+| \`POST\` | \`/api/cv-submissions/\` | Create a submission | Admin/HR/Recruiter (needs \`user\`) · Employee (auto-self) |
+| \`GET\` | \`/api/cv-submissions/{id}/\` | Full detail | Same as above |
+| \`PATCH\` | \`/api/cv-submissions/{id}/\` | Update a submission | Admin/HR/Recruiter |
+| \`DELETE\` | \`/api/cv-submissions/{id}/\` | Delete | Admin/HR/Recruiter |
+| \`POST\` | \`/api/cv-submissions/upload/\` | Upload CV file only | Authenticated |
+| \`PATCH\` | \`/api/cv-submissions/{id}/update-status/\` | Move through pipeline | Admin/HR/Recruiter |
+| \`GET\` | \`/api/cv-submissions/stats/\` | Dashboard KPIs | All authenticated |
+
+**Query Filters:**
+\`\`\`
+?status=Pending
+?status=Shortlisted
+?user=7                          # filter by user ID
+?position=5                      # filter by rank ID
+?submitted_date_from=2026-01-01
+?submitted_date_to=2026-03-31
+\`\`\`
+
+---
+
+#### \`GET /api/cv-submissions/\` — List (Lightweight)
+
+**Response \`200 OK\`:**
+\`\`\`json
+[
+  {
+    "id": 15,
+    "user": 7,
+    "user_name": "Mohamed Ahmed",
+    "position_name": "Waiter",
+    "company_name": "MSC Cruises Egypt",
+    "experience_years": 4,
+    "status": "Pending",
+    "submitted_date": "2026-03-31T12:00:00Z",
+    "generated_id": "384920174856",
+    "salary": "800",
+    "coded_rank": [
+      {
+        "assigned_code": "DR-6.001",
+        "rank_code": "DR-6.000",
+        "rank_name": "Waiter"
+      }
+    ]
+  }
+]
+\`\`\`
+
+> \`generated_id\` → \`null\` if user's CV Document hasn't been approved yet via \`set_status\`
+> \`salary\` → \`null\` if not set in user profile
+> \`coded_rank\` → \`[]\` if no ranks assigned to this user
+
+---
+
+#### \`GET /api/cv-submissions/{id}/\` — Full Detail
+
+**Response \`200 OK\`:**
+\`\`\`json
+{
+  "id": 15,
+  "user": 7,
+  "user_name": "Mohamed Ahmed",
+  "user_email": "mohamed@example.com",
+  "company": 3,
+  "company_name": "MSC Cruises Egypt",
+  "position": 5,
+  "position_name": "Waiter",
+  "cv_file": "/media/cv_submissions/cv_mohamed.pdf",
+  "cover_letter": "I am applying for the Waiter position...",
+  "experience_years": 4,
+  "expected_salary": "800.00",
+  "availability_date": "2026-05-01",
+  "status": "Pending",
+  "submitted_date": "2026-03-31T12:00:00Z",
+  "reviewed_by": null,
+  "reviewed_by_name": null,
+  "reviewed_date": null,
+  "notes": "Good candidate",
+  "rating": null,
+  "created_at": "2026-03-31T12:00:00Z",
+  "updated_at": "2026-03-31T12:00:00Z",
+  "generated_id": "384920174856",
+  "salary": "800",
+  "coded_rank": [
+    {
+      "assigned_code": "DR-6.001",
+      "rank_code": "DR-6.000",
+      "rank_name": "Waiter"
+    }
+  ]
+}
+\`\`\`
+
+---
+
+#### \`POST /api/cv-submissions/\` — Create Submission (Admin/HR)
+
+**Request Body (JSON):**
+\`\`\`json
+{
+  "user": 7,
+  "company": 3,
+  "position": 5,
+  "cover_letter": "I am applying for the Waiter position...",
+  "experience_years": 4,
+  "expected_salary": "800.00",
+  "availability_date": "2026-05-01",
+  "notes": "Good candidate from previous referral"
+}
+\`\`\`
+
+> **Required:** \`user\` (Admin/HR/Recruiter) — Employee auto-sets themselves
+> **Optional:** \`company\`, \`position\`, \`cv_file\`, \`cover_letter\`, \`experience_years\`, \`expected_salary\`, \`availability_date\`, \`notes\`
+
+**Response \`201 Created\`:** Full detail object (same as \`GET {id}/\`)
+
+---
+
+#### \`POST /api/cv-submissions/upload/\` — Upload CV File
+> \`Content-Type: multipart/form-data\`
+
+**Request Body:**
+\`\`\`
+cv_file   = <PDF or Word file>
+position  = 5       # optional — Rank ID
+notes     = "..."   # optional
+\`\`\`
+
+**Response \`201 Created\`:** Full detail object with \`status: "Pending"\`
+
+---
+
+#### \`PATCH /api/cv-submissions/{id}/update-status/\` — Change Pipeline Status
+
+**Request Body (JSON):**
+\`\`\`json
+{ "status": "Shortlisted" }
+\`\`\`
+
+**\`status\` pipeline:**
+\`\`\`
+Pending → Under Review → Interviewed → Shortlisted → Approved → Hired
+                                                              → Rejected
+\`\`\`
+
+**Response \`200 OK\`:**
+\`\`\`json
+{
+  "id": 15,
+  "user": 7,
+  "user_name": "Mohamed Ahmed",
+  "status": "Approved",
+  "reviewed_by": 1,
+  "reviewed_by_name": "Admin",
+  "reviewed_date": "2026-03-31"
+}
+\`\`\`
+
+> ⚡ When status → \`Approved\` or \`Rejected\` — \`reviewed_by\` and \`reviewed_date\` are **auto-set**
+
+---
+
+#### \`GET /api/cv-submissions/stats/\` — Dashboard KPIs
+
+**Response \`200 OK\`:**
+\`\`\`json
+{
+  "total": 120,
+  "pending": 45,
+  "under_review": 30,
+  "interviewed": 20,
+  "approved": 25,
+  "pending_percent": 37,
+  "under_review_percent": 25,
+  "interviewed_percent": 17,
+  "approved_percent": 21
+}
+\`\`\`
+
+---
+
+### Full Field Reference
+
+| Field | Type | In List | In Detail | Notes |
+|---|---|---|---|---|
+| \`user\` | FK → Users | ✅ | ✅ | Required for Admin, auto-set for Employee |
+| \`user_name\` | String | ✅ | ✅ | Read-only |
+| \`user_email\` | String | ❌ | ✅ | Read-only |
+| \`company\` | FK → Company | ✅ | ✅ | Optional |
+| \`position\` | FK → Rank | ✅ | ✅ | Optional |
+| \`cv_file\` | File | ❌ | ✅ | Optional |
+| \`cover_letter\` | Text | ❌ | ✅ | Optional |
+| \`experience_years\` | Integer | ✅ | ✅ | Default \`0\` |
+| \`expected_salary\` | Decimal | ❌ | ✅ | Optional |
+| \`availability_date\` | Date | ❌ | ✅ | Optional |
+| \`status\` | Choice | ✅ | ✅ | Default \`Pending\` |
+| \`rating\` | Integer | ❌ | ✅ | Set by reviewer |
+| \`reviewed_by\` | FK → Users | ❌ | ✅ | Auto-set on Approve/Reject |
+| \`reviewed_date\` | Date | ❌ | ✅ | Auto-set on Approve/Reject |
+| \`generated_id\` | String | ✅ | ❌ | From \`user.generated_id\` — null until Document approved |
+| \`salary\` | String | ✅ | ❌ | From \`user.salary\` |
+| \`coded_rank\` | Array | ✅ | ❌ | From \`user.user_ranks\` — each with \`assigned_code\`, \`rank_code\`, \`rank_name\` |
+
+---
+
+## 5. 🎤 Interviews
+**Purpose:** Schedule and track interview sessions
+
+| What to Show | Data Source |
+|---|---|
+| Candidate | \`Interview.candidate\` → \`Users.first_name\` |
+| Interviewer | \`Interview.interviewer\` (from \`interviews\` app) OR \`Interview.interviewer_name/email\` (from \`api\` app) |
+| Date & Time | \`Interview.date\` / \`Interview.scheduled_date\` + \`scheduled_time\` |
+| Type | \`Interview.interview_type\` (Phone / Video / In-Person / Technical) |
+| Status | \`Interview.status\` (Scheduled / Completed / Cancelled / Rescheduled / No Show) |
+| Result | \`Interview.result\` (Pending / Passed / Failed / On Hold) |
+| Company | \`Interview.company\` → \`Company.company_name\` |
+| Position applied for | \`Interview.position\` → \`Rank.name\` |
+| Meeting link | \`Interview.meeting_link\` |
+| Notes / Feedback | \`Interview.notes\`, \`Interview.feedback\` |
+
+> ⚠️ There are **two Interview models**: one in \`api/models.py\` (more detailed) and one in \`interviews/models.py\` (simpler). The admin should likely consolidate on the one in \`api/models.py\`.
+
+---
+
+## 6. 📁 Documents
+**Purpose:** Manage all personal documents, licenses, and certificates per seafarer
+
+### Sub-sections:
+
+#### 🪪 Personal Documents
+| Field | Source |
+|---|---|
+| Document type | \`PersonalDocument.document_type\` (Passport, Seaman's Book, etc.) |
+| Document number | \`PersonalDocument.document_number\` |
+| Issue / Expiry dates | \`PersonalDocument.issue_date\`, \`PersonalDocument.expiry_date\` |
+| Issuing country / authority | \`PersonalDocument.issuing_country\`, \`PersonalDocument.issued_by\` |
+| File attachment | \`PersonalDocument.file\` |
+
+#### 🏅 Licenses / Certificates of Competency
+| Field | Source |
+|---|---|
+| License name | \`UserLicense.document_name\` (COC, GOC, Engineer cert, etc.) |
+| Document number | \`UserLicense.document_number\` |
+| Country of issue | \`UserLicense.country_of_issue\` |
+| Issue / Expiry dates | \`UserLicense.issue_date\`, \`UserLicense.expiration_date\` |
+| File | \`UserLicense.document_file\` |
+
+#### 📜 Training Certificates (STCW)
+| Field | Source |
+|---|---|
+| Certificate type | \`Users.certificates\` (ManyToMany → \`Certificate\` model) with 50+ STCW choices |
+
+#### 🔵 Passports & Seaman Books (stored inline on Users)
+| Field | Source |
+|---|---|
+| Passport | \`Users.passport_no\`, \`passport_issue_date\`, \`passport_expiry_date\`, \`passport_issued_by\`, \`passport_attachment\` |
+| Seaman Book | \`Users.seaman_book_no\`, \`seaman_book_issue_date\`, \`seaman_book_expiry_date\`, \`seaman_book_attachment\` |
+| Other Seaman Book | \`Users.other_seaman_book_*\` fields |
+
+---
+
+## 7. 👤 Users
+**Purpose:** Full seafarer profile management
+
+This is the most data-rich section. Each user record spans:
+
+### 👤 Personal Info
+- \`first_name\`, \`middle_name\`, \`email\`, \`profile_image\`
+- \`age\`, \`date_of_birth\`, \`blood_type\`, \`smoker\`
+- \`nationality\`, \`Place_Of_Birth\`, \`marital_status\`
+- \`address\`, \`phone_number\`, \`tel_number\`, \`country\`, \`city\`
+- \`Nearest_Port\`
+
+### 🎯 Position & Status
+- \`application_for_position\`, \`available_date\`
+- \`user_status\` (ON_SITE / VACATION / MEDICAL VACATION)
+- \`role\` (Admin / HR Manager / Recruiter / Employee)
+- \`register_code\`, \`register_date\`, \`generated_id\`
+- \`is_blacklisted\`, \`blacklist_reason\`
+
+### 🎓 Professional
+- \`codes\` (ManyToMany → \`Rank\` ranks held)
+- \`certificates\` (ManyToMany → \`Certificate\` STCW certs)
+- \`marlins_test_result\`, \`ces_test_result\` + dates/attachments
+- \`salary\`
+- Sea service history → \`SeaService\` related records
+
+### 📏 Physical Info
+- \`Height_Cm\`, \`Weight_Kg\`
+- \`overall_size\`, \`shirt_size\`, \`trouser_size\`, \`shoes_size\`
+
+### 🌍 Languages
+- \`LanguageProficiency\` / \`UserLanguage\` related records (language, level, CEFR)
+- \`english_language_level\`, \`other_language\`, \`other_language_level\`
+
+### 🏥 Health & Vaccinations
+- \`health_flag_state\`, \`health_number\`, \`health_issue_date\`, \`health_expiry_date\`
+- \`international_medical_number/issue/expiry\`
+- \`yellow_fever_*\`, \`cholera_*\`
+- \`covid_vaccine_name\`, \`covid_first_dose\`, \`covid_second_dose\`
+
+### 🛂 Visa Info
+- \`us_visa_status\`, \`schengen_visa_status\`
+- \`passport_no\`, \`passport_expiry_date\`
+- \`seaman_book_no\`, \`seaman_book_expiry_date\`
+
+### 👨‍👩‍👧 Next of Kin
+- \`NextOfKin\` related records: \`full_name\`, \`relationship\`, \`phone\`, \`email\`
+
+### 📝 Declaration / Health History
+- \`Declaration\` related records: disease, accident, psychiatric, addiction history
+- \`consent_given\`, \`declaration_date\`
+
+### 📊 Performance
+- \`PerformanceAppraisal\` records: rating (1–5), vessel, date, evaluator
+- \`BlacklistRecord\` history
+
+### 📄 References
+- \`Reference\` records: company name, position, contact info
+
+### ⚙️ COC / GOC (on Users model directly)
+- \`coc_certificate_name\`, \`coc_certificate_number\`, \`coc_issue_date\`, \`coc_expiry_date\`
+- \`goc_certificate_number\`, \`goc_issue_date\`, \`goc_expiry_date\`
+
+---
+
+## 7.5. 📝 Contracts — \`/api/contracts/\`
+**Purpose:** Manage legal employment agreements between the Seafarer, Company, and Ship.
+**Auth:** \`IsAuthenticated\` (Admin/HR = Full access, Employee = View own contracts only)
+
+### Endpoints
+| Method | Endpoint | Description |
+|---|---|---|
+| \`GET\` | \`/api/contracts/\` | List all contracts (lightweight format) |
+| \`POST\` | \`/api/contracts/\` | Create a new contract |
+| \`GET\` | \`/api/contracts/{id}/\` | Get full contract details |
+| \`PATCH\` | \`/api/contracts/{id}/\` | Update contract (e.g., set status to Signed, upload file) |
+| \`DELETE\` | \`/api/contracts/{id}/\` | Delete contract |
+| \`GET\` | \`/api/contracts/stats/\` | Dashboard KPI stats for contracts |
+
+### Request/Response Examples
+
+#### \`POST /api/contracts/\` — Create Contract (Admin)
+> **Content-Type:** \`multipart/form-data\` or \`application/json\`
+
+**Request Body:**
+\`\`\`json
+{
+  "user": 7,
+  "ship": 2,
+  "company": 3,
+  "rank": 5,
+  "sign_on_date": "2026-05-01",
+  "sign_off_date": "2026-11-01",
+  "salary": "800.00",
+  "currency": "USD",
+  "status": "Pending Signature", 
+  "repatriation_terms": "Standard company repatriation upon completion.",
+  "leave_pay_terms": "Included in base salary."
+}
+\`\`\`
+
+#### \`GET /api/contracts/{id}/\` — Full Detail
+**Response \`200 OK\`:**
+\`\`\`json
+{
+  "id": 10,
+  "user": 7,
+  "user_name": "Mohamed Ahmed",
+  "user_email": "mohamed@example.com",
+  "generated_id": "384920174856",
+  "ship": 2,
+  "ship_name": "MSC Seashore",
+  "company": 3,
+  "company_name": "MSC Cruises",
+  "rank": 5,
+  "rank_name": "Waiter",
+  "assigned_code": "DR-6.001",
+  "sign_on_date": "2026-05-01",
+  "sign_off_date": "2026-11-01",
+  "salary": "800.00",
+  "currency": "USD",
+  "status": "Pending Signature",
+  "signed_file": null,
+  "signed_at": null,
+  "created_at": "2026-03-31T12:00:00Z",
+  "updated_at": "2026-03-31T12:00:00Z"
+}
+\`\`\`
+
+#### \`PATCH /api/contracts/{id}/\` — Upload Signed File
+**Request Body (Form-Data):**
+\`\`\`
+status      = "Signed"
+signed_file = <File: signed_mohamed_msc.pdf>
+signed_at   = "2026-04-15T10:30:00Z"
+\`\`\`
+
+---
+
+## 8. 💰 Finance
+**Purpose:** Track financial records / payroll per seafarer
+
+| What to Show | Data Source |
+|---|---|
+| Seafarer name | \`FinanceRecord.user\` → \`Users.first_name\` |
+| Company | \`FinanceRecord.company\` → \`Company.company_name\` |
+| Status | \`FinanceRecord.status\` (Pending / Paid / Overdue / Cancelled) |
+| Period (start–end date) | \`FinanceRecord.start_date\`, \`FinanceRecord.end_date\` |
+| Total days worked | Computed: \`(end_date - start_date).days + 1\` |
+| Daily rate | Computed: \`Company.hourly_rate × 8\` |
+| Total payout | Computed: \`total_days × daily_rate\` |
+
+> ⚠️ The \`Finance\` module is **relatively thin** right now. You may want to expand it with: salary advance records, contract salary from \`Contract.salary\`, and currency from \`Contract.currency\`.
+
+---
+
+## 9. 🤖 AI Assistant
+**Purpose:** AI-powered assistant for the admin
+
+Based on the \`ai_agents\` and \`ai_document\` directories, this section would provide:
+- Natural language search over seafarer profiles
+- Document generation (contracts, reference letters)
+- Intelligent recommendations for job-seafarer matching
+`;
+        document.getElementById('content').innerHTML = marked.parse(markdownContent);
+    </script>
+</body>
+</html>

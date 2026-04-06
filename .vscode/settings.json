@@ -1,5 +1,5 @@
 {
-    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultEnvManager": "ms-python.python:venv",
     "python-envs.defaultPackageManager": "ms-python.python:pip",
     "python.defaultInterpreterPath": "/home/storm/anaconda3/envs/django_project/bin/python3.12",
     "python.analysis.extraPaths": [

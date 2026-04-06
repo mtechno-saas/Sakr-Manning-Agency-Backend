@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakr Manning Agency — Admin Panel</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #232733;
+            --border: #2e3345;
+            --text: #e2e4ea;
+            --text-dim: #8b8fa3;
+            --accent: #6c8aff;
+            --accent-glow: rgba(108, 138, 255, 0.15);
+            --green: #34d399;
+            --green-bg: rgba(52, 211, 153, 0.1);
+            --orange: #fb923c;
+            --orange-bg: rgba(251, 146, 60, 0.1);
+            --red: #f87171;
+            --red-bg: rgba(248, 113, 113, 0.1);
+            --purple: #a78bfa;
+            --purple-bg: rgba(167, 139, 250, 0.1);
+            --cyan: #22d3ee;
+            --cyan-bg: rgba(34, 211, 238, 0.1);
+            --yellow: #fbbf24;
+            --yellow-bg: rgba(251, 191, 36, 0.1);
+            --pink: #f472b6;
+            --pink-bg: rgba(244, 114, 182, 0.1);
+            --indigo: #818cf8;
+            --indigo-bg: rgba(129, 140, 248, 0.1);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* ── Sidebar ── */
+        .layout { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-brand h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: -0.02em;
+        }
+
+        .sidebar-brand span {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 1.5rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            color: var(--text);
+            background: var(--accent-glow);
+            border-left-color: var(--accent);
+        }
+
+        .sidebar-nav a .icon {
+            width: 22px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        /* ── Main ── */
+        .main {
+            flex: 1;
+            padding: 2rem 3rem;
+            min-width: 0;
+        }
+
+        .main-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .main-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: #fff;
+        }
+
+        .main-header p {
+            color: var(--text-dim);
+            margin-top: 4px;
+            font-size: 0.95rem;
+        }
+
+        /* ── Section ── */
+        .section {
+            margin-bottom: 3rem;
+            scroll-margin-top: 1rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            font-size: 1.1rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+
+        .section-purpose {
+            color: var(--text-dim);
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+            padding-left: 42px;
+        }
+
+        /* ── Cards Grid ── */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+        }
+
+        .card-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .card-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .card-value .detail {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-weight: 400;
+            margin-top: 2px;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        }
+
+        /* ── Table ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        table th {
+            text-align: left;
+            padding: 10px 14px;
+            background: var(--surface-2);
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        table tr:last-child td { border-bottom: none; }
+        table tr:hover td { background: var(--accent-glow); }
+
+        table code {
+            background: var(--surface-2);
+            color: var(--accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        }
+
+        .table-wrapper {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        /* ── Sub-sections ── */
+        .subsection {
+            margin-bottom: 2rem;
+        }
+
+        .subsection h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── Pill / Tag ── */
+        .pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .pill-green { background: var(--green-bg); color: var(--green); }
+        .pill-orange { background: var(--orange-bg); color: var(--orange); }
+        .pill-red { background: var(--red-bg); color: var(--red); }
+        .pill-purple { background: var(--purple-bg); color: var(--purple); }
+        .pill-cyan { background: var(--cyan-bg); color: var(--cyan); }
+        .pill-yellow { background: var(--yellow-bg); color: var(--yellow); }
+        .pill-pink { background: var(--pink-bg); color: var(--pink); }
+        .pill-indigo { background: var(--indigo-bg); color: var(--indigo); }
+
+        /* ── Callout ── */
+        .callout {
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            border-left: 3px solid;
+        }
+
+        .callout-blue {
+            background: rgba(108, 138, 255, 0.07);
+            border-color: var(--accent);
+            color: var(--text-dim);
+        }
+
+        .callout-orange {
+            background: var(--orange-bg);
+            border-color: var(--orange);
+            color: var(--text-dim);
+        }
+
+        .callout strong {
+            color: var(--text);
+        }
+
+        /* ── Field groups for Users section ── */
+        .field-group {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .field-group-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--surface-2);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .field-group-header:hover {
+            background: var(--accent-glow);
+        }
+
+        .field-group-body {
+            padding: 12px 16px;
+        }
+
+        .field-group-body ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 4px 16px;
+        }
+
+        .field-group-body li {
+            font-size: 0.83rem;
+            padding: 3px 0;
+            color: var(--text-dim);
+        }
+
+        .field-group-body li code {
+            color: var(--accent);
+            background: rgba(108, 138, 255, 0.1);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 0.78rem;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); }
+            .sidebar-nav { display: flex; flex-wrap: wrap; gap: 0; }
+            .sidebar-nav a { padding: 8px 12px; border-left: none; border-bottom: 2px solid transparent; }
+            .sidebar-nav a:hover, .sidebar-nav a.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+            .main { padding: 1.5rem; }
+            .cards { grid-template-columns: 1fr; }
+            .field-group-body ul { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+
+    <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Sakr Manning Agency</h2>
+            <span>Admin Panel Specification</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#dashboard"><span class="icon">&#9632;</span> Dashboard</a>
+            <a href="#cvs"><span class="icon">&#128196;</span> CVs</a>
+            <a href="#management"><span class="icon">&#128188;</span> Management</a>
+            <a href="#cv-submissions"><span class="icon">&#128228;</span> CV Submissions</a>
+            <a href="#interviews"><span class="icon">&#127908;</span> Interviews</a>
+            <a href="#documents"><span class="icon">&#128193;</span> Documents</a>
+            <a href="#users"><span class="icon">&#128101;</span> Users</a>
+            <a href="#finance"><span class="icon">&#128176;</span> Finance</a>
+            <a href="#ai"><span class="icon">&#129302;</span> AI Assistant</a>
+        </nav>
+    </aside>
+
+    <!-- ═══════════════════ MAIN ═══════════════════ -->
+    <main class="main">
+        <div class="main-header">
+            <h1>Admin Panel &mdash; Section Breakdown</h1>
+            <p>Based on actual database models in the Sakr Manning Agency backend</p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             1. DASHBOARD
+             ═══════════════════════════════════════════════════ -->
+        <div class="section" id="dashboard">
+            <div class="section-header">
+                <div class="badge pill-cyan">&#9744;</div>
+                <h2>Dashboard</h2>
+            </div>
+            <p class="section-purpose">High-level overview &mdash; KPIs at a glance for the entire agency.</p>
+
+            <div class="cards">
+                <div class="card">
+                    <div class="card-label">Total Seafarers</div>
+                    <div class="card-value"><span class="detail">Users model (total count)</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Active / On Site</div>
+                    <div class="card-value"><span class="detail">user_status = ON_SITE</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">On Vacation</div>
+                    <div class="card-value"><span class="detail">user_status = VACATION</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Medical Leave</div>
+                    <div class="card-value"><span class="detail">user_status = MEDICAL VACATION</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Blacklisted</div>
+                    <div class="card-value"><span class="detail">is_blacklisted = True</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Total CVs Submitted</div>
+                    <div class="card-value"><span class="detail">CVSubmission count</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Pending CV Reviews</div>
+                    <div class="card-value"><span class="detail">CVSubmission.status = Pending</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Upcoming Interviews</div>
+                    <div class="card-value"><span class="detail">Interview.status = Scheduled</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Total Companies</div>
+                    <div class="card-value"><span class="detail">Company model count</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Open Positions</div>
+                    <div class="card-value"><span class="detail">Company.open_positions sum</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Docs Expiring Soon</div>
+                    <div class="card-value"><span class="detail">UserLicense.expiration_date (30-60d)</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Recent Registrations</div>
+                    <div class="card-value"><span class="detail">Latest Users by created_at</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             2. CVs
+             ═══════════════════════════════════════════════════ -->
+        <div class="section" id="cvs">
+            <div class="section-header">
+                <div class="badge pill-blue">&#128196;</div>
+                <h2>CVs</h2>
+            </div>
+            <p class="section-purpose">Manage CV / profile documents uploaded for each seafarer.</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Data Source</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Seafarer name + position</td>
+                            <td><code>Document.user</code> &rarr; <code>Users.first_name</code>, <code>Document.position</code></td>
+                            <td><span class="pill pill-indigo">Relation</span></td>
+                        </tr>
+                        <tr>
+                            <td>Document status</td>
+                            <td><code>Document.status</code></td>
+                            <td><span class="pill pill-green">Pending / Active / Blacklist</span></td>
+                        </tr>
+                        <tr>
+                            <td>Upload date</td>
+                            <td><code>Document.created_at</code></td>
+                            <td><span class="pill pill-purple">DateTime</span></td>
+                        </tr>
+                        <tr>
+                            <td>Download / view file</td>
+                            <td><code>Document.file</code></td>
+                            <td><span class="pill pill-orange">PDF / DOCX</span></td>
+                        </tr>
+                        <tr>
+                            <td>Linked user profile</td>
+                            <td><code>Document.user</code> &rarr; full <code>Users</code> record</td>
+                            <td><span class="pill pill-indigo">Relation</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-blue">
+                <strong>Also relevant:</strong> <code>Users.file</code> and <code>Users.title</code> &mdash; synced from documents and hold the latest file per user.
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             3. MANAGEMENT
+             ═══════════════════════════════════════════════════ -->
+        <div class="section" id="management">
+            <div class="section-header">
+                <div class="badge pill-purple">&#128188;</div>
+                <h2>Management</h2>
+            </div>
+            <p class="section-purpose">Manage companies, ships, job orders, and rank / crew assignments.</p>
+
+            <!-- Companies -->
+            <div class="subsection">
+                <h3>&#127970; Companies</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                        <tbody>
+                            <tr><td>Company name &amp; type</td><td><code>Company.company_name</code>, <code>Company.company_type</code></td></tr>
+                            <tr><td>Status</td><td><code>Company.status</code> (Active / Inactive / Prospect)</td></tr>
+                            <tr><td>Contact email</td><td><code>Company.contact_email</code></td></tr>
+                            <tr><td>Hourly rate</td><td><code>Company.hourly_rate</code></td></tr>
+                            <tr><td>Open positions</td><td><code>Company.open_positions</code></td></tr>
+                            <tr><td>Linked ships</td><td><code>Ship.company</code> &rarr; all ships for this company</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Ships -->
+            <div class="subsection">
+                <h3>&#128674; Ships</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                        <tbody>
+                            <tr><td>Ship name &amp; IMO</td><td><code>Ship.ship_name</code>, <code>Ship.imo_number</code></td></tr>
+                            <tr><td>Type &amp; Flag</td><td><code>Ship.ship_type</code> (&rarr; <code>VesselType</code>), <code>Ship.flag</code> (&rarr; <code>Flag</code>)</td></tr>
+                            <tr><td>Crew members</td><td><code>Ship.crew</code> (ManyToMany &rarr; <code>Users</code>)</td></tr>
+                            <tr><td>Technical details</td><td><code>gross_tonnage</code>, <code>deadweight</code>, <code>engine_type</code>, <code>engine_power_kw</code></td></tr>
+                            <tr><td>Status</td><td><code>Ship.status</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Job Orders -->
+            <div class="subsection">
+                <h3>&#128203; Job Orders</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                        <tbody>
+                            <tr><td>Reference number</td><td><code>JobOrder.reference_number</code></td></tr>
+                            <tr><td>Company &amp; Ship</td><td><code>JobOrder.company</code>, <code>JobOrder.ship</code></td></tr>
+                            <tr><td>Request date / target join</td><td><code>JobOrder.request_date</code>, <code>JobOrder.target_joining_date</code></td></tr>
+                            <tr><td>Status</td><td><code>JobOrder.status</code> (Pending / Open / In Progress / Fulfilled / Cancelled)</td></tr>
+                            <tr><td>Positions required</td><td><code>JobOrderPosition</code> &rarr; rank, quantity, salary range, contract duration</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Rank Codes -->
+            <div class="subsection">
+                <h3>&#127941; Rank Codes</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                        <tbody>
+                            <tr><td>All available ranks</td><td><code>Rank</code> model (code + name)</td></tr>
+                            <tr><td>Users per rank</td><td><code>UserRank.user</code> grouped by <code>rank</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             4. CV SUBMISSIONS
+             ═══════════════════════════════════════════════════ -->
+        <div class="section" id="cv-submissions">
+            <div class="section-header">
+                <div class="badge pill-green">&#128228;</div>
+                <h2>CV Submissions</h2>
+            </div>
+            <p class="section-purpose">Track application / submission pipeline per seafarer and company.</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                    <tbody>
+                        <tr><td>Applicant name</td><td><code>CVSubmission.user</code> &rarr; <code>Users.first_name</code></td></tr>
+                        <tr><td>Applied position</td><td><code>CVSubmission.position</code> &rarr; <code>Rank.name</code></td></tr>
+                        <tr><td>Target company</td><td><code>CVSubmission.company</code> &rarr; <code>Company.company_name</code></td></tr>
+                        <tr><td>Status</td><td><code>CVSubmission.status</code> (Pending / Under Review / Shortlisted / Hired / Rejected)</td></tr>
+                        <tr><td>Submission date</td><td><code>CVSubmission.submitted_date</code></td></tr>
+                        <tr><td>Experience years</td><td><code>CVSubmission.experience_years</code></td></tr>
+                        <tr><td>Expected salary</td><td><code>CVSubmission.expected_salary</code></td></tr>
+                        <tr><td>Cover letter</td><td><code>CVSubmission.cover_letter</code></td></tr>
+                        <tr><td>CV file</td><td><code>CVSubmission.cv_file</code></td></tr>
+                        <tr><td>Reviewed by / date</td><td><code>CVSubmission.reviewed_by</code>, <code>CVSubmission.reviewed_date</code></td></tr>
+                        <tr><td>Rating</td><td><code>CVSubmission.rating</code></td></tr>
+                        <tr><td>Notes</td><td><code>CVSubmission.notes</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             5. INTERVIEWS
+             ═══════════════════════════════════════════════════ -->
+        <div class="section" id="interviews">
+            <div class="section-header">
+                <div class="badge pill-orange">&#127908;</div>
+                <h2>Interviews</h2>
+            </div>
+            <p class="section-purpose">Schedule and track interview sessions.</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                    <tbody>
+                        <tr><td>Candidate</td><td><code>Interview.candidate</code> &rarr; <code>Users.first_name</code></td></tr>
+                        <tr><td>Interviewer</td><td><code>Interview.interviewer</code> or <code>Interview.interviewer_name/email</code></td></tr>
+                        <tr><td>Date &amp; Time</td><td><code>Interview.date</code> / <code>Interview.scheduled_date</code> + <code>scheduled_time</code></td></tr>
+                        <tr><td>Type</td><td><code>Interview.interview_type</code> (Phone / Video / In-Person / Technical)</td></tr>
+                        <tr><td>Status</td><td><code>Interview.status</code> (Scheduled / Completed / Cancelled / Rescheduled / No Show)</td></tr>
+                        <tr><td>Result</td><td><code>Interview.result</code> (Pending / Passed / Failed / On Hold)</td></tr>
+                        <tr><td>Company</td><td><code>Interview.company</code> &rarr; <code>Company.company_name</code></td></tr>
+                        <tr><td>Position applied for</td><td><code>Interview.position</code> &rarr; <code>Rank.name</code></td></tr>
+                        <tr><td>Meeting link</td><td><code>Interview.meeting_link</code></td></tr>
+                        <tr><td>Notes / Feedback</td><td><code>Interview.notes</code>, <code>Interview.feedback</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-orange">
+                <strong>Two Interview models exist:</strong> one in <code>api/models.py</code> (more detailed) and one in <code>interviews/models.py</code> (simpler). The admin should consolidate on the one in <code>api/models.py</code>.
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             6. DOCUMENTS
+             ═══════════════════════════════════════════════════ -->
+        <div class="section" id="documents">
+            <div class="section-header">
+                <div class="badge pill-yellow">&#128193;</div>
+                <h2>Documents</h2>
+            </div>
+            <p class="section-purpose">Manage all personal documents, licenses, and certificates per seafarer.</p>
+
+            <!-- Personal Documents -->
+            <div class="subsection">
+                <h3>&#128203; Personal Documents</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                        <tbody>
+                            <tr><td>Document type</td><td><code>PersonalDocument.document_type</code> (Passport, Seaman's Book, etc.)</td></tr>
+                            <tr><td>Document number</td><td><code>PersonalDocument.document_number</code></td></tr>
+                            <tr><td>Issue / Expiry dates</td><td><code>PersonalDocument.issue_date</code>, <code>PersonalDocument.expiry_date</code></td></tr>
+                            <tr><td>Issuing country / authority</td><td><code>PersonalDocument.issuing_country</code>, <code>PersonalDocument.issued_by</code></td></tr>
+                            <tr><td>File attachment</td><td><code>PersonalDocument.file</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Licenses -->
+            <div class="subsection">
+                <h3>&#127941; Licenses / Certificates of Competency</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                        <tbody>
+                            <tr><td>License name</td><td><code>UserLicense.document_name</code> (COC, GOC, Engineer cert, etc.)</td></tr>
+                            <tr><td>Document number</td><td><code>UserLicense.document_number</code></td></tr>
+                            <tr><td>Country of issue</td><td><code>UserLicense.country_of_issue</code></td></tr>
+                            <tr><td>Issue / Expiry dates</td><td><code>UserLicense.issue_date</code>, <code>UserLicense.expiration_date</code></td></tr>
+                            <tr><td>File</td><td><code>UserLicense.document_file</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Training Certificates -->
+            <div class="subsection">
+                <h3>&#128218; Training Certificates (STCW)</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                        <tbody>
+                            <tr><td>Certificate type</td><td><code>Users.certificates</code> (ManyToMany &rarr; <code>Certificate</code> model) with 50+ STCW choices</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Passports / Seaman Books -->
+            <div class="subsection">
+                <h3>&#128745; Passports &amp; Seaman Books (on Users model)</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                        <tbody>
+                            <tr><td>Passport</td><td><code>Users.passport_no</code>, <code>passport_issue_date</code>, <code>passport_expiry_date</code>, <code>passport_issued_by</code>, <code>passport_attachment</code></td></tr>
+                            <tr><td>Seaman Book</td><td><code>Users.seaman_book_no</code>, <code>seaman_book_issue_date</code>, <code>seaman_book_expiry_date</code>, <code>seaman_book_attachment</code></td></tr>
+                            <tr><td>Other Seaman Book</td><td><code>Users.other_seaman_book_*</code> fields</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             7. USERS
+             ═══════════════════════════════════════════════════ -->
+        <div class="section" id="users">
+            <div class="section-header">
+                <div class="badge pill-pink">&#128101;</div>
+                <h2>Users</h2>
+            </div>
+            <p class="section-purpose">Full seafarer profile management &mdash; the most data-rich section in the system.</p>
+
+            <div class="field-group">
+                <div class="field-group-header">&#128100; Personal Info</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>first_name</code>, <code>middle_name</code>, <code>email</code>, <code>profile_image</code></li>
+                        <li><code>age</code>, <code>date_of_birth</code>, <code>blood_type</code>, <code>smoker</code></li>
+                        <li><code>nationality</code>, <code>Place_Of_Birth</code>, <code>marital_status</code></li>
+                        <li><code>address</code>, <code>phone_number</code>, <code>tel_number</code>, <code>country</code>, <code>city</code></li>
+                        <li><code>Nearest_Port</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#127919; Position &amp; Status</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>application_for_position</code>, <code>available_date</code></li>
+                        <li><code>user_status</code> (ON_SITE / VACATION / MEDICAL VACATION)</li>
+                        <li><code>role</code> (Admin / HR Manager / Recruiter / Employee)</li>
+                        <li><code>register_code</code>, <code>register_date</code>, <code>generated_id</code></li>
+                        <li><code>is_blacklisted</code>, <code>blacklist_reason</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#127891; Professional</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>codes</code> (ManyToMany &rarr; <code>Rank</code> ranks held)</li>
+                        <li><code>certificates</code> (ManyToMany &rarr; <code>Certificate</code> STCW certs)</li>
+                        <li><code>marlins_test_result</code>, <code>ces_test_result</code> + dates/attachments</li>
+                        <li><code>salary</code></li>
+                        <li><code>SeaService</code> &rarr; related records</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#128207; Physical Info</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>Height_Cm</code>, <code>Weight_Kg</code></li>
+                        <li><code>overall_size</code>, <code>shirt_size</code>, <code>trouser_size</code>, <code>shoes_size</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#127760; Languages</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>LanguageProficiency</code> / <code>UserLanguage</code> related records (language, level, CEFR)</li>
+                        <li><code>english_language_level</code>, <code>other_language</code>, <code>other_language_level</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#128776; Health &amp; Vaccinations</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>health_flag_state</code>, <code>health_number</code>, <code>health_issue_date</code>, <code>health_expiry_date</code></li>
+                        <li><code>international_medical_number</code> / <code>issue</code> / <code>expiry</code></li>
+                        <li><code>yellow_fever_*</code>, <code>cholera_*</code></li>
+                        <li><code>covid_vaccine_name</code>, <code>covid_first_dose</code>, <code>covid_second_dose</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#128745; Visa Info</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>us_visa_status</code>, <code>schengen_visa_status</code></li>
+                        <li><code>passport_no</code>, <code>passport_expiry_date</code></li>
+                        <li><code>seaman_book_no</code>, <code>seaman_book_expiry_date</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#128106; Next of Kin</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>NextOfKin</code> related records: <code>full_name</code>, <code>relationship</code>, <code>phone</code>, <code>email</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#128221; Declaration / Health History</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>Declaration</code> related records: disease, accident, psychiatric, addiction history</li>
+                        <li><code>consent_given</code>, <code>declaration_date</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#128202; Performance</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>PerformanceAppraisal</code> records: rating (1&ndash;5), vessel, date, evaluator</li>
+                        <li><code>BlacklistRecord</code> history</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#128221; References</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>Reference</code> records: company name, position, contact info</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field-group-header">&#9881; COC / GOC (on Users model directly)</div>
+                <div class="field-group-body">
+                    <ul>
+                        <li><code>coc_certificate_name</code>, <code>coc_certificate_number</code>, <code>coc_issue_date</code>, <code>coc_expiry_date</code></li>
+                        <li><code>goc_certificate_number</code>, <code>goc_issue_date</code>, <code>goc_expiry_date</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             8. FINANCE
+             ═══════════════════════════════════════════════════ -->
+        <div class="section" id="finance">
+            <div class="section-header">
+                <div class="badge pill-yellow">&#128176;</div>
+                <h2>Finance</h2>
+            </div>
+            <p class="section-purpose">Track financial records / payroll per seafarer.</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Field</th><th>Data Source</th></tr></thead>
+                    <tbody>
+                        <tr><td>Seafarer name</td><td><code>FinanceRecord.user</code> &rarr; <code>Users.first_name</code></td></tr>
+                        <tr><td>Company</td><td><code>FinanceRecord.company</code> &rarr; <code>Company.company_name</code></td></tr>
+                        <tr><td>Status</td><td><code>FinanceRecord.status</code> (Pending / Paid / Overdue / Cancelled)</td></tr>
+                        <tr><td>Period (start&ndash;end date)</td><td><code>FinanceRecord.start_date</code>, <code>FinanceRecord.end_date</code></td></tr>
+                        <tr><td>Total days worked</td><td>Computed: <code>(end_date - start_date).days + 1</code></td></tr>
+                        <tr><td>Daily rate</td><td>Computed: <code>Company.hourly_rate &times; 8</code></td></tr>
+                        <tr><td>Total payout</td><td>Computed: <code>total_days &times; daily_rate</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-orange">
+                <strong>Note:</strong> The Finance module is relatively thin right now. Consider expanding with salary advance records, contract salary from <code>Contract.salary</code>, and currency from <code>Contract.currency</code>.
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             9. AI ASSISTANT
+             ═══════════════════════════════════════════════════ -->
+        <div class="section" id="ai">
+            <div class="section-header">
+                <div class="badge pill-green">&#129302;</div>
+                <h2>AI Assistant</h2>
+            </div>
+            <p class="section-purpose">AI-powered assistant for the admin, based on <code>ai_agents</code> and <code>ai_document</code> app directories.</p>
+
+            <div class="cards">
+                <div class="card">
+                    <div class="card-label">Search</div>
+                    <div class="card-value">Natural language search over seafarer profiles</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Document Generation</div>
+                    <div class="card-value">Contracts, reference letters, and other templates</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Recommendations</div>
+                    <div class="card-value">Intelligent matching of seafarers to job orders</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // Active nav highlighting on scroll
+    const sections = document.querySelectorAll('.section');
+    const navLinks = document.querySelectorAll('.sidebar-nav a');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (window.scrollY >= sectionTop - 120) {
+                current = section.getAttribute('id');
+            }
+        });
+        navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+        });
+    });
+
+    // Smooth scroll for nav links
+    navLinks.forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            const target = document.querySelector(link.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+</script>
+</body>
+</html>
