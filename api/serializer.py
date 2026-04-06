@@ -279,7 +279,9 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = CVSubmission
         fields = [
-            'id', 'user', 'user_name', 'position_name', 'company_name',
+            'id', 'user', 'user_name',
+            'company', 'company_name',      # company FK id AND display name
+            'position', 'position_name',    # position FK id AND display name
             'experience_years', 'status', 'submitted_date',
             'generated_id', 'salary', 'coded_rank'
         ]

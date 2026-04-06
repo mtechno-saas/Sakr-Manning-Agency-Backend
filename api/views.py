@@ -1009,6 +1009,18 @@ class RankViewSet(viewsets.ModelViewSet):
     serializer_class = RankSerializer
     permission_classes = [IsAuthenticated]
 
+    @action(detail=False, methods=['get'], url_path='all', permission_classes=[IsAuthenticated])
+    def all_ranks(self, request):
+        """
+        GET /api/ranks/all/
+        Returns a flat, unpaginated list of all ranks.
+        Intended for populating position dropdowns in forms.
+        Response: [ {id, code, name}, ... ]
+        """
+        ranks = Rank.objects.all().order_by('name')
+        serializer = RankSerializer(ranks, many=True)
+        return Response(serializer.data)
+
 
 # --- User-specific endpoints ---
 
