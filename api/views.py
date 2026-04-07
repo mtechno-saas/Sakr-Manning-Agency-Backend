@@ -717,6 +717,63 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
         
         return Response(CVSubmissionSerializer(cv).data)
 
+    @action(detail=True, methods=['get'], url_path='download-document')
+    def download_document(self, request, pk=None):
+        """
+        Download a file attachment from the user linked to this CV submission.
+
+        GET /api/cv-submissions/{id}/download-document/?type=<doc_type>
+
+        Supported types:
+          passport          → user.passport_attachment
+          seaman_book       → user.seaman_book_attachment
+          other_seaman_book → user.other_seaman_book_attachment
+          marlins           → user.marlins_test_attachment
+          ces               → user.ces_test_attachment
+        """
+        cv = self.get_object()
+        user = cv.user
+
+        FILE_MAP = {
+            'passport':          user.passport_attachment,
+            'seaman_book':        user.seaman_book_attachment,
+            'other_seaman_book':  user.other_seaman_book_attachment,
+            'marlins':            user.marlins_test_attachment,
+            'ces':                user.ces_test_attachment,
+        }
+
+        doc_type = request.query_params.get('type', '').strip()
+        if not doc_type:
+            return Response(
+                {'error': f'Missing ?type= parameter. Choices: {list(FILE_MAP.keys())}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if doc_type not in FILE_MAP:
+            return Response(
+                {'error': f'Unknown type "{doc_type}". Choices: {list(FILE_MAP.keys())}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        file_field = FILE_MAP[doc_type]
+        if not file_field:
+            return Response(
+                {'error': f'No file uploaded for document type "{doc_type}"'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        file_path = file_field.path
+        if not os.path.exists(file_path):
+            return Response(
+                {'error': 'File record exists but the file was not found on the server'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        return FileResponse(
+            open(file_path, 'rb'),
+            as_attachment=True,
+            filename=os.path.basename(file_path)
+        )
+
 
 class ReferenceViewSet(viewsets.ModelViewSet):
     queryset = Reference.objects.all()

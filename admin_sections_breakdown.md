@@ -81,24 +81,184 @@
 ---
 
 ## 4. 📤 CV Submissions
-**Purpose:** Track application/submission pipeline per seafarer + company
+**Purpose:** Track the full application/submission pipeline per seafarer + company.
+Uses `CVSubmission` model. Detail endpoint uses `CVSubmissionSerializer`.
 
-| What to Show | Data Source |
-|---|---|
-| Applicant name | `CVSubmission.user` → `Users.first_name` |
-| Applied position | `CVSubmission.position` → `Rank.name` |
-| Target company | `CVSubmission.company` → `Company.company_name` |
-| Submission status | `CVSubmission.status` (Pending → Under Review → Shortlisted → Hired / Rejected) |
-| Submission date | `CVSubmission.submitted_date` |
-| Experience years | `CVSubmission.experience_years` |
-| Expected salary | `CVSubmission.expected_salary` |
-| Cover letter | `CVSubmission.cover_letter` |
-| CV file | `CVSubmission.cv_file` |
-| Reviewed by / date | `CVSubmission.reviewed_by`, `CVSubmission.reviewed_date` |
-| Rating | `CVSubmission.rating` |
-| Notes | `CVSubmission.notes` |
+**Base URL:** `/api/cv-submissions/`
 
 ---
+
+### 4.1 Endpoints
+
+| Method | URL | Description |
+|---|---|---|
+| `GET` | `/api/cv-submissions/` | List all submissions (lightweight) |
+| `POST` | `/api/cv-submissions/` | Create a new submission |
+| `GET` | `/api/cv-submissions/{id}/` | Full detail of one submission |
+| `PATCH` | `/api/cv-submissions/{id}/` | Partial update — all write fields below |
+| `GET` | `/api/cv-submissions/stats/` | Aggregate counts by status |
+| `PATCH` | `/api/cv-submissions/{id}/update-status/` | Quick status update only |
+| `GET` | `/api/cv-submissions/{id}/download-document/?type=<type>` | Download a user file attachment |
+
+---
+
+### 4.2 Response Fields (Read)
+
+#### Core Submission Fields
+| Field | Description |
+|---|---|
+| `id` | CV submission ID |
+| `user` | FK to user (ID) |
+| `user_name` | `first_name + middle_name` display |
+| `user_email_display` | User's email (read-only display) |
+| `company` / `company_name` | FK + company name display |
+| `position` / `position_name` | FK + rank name display |
+| `cv_file` | Uploaded CV file URL |
+| `cover_letter` | Text cover letter |
+| `experience_years` | Integer |
+| `expected_salary` | Decimal |
+| `availability_date` | Date |
+| `status` | `Pending` / `Under Review` / `Interviewed` / `Shortlisted` / `Approved` / `Rejected` / `Hired` |
+| `submitted_date` | DateTime |
+| `reviewed_by` / `reviewed_by_name_display` / `reviewed_date` | Reviewer info |
+| `notes` | Admin notes |
+| `rating` | Integer (1–5) |
+| `created_at` / `updated_at` | Timestamps |
+| `generated_id` | User's 12-digit ID (set after Document approval) |
+| `salary_display` | User's salary (read-only) |
+
+#### Rank & Codes
+| Field | Description |
+|---|---|
+| `coded_rank` | List of `{assigned_code, rank_code, rank_name}` from user's `UserRank` records |
+
+#### Certificates
+| Field | Description |
+|---|---|
+| `certificates` | List of `{id, code, name}` — STCW certs assigned to the user |
+
+#### User Documents (read-only grouped block)
+Returned under `user_documents`:
+
+| Key | Contents |
+|---|---|
+| `passport` | `passport_no, issue_date, expiry_date, issued_by, place_of_issue, file_url, download_url` |
+| `seaman_book` | `seaman_book_no, issue_date, expiry_date, issued_by, place_of_issue, file_url, download_url` |
+| `other_seaman_book` | Same structure as seaman_book |
+| `coc` | `certificate_name, certificate_number, issue_date, expiry_date, issued_by, issued_at` |
+| `goc` | `certificate_number, issue_date, expiry_date, issued_by, issued_at` |
+| `health_certificate` | `flag_state, number, issue_date, expiry_date, issued_by, issued_at, international_medical_*` |
+| `licenses` | List of `{id, document_name, document_number, country_of_issue, issue_date, expiration_date, file_url, download_url}` |
+
+---
+
+### 4.3 Write Fields (PATCH)
+
+All fields are optional (partial update).
+
+#### Submission Fields
+| Field | Type | Description |
+|---|---|---|
+| `status` | string | Change submission status |
+| `experience_years` | int | Years of experience |
+| `expected_salary` | decimal | Expected salary |
+| `availability_date` | date | `YYYY-MM-DD` or `DD-MM-YYYY` |
+| `cover_letter` | string | Cover letter text |
+| `notes` | string | Admin notes |
+| `rating` | int | 1–5 rating |
+| `company` | int | FK to Company |
+| `position` | int | FK to Rank |
+| `reviewed_by` | int | FK to User (reviewer) |
+| `reviewed_date` | date | Review date |
+
+#### User Info Write Fields
+| Field | Type | Description |
+|---|---|---|
+| `user_first_name` | string | Updates `user.first_name` |
+| `user_middle_name` | string | Updates `user.middle_name` |
+| `user_email` | email | Updates `user.email` |
+| `salary` | string | Updates `user.salary` |
+| `company_name_input` | string | Renames the linked Company |
+| `position_name_input` | string | Renames the linked Rank |
+| `reviewed_by_name` | string | Updates reviewer's first name |
+
+#### Ranks & Codes
+| Field | Type | Description |
+|---|---|---|
+| `coded_rank_input` | list | `[{rank_code, rank_name, assigned_code}]` — **replaces all** user ranks |
+| `assigned_code_updates` | list | `[{user_rank_id, assigned_code}]` — updates `assigned_code` on specific existing ranks **without replacing others** |
+
+> ℹ️ Get `user_rank_id` from `coded_rank[].id` in the GET response.
+
+#### Certificates
+| Field | Type | Description |
+|---|---|---|
+| `certificate_ids` | list[int] | List of Certificate IDs — **replaces all** user STCW certificates |
+
+#### Document Sections (PATCH)
+| Field | Type | Accepted Keys |
+|---|---|---|
+| `passport_update` | dict | `passport_no, issue_date, expiry_date, issued_by, place_of_issue` |
+| `seaman_book_update` | dict | `seaman_book_no, issue_date, expiry_date, issued_by, place_of_issue` |
+| `other_seaman_book_update` | dict | Same keys as `seaman_book_update` |
+| `coc_update` | dict | `certificate_name, certificate_number, issue_date, expiry_date, issued_by, issued_at` |
+| `goc_update` | dict | `certificate_number, issue_date, expiry_date, issued_by, issued_at` |
+| `licenses_update` | list | See table below |
+
+**`licenses_update` entry behavior:**
+
+| Entry | Action |
+|---|---|
+| `{document_name, document_number, ...}` (no `id`) | ✅ **Create** new license |
+| `{id, ...fields...}` | ✅ **Update** existing license |
+| `{id, "_delete": true}` | ✅ **Delete** license |
+
+---
+
+### 4.4 Download Endpoints
+
+| Document | Endpoint |
+|---|---|
+| Passport | `GET /api/cv-submissions/{id}/download-document/?type=passport` |
+| Seaman Book | `GET /api/cv-submissions/{id}/download-document/?type=seaman_book` |
+| Other Seaman Book | `GET /api/cv-submissions/{id}/download-document/?type=other_seaman_book` |
+| Marlins Test | `GET /api/cv-submissions/{id}/download-document/?type=marlins` |
+| CES Test | `GET /api/cv-submissions/{id}/download-document/?type=ces` |
+| License file | `GET /api/licenses/{license_id}/download/` |
+
+> Files are returned as downloadable attachments. Returns `404` if no file is uploaded for that type.
+
+---
+
+### 4.5 Assign Ranks (separate user endpoints)
+
+| Method | URL | Description |
+|---|---|---|
+| `GET` | `/api/users/{user_id}/ranks/` | List all ranks for a user (includes `assigned_code`) |
+| `POST` | `/api/users/{user_id}/ranks/add/` | Add one rank (`{rank_id}`) — `assigned_code` auto-generated |
+| `POST` | `/api/users/{user_id}/assign-rank/{rank_id}/` | Shortcut — add rank by URL |
+| `DELETE` | `/api/users/{user_id}/ranks/{rank_id}/remove/` | Remove a specific rank |
+
+> `assigned_code` is **auto-generated** as `{rank_prefix}.001`, `.002`, etc. (e.g. `DO-2.005`).
+> It can be manually overridden via `assigned_code_updates` on PATCH `/api/cv-submissions/{id}/`.
+
+---
+
+### 4.6 `assigned_code` Flow
+
+```
+1. Admin calls POST /api/users/{user_id}/ranks/add/  →  UserRank created
+                                                         ↓
+2. UserRank.save() fires                             →  assigned_code auto-set (e.g. "DO-2.005")
+                                                         ↓
+3. GET /api/cv-submissions/{id}/                     →  coded_rank[] includes assigned_code
+                                                         ↓
+4. PATCH with assigned_code_updates                  →  update specific rank's code without replacing others
+```
+
+---
+
+
 
 ## 5. 🎤 Interviews
 **Purpose:** Schedule and track interview sessions

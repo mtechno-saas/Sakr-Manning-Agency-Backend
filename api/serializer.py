@@ -336,6 +336,49 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     generated_id = serializers.SerializerMethodField()
     coded_rank = serializers.SerializerMethodField()
     coded_rank_input = serializers.ListField(write_only=True, required=False)
+    # Update assigned_code on specific existing UserRank records without replacing them all.
+    # Each item: { "user_rank_id": <int>, "assigned_code": "<string>" }
+    assigned_code_updates = serializers.ListField(
+        child=serializers.DictField(),
+        write_only=True,
+        required=False,
+        help_text="List of {user_rank_id, assigned_code} to update individual rank codes."
+    )
+
+    # Certificates — read display + write input
+    certificates = serializers.SerializerMethodField()
+    certificate_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Certificate.objects.all(),
+        many=True,
+        write_only=True,
+        required=False,
+        help_text="List of Certificate IDs to assign/replace on the linked user."
+    )
+
+    # All user travel documents / official docs — read display, with separate write fields per section
+    user_documents = serializers.SerializerMethodField()
+
+    # Write fields for each document section (all write_only, all optional)
+    # Passport
+    passport_update = serializers.DictField(write_only=True, required=False,
+        help_text="{passport_no, issue_date, expiry_date, issued_by, place_of_issue}")
+    # Seaman Book
+    seaman_book_update = serializers.DictField(write_only=True, required=False,
+        help_text="{seaman_book_no, issue_date, expiry_date, issued_by, place_of_issue}")
+    # Other / Second Seaman Book
+    other_seaman_book_update = serializers.DictField(write_only=True, required=False,
+        help_text="{seaman_book_no, issue_date, expiry_date, issued_by, place_of_issue}")
+    # COC
+    coc_update = serializers.DictField(write_only=True, required=False,
+        help_text="{certificate_name, certificate_number, issue_date, expiry_date, issued_by, issued_at}")
+    # GOC
+    goc_update = serializers.DictField(write_only=True, required=False,
+        help_text="{certificate_number, issue_date, expiry_date, issued_by, issued_at}")
+    # Licenses — list; each item may include id (update), or omit id (create), or _delete=true (delete)
+    licenses_update = serializers.ListField(
+        child=serializers.DictField(), write_only=True, required=False,
+        help_text="List of license objects. Include id to update, omit id to create, set _delete=true to remove."
+    )
 
     # Flexible date fields — accept YYYY-MM-DD, DD-MM-YYYY, MM/DD/YYYY, etc.
     availability_date = FlexibleDateField(required=False, allow_null=True)
@@ -353,7 +396,12 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'status', 'submitted_date',
             'reviewed_by', 'reviewed_by_name', 'reviewed_by_name_display', 'reviewed_date',
             'notes', 'rating', 'created_at', 'updated_at',
-            'generated_id', 'salary', 'salary_display', 'coded_rank', 'coded_rank_input'
+            'generated_id', 'salary', 'salary_display', 'coded_rank', 'coded_rank_input',
+            'assigned_code_updates',
+            'certificates', 'certificate_ids',
+            'user_documents',
+            'passport_update', 'seaman_book_update', 'other_seaman_book_update',
+            'coc_update', 'goc_update', 'licenses_update',
         ]
         extra_kwargs = {
             'user': {'required': False},
@@ -374,6 +422,14 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         reviewed_by_name = validated_data.pop('reviewed_by_name', None)
         salary = validated_data.pop('salary', None)
         coded_rank_input = validated_data.pop('coded_rank_input', None)
+        assigned_code_updates = validated_data.pop('assigned_code_updates', None)
+        certificate_ids = validated_data.pop('certificate_ids', None)
+        passport_update = validated_data.pop('passport_update', None)
+        seaman_book_update = validated_data.pop('seaman_book_update', None)
+        other_seaman_book_update = validated_data.pop('other_seaman_book_update', None)
+        coc_update = validated_data.pop('coc_update', None)
+        goc_update = validated_data.pop('goc_update', None)
+        licenses_update = validated_data.pop('licenses_update', None)
 
         # Propagate changes to the User model
         user = instance.user
@@ -424,6 +480,137 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                     assigned_code=assigned_code
                 )
 
+        # Handle certificate_ids — replace all user certificates
+        if certificate_ids is not None:
+            instance.user.certificates.set(certificate_ids)
+
+        # Handle assigned_code_updates — patch assigned_code on specific UserRank records
+        if assigned_code_updates is not None:
+            from api.models import UserRank
+            for entry in assigned_code_updates:
+                ur_id = entry.get('user_rank_id')
+                new_code = entry.get('assigned_code')
+                if ur_id is not None and new_code is not None:
+                    UserRank.objects.filter(
+                        id=ur_id,
+                        user=instance.user
+                    ).update(assigned_code=new_code)
+
+        # Helper: parse date strings flexibly
+        def _parse_date(value):
+            if not value:
+                return None
+            from datetime import date
+            import datetime
+            if isinstance(value, (date, datetime.datetime)):
+                return value if isinstance(value, date) else value.date()
+            for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%Y'):
+                try:
+                    return datetime.datetime.strptime(str(value), fmt).date()
+                except ValueError:
+                    continue
+            return None
+
+        # Handle passport_update — update passport fields on user
+        if passport_update is not None:
+            user = instance.user
+            if 'passport_no' in passport_update:
+                user.passport_no = passport_update['passport_no']
+            if 'issue_date' in passport_update:
+                user.passport_issue_date = _parse_date(passport_update['issue_date'])
+            if 'expiry_date' in passport_update:
+                user.passport_expiry_date = _parse_date(passport_update['expiry_date'])
+            if 'issued_by' in passport_update:
+                user.passport_issued_by = passport_update['issued_by']
+            if 'place_of_issue' in passport_update:
+                user.passport_place_of_issue = passport_update['place_of_issue']
+            user.save()
+
+        # Handle seaman_book_update
+        if seaman_book_update is not None:
+            user = instance.user
+            if 'seaman_book_no' in seaman_book_update:
+                user.seaman_book_no = seaman_book_update['seaman_book_no']
+            if 'issue_date' in seaman_book_update:
+                user.seaman_book_issue_date = _parse_date(seaman_book_update['issue_date'])
+            if 'expiry_date' in seaman_book_update:
+                user.seaman_book_expiry_date = _parse_date(seaman_book_update['expiry_date'])
+            if 'issued_by' in seaman_book_update:
+                user.seaman_book_issued_by = seaman_book_update['issued_by']
+            if 'place_of_issue' in seaman_book_update:
+                user.seaman_book_place_of_issue = seaman_book_update['place_of_issue']
+            user.save()
+
+        # Handle other_seaman_book_update
+        if other_seaman_book_update is not None:
+            user = instance.user
+            if 'seaman_book_no' in other_seaman_book_update:
+                user.other_seaman_book_no = other_seaman_book_update['seaman_book_no']
+            if 'issue_date' in other_seaman_book_update:
+                user.other_seaman_book_issue_date = _parse_date(other_seaman_book_update['issue_date'])
+            if 'expiry_date' in other_seaman_book_update:
+                user.other_seaman_book_expiry_date = _parse_date(other_seaman_book_update['expiry_date'])
+            if 'issued_by' in other_seaman_book_update:
+                user.other_seaman_book_issued_by = other_seaman_book_update['issued_by']
+            if 'place_of_issue' in other_seaman_book_update:
+                user.other_seaman_book_place_of_issue = other_seaman_book_update['place_of_issue']
+            user.save()
+
+        # Handle coc_update
+        if coc_update is not None:
+            user = instance.user
+            if 'certificate_name' in coc_update:
+                user.coc_certificate_name = coc_update['certificate_name']
+            if 'certificate_number' in coc_update:
+                user.coc_certificate_number = coc_update['certificate_number']
+            if 'issue_date' in coc_update:
+                user.coc_issue_date = _parse_date(coc_update['issue_date'])
+            if 'expiry_date' in coc_update:
+                user.coc_expiry_date = _parse_date(coc_update['expiry_date'])
+            if 'issued_by' in coc_update:
+                user.coc_issued_by = coc_update['issued_by']
+            if 'issued_at' in coc_update:
+                user.coc_issued_at = coc_update['issued_at']
+            user.save()
+
+        # Handle goc_update
+        if goc_update is not None:
+            user = instance.user
+            if 'certificate_number' in goc_update:
+                user.goc_certificate_number = goc_update['certificate_number']
+            if 'issue_date' in goc_update:
+                user.goc_issue_date = _parse_date(goc_update['issue_date'])
+            if 'expiry_date' in goc_update:
+                user.goc_expiry_date = _parse_date(goc_update['expiry_date'])
+            if 'issued_by' in goc_update:
+                user.goc_issued_by = goc_update['issued_by']
+            if 'issued_at' in goc_update:
+                user.goc_issued_at = goc_update['issued_at']
+            user.save()
+
+        # Handle licenses_update — create / update / delete UserLicense records
+        if licenses_update is not None:
+            from licenses.models import UserLicense
+            for entry in licenses_update:
+                lic_id = entry.get('id')
+                delete_flag = entry.get('_delete', False)
+                if lic_id and delete_flag:
+                    UserLicense.objects.filter(id=lic_id, user=instance.user).delete()
+                    continue
+                fields_map = {
+                    'document_name': entry.get('document_name'),
+                    'document_number': entry.get('document_number', ''),
+                    'country_of_issue': entry.get('country_of_issue', ''),
+                    'issue_date': _parse_date(entry.get('issue_date')),
+                    'expiration_date': _parse_date(entry.get('expiration_date')),
+                }
+                # Remove None values so we don't overwrite with None unintentionally
+                fields_map = {k: v for k, v in fields_map.items() if v is not None}
+                if lic_id:
+                    UserLicense.objects.filter(id=lic_id, user=instance.user).update(**fields_map)
+                else:
+                    UserLicense.objects.create(user=instance.user, **fields_map)
+
         return super().update(instance, validated_data)
 
     def validate_position(self, value):
@@ -443,6 +630,112 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         Returns null if the user has not been approved yet.
         """
         return obj.user.generated_id
+
+    def get_user_documents(self, obj):
+        """
+        Returns all official/travel documents linked to the user, grouped by type.
+        File attachments include a `download_url` pointing to:
+          GET /api/cv-submissions/{cv_id}/download-document/?type=<doc_type>
+        Licenses each have their own:
+          GET /api/licenses/{license_id}/download/
+        """
+        user = obj.user
+        request = self.context.get('request')
+        cv_id = obj.id
+
+        def build_download_url(doc_type):
+            return f"/api/cv-submissions/{cv_id}/download-document/?type={doc_type}"
+
+        def file_url(field):
+            if not field:
+                return None
+            if request:
+                return request.build_absolute_uri(field.url)
+            return field.url
+
+        # Licenses (from licenses app)
+        from licenses.models import UserLicense
+        licenses_qs = UserLicense.objects.filter(user=user)
+        licenses_data = [
+            {
+                'id': lic.id,
+                'document_name': lic.document_name,
+                'document_number': lic.document_number,
+                'country_of_issue': lic.country_of_issue,
+                'issue_date': str(lic.issue_date) if lic.issue_date else None,
+                'expiration_date': str(lic.expiration_date) if lic.expiration_date else None,
+                'file_url': file_url(lic.document_file) if lic.document_file else None,
+                'download_url': f"/api/licenses/{lic.id}/download/" if lic.document_file else None,
+            }
+            for lic in licenses_qs
+        ]
+
+        return {
+            'passport': {
+                'passport_no': user.passport_no,
+                'issue_date': str(user.passport_issue_date) if user.passport_issue_date else None,
+                'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
+                'issued_by': user.passport_issued_by,
+                'place_of_issue': user.passport_place_of_issue,
+                'file_url': file_url(user.passport_attachment) if user.passport_attachment else None,
+                'download_url': build_download_url('passport') if user.passport_attachment else None,
+            },
+            'seaman_book': {
+                'seaman_book_no': user.seaman_book_no,
+                'issue_date': str(user.seaman_book_issue_date) if user.seaman_book_issue_date else None,
+                'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
+                'issued_by': user.seaman_book_issued_by,
+                'place_of_issue': user.seaman_book_place_of_issue,
+                'file_url': file_url(user.seaman_book_attachment) if user.seaman_book_attachment else None,
+                'download_url': build_download_url('seaman_book') if user.seaman_book_attachment else None,
+            },
+            'other_seaman_book': {
+                'seaman_book_no': user.other_seaman_book_no,
+                'issue_date': str(user.other_seaman_book_issue_date) if user.other_seaman_book_issue_date else None,
+                'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
+                'issued_by': user.other_seaman_book_issued_by,
+                'place_of_issue': user.other_seaman_book_place_of_issue,
+                'file_url': file_url(user.other_seaman_book_attachment) if user.other_seaman_book_attachment else None,
+                'download_url': build_download_url('other_seaman_book') if user.other_seaman_book_attachment else None,
+            },
+            'coc': {
+                'certificate_name': user.coc_certificate_name,
+                'certificate_number': user.coc_certificate_number,
+                'issue_date': str(user.coc_issue_date) if user.coc_issue_date else None,
+                'expiry_date': str(user.coc_expiry_date) if user.coc_expiry_date else None,
+                'issued_by': user.coc_issued_by,
+                'issued_at': user.coc_issued_at,
+            },
+            'goc': {
+                'certificate_number': user.goc_certificate_number,
+                'issue_date': str(user.goc_issue_date) if user.goc_issue_date else None,
+                'expiry_date': str(user.goc_expiry_date) if user.goc_expiry_date else None,
+                'issued_by': user.goc_issued_by,
+                'issued_at': user.goc_issued_at,
+            },
+            'health_certificate': {
+                'flag_state': user.health_flag_state,
+                'number': user.health_number,
+                'issue_date': str(user.health_issue_date) if user.health_issue_date else None,
+                'expiry_date': str(user.health_expiry_date) if user.health_expiry_date else None,
+                'issued_by': user.health_issued_by,
+                'issued_at': user.health_issued_at,
+                'international_medical_number': user.international_medical_number,
+                'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
+                'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
+            },
+            'licenses': licenses_data,
+        }
+
+    def get_certificates(self, obj):
+        """
+        Returns all certificates assigned to the linked user.
+        Each entry contains: id, code, name.
+        """
+        return CertificateSerializer(
+            obj.user.certificates.all(),
+            many=True
+        ).data
 
     def get_coded_rank(self, obj):
         """
