@@ -32,6 +32,7 @@ SECRET_KEY = 'django-insecure-^hvh8+)3^ifz_%u6sjo67e)u!4xv%#d672l023$xo@ec!b$kmx
 DEBUG = False
 
 ALLOWED_HOSTS = [
+    "api.backend.soon.it",
     "api.sakrshipping.com",
     "api.backend.hs.vc",
     "localhost",
@@ -242,6 +243,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://sakr-maritime.vercel.app",
     "https://test.sakrshipping.com",
     "http://localhost:5173",
+    "https://api.backend.soon.it",
+    "http://api.backend.soon.it",
     "https://api.sakrshipping.com",
     "http://api.backend.hs.vc",
     "https://api.backend.hs.vc",
@@ -253,6 +256,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
     "https://sakr-maritime.vercel.app",
     "https://test.sakrshipping.com",
+    "https://api.backend.soon.it",
     "https://api.sakrshipping.com",
     "http://api.backend.hs.vc",
     "https://api.backend.hs.vc",
