@@ -1221,6 +1221,124 @@ def remove_user_rank(request, user_id, rank_id):
         }, status=status.HTTP_200_OK)
     except UserRank.DoesNotExist:
         return Response({"error": "User does not have this rank"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# =====================
+# POSITION → CODED RANK BRIDGE
+# =====================
+
+# Maps human-readable position names (from Document.POSITION_CHOICES)
+# to short rank codes used to auto-generate assigned_code (e.g. 'MST.001')
+POSITION_CODE_MAP = {
+    'Master':                                              'MST',
+    '1st. Officer – Chief Off.':                           '1ST_OFF',
+    '2nd. Officer':                                        '2ND_OFF',
+    '3rd. Officer':                                        '3RD_OFF',
+    'Tug Master':                                          'TUG_MST',
+    'Boson':                                               'BSN',
+    'A.B – O.S':                                           'AB_OS',
+    'Steward / Galley Boy':                                'STW',
+    'Cook / 2nd. Cook / Ass. Cook / Baker / Pastry':       'COOK',
+    'Carpenter':                                           'CARP',
+    'Waiter':                                              'WTR',
+    'Purser':                                              'PUR',
+    'Doctor':                                              'DOC',
+    '1st. Engineer':                                       '1ST_ENG',
+    '2nd. Engineer':                                       '2ND_ENG',
+    '3rd. Engineer':                                       '3RD_ENG',
+    'Electrical Engineer – E/E – ETO':                     'ETO',
+    'Assistant Electrician':                               'ASS_ELC',
+    '4th. Engineer':                                       '4TH_ENG',
+    'Electrician':                                         'ELC',
+    'Motor Man / Mechanic':                                'MTR_MAN',
+    'Oiler':                                               'OLR',
+    'Fitter – Welder':                                     'FTR',
+    'Wiper':                                               'WPR',
+    'Other':                                               'OTH',
+}
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def assign_rank_by_position(request, user_id):
+    """
+    Assign a coded rank to a user based on a position name from /api/positions/.
+
+    Admin/HR Manager only.
+
+    POST /api/users/{user_id}/assign-by-position/
+    Body: { "position": "Master" }
+
+    Flow:
+      1. Validates position is a known POSITION_CHOICES value.
+      2. Maps it to a short rank code (e.g. 'Master' → 'MST').
+      3. Gets or creates the Rank object in the DB.
+      4. Creates a UserRank → assigned_code is AUTO-GENERATED (e.g. 'MST.001').
+      5. Returns the full UserRank data.
+    """
+    if request.user.role not in ['Admin', 'HR Manager']:
+        return Response({'error': 'Permission denied. Admin or HR Manager only.'}, status=status.HTTP_403_FORBIDDEN)
+
+    # Validate user exists
+    try:
+        user = Users.objects.get(pk=user_id)
+    except Users.DoesNotExist:
+        return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Validate position in request body
+    position_name = request.data.get('position', '').strip()
+    if not position_name:
+        return Response(
+            {'error': 'position is required.', 'hint': 'Use GET /api/positions/ to see all valid choices.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Check position is a valid choice
+    valid_positions = [choice[0] for choice in Document.POSITION_CHOICES]
+    if position_name not in valid_positions:
+        return Response(
+            {
+                'error': f'"{position_name}" is not a valid position.',
+                'valid_positions': valid_positions,
+                'hint': 'Use GET /api/positions/ to get the full list.'
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Map position name → short rank code
+    rank_code = POSITION_CODE_MAP.get(position_name, position_name[:6].upper().replace(' ', '_'))
+
+    # Get or create the Rank object
+    rank, created = Rank.objects.get_or_create(
+        code=rank_code,
+        defaults={'name': position_name}
+    )
+
+    # Prevent duplicate assignment
+    if UserRank.objects.filter(user=user, rank=rank).exists():
+        existing = UserRank.objects.get(user=user, rank=rank)
+        return Response(
+            {
+                'error': f'User already has the rank "{position_name}".',
+                'existing_assigned_code': existing.assigned_code
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Create UserRank — assigned_code is auto-generated in UserRank.save()
+    user_rank = UserRank.objects.create(user=user, rank=rank)
+
+    from .serializer import UserRankSerializer
+    serializer = UserRankSerializer(user_rank)
+
+    return Response(
+        {
+            'message': f"Rank '{position_name}' successfully assigned to {user.first_name} {user.middle_name}.",
+            'rank_created_in_db': created,
+            'user_rank': serializer.data
+        },
+        status=status.HTTP_201_CREATED
+    )
     
 
 class UserLanguageViewSet(viewsets.ModelViewSet):
