@@ -459,6 +459,26 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 data['position'] = rank.id
         return super().to_internal_value(data)
 
+    def create(self, validated_data):
+        custom_fields = [
+            'user_first_name', 'user_middle_name', 'user_email', 'company_name_input',
+            'position_name_input', 'reviewed_by_name', 'salary', 'coded_rank_input',
+            'assigned_code_updates', 'certificate_ids', 'passport_update',
+            'seaman_book_update', 'other_seaman_book_update', 'coc_update',
+            'goc_update', 'licenses_update'
+        ]
+        custom_data = {}
+        for field in custom_fields:
+            if field in validated_data:
+                custom_data[field] = validated_data.pop(field)
+
+        instance = super().create(validated_data)
+        
+        if custom_data:
+            self.update(instance, custom_data)
+            
+        return instance
+
     def update(self, instance, validated_data):
         # Pop writable-only fields that don't map directly to model fields.
         # NOTE: these are declared as plain write_only fields (no source='user.*')
