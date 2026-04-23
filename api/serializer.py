@@ -491,6 +491,11 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
 
         instance = super().create(validated_data)
         
+        # Auto-assign the position as a UserRank to generate assigned_code immediately
+        if instance.position:
+            from api.models import UserRank
+            UserRank.objects.get_or_create(user=instance.user, rank=instance.position)
+
         if custom_data:
             self.update(instance, custom_data)
             
@@ -697,7 +702,13 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 else:
                     UserLicense.objects.create(user=instance.user, **fields_map)
 
-        return super().update(instance, validated_data)
+        instance = super().update(instance, validated_data)
+
+        if instance.position:
+            from api.models import UserRank
+            UserRank.objects.get_or_create(user=instance.user, rank=instance.position)
+
+        return instance
 
     def validate_position(self, value):
         """Allow empty string to be treated as None"""
