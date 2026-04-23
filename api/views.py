@@ -635,14 +635,14 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
         return CVSubmission.objects.filter(user=user)
 
     def perform_create(self, serializer):
-        from rest_framework.exceptions import ValidationError
         # Employee can only submit CV for themselves
         if self.request.user.role == 'Employee':
             serializer.save(user=self.request.user)
         else:
             if 'user' not in serializer.validated_data:
-                raise ValidationError({"user": ["This field is required."]})
-            serializer.save()
+                serializer.save(user=self.request.user)
+            else:
+                serializer.save()
 
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
