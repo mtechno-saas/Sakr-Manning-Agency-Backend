@@ -218,6 +218,20 @@ class InterviewSerializer(serializers.ModelSerializer):
             'created_by', 'created_at', 'updated_at'
         ]
 
+    def to_internal_value(self, data):
+        if 'position' in data:
+            pos_val = data['position']
+            if isinstance(pos_val, str) and not pos_val.isdigit():
+                from api.models import Rank
+                rank = Rank.objects.filter(name__iexact=pos_val).first()
+                if rank:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['position'] = rank.id
+        return super().to_internal_value(data)
+
 
 class InterviewCalendarSerializer(serializers.ModelSerializer):
     """Lightweight serializer for calendar view"""
@@ -409,6 +423,21 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'created_at': {'required': False},
             'updated_at': {'required': False},
         }
+
+    def to_internal_value(self, data):
+        # Allow 'position' to be passed as a string (name) or an ID
+        if 'position' in data:
+            pos_val = data['position']
+            if isinstance(pos_val, str) and not pos_val.isdigit():
+                from api.models import Rank
+                rank = Rank.objects.filter(name__iexact=pos_val).first()
+                if rank:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['position'] = rank.id
+        return super().to_internal_value(data)
 
     def update(self, instance, validated_data):
         # Pop writable-only fields that don't map directly to model fields.
