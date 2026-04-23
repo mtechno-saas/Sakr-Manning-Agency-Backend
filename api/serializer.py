@@ -222,14 +222,24 @@ class InterviewSerializer(serializers.ModelSerializer):
         if 'position' in data:
             pos_val = data['position']
             if isinstance(pos_val, str) and not pos_val.isdigit():
-                from api.models import Rank
+                from api.models import Rank, RANKS
                 rank = Rank.objects.filter(name__iexact=pos_val).first()
-                if rank:
-                    if hasattr(data, 'copy'):
-                        data = data.copy()
-                    else:
-                        data = dict(data)
-                    data['position'] = rank.id
+                if not rank:
+                    code = None
+                    for c, n in RANKS:
+                        if n.lower() == pos_val.lower():
+                            code = c
+                            break
+                    if not code:
+                        import uuid
+                        code = f"CUS-{str(uuid.uuid4())[:6].upper()}"
+                    rank = Rank.objects.create(code=code, name=pos_val)
+                    
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                data['position'] = rank.id
         return super().to_internal_value(data)
 
 
@@ -429,14 +439,24 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         if 'position' in data:
             pos_val = data['position']
             if isinstance(pos_val, str) and not pos_val.isdigit():
-                from api.models import Rank
+                from api.models import Rank, RANKS
                 rank = Rank.objects.filter(name__iexact=pos_val).first()
-                if rank:
-                    if hasattr(data, 'copy'):
-                        data = data.copy()
-                    else:
-                        data = dict(data)
-                    data['position'] = rank.id
+                if not rank:
+                    code = None
+                    for c, n in RANKS:
+                        if n.lower() == pos_val.lower():
+                            code = c
+                            break
+                    if not code:
+                        import uuid
+                        code = f"CUS-{str(uuid.uuid4())[:6].upper()}"
+                    rank = Rank.objects.create(code=code, name=pos_val)
+
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                data['position'] = rank.id
         return super().to_internal_value(data)
 
     def update(self, instance, validated_data):
