@@ -299,6 +299,10 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
     generated_id = serializers.SerializerMethodField()
     salary = serializers.CharField(source='user.salary', read_only=True, default=None)
     coded_rank = serializers.SerializerMethodField()
+    
+    # Directly expose the rank_code and assigned_code for the specific position
+    rank_code = serializers.CharField(source='position.code', read_only=True)
+    assigned_code = serializers.SerializerMethodField()
 
     class Meta:
         model = CVSubmission
@@ -307,11 +311,19 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
             'company', 'company_name',      # company FK id AND display name
             'position', 'position_name',    # position FK id AND display name
             'experience_years', 'status', 'submitted_date',
-            'generated_id', 'salary', 'coded_rank'
+            'generated_id', 'salary', 'coded_rank',
+            'rank_code', 'assigned_code'
         ]
 
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+
+    def get_assigned_code(self, obj):
+        if obj.position:
+            user_rank = obj.user.user_ranks.filter(rank=obj.position).first()
+            if user_rank:
+                return user_rank.assigned_code
+        return None
 
     def get_generated_id(self, obj):
         """
@@ -360,6 +372,10 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     generated_id = serializers.SerializerMethodField()
     coded_rank = serializers.SerializerMethodField()
     coded_rank_input = serializers.ListField(write_only=True, required=False)
+    
+    rank_code = serializers.CharField(source='position.code', read_only=True)
+    assigned_code = serializers.SerializerMethodField()
+
     # Update assigned_code on specific existing UserRank records without replacing them all.
     # Each item: { "user_rank_id": <int>, "assigned_code": "<string>" }
     assigned_code_updates = serializers.ListField(
@@ -421,6 +437,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'reviewed_by', 'reviewed_by_name', 'reviewed_by_name_display', 'reviewed_date',
             'notes', 'rating', 'created_at', 'updated_at',
             'generated_id', 'salary', 'salary_display', 'coded_rank', 'coded_rank_input',
+            'rank_code', 'assigned_code',
             'assigned_code_updates',
             'certificates', 'certificate_ids',
             'user_documents',
@@ -699,6 +716,13 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         Returns null if the user has not been approved yet.
         """
         return obj.user.generated_id
+
+    def get_assigned_code(self, obj):
+        if obj.position:
+            user_rank = obj.user.user_ranks.filter(rank=obj.position).first()
+            if user_rank:
+                return user_rank.assigned_code
+        return None
 
     def get_user_documents(self, obj):
         """
