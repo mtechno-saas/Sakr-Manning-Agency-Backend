@@ -935,7 +935,36 @@ class DocumentViewSet(viewsets.ModelViewSet):
             # Sync data to user profile
             self._sync_user_data(document)
 
-            # Send acceptance email
+            # Auto-create CVSubmission so the approved employee appears in the CV Submissions board
+            if document.position:
+                from .models import Rank, CVSubmission, RANKS
+                # Ensure rank exists
+                rank = Rank.objects.filter(name__iexact=document.position).first()
+                if not rank:
+                    code = None
+                    for c, n in RANKS:
+                        if n.lower() == document.position.lower():
+                            code = c
+                            break
+                    if not code:
+                        import uuid
+                        code = f"CUS-{str(uuid.uuid4())[:6].upper()}"
+                    rank = Rank.objects.create(code=code, name=document.position)
+                
+                # Create the submission if it doesn't exist
+                submission, created = CVSubmission.objects.get_or_create(
+                    user=user,
+                    position=rank,
+                    defaults={
+                        'cv_file': document.file,
+                        'status': 'Approved',
+                        'notes': 'Auto-created from Approved Document'
+                    }
+                )
+                
+                # Auto-assign UserRank (from our previous logic)
+                from api.models import UserRank
+                UserRank.objects.get_or_create(user=user, rank=rank)            # Send acceptance email
             try:
                 if user.email:
                     # Generate verification token
