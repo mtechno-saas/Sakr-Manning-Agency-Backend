@@ -260,6 +260,291 @@ All fields are optional (partial update).
 
 
 
+### 4.7 Full Request & Response Examples
+
+---
+
+#### `GET /api/cv-submissions/` — List
+
+No request body.
+
+**Response (200):**
+```json
+[
+  {
+    "id": 12,
+    "user": 45,
+    "user_name": "Ahmed Hassan",
+    "company": 3,
+    "company_name": "Sakr Shipping Co.",
+    "position": 7,
+    "position_name": "Chief Officer",
+    "experience_years": 5,
+    "status": "Under Review",
+    "submitted_date": "2026-04-08T00:00:00Z",
+    "generated_id": "SAK-0000000001",
+    "salary": "4200",
+    "coded_rank": [
+      { "assigned_code": "DO-2.005", "rank_code": "DO-2", "rank_name": "Chief Officer" }
+    ]
+  }
+]
+```
+
+---
+
+#### `GET /api/cv-submissions/{id}/` — Full Detail
+
+No request body.
+
+**Response (200):**
+```json
+{
+  "id": 12,
+  "user": 45,
+  "user_name": "Ahmed Hassan",
+  "user_email_display": "ahmed.hassan@example.com",
+  "company": 3,
+  "company_name": "Sakr Shipping Co.",
+  "position": 7,
+  "position_name": "Chief Officer",
+  "cv_file": "http://domain.com/media/cv_submissions/ahmed_cv.pdf",
+  "cover_letter": "I am applying for the Chief Officer position with 5 years of offshore experience.",
+  "experience_years": 5,
+  "expected_salary": "3500.00",
+  "availability_date": "2026-05-01",
+  "status": "Under Review",
+  "submitted_date": "2026-04-08T01:00:00Z",
+  "reviewed_by": 2,
+  "reviewed_by_name_display": "Mohamed",
+  "reviewed_date": "2026-04-08",
+  "notes": "Strong candidate, pending document verification.",
+  "rating": 4,
+  "created_at": "2026-04-01T10:00:00Z",
+  "updated_at": "2026-04-08T01:30:00Z",
+  "generated_id": "SAK-0000000001",
+  "salary_display": "4200",
+  "coded_rank": [
+    { "id": 5, "assigned_code": "DO-2.005", "rank_code": "DO-2", "rank_name": "Chief Officer" },
+    { "id": 8, "assigned_code": "EO-1.003", "rank_code": "EO-1", "rank_name": "1st Engineer" }
+  ],
+  "certificates": [
+    { "id": 1, "code": "GMDSS", "name": "G.M.D.S.S" },
+    { "id": 3, "code": "FIRE_PREVENTION_AND_FIRE_FIGHTING", "name": "Fire Prevention and Fire Fighting" },
+    { "id": 7, "code": "ELEMENTARY_FIRST_AID", "name": "Elementary First Aid" }
+  ],
+  "user_documents": {
+    "passport": {
+      "passport_no": "A12345678",
+      "issue_date": "2020-01-15",
+      "expiry_date": "2030-01-14",
+      "issued_by": "Egyptian Government",
+      "place_of_issue": "Cairo",
+      "file_url": "http://domain.com/media/passports/passport.pdf",
+      "download_url": "/api/cv-submissions/12/download-document/?type=passport"
+    },
+    "seaman_book": {
+      "seaman_book_no": "SB123456",
+      "issue_date": "2021-03-10",
+      "expiry_date": "2026-03-09",
+      "issued_by": "Maritime Authority",
+      "place_of_issue": "Alexandria",
+      "file_url": "http://domain.com/media/seaman_books/sb.pdf",
+      "download_url": "/api/cv-submissions/12/download-document/?type=seaman_book"
+    },
+    "other_seaman_book": {
+      "seaman_book_no": null,
+      "issue_date": null,
+      "expiry_date": null,
+      "issued_by": null,
+      "place_of_issue": null,
+      "file_url": null,
+      "download_url": null
+    },
+    "coc": {
+      "certificate_name": "Chief Officer",
+      "certificate_number": "COC-12345",
+      "issue_date": "2020-06-01",
+      "expiry_date": "2025-05-31",
+      "issued_by": "EAMS",
+      "issued_at": "Alex."
+    },
+    "goc": {
+      "certificate_number": "GOC-9876",
+      "issue_date": "2021-01-01",
+      "expiry_date": "2026-01-01",
+      "issued_by": "NTRA",
+      "issued_at": "Cairo"
+    },
+    "health_certificate": {
+      "flag_state": "EG",
+      "number": "H-12345",
+      "issue_date": "2024-01-01",
+      "expiry_date": "2025-01-01",
+      "issued_by": "Port Health Authority",
+      "issued_at": "Alexandria",
+      "international_medical_number": "IM-001",
+      "international_medical_issue_date": "2024-01-01",
+      "international_medical_expiry_date": "2025-01-01"
+    },
+    "licenses": [
+      {
+        "id": 3,
+        "document_name": "Chief Officer (Reg. II/2 Par. 1-2)",
+        "document_number": "LIC-001",
+        "country_of_issue": "Egypt",
+        "issue_date": "2020-01-01",
+        "expiration_date": "2025-01-01",
+        "file_url": "http://domain.com/media/user_45/licenses/lic.pdf",
+        "download_url": "/api/licenses/3/download/"
+      },
+      {
+        "id": 4,
+        "document_name": "GMDSS Radio Operator (Reg. IV/2)",
+        "document_number": "LIC-002",
+        "country_of_issue": "Egypt",
+        "issue_date": "2021-05-01",
+        "expiration_date": "2026-04-30",
+        "file_url": null,
+        "download_url": null
+      }
+    ]
+  }
+}
+```
+
+---
+
+#### `POST /api/cv-submissions/` — Create
+
+**Request:**
+```json
+{
+  "user": 45,
+  "company": 3,
+  "position": 7,
+  "experience_years": 5,
+  "expected_salary": "3500",
+  "availability_date": "2026-05-01",
+  "cover_letter": "I am applying for the Chief Officer position.",
+  "status": "Pending",
+  "notes": "Referred by HR",
+  "certificate_ids": [1, 3, 7]
+}
+```
+
+**Response: 201** — same full structure as the GET detail above.
+
+---
+
+#### `PATCH /api/cv-submissions/{id}/` — Full Update
+
+All fields are optional — send only what you want to change.
+
+**Request:**
+```json
+{
+  "status": "Approved",
+  "rating": 5,
+  "notes": "Approved after interview. Documents verified.",
+  "reviewed_by": 2,
+  "reviewed_date": "2026-04-08",
+
+  "user_first_name": "Ahmed",
+  "user_middle_name": "Hassan",
+  "user_email": "ahmed.hassan@example.com",
+  "salary": "4500",
+
+  "company_name_input": "Sakr Shipping Co.",
+  "position_name_input": "Chief Officer",
+
+  "coded_rank_input": [
+    { "rank_code": "DO-2", "rank_name": "Chief Officer", "assigned_code": "" },
+    { "rank_code": "EO-1", "rank_name": "1st Engineer", "assigned_code": "" }
+  ],
+
+  "assigned_code_updates": [
+    { "user_rank_id": 5, "assigned_code": "DO-2.010" }
+  ],
+
+  "certificate_ids": [1, 3, 7],
+
+  "passport_update": {
+    "passport_no": "A12345678",
+    "issue_date": "2020-01-15",
+    "expiry_date": "2030-01-14",
+    "issued_by": "Egyptian Government",
+    "place_of_issue": "Cairo"
+  },
+
+  "seaman_book_update": {
+    "seaman_book_no": "SB123456",
+    "issue_date": "2021-03-10",
+    "expiry_date": "2026-03-09",
+    "issued_by": "Maritime Authority",
+    "place_of_issue": "Alexandria"
+  },
+
+  "other_seaman_book_update": {
+    "seaman_book_no": "SB-ALT-001",
+    "issue_date": "2022-05-01",
+    "expiry_date": "2027-04-30",
+    "issued_by": "Port Authority",
+    "place_of_issue": "Port Said"
+  },
+
+  "coc_update": {
+    "certificate_name": "Chief Officer",
+    "certificate_number": "COC-12345",
+    "issue_date": "2020-06-01",
+    "expiry_date": "2025-05-31",
+    "issued_by": "EAMS",
+    "issued_at": "Alex."
+  },
+
+  "goc_update": {
+    "certificate_number": "GOC-9876",
+    "issue_date": "2021-01-01",
+    "expiry_date": "2026-01-01",
+    "issued_by": "NTRA",
+    "issued_at": "Cairo"
+  },
+
+  "licenses_update": [
+    {
+      "document_name": "Chief Officer (Reg. II/2 Par. 1-2)",
+      "document_number": "LIC-NEW-001",
+      "country_of_issue": "Egypt",
+      "issue_date": "2023-01-01",
+      "expiration_date": "2028-01-01"
+    },
+    { "id": 3, "expiration_date": "2027-06-01" },
+    { "id": 4, "_delete": true }
+  ]
+}
+```
+
+**Response: 200** — same full detail structure reflecting all updates.
+
+---
+
+#### Download File Attachments
+
+```
+GET /api/cv-submissions/12/download-document/?type=passport
+GET /api/cv-submissions/12/download-document/?type=seaman_book
+GET /api/cv-submissions/12/download-document/?type=other_seaman_book
+GET /api/cv-submissions/12/download-document/?type=marlins
+GET /api/cv-submissions/12/download-document/?type=ces
+GET /api/licenses/3/download/
+```
+
+> All return the file as a **binary download attachment**. Returns `404` if no file is uploaded for that type.
+
+---
+
+
+
 ## 5. 🎤 Interviews
 **Purpose:** Schedule and track interview sessions
 

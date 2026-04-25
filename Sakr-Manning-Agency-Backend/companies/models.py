@@ -1,5 +1,5 @@
 from django.db import models
-
+from core.models import Flag
 class Company(models.Model):
     COMPANY_TYPES = [
         ('Shipping Manning Companies', 'Shipping Manning Companies'),
@@ -25,6 +25,14 @@ class Company(models.Model):
     open_positions = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
     contact_email = models.EmailField()
+    website = models.URLField(max_length=255, blank=True, null=True, help_text="Company website URL")
+    company_flag = models.CharField(
+        max_length=100,
+        choices=Flag.FLAG_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Country flag / nationality of the company"
+    )
     hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # 💰 hourly rate
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

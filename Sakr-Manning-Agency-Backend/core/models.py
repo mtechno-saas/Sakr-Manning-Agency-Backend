@@ -191,6 +191,7 @@ class Flag(models.Model):
         ('Ukraine', 'Ukraine'),
         ('United Arab Emirates', 'United Arab Emirates'),
         ('United Kingdom', 'United Kingdom'),
+        ('United States', 'United States'),
         ('United States of America', 'United States of America'),
         ('Uruguay', 'Uruguay'),
         ('Uzbekistan', 'Uzbekistan'),
