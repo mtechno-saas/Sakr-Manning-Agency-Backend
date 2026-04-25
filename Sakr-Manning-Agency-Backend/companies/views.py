@@ -2,8 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Count, Sum
-from .models import Company
-from .serializers import CompanySerializer
+from .models import Company, Vacancy
+from .serializers import CompanySerializer, VacancySerializer
+from api.permissions import NotEmployeePermission
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
@@ -54,3 +55,13 @@ class CompanyViewSet(viewsets.ModelViewSet):
             },
             'recent_companies': list(recent_companies)
         })
+
+class VacancyViewSet(viewsets.ModelViewSet):
+    """
+    Manage Open Vacancies (add, delete, show, edit).
+    Permission: everyone except 'Employee'.
+    """
+    queryset = Vacancy.objects.all()
+    serializer_class = VacancySerializer
+    permission_classes = [NotEmployeePermission]
+
