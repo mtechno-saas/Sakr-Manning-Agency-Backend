@@ -169,6 +169,14 @@ export function InterviewViewModal({
                 />
             </Section>
 
+            {/* Interviewer Details */}
+            {(interview.interviewer_name || interview.interviewer_email) && (
+                <Section title="Interviewer Information" icon={User} scale={scale} columns={2}>
+                    <FieldItem label="Interviewer Name" value={interview.interviewer_name} scale={scale} />
+                    <FieldItem label="Interviewer Email" value={interview.interviewer_email} icon={Mail} scale={scale} />
+                </Section>
+            )}
+
             {/* Interview Details */}
             <Section title="Interview Details" icon={MessageSquare} scale={scale} columns={2}>
                 <FieldItem label="Type" value={interview.interview_type} scale={scale} />

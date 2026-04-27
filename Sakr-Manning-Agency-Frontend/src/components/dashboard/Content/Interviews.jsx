@@ -163,6 +163,9 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
       notes: interview.notes || "",
       feedback: interview.feedback || "",
       meetingResult: interview.result || "",
+      interviewer_name: interview.interviewer_name || "",
+      interviewer_email: interview.interviewer_email || "",
+      location: interview.location || "",
 
       avatar: interview.candidate?.profile_image || ASSETS.LOGO,
       createdAt: interview.created_at,
