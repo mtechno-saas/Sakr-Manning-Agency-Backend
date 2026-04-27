@@ -145,10 +145,10 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
     return backendInterviews.map((interview) => ({
       id: interview.id,
       candidateId: interview.candidate,
-      candidateName: interview.candidate_name || "Unknown Candidate",
+      candidateName: `${interview?.candidate_name.split(" ")[0]} ${interview?.candidate_name.split(" ")[1] || ""}` || "Unknown Candidate",
       candidateEmail: interview.candidate_email || "",
       companyId: interview.company || "Unknown Company ID",
-      company: getCompanyName(interview.company),
+      company: interview.company_name || getCompanyName(interview.company),
       duration: interview.duration_minutes || 0,
       positionID: interview.position || "Not Specified",
       position: interview.position_name || "Not Specified",

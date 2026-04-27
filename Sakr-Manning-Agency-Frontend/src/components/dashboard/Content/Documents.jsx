@@ -628,7 +628,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
       )}
 
       {/* Modals */}
-      {showContractModal && (
+      {showContractModal && selectedContract && (
         <DocumentFormModal
           contract={selectedContract}
           onClose={() => {
