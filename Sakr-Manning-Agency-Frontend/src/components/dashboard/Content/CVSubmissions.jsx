@@ -213,7 +213,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         {
             key: "name",
             title: "Name",
-            width: 180,
+            width: 360,
             showAvatar: true,
             sortable: true,
             render: (val) => val,
@@ -228,14 +228,14 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         {
             key: "company",
             title: "Company",
-            width: 140,
+            width: 240,
             sortable: true,
             render: (val) => val,
         },
         {
             key: "position",
             title: "Position",
-            width: 140,
+            width: 240,
             sortable: true,
             render: (val) => val,
         },

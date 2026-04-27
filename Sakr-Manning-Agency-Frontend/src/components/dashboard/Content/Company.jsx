@@ -767,7 +767,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "name",
         title: "Company Name",
-        width: 180,
+        width: 360,
         showAvatar: true,
         sortable: true,
         render: (value, row) => row.name,
@@ -782,7 +782,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "type",
         title: "Type",
-        width: 250,
+        width: 350,
         sortable: true,
         render: (value) => value,
       },
@@ -868,7 +868,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "name",
         title: "Ship Name",
-        width: 200,
+        width: 400,
         showAvatar: true,
         sortable: true,
         render: (value, row) => row.name,
@@ -897,7 +897,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "associatedWithCompany",
         title: "Company",
-        width: 150,
+        width: 300,
         sortable: true,
         render: (value) => value,
       },

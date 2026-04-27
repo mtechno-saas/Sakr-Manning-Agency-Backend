@@ -224,7 +224,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
       {
         key: "name",
         title: "Name",
-        width: 180,
+        width: 360,
         sortable: true,
         render: (value) => value,
       },
@@ -238,7 +238,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
       {
         key: "email",
         title: "Email",
-        width: 210,
+        width: 300,
         sortable: true,
         render: (value) => value,
       },

@@ -318,7 +318,7 @@ export function RefinedDataTable({
             const flexBasis = isActions ? "48px" : (col.width ? `${col.width}px` : "auto");
             const flexGrow = isActions ? 0 : 1;
             const flexShrink = isActions ? 0 : 1;
-            const minWidth = isActions ? "48px" : (col.width ? `${col.width}px` : "150px");
+            const minWidth = isActions ? "48px" : (col.width ? `${col.width}px` : "200px");
 
             const isFirst = colIndex === 0;
             const isLast = colIndex === columns.length - 1;

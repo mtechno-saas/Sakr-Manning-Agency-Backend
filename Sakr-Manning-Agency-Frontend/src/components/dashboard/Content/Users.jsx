@@ -492,7 +492,7 @@ export function UserManagement({ scale = 1, isMobile }) {
       {
         key: "name",
         title: "User Name",
-        width: 200,
+        width: 400,
         showAvatar: true,
         sortable: true,
         render: (value, row) => (
@@ -516,7 +516,7 @@ export function UserManagement({ scale = 1, isMobile }) {
       {
         key: "email",
         title: "Email",
-        width: 250,
+        width: 300,
         sortable: true,
         render: (value) => value,
       },
