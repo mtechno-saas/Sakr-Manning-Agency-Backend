@@ -950,6 +950,80 @@ All error responses follow this structure:
 
 ---
 
+#### 4. Job Orders (replaces Vacancies)
+
+**Endpoint**: `GET /api/companies/job-orders/`  
+**Endpoint**: `POST /api/companies/job-orders/`  
+**Permissions**: Authenticated (Admin/HR/Recruiter = Full CRUD, Employee = Read Only)
+
+**Query Parameters (GET)**:
+- `company`: filter by company ID
+- `status`: e.g. Open, Pending
+
+**Success Response (GET)** (200 OK):
+```json
+[
+  {
+    "id": 1,
+    "company": 3,
+    "company_name": "Sakr Shipping",
+    "reference_number": "JO-2026-001",
+    "status": "Open",
+    "positions": [
+       { "id": 1, "rank": 7, "rank_name": "2nd. Officer", "quantity": 2 }
+    ]
+  }
+]
+```
+
+#### 5. Job Order Positions
+
+**Endpoint**: `GET /api/companies/job-positions/`  
+**Endpoint**: `POST /api/companies/job-positions/`  
+**Permissions**: Authenticated (Admin/HR/Recruiter = Full CRUD, Employee = Read Only)
+
+**Bulk Create Request (POST - Admin/HR)**:
+```json
+[
+  { "job_order": 1, "rank": "2nd. Officer", "quantity": 2 },
+  { "job_order": 1, "rank": "Bosun", "quantity": 1 }
+]
+```
+
+#### 6. Quick Apply (Employee)
+
+**Endpoint**: `POST /api/companies/job-positions/apply/`  
+**Permissions**: Authenticated (Employee Only)  
+**Description**: Allows an Employee to apply to one or more open job positions. This creates a `Document` record with status `Pending` for each position, saving it to "2. 📋 CVs". When an Admin approves it, it automatically becomes a `CVSubmission`.
+
+**Request Body** (accepts IDs, names, or both):
+```json
+{
+  "position_ids": [1],
+  "position_names": ["Bosun", "Chief Cook"]
+}
+```
+
+**Success Response** (201 Created):
+```json
+{
+  "applied": [
+    {
+      "document_id": 45,
+      "position_id": 1,
+      "rank_name": "2nd. Officer",
+      "company_name": "Sakr Shipping",
+      "status": "Pending"
+    }
+  ],
+  "skipped": [],
+  "total_applied": 1,
+  "total_skipped": 0
+}
+```
+
+---
+
 ### Interviews Management
 
 #### 1. List All Interviews

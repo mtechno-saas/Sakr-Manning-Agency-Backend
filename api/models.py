@@ -788,8 +788,11 @@ class Document(models.Model):
     title = models.CharField(max_length=255)
     file = models.FileField(
         upload_to='documents/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx'])]
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx'])],
+        null=True,
+        blank=True
     )
+    company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='documents')
     
     POSITION_CHOICES = [
         ('Master', 'Master'),

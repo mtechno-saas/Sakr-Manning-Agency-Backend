@@ -297,7 +297,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='download-marlins')
     def download_marlins(self, request, pk=None):
         """Download Marlins test attachment"""
-        user = self.get_object()
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
         if not user.marlins_test_attachment:
             return Response({'error': 'No Marlins test file uploaded'}, status=404)
         file_path = user.marlins_test_attachment.path
@@ -308,13 +310,265 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='download-ces')
     def download_ces(self, request, pk=None):
         """Download CES test attachment"""
-        user = self.get_object()
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
         if not user.ces_test_attachment:
             return Response({'error': 'No CES test file uploaded'}, status=404)
         file_path = user.ces_test_attachment.path
         if os.path.exists(file_path):
             return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
         return Response({'error': 'File not found'}, status=404)
+
+    # ============================
+    # HELPER: Owner or Admin check
+    # ============================
+
+    def _check_download_permission(self, request, pk):
+        """
+        Returns the target User object if the caller is the owner or an Admin.
+        Otherwise returns a 403 Response.
+        """
+        user = self.get_object()  # triggers DRF object-level perm check
+        if request.user.role != 'Admin' and user != request.user:
+            return Response({'error': 'Permission denied. Only the profile owner or Admin can download.'}, status=403)
+        return user
+
+    # ============================
+    # TRAVEL DOCUMENT DOWNLOADS
+    # ============================
+
+    @action(detail=True, methods=['get'], url_path='download-passport')
+    def download_passport(self, request, pk=None):
+        """
+        Download passport attachment.
+        GET /api/users/{id}/download-passport/
+        Permission: Own profile or Admin only.
+        """
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
+        if not user.passport_attachment:
+            return Response({'error': 'No passport file uploaded'}, status=404)
+        file_path = user.passport_attachment.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found on server'}, status=404)
+
+    @action(detail=True, methods=['get'], url_path='download-seaman-book')
+    def download_seaman_book(self, request, pk=None):
+        """
+        Download seaman book attachment.
+        GET /api/users/{id}/download-seaman-book/
+        Permission: Own profile or Admin only.
+        """
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
+        if not user.seaman_book_attachment:
+            return Response({'error': 'No seaman book file uploaded'}, status=404)
+        file_path = user.seaman_book_attachment.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found on server'}, status=404)
+
+    @action(detail=True, methods=['get'], url_path='download-other-seaman-book')
+    def download_other_seaman_book(self, request, pk=None):
+        """
+        Download other/second seaman book attachment.
+        GET /api/users/{id}/download-other-seaman-book/
+        Permission: Own profile or Admin only.
+        """
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
+        if not user.other_seaman_book_attachment:
+            return Response({'error': 'No other seaman book file uploaded'}, status=404)
+        file_path = user.other_seaman_book_attachment.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found on server'}, status=404)
+
+    @action(detail=True, methods=['get'], url_path='download-personal-document/(?P<doc_id>[^/.]+)')
+    def download_personal_document(self, request, pk=None, doc_id=None):
+        """
+        Download a specific PersonalDocument (travel/ID document) by its ID.
+        GET /api/users/{user_id}/download-personal-document/{doc_id}/
+        Permission: Own profile or Admin only.
+        """
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
+        doc = user.personal_documents.filter(id=doc_id).first()
+        if not doc:
+            return Response({'error': f'Personal document #{doc_id} not found for this user'}, status=404)
+        if not doc.file:
+            return Response({'error': 'No file attached to this document'}, status=404)
+        file_path = doc.file.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found on server'}, status=404)
+
+    # ============================
+    # CERTIFICATE DOWNLOADS
+    # ============================
+
+    @action(detail=True, methods=['get'], url_path='download-license/(?P<license_id>[^/.]+)')
+    def download_license(self, request, pk=None, license_id=None):
+        """
+        Download a specific license/certificate document by its ID.
+        GET /api/users/{user_id}/download-license/{license_id}/
+        Permission: Own profile or Admin only.
+        Covers: COC, GOC, and all STCW license documents.
+        """
+        from licenses.models import UserLicense
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
+        lic = UserLicense.objects.filter(id=license_id, user=user).first()
+        if not lic:
+            return Response({'error': f'License #{license_id} not found for this user'}, status=404)
+        if not lic.document_file:
+            return Response({'error': 'No file attached to this license'}, status=404)
+        file_path = lic.document_file.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found on server'}, status=404)
+
+    # ============================
+    # MEDICAL / HEALTH DOWNLOADS
+    # ============================
+
+    @action(detail=True, methods=['get'], url_path='download-vaccination/(?P<vaccination_id>[^/.]+)')
+    def download_vaccination(self, request, pk=None, vaccination_id=None):
+        """
+        Download a specific vaccination/medical document by its ID.
+        GET /api/users/{user_id}/download-vaccination/{vaccination_id}/
+        Permission: Own profile or Admin only.
+        Covers: Yellow Fever, COVID, Medical Certificate for Seafarers, etc.
+        """
+        from vaccinations.models import Vaccination
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
+        vac = Vaccination.objects.filter(id=vaccination_id, user=user).first()
+        if not vac:
+            return Response({'error': f'Vaccination #{vaccination_id} not found for this user'}, status=404)
+        if not vac.document:
+            return Response({'error': 'No file attached to this vaccination record'}, status=404)
+        file_path = vac.document.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found on server'}, status=404)
+
+    # ============================
+    # MARINE COURSE DOWNLOADS
+    # ============================
+
+    @action(detail=True, methods=['get'], url_path='download-course/(?P<course_id>[^/.]+)')
+    def download_course(self, request, pk=None, course_id=None):
+        """
+        Download a specific marine course document by its ID.
+        GET /api/users/{user_id}/download-course/{course_id}/
+        Permission: Own profile or Admin only.
+        """
+        from courses.models import Course
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
+        course = Course.objects.filter(id=course_id, user=user).first()
+        if not course:
+            return Response({'error': f'Course #{course_id} not found for this user'}, status=404)
+        if not course.document:
+            return Response({'error': 'No document attached to this course'}, status=404)
+        file_path = course.document.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found on server'}, status=404)
+
+    # ============================
+    # SEA-SERVICE DOWNLOADS
+    # ============================
+
+    @action(detail=True, methods=['get'], url_path='download-sea-service/(?P<service_id>[^/.]+)')
+    def download_sea_service(self, request, pk=None, service_id=None):
+        """
+        Download a specific sea service record file by its ID.
+        GET /api/users/{user_id}/download-sea-service/{service_id}/
+        Permission: Own profile or Admin only.
+        """
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
+        service = user.sea_services.filter(id=service_id).first()
+        if not service:
+            return Response({'error': f'Sea service #{service_id} not found for this user'}, status=404)
+        if not service.file:
+            return Response({'error': 'No file attached to this sea service record'}, status=404)
+        file_path = service.file.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found on server'}, status=404)
+
+    # ============================
+    # GENERIC DOWNLOAD (all user-level attachments)
+    # ============================
+
+    @action(detail=True, methods=['get'], url_path='download-document')
+    def download_user_document(self, request, pk=None):
+        """
+        Download any user-level file attachment by type.
+        GET /api/users/{id}/download-document/?type=<doc_type>
+
+        Supported types:
+          passport, seaman_book, other_seaman_book, marlins, ces, profile_image, file
+        Permission: Own profile or Admin only.
+        """
+        user = self._check_download_permission(request, pk)
+        if isinstance(user, Response):
+            return user
+
+        FILE_MAP = {
+            'passport': user.passport_attachment,
+            'seaman_book': user.seaman_book_attachment,
+            'other_seaman_book': user.other_seaman_book_attachment,
+            'marlins': user.marlins_test_attachment,
+            'ces': user.ces_test_attachment,
+            'profile_image': user.profile_image,
+            'file': user.file,
+        }
+
+        doc_type = request.query_params.get('type', '').strip()
+        if not doc_type:
+            return Response(
+                {'error': f'Missing ?type= parameter. Choices: {list(FILE_MAP.keys())}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if doc_type not in FILE_MAP:
+            return Response(
+                {'error': f'Unknown type "{doc_type}". Choices: {list(FILE_MAP.keys())}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        file_field = FILE_MAP[doc_type]
+        if not file_field:
+            return Response(
+                {'error': f'No file uploaded for document type "{doc_type}"'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        file_path = file_field.path
+        if not os.path.exists(file_path):
+            return Response(
+                {'error': 'File record exists but the file was not found on the server'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        return FileResponse(
+            open(file_path, 'rb'),
+            as_attachment=True,
+            filename=os.path.basename(file_path)
+        )
 
 
 # --- Function-based views with permission checks ---
@@ -952,9 +1206,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     rank = Rank.objects.create(code=code, name=document.position)
                 
                 # Create the submission if it doesn't exist
+                # Include the company from the document so it links to the right job order company
                 submission, created = CVSubmission.objects.get_or_create(
                     user=user,
                     position=rank,
+                    company=getattr(document, 'company', None),
                     defaults={
                         'cv_file': document.file,
                         'status': 'Approved',

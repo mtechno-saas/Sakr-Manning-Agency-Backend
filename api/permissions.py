@@ -285,3 +285,46 @@ class UserPermission(BasePermission):
         
         # Employee can only access own profile
         return obj == request.user
+
+
+class IsOwnerOrAdminDownload(BasePermission):
+    """
+    Download permission: only the profile owner or Admin can download documents.
+    Used on UserViewSet download actions.
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        # Admin always has access
+        if request.user.role == 'Admin':
+            return True
+        # Owner can access their own profile
+        return obj == request.user
+
+
+class JobOrderPermission(BasePermission):
+    """
+    Job Order & Position permissions:
+    - Admin/HR/Recruiter: Full CRUD
+    - Employee: Read-only + 'apply' action (POST)
+    """
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        # Admin, HR, Recruiter — full access
+        if request.user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return True
+
+        # Employee — read-only + apply action
+        if request.user.role == 'Employee':
+            # Allow GET (list, retrieve)
+            if request.method in SAFE_METHODS:
+                return True
+            # Allow POST only on the 'apply' action
+            if request.method == 'POST' and getattr(view, 'action', None) == 'apply':
+                return True
+            return False
+
+        return False
