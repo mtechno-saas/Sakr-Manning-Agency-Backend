@@ -8,34 +8,25 @@ import InfiniteTicker from "../../common/InfiniteTicker";
 import { motion } from "framer-motion";
 import "../../../styles/globals.css";
 import { useNavigate } from "react-router-dom";
+import { jobOrdersApi } from "../../../services/Dashboard/jobOrdersApi";
+
+// ── Fallback shown while loading or when the API returns nothing ──────────
+const FALLBACK_JOBS = [
+  { title: "Deck Officer", text: "Experienced officer required for international routes" },
+  { title: "Chief Engineer", text: "Senior engineer for bulk carrier fleet" },
+  { title: "AB Seaman", text: "Able seaman for container vessel" },
+  { title: "Cook / Catering Staff", text: "Catering positions available across our fleet" },
+  { title: "Electrician", text: "Marine electrician for offshore assignments" },
+];
 
 const HomePage = ({ onOpenForm, onNavigate }) => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [heroImageLoaded, setHeroImageLoaded] = useState(false);
 
-  const jobs = [
-    {
-      title: "Frontend Developer",
-      text: "React, Tailwind, and modern UI projects",
-    },
-    {
-      title: "UI/UX Designer",
-      text: "Figma, wireframes, and user testing",
-    },
-    {
-      title: "Backend Developer",
-      text: "Node.js, Express, and APIs",
-    },
-    {
-      title: "Data Analyst",
-      text: "Python, SQL, and dashboards",
-    },
-    {
-      title: "AI Engineer",
-      text: "Machine Learning, Deep Learning, Neural Network",
-    },
-  ];
+  // ── Live vacancies state ─────────────────────────────────────────────────
+  const [jobs, setJobs] = useState(FALLBACK_JOBS);
+  const [vacanciesLoading, setVacanciesLoading] = useState(true);
 
   const slides = [
     {
@@ -73,6 +64,42 @@ const HomePage = ({ onOpenForm, onNavigate }) => {
     }, 100000);
     return () => clearInterval(interval);
   }, [slides.length]);
+
+  // ── Fetch open job positions from the backend ───────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    const loadVacancies = async () => {
+      try {
+        setVacanciesLoading(true);
+        // We fetch positions directly as they represent the "Vacancies" for seafarers
+        const response = await jobOrdersApi.getJobPositions();
+        const list = Array.isArray(response) ? response : (response.results || response.job_positions || []);
+
+        if (!cancelled && list.length > 0) {
+          const mapped = list.map((p) => ({
+            title: p.rank_name || "Seafarer Position",
+            text: [
+              p.company_name || "Marine Agency",
+              p.trading_area || "",
+              p.contract_duration_months ? `${p.contract_duration_months} Months` : "",
+              p.salary_min && p.salary_max ? `${p.salary_min}-${p.salary_max} ${p.currency || 'USD'}` : ""
+            ]
+              .filter(Boolean)
+              .join(" · ") || "Apply for this rank now",
+          }));
+          setJobs(mapped);
+        }
+      } catch (err) {
+        // Silently fall back to the static list
+        console.warn("Could not load job positions from API:", err.message);
+      } finally {
+        if (!cancelled) setVacanciesLoading(false);
+      }
+    };
+
+    loadVacancies();
+    return () => { cancelled = true; };
+  }, []);
 
   const jobsRef = useRef(null);
 
@@ -352,15 +379,38 @@ const HomePage = ({ onOpenForm, onNavigate }) => {
         </div>
       </Section>
 
-      {/* Jobs Section - RESPONSIVE */}
+      {/* ── Open Vacancies Section ── */}
       <div
         ref={jobsRef}
         className="py-8 sm:py-10 md:py-12 w-full px-4 sm:px-6 md:w-5/6 lg:w-2/3 mx-auto"
       >
-        <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4 sm:mb-6 text-center leading-tight">
+        <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-1 text-center leading-tight">
           Open Vacancies
         </h3>
-        <InfiniteTicker items={jobs} speed={0.5} />
+
+        {/* Live badge */}
+        {!vacanciesLoading && (
+          <p className="text-center text-sm text-gray-400 mb-4 sm:mb-6">
+            {jobs === FALLBACK_JOBS
+              ? "Sample positions"
+              : `${jobs.length} position${jobs.length !== 1 ? "s" : ""} currently available`}
+          </p>
+        )}
+
+        {/* Loading skeleton */}
+        {vacanciesLoading ? (
+          <div className="flex gap-4 overflow-hidden py-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-[300px] sm:w-[380px] md:w-[510px] h-[140px] sm:h-[180px] md:h-[226px]
+                           rounded-2xl bg-gray-100 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : (
+          <InfiniteTicker items={jobs} speed={0.5} />
+        )}
       </div>
 
       {/* CTA Section - RESPONSIVE */}

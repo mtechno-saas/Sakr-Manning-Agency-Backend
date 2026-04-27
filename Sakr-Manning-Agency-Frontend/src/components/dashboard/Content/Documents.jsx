@@ -319,7 +319,8 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
         notify.error("You don't have permission to edit contracts");
         return;
       }
-      setSelectedContract(contract);
+      // Pass the raw backend record so populateFormData reads the correct field names
+      setSelectedContract(contract._original || contract);
       setShowContractModal(true);
     },
     [canEdit, notify]
@@ -627,7 +628,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
       )}
 
       {/* Modals */}
-      {showContractModal && (
+      {showContractModal && selectedContract && (
         <DocumentFormModal
           contract={selectedContract}
           onClose={() => {

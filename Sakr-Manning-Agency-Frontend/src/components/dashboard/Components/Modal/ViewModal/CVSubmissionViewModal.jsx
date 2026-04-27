@@ -3,7 +3,7 @@ import React from "react";
 import {
     User, Phone, Mail, Calendar, Briefcase,
     FileText, Building, CreditCard, Activity,
-    History, ClipboardCheck, Star, 
+    History, ClipboardCheck, Star,
     Hash, CheckCircle2, Clock, Download, ShieldCheck, Anchor
 } from "lucide-react";
 import {
@@ -79,8 +79,8 @@ export function CVSubmissionViewModal({
             <Section title="Application Details" icon={Briefcase} scale={scale} columns={2}>
                 <FieldItem label="Status" value={submission.status} icon={CheckCircle2} scale={scale} />
                 <FieldItem label="Submission Date" value={submission.submitted_date} format="date" icon={Calendar} scale={scale} />
-                
-                <FieldItem label="Company" value={submission.company_name || `ID: ${submission.company}`} icon={Building} scale={scale} />
+
+                <FieldItem label="Company" value={submission.company_name || `ID: ${submission.company || 'Not Specified'}`} icon={Building} scale={scale} />
                 <FieldItem label="Position" value={submission.position_name || submission.position || "—"} icon={Briefcase} scale={scale} />
                 <FieldItem label="Generated ID" value={submission.generated_id || "Pending"} icon={Hash} scale={scale} />
                 <FieldItem label="Experience" value={submission.experience_years ? `${submission.experience_years} Years` : "—"} icon={Activity} scale={scale} />
@@ -92,9 +92,9 @@ export function CVSubmissionViewModal({
                 <Section title="Assigned Rank Codes" icon={ShieldCheck} scale={scale} columns={1}>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: `${Math.round(8 * scale)}px`, marginTop: `${Math.round(4 * scale)}px` }}>
                         {ranks.map((r, i) => {
-                            const code       = r.assigned_code || r.rank_code || r.code || "";
-                            const name       = r.rank_name || r.name || "";
-                            const rankCode   = r.rank?.code || r.rank_code || "";
+                            const code = r.assigned_code || r.rank_code || r.code || "";
+                            const name = r.rank_name || r.name || "";
+                            const rankCode = r.rank?.code || r.rank_code || "";
                             return (
                                 <div
                                     key={i}

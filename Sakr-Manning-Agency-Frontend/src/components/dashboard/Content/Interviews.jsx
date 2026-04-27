@@ -145,10 +145,10 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
     return backendInterviews.map((interview) => ({
       id: interview.id,
       candidateId: interview.candidate,
-      candidateName: interview.candidate_name || "Unknown Candidate",
+      candidateName: `${interview?.candidate_name.split(" ")[0]} ${interview?.candidate_name.split(" ")[1] || ""}` || "Unknown Candidate",
       candidateEmail: interview.candidate_email || "",
       companyId: interview.company || "Unknown Company ID",
-      company: getCompanyName(interview.company),
+      company: interview.company_name || getCompanyName(interview.company),
       duration: interview.duration_minutes || 0,
       positionID: interview.position || "Not Specified",
       position: interview.position_name || "Not Specified",
@@ -163,6 +163,9 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
       notes: interview.notes || "",
       feedback: interview.feedback || "",
       meetingResult: interview.result || "",
+      interviewer_name: interview.interviewer_name || "",
+      interviewer_email: interview.interviewer_email || "",
+      location: interview.location || "",
 
       avatar: interview.candidate?.profile_image || ASSETS.LOGO,
       createdAt: interview.created_at,
@@ -317,7 +320,9 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
     async (formData) => {
       if (!selectedInterview) return;
 
-      const result = await updateInterview(selectedInterview.id, formData);
+      // selectedInterview is now the raw backend object; use its id directly
+      const interviewId = selectedInterview.id;
+      const result = await updateInterview(interviewId, formData);
       if (result.success) {
         setShowEditModal(false);
         setSelectedInterview(null);
@@ -737,7 +742,7 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
                     variant="primary"
                     scale={scale}
                     onClick={() => {
-                      setSelectedInterview(interview);
+                      setSelectedInterview(interview._original || interview);
                       setShowEditModal(true);
                     }}
                     style={{
@@ -848,7 +853,7 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
         />
       )}
 
-      {showEditModal && (
+      {showEditModal && selectedInterview && (
         <InterviewFormModal
           isOpen={showEditModal}
           interview={selectedInterview}

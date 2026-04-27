@@ -1,136 +1,137 @@
-// hooks/dashboard/useJobOrders.js
+// src/hooks/dashboard/useJobOrders.js
 import { useState, useCallback } from "react";
 import { jobOrdersApi } from "../../services/Dashboard/jobOrdersApi";
 import useNotification from "../../components/dashboard/hooks/useNotification";
+import { usePermissions } from "./usePermissions";
 
 /**
- * Custom hook for managing Job Orders in the dashboard
- * Data source: /api/companies/job-orders/
- *
- * KPIs:
- * - Open Positions: jobOrders with status = "Open"
+ * Custom hook for managing Job Orders and Positions
  */
 export const useJobOrders = () => {
-  const [jobOrders, setJobOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    count: 0,
-    next: null,
-    previous: null,
-    currentPage: 1,
-  });
+    const [jobOrders, setJobOrders] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [pagination, setPagination] = useState({
+        count: 0,
+        next: null,
+        previous: null,
+        currentPage: 1
+    });
+    const { notify } = useNotification();
+    const { canEdit, canDelete, canCreate } = usePermissions();
 
-  const { notify } = useNotification();
+    // ─── JOB ORDERS ─────────────────────────────────────────────────────────
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
-  const fetchJobOrders = useCallback(
-    async (filters = {}) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await jobOrdersApi.getJobOrders(filters);
-        setJobOrders(response.jobOrders || []);
-        setPagination({
-          count: response.count || 0,
-          next: response.next || null,
-          previous: response.previous || null,
-          currentPage: filters.page || 1,
-        });
-        return { success: true, data: response.jobOrders };
-      } catch (err) {
-        const msg = err.message || "Failed to load job orders";
-        setError(msg);
-        notify.error(msg);
-        return { success: false, error: msg };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [notify]
-  );
+    const fetchJobOrders = useCallback(async (filters = {}) => {
+        setLoading(true);
+        try {
+            const data = await jobOrdersApi.getJobOrders(filters);
+            
+            // Handle both raw array and paginated response { results, count, ... }
+            const list = Array.isArray(data) ? data : (data.results || data.job_orders || []);
+            
+            setJobOrders(list);
+            
+            if (!Array.isArray(data)) {
+                setPagination({
+                    count: data.count || list.length,
+                    next: data.next || null,
+                    previous: data.previous || null,
+                    currentPage: filters.page || 1
+                });
+            } else {
+                setPagination(prev => ({ ...prev, count: data.length, currentPage: filters.page || 1 }));
+            }
+            
+            return { success: true, data: list };
+        } catch (err) {
+            const msg = err.message || "Failed to load job orders";
+            notify.error(msg);
+            return { success: false, error: msg };
+        } finally {
+            setLoading(false);
+        }
+    }, [notify]);
 
-  // ── Create ─────────────────────────────────────────────────────────────────
-  const createJobOrder = useCallback(
-    async (data) => {
-      setLoading(true);
-      try {
-        const created = await jobOrdersApi.createJobOrder(data);
-        setJobOrders((prev) => [created, ...prev]);
-        notify.success("Job order created successfully");
-        return { success: true, data: created };
-      } catch (err) {
-        const msg = err.message || "Failed to create job order";
-        notify.error(msg);
-        return { success: false, error: msg };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [notify]
-  );
+    const createJobOrder = useCallback(async (data) => {
+        if (!canCreate) {
+            notify.error("Permission denied");
+            return { success: false };
+        }
+        setLoading(true);
+        try {
+            const newOrder = await jobOrdersApi.createJobOrder(data);
+            setJobOrders(prev => [newOrder, ...prev]);
+            notify.success("Job order created");
+            return { success: true, data: newOrder };
+        } catch (err) {
+            notify.error(err.message || "Failed to create job order");
+            return { success: false };
+        } finally {
+            setLoading(false);
+        }
+    }, [canCreate, notify]);
 
-  // ── Update ─────────────────────────────────────────────────────────────────
-  const updateJobOrder = useCallback(
-    async (id, data) => {
-      setLoading(true);
-      try {
-        const updated = await jobOrdersApi.updateJobOrder(id, data);
-        setJobOrders((prev) =>
-          prev.map((jo) => (jo.id === id ? updated : jo))
-        );
-        notify.success("Job order updated successfully");
-        return { success: true, data: updated };
-      } catch (err) {
-        const msg = err.message || "Failed to update job order";
-        notify.error(msg);
-        return { success: false, error: msg };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [notify]
-  );
+    const deleteJobOrder = useCallback(async (id) => {
+        if (!canDelete) return { success: false };
+        try {
+            await jobOrdersApi.deleteJobOrder(id);
+            setJobOrders(prev => prev.filter(o => o.id !== id));
+            notify.success("Job order deleted");
+            return { success: true };
+        } catch (err) {
+            notify.error(err.message || "Failed to delete job order");
+            return { success: false };
+        }
+    }, [canDelete, notify]);
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
-  const deleteJobOrder = useCallback(
-    async (id) => {
-      setLoading(true);
-      try {
-        await jobOrdersApi.deleteJobOrder(id);
-        setJobOrders((prev) => prev.filter((jo) => jo.id !== id));
-        notify.success("Job order deleted successfully");
-        return { success: true };
-      } catch (err) {
-        const msg = err.message || "Failed to delete job order";
-        notify.error(msg);
-        return { success: false, error: msg };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [notify]
-  );
+    // ─── POSITIONS ──────────────────────────────────────────────────────────
 
-  // ── Refresh ────────────────────────────────────────────────────────────────
-  const refreshJobOrders = useCallback(async () => {
-    await fetchJobOrders({ page: pagination.currentPage });
-  }, [fetchJobOrders, pagination.currentPage]);
+    const addPositionToOrder = useCallback(async (data) => {
+        try {
+            const newPos = await jobOrdersApi.createJobPosition(data);
+            // Refresh the specific job order in local state
+            setJobOrders(prev => prev.map(o => 
+                o.id === data.job_order 
+                ? { ...o, positions: [...(o.positions || []), newPos] }
+                : o
+            ));
+            notify.success("Position added");
+            return { success: true, data: newPos };
+        } catch (err) {
+            notify.error(err.message || "Failed to add position");
+            return { success: false };
+        }
+    }, [notify]);
 
-  return {
-    // State
-    jobOrders,
-    loading,
-    error,
-    pagination,
+    const removePosition = useCallback(async (posId, orderId) => {
+        try {
+            await jobOrdersApi.deleteJobPosition(posId);
+            setJobOrders(prev => prev.map(o => 
+                o.id === orderId 
+                ? { ...o, positions: (o.positions || []).filter(p => p.id !== posId) }
+                : o
+            ));
+            notify.success("Position removed");
+            return { success: true };
+        } catch (err) {
+            notify.error(err.message || "Failed to remove position");
+            return { success: false };
+        }
+    }, [notify]);
 
-    // Methods
-    fetchJobOrders,
-    createJobOrder,
-    updateJobOrder,
-    deleteJobOrder,
-    refreshJobOrders,
-  };
+    return {
+        jobOrders,
+        loading,
+        pagination,
+        canCreate,
+        canEdit,
+        canDelete,
+        fetchJobOrders,
+        createJobOrder,
+        deleteJobOrder,
+        addPositionToOrder,
+        removePosition
+    };
 };
 
 export default useJobOrders;

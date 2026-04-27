@@ -94,7 +94,7 @@ export function UserManagement({ scale = 1, isMobile }) {
     // console.log("the backend user data : ", backendUsers);
     return backendUsers.map((user) => ({
       id: user.id,
-      name: `${user.first_name || ""} ${user.middle_name || ""}`.trim(),
+      name: `${user.first_name.split(" ")[0] || ""} ${user.middle_name.split(" ")[0] || ""}`.trim(),
       email: user.email,
       role: user.role,
       status:
@@ -492,7 +492,7 @@ export function UserManagement({ scale = 1, isMobile }) {
       {
         key: "name",
         title: "User Name",
-        width: 200,
+        width: 300,
         showAvatar: true,
         sortable: true,
         render: (value, row) => (
@@ -516,7 +516,7 @@ export function UserManagement({ scale = 1, isMobile }) {
       {
         key: "email",
         title: "Email",
-        width: 250,
+        width: 300,
         sortable: true,
         render: (value) => value,
       },

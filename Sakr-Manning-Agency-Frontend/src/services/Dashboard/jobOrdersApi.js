@@ -1,111 +1,86 @@
-// services/Dashboard/jobOrdersApi.js
-// CRUD operations for Job Orders at /api/companies/job-orders/
-
-import api from "../Auth/api.js";
-import { handleApiError } from "../Auth/handlers.js";
+// src/services/Dashboard/jobOrdersApi.js
+import api from "../Auth/api";
 
 /**
  * Job Orders API Service
- * Endpoint: /api/companies/job-orders/
- * Auth: IsAuthenticated
+ * Replaces the previous Vacancies API
  */
 export const jobOrdersApi = {
-  /**
-   * Get all job orders with optional filters
-   * @param {Object} filters - { company, ship, status, page, page_size }
-   */
-  getJobOrders: async (filters = {}) => {
-    try {
-      const params = new URLSearchParams();
-      if (filters.company) params.append("company", filters.company);
-      if (filters.ship) params.append("ship", filters.ship);
-      if (filters.status) params.append("status", filters.status);
-      if (filters.search) params.append("search", filters.search);
-      if (filters.page) params.append("page", filters.page);
-      if (filters.page_size) params.append("page_size", filters.page_size);
+    // ─── JOB ORDERS (HEADERS) ───────────────────────────────────────────────
 
-      const qs = params.toString();
-      const endpoint = qs
-        ? `/companies/job-orders/?${qs}`
-        : "/companies/job-orders/";
+    /**
+     * Get list of job orders with filters
+     */
+    getJobOrders: async (params = {}) => {
+        const response = await api.get("/companies/job-orders/", { params });
+        return response.data;
+    },
 
-      const response = await api.get(endpoint);
+    /**
+     * Get single job order detail (includes nested positions)
+     */
+    getJobOrderById: async (id) => {
+        const response = await api.get(`/companies/job-orders/${id}/`);
+        return response.data;
+    },
 
-      if (response.data.results) {
-        return {
-          jobOrders: response.data.results,
-          count: response.data.count,
-          next: response.data.next,
-          previous: response.data.previous,
-        };
-      }
+    /**
+     * Create a new job order
+     */
+    createJobOrder: async (data) => {
+        const response = await api.post("/companies/job-orders/", data);
+        return response.data;
+    },
 
-      return {
-        jobOrders: Array.isArray(response.data) ? response.data : [],
-        count: Array.isArray(response.data) ? response.data.length : 0,
-      };
-    } catch (error) {
-      console.error("Failed to fetch job orders:", error);
-      throw new Error(handleApiError(error));
+    /**
+     * Update an existing job order
+     */
+    updateJobOrder: async (id, data) => {
+        const response = await api.patch(`/companies/job-orders/${id}/`, data);
+        return response.data;
+    },
+
+    /**
+     * Delete a job order
+     */
+    deleteJobOrder: async (id) => {
+        await api.delete(`/companies/job-orders/${id}/`);
+        return true;
+    },
+
+    // ─── JOB ORDER POSITIONS ────────────────────────────────────────────────
+
+    /**
+     * Get list of all positions (optionally filtered by job_order)
+     */
+    getJobPositions: async (params = {}) => {
+        const response = await api.get("/companies/job-positions/", { params });
+        return response.data;
+    },
+
+    /**
+     * Add a position to a job order
+     */
+    createJobPosition: async (data) => {
+        const response = await api.post("/companies/job-positions/", data);
+        return response.data;
+    },
+
+    /**
+     * Update a job position
+     */
+    updateJobPosition: async (id, data) => {
+        const response = await api.patch(`/companies/job-positions/${id}/`, data);
+        return response.data;
+    },
+
+    /**
+     * Delete a job position
+     */
+    deleteJobPosition: async (id) => {
+        await api.delete(`/companies/job-positions/${id}/`);
+        return true;
     }
-  },
-
-  /**
-   * Get a single job order by ID (includes nested positions)
-   * @param {number} id
-   */
-  getJobOrderById: async (id) => {
-    try {
-      const response = await api.get(`/companies/job-orders/${id}/`);
-      return response.data;
-    } catch (error) {
-      console.error(`Failed to fetch job order ${id}:`, error);
-      throw new Error(handleApiError(error));
-    }
-  },
-
-  /**
-   * Create a job order
-   * Required: company, ship, reference_number, request_date, target_joining_date, status
-   * @param {Object} data
-   */
-  createJobOrder: async (data) => {
-    try {
-      const response = await api.post("/companies/job-orders/", data);
-      return response.data;
-    } catch (error) {
-      console.error("Failed to create job order:", error);
-      throw new Error(handleApiError(error));
-    }
-  },
-
-  /**
-   * Update a job order (PATCH)
-   * @param {number} id
-   * @param {Object} data - Partial fields to update
-   */
-  updateJobOrder: async (id, data) => {
-    try {
-      const response = await api.patch(`/companies/job-orders/${id}/`, data);
-      return response.data;
-    } catch (error) {
-      console.error(`Failed to update job order ${id}:`, error);
-      throw new Error(handleApiError(error));
-    }
-  },
-
-  /**
-   * Delete a job order
-   * @param {number} id
-   */
-  deleteJobOrder: async (id) => {
-    try {
-      await api.delete(`/companies/job-orders/${id}/`);
-    } catch (error) {
-      console.error(`Failed to delete job order ${id}:`, error);
-      throw new Error(handleApiError(error));
-    }
-  },
 };
 
 export default jobOrdersApi;

@@ -30,13 +30,14 @@ import usePermissions from "../../../hooks/dashboard/usePermissions";
 
 import useCompanies from "../../../hooks/dashboard/useCompanies";
 import useShips from "../../../hooks/dashboard/useShips";
-import useJobOrders from "../../../hooks/dashboard/useJobOrders";
 import useRanks from "../../../hooks/dashboard/useRanks";
 import { coreApi } from "../../../services/Dashboard/shipsApi";
 
 // Modals
 import RankFormModal from "../Components/Modal/RankFormModal";
 import CrewManagementModal from "../Components/Modal/CrewManagementModal";
+import JobOrderManagementModal from "../Components/Modal/JobOrderManagementModal";
+import useJobOrders from "../../../hooks/dashboard/useJobOrders";
 
 export function CompanyManagement({ scale = 1, isMobile = false }) {
   const { notify } = useNotification();
@@ -108,6 +109,10 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   // Crew management modal
   const [showCrewModal, setShowCrewModal] = useState(false);
   const [targetShipForCrew, setTargetShipForCrew] = useState(null);
+
+  // Job Order management modal
+  const [showJobOrderModal, setShowJobOrderModal] = useState(false);
+  const [targetCompanyForJobOrder, setTargetCompanyForJobOrder] = useState(null);
 
   const [companyStats, setCompanyStats] = useState(null);
   const [flags, setFlags] = useState([]);
@@ -586,6 +591,11 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     setShowCrewModal(true);
   }, []);
 
+  const handleManageJobOrders = useCallback((companyRow) => {
+    setTargetCompanyForJobOrder(companyRow);
+    setShowJobOrderModal(true);
+  }, []);
+
   // ✅ NEW: Download individual ship
   const handleDownloadShip = useCallback(
     (row) => {
@@ -767,7 +777,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "name",
         title: "Company Name",
-        width: 180,
+        width: 360,
         showAvatar: true,
         sortable: true,
         render: (value, row) => row.name,
@@ -782,7 +792,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "type",
         title: "Type",
-        width: 250,
+        width: 350,
         sortable: true,
         render: (value) => value,
       },
@@ -851,6 +861,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         onEdit: canEdit ? handleEditCompany : undefined,
         onDelete: canDelete ? handleDeleteCompany : undefined,
         onDownload: handleDownloadCompany,
+        onVacancy: canEdit ? (row) => handleManageJobOrders(row) : undefined,
       },
     ],
     [
@@ -860,6 +871,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       handleEditCompany,
       handleViewCompany,
       handleDownloadCompany,
+      handleManageJobOrders,
     ]
   );
 
@@ -868,7 +880,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "name",
         title: "Ship Name",
-        width: 200,
+        width: 400,
         showAvatar: true,
         sortable: true,
         render: (value, row) => row.name,
@@ -890,14 +902,14 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "type",
         title: "Type",
-        width: 120,
+        width: 200,
         sortable: true,
         render: (value) => value,
       },
       {
         key: "associatedWithCompany",
         title: "Company",
-        width: 150,
+        width: 300,
         sortable: true,
         render: (value) => value,
       },
@@ -1567,6 +1579,14 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         isOpen={showCrewModal}
         onClose={() => setShowCrewModal(false)}
         ship={targetShipForCrew}
+        scale={scale}
+      />
+
+      {/* Job Order Management Modal */}
+      <JobOrderManagementModal
+        isOpen={showJobOrderModal}
+        onClose={() => setShowJobOrderModal(false)}
+        company={targetCompanyForJobOrder}
         scale={scale}
       />
       {/* Company View Modal */}
