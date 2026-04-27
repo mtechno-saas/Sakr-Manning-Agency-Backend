@@ -890,7 +890,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "type",
         title: "Type",
-        width: 120,
+        width: 200,
         sortable: true,
         render: (value) => value,
       },

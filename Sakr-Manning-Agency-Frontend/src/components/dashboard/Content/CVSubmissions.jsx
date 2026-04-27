@@ -167,7 +167,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
 
             return {
                 id: submission.id,
-                name: submission.user_name || "—",
+                name: `${submission.user_name.split(" ")[0]} ${submission.user_name.split(" ")[1]}` || "—",
                 generatedId: submission.generated_id || "—",
                 company: submission.company_name || companyObj?.company_name || (submission.company ? `ID: ${submission.company}` : "—"),
                 position: submission.position_name || rankObj?.rank_name || rankObj?.name || (submission.position ? `ID: ${submission.position}` : "—"),
@@ -213,7 +213,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         {
             key: "name",
             title: "Name",
-            width: 360,
+            width: 300,
             showAvatar: true,
             sortable: true,
             render: (val) => val,
@@ -228,21 +228,21 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         {
             key: "company",
             title: "Company",
-            width: 240,
+            width: 300,
             sortable: true,
             render: (val) => val,
         },
         {
             key: "position",
             title: "Position",
-            width: 240,
+            width: 300,
             sortable: true,
-            render: (val) => val,
+            render: (val) => val.split("/").length > 3 ? `${val.split("/")[0]} / ${val.split("/")[1]} / ${val.split("/")[2]} / ...` : val,
         },
         {
             key: "codedRank",
             title: "Rank Code",
-            width: 120,
+            width: 200,
             sortable: false,
             render: (val) => val,
         },
