@@ -1,0 +1,67 @@
+import { useState, useEffect, useCallback } from "react";
+import { cvSubmissionsApi } from "../services/Dashboard/cvSubmissionsApi";
+
+/**
+ * Derives the user's application status from their CV submission documents.
+ *
+ * Statuses:
+ *  "none"        — no documents found → redirect to /quick-apply
+ *  "pending"     — documents exist but none are Active → pending approval
+ *  "active"      — at least one Active document → form access allowed
+ *  "blacklisted" — only Blacklist documents → access denied
+ *
+ * @returns {{ status: string, isLoading: boolean, error: string|null, refetch: () => void }}
+ */
+export function useApplicationStatus() {
+    const [status, setStatus] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchStatus = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const data = await cvSubmissionsApi.getDocuments();
+
+            // The API may return a paginated response ({ results: [...] }) or a plain array
+            const documents = Array.isArray(data) ? data : data?.results ?? [];
+
+            if (documents.length === 0) {
+                setStatus("none");
+                return;
+            }
+
+            const hasActive = documents.some(
+                (doc) => doc.status?.toLowerCase() === "active"
+            );
+            if (hasActive) {
+                setStatus("active");
+                return;
+            }
+
+            const allBlacklisted = documents.every(
+                (doc) => doc.status?.toLowerCase() === "blacklist"
+            );
+            if (allBlacklisted) {
+                setStatus("blacklisted");
+                return;
+            }
+
+            // Mix of Pending / other non-active statuses
+            setStatus("pending");
+        } catch (err) {
+            console.error("useApplicationStatus error:", err);
+            setError(err.message || "Failed to check application status");
+            setStatus(null);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchStatus();
+    }, [fetchStatus]);
+
+    return { status, isLoading, error, refetch: fetchStatus };
+}

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Fields Audit & Backend Mapping Analysis</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        h3 { color: #16a085; margin-top: 20px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover { background-color: #f5f5f5; }
+        .status-ok { color: #27ae60; font-weight: bold; }
+        .status-warning { color: #f39c12; font-weight: bold; }
+        .status-error { color: #c0392b; font-weight: bold; }
+        .status-new { color: #16a085; font-weight: bold; }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, monospace;
+            color: #e74c3c;
+        }
+        .legend {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #3498db;
+            margin-bottom: 20px;
+        }
+        .unutilized-section {
+            background-color: #fff0f0;
+            border: 1px solid #ffcccc;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Form Fields Audit & Backend Mapping Analysis</h1>
+
+    <div class="legend">
+        <strong>Legend:</strong>
+        <span class="status-ok">✔ Mapped</span> Field currently mapped to backend. &nbsp;|&nbsp;
+        <span class="status-warning">⚠ Partial</span> Naming/Logic mismatch. &nbsp;|&nbsp;
+        <span class="status-error">✖ Unutilized</span> Backend field exists but no frontend input. &nbsp;|&nbsp;
+        <span class="status-new">✚ New</span> Frontend only field.
+    </div>
+
+    <h2>1. Position & Personal (Step 0)</h2>
+    <p><strong>Component:</strong> <code>PositionPersonalForm.jsx</code></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Frontend Label</th>
+                <th>Frontend Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Application Position</td><td><code>application_for_position</code></td><td><code>application_for_position</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Other Position</td><td><code>other_position</code></td><td><code>other_position</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Register Code</td><td><code>register_code</code></td><td><code>register_code</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Last Update Date</td><td><code>last_update_date</code></td><td><code>last_update_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Register Date</td><td><code>register_date</code></td><td><code>register_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Available Date</td><td><code>available_date</code></td><td><code>available_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Expected Salary</td><td><code>expected_salary</code></td><td><code>salary</code></td><td class="status-ok">✔ Mapped</td><td>Mapped via formMapper</td></tr>
+            <tr><td>Full Name</td><td><code>full_name</code></td><td><code>first/middle/last_name</code></td><td class="status-ok">✔ Mapped</td><td>Split logic in mapper</td></tr>
+            <tr><td>Nationality</td><td><code>nationality</code></td><td><code>nationality</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Place of Birth</td><td><code>place_of_birth</code></td><td><code>Place_Of_Birth</code></td><td class="status-ok">✔ Mapped</td><td>Backend uses PascalCase</td></tr>
+            <tr><td>Date of Birth</td><td><code>date_of_birth</code></td><td><code>date_of_birth</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Nearest Airport</td><td><code>nearest_port</code></td><td><code>Nearest_Port</code></td><td class="status-ok">✔ Mapped</td><td>Backend uses PascalCase</td></tr>
+            <tr><td>Marital Status</td><td><code>marital_status</code></td><td><code>marital_status</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Weight (Kg)</td><td><code>weight</code></td><td><code>Weight_Kg</code></td><td class="status-ok">✔ Mapped</td><td>Backend uses PascalCase</td></tr>
+            <tr><td>Height (Cm)</td><td><code>height</code></td><td><code>Height_Cm</code></td><td class="status-ok">✔ Mapped</td><td>Backend uses PascalCase</td></tr>
+            <tr><td>Overall Size</td><td><code>overall_size</code></td><td><code>overall_size</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Shirt Size</td><td><code>shirt_size</code></td><td><code>shirt_size</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Trouser Size</td><td><code>trouser_size</code></td><td><code>trouser_size</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Shoes Size</td><td><code>shoes_size</code></td><td><code>shoes_size</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td><strong>Unutilized</strong></td><td>-</td><td><code>user_status</code></td><td class="status-error">✖ Unutilized</td><td>No input field</td></tr>
+            <tr><td></td><td>-</td><td><code>profile_image</code></td><td class="status-error">✖ Unutilized</td><td>Handled via separate upload logic?</td></tr>
+        </tbody>
+    </table>
+
+    <h2>2. Education (Step 1)</h2>
+    <p><strong>Component:</strong> <code>EducationForm.jsx</code></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Frontend Label</th>
+                <th>Frontend Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>College / School</td><td><code>education_school</code></td><td><code>college_or_school</code></td><td class="status-ok">✔ Mapped</td><td>Mapped via formMapper</td></tr>
+            <tr><td>English Level</td><td><code>english_level</code></td><td><code>english_language_level</code></td><td class="status-ok">✔ Mapped</td><td>Mapped via formMapper</td></tr>
+            <tr><td>Other Language</td><td><code>other_language</code></td><td><code>other_language</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Other Lang Level</td><td><code>other_language_level</code></td><td><code>other_language_level</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td colspan="5"><strong>Marlins Test</strong></td></tr>
+            <tr><td>Issued Date</td><td><code>marine_issued_date</code></td><td><code>marlins_test_issued_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Result %</td><td><code>marine_result</code></td><td><code>marlins_test_result</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Issued By</td><td><code>marine_issued_by</code></td><td><code>marlins_test_issued_by</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Issued At</td><td><code>marine_issued_at</code></td><td><code>marlins_test_issued_at</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td colspan="5"><strong>CES Test</strong></td></tr>
+            <tr><td>Result</td><td><code>ces_test_result</code></td><td><code>ces_test_result</code></td><td class="status-ok">✔ Mapped</td><td>Moved here from Certs step</td></tr>
+            <tr><td>Issued Date</td><td><code>ces_test_issued_date</code></td><td><code>ces_test_issued_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Issued By</td><td><code>ces_test_issued_by</code></td><td><code>ces_test_issued_by</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Issued At</td><td><code>ces_test_issued_at</code></td><td><code>ces_test_issued_at</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+        </tbody>
+    </table>
+
+    <h2>3. Contact (Step 2)</h2>
+    <p><strong>Component:</strong> <code>ContactForm.jsx</code></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Frontend Label</th>
+                <th>Frontend Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Address</td><td><code>address</code></td><td><code>address</code></td><td class="status-ok">✔ Mapped</td><td>Mapper handles both</td></tr>
+            <tr><td>Email</td><td><code>email</code></td><td><code>email</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td>Mobile</td><td><code>mobile</code></td><td><code>phone_number</code></td><td class="status-ok">✔ Mapped</td><td>Combined with code</td></tr>
+            <tr><td><strong>Unutilized</strong></td><td>-</td><td><code>tel_number</code></td><td class="status-error">✖ Unutilized</td><td>Only mobile used</td></tr>
+            <tr><td></td><td>-</td><td><code>city</code></td><td class="status-error">✖ Unutilized</td><td>No specific input</td></tr>
+            <tr><td></td><td>-</td><td><code>country</code></td><td class="status-error">✖ Unutilized</td><td>No specific input</td></tr>
+        </tbody>
+    </table>
+
+    <h2>4. Emergency (Step 3)</h2>
+    <p><strong>Component:</strong> <code>EmergencyForm.jsx</code></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Frontend Label</th>
+                <th>Frontend Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Full Name</td><td><code>kin_full_name</code></td><td><code>next_of_kin_full_name</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Relationship</td><td><code>kin_relationship</code></td><td><code>next_of_kin_relationship</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Address/Country</td><td><code>kin_address</code></td><td><code>next_of_kin_address_country</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Phone</td><td><code>kin_phone</code></td><td><code>next_of_kin_phone</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Email</td><td><code>kin_email</code></td><td><code>next_of_kin_email</code></td><td class="status-ok">✔ Mapped</td></tr>
+        </tbody>
+    </table>
+
+    <h2>5. Documents (Step 4)</h2>
+    <p><strong>Component:</strong> <code>DocumentsForm.jsx</code> & <code>DocumentModal.jsx</code></p>
+
+    <h3>Static Fields (New)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Group</th>
+                <th>Frontend Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Passport</strong></td><td><code>passport_no</code></td><td><code>passport_no</code></td><td class="status-ok">✔ Mapped</td><td>Added recently</td></tr>
+            <tr><td></td><td><code>passport_issue_date</code></td><td><code>passport_issue_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>passport_expiry_date</code></td><td><code>passport_expiry_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>passport_issued_by</code></td><td><code>passport_issued_by</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>passport_place_of_issue</code></td><td><code>passport_place_of_issue</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td><strong>Seaman Book</strong></td><td><code>seaman_book_no</code></td><td><code>seaman_book_no</code></td><td class="status-ok">✔ Mapped</td><td>Added recently</td></tr>
+            <tr><td></td><td><code>seaman_book_issue_date</code></td><td><code>seaman_book_issue_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>seaman_book_expiry_date</code></td><td><code>seaman_book_expiry_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>seaman_book_issued_by</code></td><td><code>seaman_book_issued_by</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>seaman_book_place_of_issue</code></td><td><code>seaman_book_place_of_issue</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+        </tbody>
+    </table>
+
+    <h3>Modal Fields (Collection: documents)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th>Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Document Type</td><td><code>document_type</code></td><td><code>document_type</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Document No.</td><td><code>document_number</code></td><td><code>document_number</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Issue Date</td><td><code>issue_date</code></td><td><code>issue_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Expiry Date</td><td><code>expiry_date</code></td><td><code>expiry_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Issued By</td><td><code>issuing_authority</code></td><td><code>issuing_authority</code></td><td class="status-ok">✔ Mapped</td></tr>
+        </tbody>
+    </table>
+
+    <h2>6. Certificates (Step 5)</h2>
+    <p><strong>Component:</strong> <code>CertificatesForm.jsx</code> & <code>LicenseModal.jsx</code></p>
+
+    <h3>Static Fields (New)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Group</th>
+                <th>Frontend Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>COC</strong></td><td><code>coc_certificate_name</code></td><td><code>coc_certificate_name</code></td><td class="status-ok">✔ Mapped</td><td>Added recently</td></tr>
+            <tr><td></td><td><code>coc_certificate_number</code></td><td><code>coc_certificate_number</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>coc_issue_date</code></td><td><code>coc_issue_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>coc_expiry_date</code></td><td><code>coc_expiry_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>coc_issued_at</code></td><td><code>coc_issued_at</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>coc_issued_by</code></td><td><code>coc_issued_by</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td><strong>GOC</strong></td><td><code>goc_certificate_number</code></td><td><code>goc_certificate_number</code></td><td class="status-ok">✔ Mapped</td><td>Added recently</td></tr>
+            <tr><td></td><td><code>goc_issue_date</code></td><td><code>goc_issue_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>goc_expiry_date</code></td><td><code>goc_expiry_date</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>goc_issued_at</code></td><td><code>goc_issued_at</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+            <tr><td></td><td><code>goc_issued_by</code></td><td><code>goc_issued_by</code></td><td class="status-ok">✔ Mapped</td><td></td></tr>
+        </tbody>
+    </table>
+
+    <h3>Modal Fields (Collection: licenses)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th>Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Cert Name</td><td><code>document_name</code></td><td><code>document_name</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Number</td><td><code>document_number</code></td><td><code>document_number</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Issue Date</td><td><code>issue_date</code></td><td><code>issue_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Expiry Date</td><td><code>expiry_date</code></td><td><code>expiry_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Country</td><td><code>country_of_issue</code></td><td><code>country_of_issue</code></td><td class="status-ok">✔ Mapped</td></tr>
+        </tbody>
+    </table>
+
+    <h2>7. Health (Step 6)</h2>
+    <p><strong>Component:</strong> <code>HealthForm.jsx</code> & <code>HealthModal.jsx</code></p>
+
+    <h3>Static Fields (New)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Group</th>
+                <th>Frontend Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Health Cert</strong></td><td><code>health_number</code></td><td><code>health_number</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>health_issue_date</code></td><td><code>health_issue_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>health_expiry_date</code></td><td><code>health_expiry_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>health_issued_by</code></td><td><code>health_issued_by</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>health_issued_at</code></td><td><code>health_issued_at</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>health_flag_state</code></td><td><code>health_flag_state</code></td><td class="status-ok">✔ Mapped</td></tr>
+
+            <tr><td><strong>Yellow Fever</strong></td><td><code>yellow_fever_number</code></td><td><code>yellow_fever_number</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>yellow_fever_issue_date</code></td><td><code>yellow_fever_issue_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>yellow_fever_expiry_date</code></td><td><code>yellow_fever_expiry_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+
+            <tr><td><strong>Cholera</strong></td><td><code>cholera_number</code></td><td><code>cholera_number</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>cholera_issue_date</code></td><td><code>cholera_issue_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>cholera_expiry_date</code></td><td><code>cholera_expiry_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+
+            <tr><td><strong>COVID</strong></td><td><code>covid_vaccine_name</code></td><td><code>covid_vaccine_name</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>covid_first_dose</code></td><td><code>covid_first_dose</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>covid_second_dose</code></td><td><code>covid_second_dose</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>covid_other_doses_or_remarks</code></td><td><code>covid_other_doses_or_remarks</code></td><td class="status-ok">✔ Mapped</td></tr>
+
+            <tr><td><strong>Int. Medical</strong></td><td><code>international_medical_number</code></td><td><code>international_medical_number</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>international_medical_issue_date</code></td><td><code>international_medical_issue_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td></td><td><code>international_medical_expiry_date</code></td><td><code>international_medical_expiry_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Modal Fields (Collection: vaccinations)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Label</th>
+                <th>Field</th>
+                <th>Backend Field</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Vaccination</td><td><code>name</code></td><td><code>name</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Number</td><td><code>number</code></td><td><code>number</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Issue Date</td><td><code>issue_date</code></td><td><code>issue_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Expiry Date</td><td><code>expiry_date</code></td><td><code>expiry_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Issued By</td><td><code>issued_by</code></td><td><code>issued_by</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Issued At</td><td><code>issued_at</code></td><td><code>issued_at</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Disease</td><td><code>disease</code></td><td><code>disease</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>First Dose</td><td><code>first_date</code></td><td><code>first_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Last Dose</td><td><code>last_date</code></td><td><code>last_date</code></td><td class="status-ok">✔ Mapped</td></tr>
+            <tr><td>Remarks</td><td><code>remarks</code></td><td><code>remarks</code></td><td class="status-ok">✔ Mapped</td></tr>
+        </tbody>
+    </table>
+
+    <div class="unutilized-section">
+        <h3>Unutilized / Missing Backend Fields</h3>
+        <p>These fields are present in <code>BACKEND_FIELDS</code> but currently have <strong>no active frontend input</strong> (or are commented out):</p>
+        <ul>
+            <li><strong>User Status</strong>: <code>user_status</code></li>
+            <li><strong>VISA Status</strong>: <code>schengen_visa_status</code>, <code>us_visa_status</code></li>
+            <li><strong>Smoker</strong>: <code>smoker</code></li>
+            <li><strong>Blood Type</strong>: <code>blood_type</code></li>
+            <li><strong>Tel Number</strong>: <code>tel_number</code> (Only mobile is used)</li>
+            <li><strong>City/Country</strong>: <code>city</code>, <code>country</code> (Addresses are free text)</li>
+        </ul>
+    </div>
+
+</body>
+</html>

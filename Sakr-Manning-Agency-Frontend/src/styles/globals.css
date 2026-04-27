@@ -1,0 +1,466 @@
+/* src/index.css */
+/* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); */
+/* add Poppins font family */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+@import "keen-slider/keen-slider.min.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes bounce-scale {
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.2);
+  }
+
+  70% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-scale {
+  animation: bounce-scale 0.3s ease-in-out;
+}
+/* Hide scrollbar but keep scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Base styles */
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    @apply bg-white font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.6;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: "Poppins";
+  }
+
+  /* h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply text-gray-200 font-semibold;
+    } */
+
+  /* p {
+        @apply leading-relaxed text-gray-100;
+    } */
+}
+
+/* ✅ Custom component classes */
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply bg-maritime-600 hover:bg-maritime-700 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 shadow-card;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-maritime-600 text-maritime-600 hover:bg-maritime-600 hover:text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 bg-white shadow-card;
+  }
+
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-full transition-all duration-300 shadow-card;
+  }
+
+  /* Inputs */
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-maritime-500 focus:ring-4 focus:ring-maritime-100 transition-all duration-200 placeholder-gray-400 bg-white;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-xl shadow-card p-6;
+  }
+
+  /* Sections */
+  .section {
+    @apply section-padding container-maritime;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl font-bold text-gray-800 mb-6 text-center;
+  }
+}
+
+/* ✅ Utilities (your existing ones remain unchanged) */
+@layer utilities {
+  .text-gradient-maritime {
+    background: linear-gradient(135deg, #1a7ef5, #56baff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .shadow-maritime-soft {
+    box-shadow: 0 4px 20px rgba(26, 126, 245, 0.1);
+  }
+
+  .shadow-maritime-medium {
+    box-shadow: 0 8px 30px rgba(26, 126, 245, 0.15);
+  }
+
+  .shadow-maritime-strong {
+    box-shadow: 0 12px 40px rgba(26, 126, 245, 0.2);
+  }
+
+  .shadow-maritime-glow {
+    box-shadow: 0 0 30px rgba(26, 126, 245, 0.3);
+  }
+
+  /* Animation delays */
+  .animate-delay-100 {
+    animation-delay: 0.1s;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 0.2s;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 0.3s;
+  }
+
+  .animate-delay-500 {
+    animation-delay: 0.5s;
+  }
+
+  .animate-delay-700 {
+    animation-delay: 0.7s;
+  }
+
+  /* Gradient borders */
+  .border-maritime-gradient {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+      linear-gradient(135deg, #1a7ef5, #56baff) border-box;
+  }
+
+  /* Focus states */
+  .focus-maritime {
+    @apply focus:outline-none focus:ring-4 focus:ring-maritime-100 focus:border-maritime-500;
+  }
+
+  /* Backdrop blur */
+  .backdrop-blur-xs {
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+
+  /* Section spacing & container */
+  .section-padding {
+    @apply py-16 md:py-24 px-6;
+  }
+
+  .container-maritime {
+    @apply max-w-7xl mx-auto;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.scooped-overlay {
+  background: rgba(255, 255, 255, 0.8);
+  /* Semi-transparent overlay */
+  /* This path creates a 200x200 box with 30px scooped corners */
+  clip-path: path("M 30 0 L 170 0 A 30 30 0 0 0 200 30 L 200 170 A 30 30 0 0 0 170 200 L 30 200 A 30 30 0 0 0 0 170 L 0 30 A 30 30 0 0 0 30 0 Z");
+}
+.scoop-card {
+  position: fixed;
+  margin-top: -70px;
+  margin-left: 130px;
+  width: 357px;
+  height: 100px;
+  background-color: #ffffff;
+  z-index: 900;
+
+
+
+  /* The "Scoop" Logic */
+  --r: 30px;
+  /* the radius */
+  mask: radial-gradient(var(--r) at var(--r) var(--r), #0000 98%, #000) calc(-1 * var(--r)) calc(-1 * var(--r));
+}
+
+/* The specific style for the container holding the buttons */
+.scooped-header-card {
+  /* Ensure the background is white */
+  background-color: #ffffff;
+
+  /* 1. Round the TOP corners normally using standard border-radius */
+  /* Adjust this value to match your design preference (e.g. 24px or 30px) */
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+
+  /* Ensure BOTTOM corners are square before applying the mask */
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+
+
+  /* --- The Scoop Logic for BOTTOM corners --- */
+
+  /* Define the radius of the inverted scoop */
+  --scoop-radius: 30px;
+
+  /*
+    We create two radial gradients.
+    They are positioned exactly at the bottom-left (0 100%) and bottom-right (100% 100%) corners.
+    They are transparent up to the radius boundary, then turn black (visible).
+    The +0.5px helps blend jagged edges on some screens.
+  */
+  mask-image:
+    radial-gradient(circle at 0 100%, transparent var(--scoop-radius), black calc(var(--scoop-radius) + 0.5px)),
+    radial-gradient(circle at 100% 100%, transparent var(--scoop-radius), black calc(var(--scoop-radius) + 0.5px));
+
+  /* Split the mask horizontally so the left one covers the left half, right covers right half */
+  mask-size: 51% 100%;
+  mask-position: left bottom, right bottom;
+  mask-repeat: no-repeat;
+
+  /* Ensure this sits on top of the image (handled by z-index in JSX too) */
+  position: relative;
+}
+/* The specific style for the container holding the buttons with REVERSED corners */
+.reversed-scoop-header-card {
+  /* Ensure the background is white */
+  background-color: #ffffff;
+
+  /* 1. Round the BOTTOM corners normally using standard border-radius */
+  /* Adjust this value to match your design preference (e.g. 24px or 30px) */
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+
+  /* Ensure TOP corners are square before applying the mask */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+
+
+  /* --- The Scoop Logic for TOP corners --- */
+
+  /* Define the radius of the inverted scoop (same as before) */
+  --scoop-radius: 30px;
+
+  /*
+    We create two radial gradients.
+    They are positioned exactly at the top-left (0 0) and top-right (100% 0) corners.
+    They are transparent up to the radius boundary, then turn black (visible).
+    The +0.5px helps blend jagged edges on some screens.
+  */
+  mask-image:
+    radial-gradient(circle at 0 0, transparent var(--scoop-radius), black calc(var(--scoop-radius) + 0.5px)),
+    radial-gradient(circle at 100% 0, transparent var(--scoop-radius), black calc(var(--scoop-radius) + 0.5px));
+
+  /* Split the mask horizontally so the left one covers the left half, right covers right half */
+  mask-size: 51% 100%;
+  /* Position the masks at the TOP */
+  mask-position: left top, right top;
+  mask-repeat: no-repeat;
+
+  /* Ensure this sits on top of the image (handled by z-index in JSX too) */
+  position: relative;
+}
+
+/* The container for the buttons with SCOOPED TOP corners */
+.top-scoop-card {
+  /* 1. Basic styling */
+  background-color: #ffffff;
+  position: relative;
+  /* Needed for z-index stacking */
+
+  /* 2. Standard Rounding for BOTTOM corners */
+  /* Adjust 24px to match the exact curve of your buttons if needed */
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+
+  /* Ensure Top corners start square so the mask cuts them cleanly */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+
+
+  /* --- 3. The Scoop Logic for TOP corners --- */
+
+  /* Define the size of the cut. 30px matches the look in your images. */
+  --scoop-radius: 30px;
+
+  /*
+    We use CSS Masks. We create two invisible circles at the top corners.
+    Everything outside those circles remains visible (black).
+  */
+  mask-image:
+    /* Top Left Scoop: centered at 0px 0px */
+    radial-gradient(circle at 0 0, transparent var(--scoop-radius), black calc(var(--scoop-radius) + 0.5px)),
+    /* Top Right Scoop: centered at 100% horizontal, 0px vertical */
+    radial-gradient(circle at 100% 0, transparent var(--scoop-radius), black calc(var(--scoop-radius) + 0.5px));
+
+  /* Ensure the left mask stays left, and right mask stays right */
+  mask-size: 51% 100%;
+  /* Position them at the TOP edge */
+  mask-position: left top, right top;
+  mask-repeat: no-repeat;
+}
+
+/* .hero-button-card {
+  background-color: #ffffff;
+  padding: 12px 24px;
+  display: flex;
+  gap: 16px;
+  width: fit-content;
+
+  border-bottom-left-radius: 35px;
+  border-bottom-right-radius: 35px;
+
+  --r: 30px;
+ 
+  mask:
+    radial-gradient(var(--r) at 0 0, #0000 98%, #000) 0 0 / 51% 100% no-repeat,
+    radial-gradient(var(--r) at 100% 0, #0000 98%, #000) 100% 0 / 51% 100% no-repeat;
+
+  -webkit-mask:
+    radial-gradient(var(--r) at 0 0, #0000 98%, #000) 0 0 / 51% 100% no-repeat,
+    radial-gradient(var(--r) at 100% 0, #0000 98%, #000) 100% 0 / 51% 100% no-repeat;
+} */
+
+
+.hero-tab-container {
+  /* 1. Base Card Styles */
+  background-color: #ffffff;
+  position: relative;
+  display: flex;
+  gap: 16px;
+  padding: 12px 24px;
+  width: fit-content;
+
+  /* 2. Standard Rounding for the Bottom */
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
+
+  /* 3. The "Outward" Curves (Inverted Radius) */
+  /* We use pseudo-elements to create the 'wings' that curve out */
+}
+
+/* Left Inverted Corner */
+.hero-tab-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -30px;
+  /* Must match the radius */
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  /* This creates the outward curve */
+  border-top-right-radius: 30px;
+  /* The shadow fills the 'corner' with white */
+  box-shadow: 15px 0 0 0 #ffffff;
+}
+
+/* Right Inverted Corner */
+.hero-tab-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -30px;
+  /* Must match the radius */
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  /* This creates the outward curve */
+  border-top-left-radius: 30px;
+  /* The shadow fills the 'corner' with white */
+  box-shadow: -15px 0 0 0 #ffffff;
+}
+
+.hero-polished-card {
+  --radius: 31px;
+  --bg-color: #ffffff;
+
+  background-color: var(--bg-color);
+  position: relative;
+  display: flex;
+  gap: 18px;
+  padding: 16px 28px;
+  width: fit-content;
+
+  /* Standard rounding for the bottom */
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+
+/* Common styles for the "wings" */
+.hero-polished-card::before,
+.hero-polished-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: var(--radius);
+  height: var(--radius);
+  background-color: transparent;
+  pointer-events: none;
+}
+
+/* Left Inverted Corner */
+.hero-polished-card::before {
+  left: calc(var(--radius) * -1);
+  border-top-right-radius: var(--radius);
+  /* The shadow color must match your card background exactly */
+  box-shadow: 10px 0 0 0 var(--bg-color);
+}
+
+/* Right Inverted Corner */
+.hero-polished-card::after {
+  right: calc(var(--radius) * -1);
+  border-top-left-radius: var(--radius);
+  /* Using a negative shadow for the right side */
+  box-shadow: -10px 0 0 0 var(--bg-color);
+}
+
+/* 2xl breakpoint for hero card scaling on larger screens */
+@media (min-width: 1536px) {
+  .hero-polished-card {
+    --radius: 36px;
+    gap: 22px;
+    padding: 20px 32px;
+  }
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
