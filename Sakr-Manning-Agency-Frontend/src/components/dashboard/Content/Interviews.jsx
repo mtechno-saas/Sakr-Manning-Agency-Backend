@@ -317,7 +317,9 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
     async (formData) => {
       if (!selectedInterview) return;
 
-      const result = await updateInterview(selectedInterview.id, formData);
+      // selectedInterview is now the raw backend object; use its id directly
+      const interviewId = selectedInterview.id;
+      const result = await updateInterview(interviewId, formData);
       if (result.success) {
         setShowEditModal(false);
         setSelectedInterview(null);
@@ -737,7 +739,7 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
                     variant="primary"
                     scale={scale}
                     onClick={() => {
-                      setSelectedInterview(interview);
+                      setSelectedInterview(interview._original || interview);
                       setShowEditModal(true);
                     }}
                     style={{
@@ -848,7 +850,7 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
         />
       )}
 
-      {showEditModal && (
+      {showEditModal && selectedInterview && (
         <InterviewFormModal
           isOpen={showEditModal}
           interview={selectedInterview}
