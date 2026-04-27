@@ -127,33 +127,33 @@ export const COMPANY_FORM_FIELDS = [
     required: false,
     placeholder: "Select country",
     options: [
-      "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia",
-      "Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium",
-      "Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil",
-      "Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada",
-      "Cape Verde","Central African Republic","Chad","Chile","China","Colombia","Comoros",
-      "Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti",
-      "Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea",
-      "Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia",
-      "Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau",
-      "Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq",
-      "Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati",
-      "Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya",
-      "Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives",
-      "Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia",
-      "Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia",
-      "Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea",
-      "North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama",
-      "Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar",
-      "Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia",
-      "Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe",
-      "Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia",
-      "Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan",
-      "Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan",
-      "Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago",
-      "Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates",
-      "United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City",
-      "Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
+      "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia",
+      "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
+      "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil",
+      "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada",
+      "Cape Verde", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros",
+      "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti",
+      "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea",
+      "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia",
+      "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau",
+      "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq",
+      "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati",
+      "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya",
+      "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives",
+      "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
+      "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia",
+      "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea",
+      "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama",
+      "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+      "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
+      "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
+      "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia",
+      "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan",
+      "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
+      "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago",
+      "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
+      "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
+      "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
     ].map((c) => ({ value: c, label: c })),
     validation: {},
     defaultValue: "",
@@ -964,101 +964,6 @@ export const DOCUMENT_FORM_FIELDS = [
 ];
 
 // ============================================
-// JOB ORDER FORM FIELDS
-// ============================================
-
-export const JOB_ORDER_FORM_FIELDS = [
-  {
-    name: "company",
-    label: "Company",
-    type: "select",
-    component: "Select",
-    required: true,
-    placeholder: "Select Company",
-    validation: { required: "Company is required" },
-    options: [], // Loaded dynamically from context
-    defaultValue: "",
-  },
-  {
-    name: "ship",
-    label: "Ship",
-    type: "select",
-    component: "Select",
-    required: false,
-    placeholder: "Select Ship (Optional)",
-    validation: {},
-    options: [], // Loaded dynamically from context
-    defaultValue: "",
-  },
-  {
-    name: "reference_number",
-    label: "Reference Number",
-    type: "text",
-    component: "BaseInput",
-    required: true,
-    placeholder: "JO-2026-001",
-    validation: { required: "Reference number is required" },
-    defaultValue: "",
-  },
-  {
-    name: "request_date",
-    label: "Request Date",
-    type: "date",
-    component: "DateInput",
-    required: true,
-    placeholder: "Select date",
-    validation: { required: "Request date is required" },
-    defaultValue: "",
-  },
-  {
-    name: "target_joining_date",
-    label: "Target Joining Date",
-    type: "date",
-    component: "DateInput",
-    required: false,
-    placeholder: "Select date",
-    validation: {},
-    defaultValue: "",
-  },
-  {
-    name: "status",
-    label: "Status",
-    type: "select",
-    component: "Select",
-    required: true,
-    placeholder: "Select Status",
-    options: [
-      { value: "Open", label: "Open" },
-      { value: "Closed", label: "Closed" },
-      { value: "Cancelled", label: "Cancelled" },
-    ],
-    validation: { required: "Status is required" },
-    defaultValue: "Open",
-  },
-  {
-    name: "trading_area",
-    label: "Trading Area (Optional)",
-    type: "text",
-    component: "BaseInput",
-    required: false,
-    placeholder: "Mediterranean",
-    validation: {},
-    defaultValue: "",
-  },
-  {
-    name: "notes",
-    label: "Notes (Optional)",
-    type: "textarea",
-    component: "TextArea",
-    required: false,
-    placeholder: "Additional notes...",
-    props: { minHeight: 80 },
-    validation: {},
-    defaultValue: "",
-  },
-];
-
-// ============================================
 // RANK FORM FIELDS
 // ============================================
 
@@ -1264,6 +1169,185 @@ export const CV_SUBMISSION_FORM_FIELDS = [
 ];
 
 // ============================================
+// JOB ORDER FORM FIELDS
+// ============================================
+
+export const JOB_ORDER_FORM_FIELDS = [
+  {
+    name: "reference_number",
+    label: "Reference Number",
+    type: "text",
+    component: "BaseInput",
+    required: true,
+    placeholder: "e.g. JO-2024-001",
+    validation: {
+      required: "Reference number is required",
+    },
+    defaultValue: "",
+  },
+  {
+    name: "company",
+    label: "Company",
+    type: "select",
+    component: "Select",
+    required: true,
+    placeholder: "Select Company",
+    validation: {
+      required: "Company is required",
+    },
+    options: [], // Loaded from context
+    defaultValue: "",
+  },
+  {
+    name: "ship",
+    label: "Ship (Optional)",
+    type: "select",
+    component: "Select",
+    required: false,
+    placeholder: "Select Ship",
+    options: [], // Loaded from context
+    defaultValue: "",
+  },
+  {
+    name: "request_date",
+    label: "Request Date",
+    type: "date",
+    component: "DateInput",
+    required: true,
+    validation: {
+      required: "Request date is required",
+    },
+    defaultValue: new Date().toISOString().split('T')[0],
+  },
+  {
+    name: "target_joining_date",
+    label: "Target Joining Date",
+    type: "date",
+    component: "DateInput",
+    required: true,
+    validation: {
+      required: "Joining date is required",
+    },
+    defaultValue: "",
+  },
+  {
+    name: "vessel_type_override",
+    label: "Vessel Type Override (Optional)",
+    type: "text",
+    component: "BaseInput",
+    placeholder: "Override default vessel type",
+    defaultValue: "",
+  },
+  {
+    name: "trading_area",
+    label: "Trading Area",
+    type: "text",
+    component: "BaseInput",
+    placeholder: "e.g. Mediterranean",
+    defaultValue: "",
+  },
+  {
+    name: "status",
+    label: "Status",
+    type: "select",
+    component: "Select",
+    required: true,
+    placeholder: "Select Status",
+    options: [
+      { value: "Pending", label: "Pending" },
+      { value: "Open", label: "Open" },
+      { value: "In Progress", label: "In Progress" },
+      { value: "Fulfilled", label: "Fulfilled" },
+      { value: "Cancelled", label: "Cancelled" },
+    ],
+    validation: {
+      required: "Status is required",
+    },
+    defaultValue: "Pending",
+  },
+  {
+    name: "notes",
+    label: "Notes",
+    type: "textarea",
+    component: "TextArea",
+    placeholder: "Additional internal notes...",
+    defaultValue: "",
+  },
+];
+
+// ============================================
+// JOB POSITION FORM FIELDS
+// ============================================
+
+export const JOB_POSITION_FORM_FIELDS = [
+  {
+    name: "rank",
+    label: "Rank",
+    type: "select",
+    component: "Select",
+    required: true,
+    placeholder: "Select Rank",
+    validation: {
+      required: "Rank is required",
+    },
+    options: [], // Loaded from context
+    defaultValue: "",
+  },
+  {
+    name: "quantity",
+    label: "Quantity",
+    type: "number",
+    component: "BaseInput",
+    required: true,
+    props: { min: "1" },
+    defaultValue: 1,
+    transformOnSave: (val) => parseInt(val, 10),
+  },
+  {
+    name: "salary_min",
+    label: "Salary Min",
+    type: "number",
+    component: "BaseInput",
+    props: { min: "0", step: "0.01" },
+    defaultValue: "",
+    transformOnSave: (val) => val ? parseFloat(val) : null,
+  },
+  {
+    name: "salary_max",
+    label: "Salary Max",
+    type: "number",
+    component: "BaseInput",
+    props: { min: "0", step: "0.01" },
+    defaultValue: "",
+    transformOnSave: (val) => val ? parseFloat(val) : null,
+  },
+  {
+    name: "currency",
+    label: "Currency",
+    type: "text",
+    component: "BaseInput",
+    defaultValue: "USD",
+  },
+  {
+    name: "contract_duration_months",
+    label: "Duration (Months)",
+    type: "number",
+    component: "BaseInput",
+    props: { min: "1" },
+    defaultValue: 6,
+    transformOnSave: (val) => parseInt(val, 10),
+  },
+  {
+    name: "remarks",
+    label: "Remarks",
+    type: "textarea",
+    component: "TextArea",
+    placeholder: "Specific requirements for this position...",
+    defaultValue: "",
+  },
+];
+
+// ============================================
 // HELPER FUNCTIONS
 // ============================================
 
@@ -1302,10 +1386,10 @@ export const populateFormData = (record, fieldConfig) => {
     if (field.transformOnLoad && value !== undefined && value !== null) {
       value = field.transformOnLoad(value);
     }
-    
+
     // Default to field's default value if undefined in record
     acc[field.name] = (value !== undefined && value !== null)
-      ? value 
+      ? value
       : field.defaultValue;
 
     return acc;

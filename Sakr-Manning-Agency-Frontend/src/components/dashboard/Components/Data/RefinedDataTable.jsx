@@ -1,6 +1,6 @@
 // ... (imports)
 import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
-import { Download, User, Edit, Trash2, MoreVertical, Users } from "lucide-react";
+import { Download, User, Edit, Trash2, MoreVertical, Users, Briefcase } from "lucide-react";
 import { COLORS, TOKENS, extractLeadingNumber, isISODateString } from "../../Constants";
 
 // ... (Icons: EditIcon, DeleteIcon, UserIcon, DownloadIcon - keep existing)
@@ -22,6 +22,10 @@ const DownloadIcon = ({ size = 20 }) => (
 
 const CrewIcon = ({ size = 20 }) => (
   <Users size={size} color="#1E1E1E" strokeWidth={1.5} />
+);
+
+const VacancyIcon = ({ size = 18 }) => (
+  <Briefcase size={size} color="#1E1E1E" strokeWidth={1.5} />
 );
 
 /* ─── Status style map — CV Submission pipeline + general statuses ─────────── */
@@ -699,6 +703,33 @@ export function RefinedDataTable({
                                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 8v8M8 12l4-4 4 4"/>
                                       </svg>
                                        Manage Ranks
+                                    </button>
+                                  )}
+
+                                  {col.onVacancy && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        col.onVacancy(row);
+                                        setActiveActionRowId(null);
+                                      }}
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "12px",
+                                        padding: "10px 16px",
+                                        border: "none",
+                                        background: "transparent",
+                                        cursor: "pointer",
+                                        width: "100%",
+                                        textAlign: "left",
+                                        fontSize: `${Math.round(14 * scale)}px`,
+                                        color: "#0EA5E9",
+                                      }}
+                                      onMouseEnter={(e) => e.currentTarget.style.background = "#F0F9FF"}
+                                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                                    >
+                                      <VacancyIcon size={16} /> Manage Vacancies
                                     </button>
                                   )}
                                 </>
