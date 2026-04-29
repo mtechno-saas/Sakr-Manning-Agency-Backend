@@ -78,6 +78,7 @@ const formatters = {
             </a>
         );
     },
+    custom: (value) => value,
     default: (value) => {
         if (value === null || value === undefined || value === "") return "—";
         return String(value);
