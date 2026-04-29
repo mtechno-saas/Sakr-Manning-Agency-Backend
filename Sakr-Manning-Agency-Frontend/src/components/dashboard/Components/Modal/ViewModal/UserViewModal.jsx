@@ -11,7 +11,7 @@
  * - Employment History
  */
 
-import React from "react";
+import React, { useState } from "react";
 import {
     User, Phone, Mail, MapPin, Calendar, Briefcase,
     Award, Shield, Anchor, FileText, Globe, Hash,
@@ -29,6 +29,7 @@ import {
     AvatarHeader,
     StatusBadge,
 } from "./ViewDetailModal";
+import { downloadsApi } from "../../../../../services/Dashboard/downloadsApi.js";
 
 // Map backend user status to display status
 const mapUserStatus = (status) => {
@@ -215,6 +216,43 @@ export function UserViewModal({
     scale = 1,
     canDelete = true,
 }) {
+    const [isDownloading, setIsDownloading] = useState(null);
+
+    const handleDownload = async (type, filename) => {
+        try {
+            setIsDownloading(type);
+            const response = await downloadsApi.downloadDocument(user.id, type);
+            downloadsApi.triggerDownload(response, filename);
+        } catch (error) {
+            console.error(`Failed to download ${type}:`, error);
+            alert(`Failed to download file. It might not be uploaded yet or you don't have permission.`);
+        } finally {
+            setIsDownloading(null);
+        }
+    };
+
+    const renderDownloadLink = (type, attachmentValue, defaultFilename) => {
+        if (!attachmentValue) return "No Attachments";
+        return (
+            <span
+                onClick={() => handleDownload(type, defaultFilename)}
+                style={{
+                    color: "#3B82F6",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    cursor: isDownloading === type ? "wait" : "pointer",
+                    textDecoration: "none",
+                    fontWeight: 500,
+                    opacity: isDownloading === type ? 0.7 : 1,
+                }}
+            >
+                {isDownloading === type ? "Downloading..." : "View / Download"} <ExternalLink size={14} />
+            </span>
+        );
+    };
+
+
     if (!user) return null;
 
     // Build full name
@@ -310,11 +348,15 @@ export function UserViewModal({
                 <FieldItem label="Passport Issue Date" value={user.passport_issue_date} format="date" scale={scale} />
                 <FieldItem label="Passport Expiry" value={user.passport_expiry_date} format="date" scale={scale} />
                 <FieldItem label="Passport Issue Place" value={user.passport_place_of_issue || user.passport_issue_place} scale={scale} />
+                <FieldItem label="Passport File" value={renderDownloadLink('passport', user.passport_attachment, `passport_${user.id}`)} format="custom" scale={scale} />
+                <div />
 
                 <FieldItem label="Seaman Book Number" value={user.seaman_book_no} scale={scale} />
                 <FieldItem label="SB Issue Date" value={user.seaman_book_issue_date} format="date" scale={scale} />
                 <FieldItem label="SB Expiry" value={user.seaman_book_expiry_date} format="date" scale={scale} />
                 <FieldItem label="SB Issue Place" value={user.seaman_book_place_of_issue} scale={scale} />
+                <FieldItem label="SB File" value={renderDownloadLink('seaman_book', user.seaman_book_attachment, `seaman_book_${user.id}`)} format="custom" scale={scale} />
+                <FieldItem label="Other SB File" value={renderDownloadLink('other_seaman_book', user.other_seaman_book_attachment, `other_seaman_book_${user.id}`)} format="custom" scale={scale} />
 
                 <FieldItem label="US Visa Status" value={user.us_visa_status} icon={ShieldCheck} scale={scale} />
                 <FieldItem label="Schengen Visa Status" value={user.schengen_visa_status} icon={ShieldCheck} scale={scale} />
@@ -348,12 +390,12 @@ export function UserViewModal({
                 <FieldItem label="Marlins Result" value={user.marlins_test_result} scale={scale} />
                 <FieldItem label="Marlins Date" value={user.marlins_test_issued_date} format="date" scale={scale} />
                 <FieldItem label="Marlins Issued By" value={user.marlins_test_issued_by} scale={scale} />
-                <FieldItem label="Marlins File" value={user.marlins_test_attachment} format="link" scale={scale} />
+                <FieldItem label="Marlins File" value={renderDownloadLink('marlins', user.marlins_test_attachment, `marlins_${user.id}`)} format="custom" scale={scale} />
 
                 <FieldItem label="CES Result" value={user.ces_test_result} scale={scale} />
                 <FieldItem label="CES Date" value={user.ces_test_issued_date} format="date" scale={scale} />
                 <FieldItem label="CES Issued By" value={user.ces_test_issued_by} scale={scale} />
-                <FieldItem label="CES File" value={user.ces_test_attachment} format="link" scale={scale} />
+                <FieldItem label="CES File" value={renderDownloadLink('ces', user.ces_test_attachment, `ces_${user.id}`)} format="custom" scale={scale} />
             </Section>
 
             {/* COC / GOC Details */}
