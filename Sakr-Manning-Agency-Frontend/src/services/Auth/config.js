@@ -101,9 +101,9 @@ export const config = {
     FINANCE_EXPORT: "/finance/finance-records/export/",
 
     // ===== CONTRACTS =====
-    CONTRACTS: "/users/contracts/",
-    CONTRACT_DETAIL: (id) => `/users/contracts/${id}/`,
-    CONTRACT_STATS: "/users/contracts/stats/",
+    CONTRACTS: "/api/contracts/",
+    CONTRACT_DETAIL: (id) => `/api/contracts/${id}/`,
+    CONTRACT_STATS: "/api/contracts/stats/",
 
     // ===== CV SUBMISSIONS / PIPELINE (Section 4) =====
     CV_SUBMISSIONS: "/cv-submissions/",
