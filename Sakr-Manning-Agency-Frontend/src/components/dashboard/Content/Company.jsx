@@ -234,7 +234,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         imoNumber: ship.imo_number || "N/A",
         status: ship.status || "N/A",
         flagId: ship.flag || "N/A",
-        flag: associatedFlags?.name || "N/A",
+        flag: ship.flag_name || associatedFlags?.name || "N/A",
         grossTonnage: ship.gross_tonnage || 0,
         deadweight: ship.deadweight || 0,
         engineType: ship.engine_type || "N/A",

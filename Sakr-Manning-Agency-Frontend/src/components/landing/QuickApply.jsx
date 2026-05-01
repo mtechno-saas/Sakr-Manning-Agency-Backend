@@ -6,6 +6,7 @@ import Button from "../common/Button";
 import { useReferenceData } from "../../hooks/useReferenceData";
 import { useQuickApply } from "../../hooks/dashboard/useQuickApply";
 import { useApplicationStatus } from "../../hooks/useApplicationStatus";
+import { jobOrdersApi } from "../../services/Dashboard/jobOrdersApi";
 import { Paperclip } from 'lucide-react';
 
 // Styles matching the modern aesthetic
@@ -128,6 +129,8 @@ const styles = {
 
 const QuickApply = () => {
     const navigate = useNavigate();
+    const [vacancies, setVacancies] = React.useState([]);
+    const [loadingVacancies, setLoadingVacancies] = React.useState(false);
 
     // Custom hook for quick apply
     const {
@@ -146,6 +149,24 @@ const QuickApply = () => {
             navigate("/form", { replace: true });
         }
     }, [status, statusLoading, navigate]);
+
+    useEffect(() => {
+        const fetchVacancies = async () => {
+            setLoadingVacancies(true);
+            try {
+                // Fetch all job positions (vacancies)
+                const response = await jobOrdersApi.getJobPositions({ status: "Open" });
+                // Handle both raw array and paginated response
+                const list = Array.isArray(response) ? response : (response.results || response.job_positions || []);
+                setVacancies(list);
+            } catch (error) {
+                console.error("Failed to fetch vacancies:", error);
+            } finally {
+                setLoadingVacancies(false);
+            }
+        };
+        fetchVacancies();
+    }, []);
     // React Hook Form
     const {
         register,
@@ -166,12 +187,23 @@ const QuickApply = () => {
 
     // Handle form submission
     const onSubmit = async (data) => {
-        const result = await submitApplication(data, positions);
+        // Find selected vacancy for details
+        let job_position_details = null;
+        if (data.job_position) {
+            const selectedVacancy = vacancies.find(v => v.id === parseInt(data.job_position));
+            if (selectedVacancy) {
+                job_position_details = selectedVacancy;
+            }
+        }
+
+        const result = await submitApplication({
+            ...data,
+            job_position_details
+        }, positions);
 
         if (result.success) {
             // Redirect after showing success message
             setTimeout(() => {
-                console.log("hi sub");
                 navigate("/");
             }, 4000);
         }
@@ -321,21 +353,35 @@ const QuickApply = () => {
 
                         {/* Position */}
                         <div style={styles.inputGroup}>
-                            <label style={styles.label}>Position to Apply For</label>
+                            <label style={styles.label}>General Position (Rank)</label>
                             <select
                                 style={styles.input}
                                 {...register("position")}
                             >
-                                <option value="">Select Position (Optional)</option>
+                                <option value="">Select Rank (Optional)</option>
                                 {(positions || []).map((pos) => (
                                     <option key={pos.id ?? pos.name} value={pos.id ?? pos.name}>
                                         {pos.name ?? pos.label ?? pos.title}
                                     </option>
                                 ))}
                             </select>
-                            {errors.position && (
-                                <p style={styles.error}>{errors.position.message}</p>
-                            )}
+                        </div>
+
+                        {/* Available Vacancy */}
+                        <div style={styles.inputGroup}>
+                            <label style={styles.label}>Apply for Specific Vacancy</label>
+                            <select
+                                style={styles.input}
+                                {...register("job_position")}
+                                disabled={loadingVacancies}
+                            >
+                                <option value="">Select Vacancy (Optional)</option>
+                                {vacancies.map((vacancy) => (
+                                    <option key={vacancy.id} value={vacancy.id}>
+                                        {vacancy.rank_name} {vacancy.ship_name ? `@ ${vacancy.ship_name}` : ""} {vacancy.company_name ? `(${vacancy.company_name})` : ""}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         {/* CV Upload */}
