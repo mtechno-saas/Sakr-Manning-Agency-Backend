@@ -303,6 +303,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
     # Directly expose the rank_code and assigned_code for the specific position
     rank_code = serializers.CharField(source='position.code', read_only=True)
     assigned_code = serializers.SerializerMethodField()
+    job_position_details = serializers.SerializerMethodField()
 
     class Meta:
         model = CVSubmission
@@ -312,11 +313,26 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
             'position', 'position_name',    # position FK id AND display name
             'experience_years', 'status', 'submitted_date',
             'generated_id', 'salary', 'coded_rank',
-            'rank_code', 'assigned_code'
+            'rank_code', 'assigned_code',
+            'job_position', 'job_position_details'
         ]
 
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+
+    def get_job_position_details(self, obj):
+        if not obj.job_position:
+            return None
+        pos = obj.job_position
+        return {
+            'id': pos.id,
+            'quantity': pos.quantity,
+            'salary_min': str(pos.salary_min) if pos.salary_min else None,
+            'salary_max': str(pos.salary_max) if pos.salary_max else None,
+            'currency': pos.currency,
+            'contract_duration_months': pos.contract_duration_months,
+            'remarks': pos.remarks
+        }
 
     def get_assigned_code(self, obj):
         if obj.position:
@@ -477,6 +493,24 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 else:
                     data = dict(data)
                 data['position'] = rank.id
+
+        # Auto-fill company and position if job_position is provided
+        if 'job_position' in data and data['job_position']:
+            from companies.models import JobOrderPosition
+            try:
+                job_pos = JobOrderPosition.objects.get(id=data['job_position'])
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                
+                if 'company' not in data and job_pos.job_order and job_pos.job_order.company:
+                    data['company'] = job_pos.job_order.company.id
+                if 'position' not in data and job_pos.rank:
+                    data['position'] = job_pos.rank.id
+            except JobOrderPosition.DoesNotExist:
+                pass
+
         return super().to_internal_value(data)
 
     def create(self, validated_data):
@@ -1368,12 +1402,38 @@ class RegisterSerializer(serializers.ModelSerializer):
 class DocumentSerializer(serializers.ModelSerializer):
     title = serializers.CharField(required=False)
     generated_id = serializers.SerializerMethodField()
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
+    job_position_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
-        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'status', 'generated_id']
+        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_details']
         read_only_fields = ['user', 'created_at', 'updated_at']
     
+    def to_internal_value(self, data):
+        # Auto-fill company and position if job_position is provided
+        if 'job_position' in data and data['job_position']:
+            from companies.models import JobOrderPosition
+            try:
+                job_pos = JobOrderPosition.objects.get(id=data['job_position'])
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                
+                if 'company' not in data and job_pos.job_order and job_pos.job_order.company:
+                    data['company'] = job_pos.job_order.company.id
+                if 'position' not in data and job_pos.rank:
+                    data['position'] = job_pos.rank.name
+                if 'title' not in data:
+                    company_name = job_pos.job_order.company.company_name if job_pos.job_order and job_pos.job_order.company else "Unknown Company"
+                    rank_name = job_pos.rank.name if job_pos.rank else "Unknown Position"
+                    data['title'] = f"Application for {rank_name} at {company_name}"
+            except JobOrderPosition.DoesNotExist:
+                pass
+
+        return super().to_internal_value(data)
+
     def validate(self, attrs):
         # If title is not provided, use the filename
         if not attrs.get('title') and attrs.get('file'):
@@ -1394,6 +1454,20 @@ class DocumentSerializer(serializers.ModelSerializer):
             return obj.user.generated_id
             
         return None
+
+    def get_job_position_details(self, obj):
+        if not obj.job_position:
+            return None
+        pos = obj.job_position
+        return {
+            'id': pos.id,
+            'quantity': pos.quantity,
+            'salary_min': str(pos.salary_min) if pos.salary_min else None,
+            'salary_max': str(pos.salary_max) if pos.salary_max else None,
+            'currency': pos.currency,
+            'contract_duration_months': pos.contract_duration_months,
+            'remarks': pos.remarks
+        }
 
 
 class UserLanguageSerializer(serializers.ModelSerializer):
