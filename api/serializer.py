@@ -916,7 +916,7 @@ class ContractListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views"""
     user_name = serializers.SerializerMethodField()
     ship_name = serializers.CharField(source='ship.ship_name', read_only=True)
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
     rank_name = serializers.CharField(source='rank.name', read_only=True)
 
     class Meta:
@@ -935,7 +935,7 @@ class ContractSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     user_email = serializers.CharField(source='user.email', read_only=True)
     ship_name = serializers.CharField(source='ship.ship_name', read_only=True)
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
     rank_name = serializers.CharField(source='rank.name', read_only=True)
     
     # Extra fields
