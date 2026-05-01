@@ -1,6 +1,7 @@
 // services/Dashboard/documentsApi.js - REFINED VERSION
 import api from "../Auth/api.js";
 import { handleApiError } from "../Auth/handlers.js";
+import config from "../Auth/config.js";
 
 /**
  * Documents/Contracts API Service
@@ -36,8 +37,8 @@ export const documentsApi = {
 
       const queryString = params.toString();
       const endpoint = queryString
-        ? `/contracts/?${queryString}`
-        : "/contracts/";
+        ? `${config.ENDPOINTS.CONTRACTS}?${queryString}`
+        : config.ENDPOINTS.CONTRACTS;
 
       const response = await api.get(endpoint);
 
@@ -69,7 +70,7 @@ export const documentsApi = {
    */
   getContractById: async (contractId) => {
     try {
-      const response = await api.get(`/contracts/${contractId}/`);
+      const response = await api.get(config.ENDPOINTS.CONTRACT_DETAIL(contractId));
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch contract ${contractId}:`, error);
@@ -97,7 +98,7 @@ export const documentsApi = {
    */
   createContract: async (contractData) => {
     try {
-      const response = await api.post("/contracts/", contractData);
+      const response = await api.post(config.ENDPOINTS.CONTRACTS, contractData);
       return response.data;
     } catch (error) {
       console.error("Failed to create contract:", error);
@@ -114,7 +115,7 @@ export const documentsApi = {
   updateContract: async (contractId, contractData) => {
     try {
       const response = await api.patch(
-        `/contracts/${contractId}/`,
+        config.ENDPOINTS.CONTRACT_DETAIL(contractId),
         contractData
       );
       return response.data;
@@ -131,9 +132,45 @@ export const documentsApi = {
    */
   deleteContract: async (contractId) => {
     try {
-      await api.delete(`/contracts/${contractId}/`);
+      await api.delete(config.ENDPOINTS.CONTRACT_DETAIL(contractId));
     } catch (error) {
       console.error(`Failed to delete contract ${contractId}:`, error);
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  /**
+   * Download contract document
+   * @param {number} contractId 
+   */
+  downloadContract: async (contractId) => {
+    try {
+      const endpoint = `${config.ENDPOINTS.CONTRACT_DETAIL(contractId)}download/`;
+      const response = await api.get(endpoint, { responseType: 'blob' });
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Try to extract filename from headers, default if missing
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `contract_${contractId}.pdf`;
+      if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      return { success: true };
+    } catch (error) {
+      console.error(`Failed to download contract ${contractId}:`, error);
       throw new Error(handleApiError(error));
     }
   },
@@ -155,7 +192,7 @@ export const documentsApi = {
    */
   getContractStats: async () => {
     try {
-      const response = await api.get("/contracts/stats/");
+      const response = await api.get(config.ENDPOINTS.CONTRACT_STATS);
       return response.data;
     } catch (error) {
       console.error("Failed to fetch contract stats:", error);
