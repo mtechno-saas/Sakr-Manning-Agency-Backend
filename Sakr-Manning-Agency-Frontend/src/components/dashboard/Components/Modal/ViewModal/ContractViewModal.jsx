@@ -12,10 +12,12 @@
 
 import React, { useState } from "react";
 import {
-    FileText, User, Building, Ship, Calendar,
-    DollarSign, Clock, MapPin, Anchor, ShieldCheck
+    FileText, User, Building, Ship, Calendar, Briefcase, Award,
+    DollarSign, Clock, MapPin, Anchor, ShieldCheck, Download, ExternalLink
 } from "lucide-react";
+import Button from "../../Common/Button";
 import documentsApi from "../../../../../services/Dashboard/documentsApi";
+import { downloadsApi } from "../../../../../services/Dashboard/downloadsApi.js";
 import {
     ViewDetailModal,
     Section,
@@ -51,6 +53,55 @@ export function ContractViewModal({
     };
 
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isDownloadingDoc, setIsDownloadingDoc] = useState(null);
+
+    const handleDocDownload = async (type, filename) => {
+        try {
+            setIsDownloadingDoc(type);
+            const response = await downloadsApi.downloadDocument(contract.user, type);
+            downloadsApi.triggerDownload(response, filename);
+        } catch (error) {
+            console.error(`Failed to download ${type}:`, error);
+            alert(`Failed to download file. It might not be uploaded yet or you don't have permission.`);
+        } finally {
+            setIsDownloadingDoc(null);
+        }
+    };
+
+    const handleLicenseDownload = async (licenseId, filename) => {
+        try {
+            setIsDownloadingDoc(`lic_${licenseId}`);
+            const response = await downloadsApi.downloadLicense(contract.user, licenseId);
+            downloadsApi.triggerDownload(response, filename);
+        } catch (error) {
+            console.error(`Failed to download license ${licenseId}:`, error);
+            alert(`Failed to download license file.`);
+        } finally {
+            setIsDownloadingDoc(null);
+        }
+    };
+
+    const renderDownloadLink = (type, hasFile, defaultFilename) => {
+        if (!hasFile) return "No Attachments";
+        const isCurrent = isDownloadingDoc === type;
+        return (
+            <span
+                onClick={() => handleDocDownload(type, defaultFilename)}
+                style={{
+                    color: "#3B82F6",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    cursor: isCurrent ? "wait" : "pointer",
+                    textDecoration: "none",
+                    fontWeight: 500,
+                    opacity: isCurrent ? 0.7 : 1,
+                }}
+            >
+                {isCurrent ? "Downloading..." : "View / Download"} <ExternalLink size={14} />
+            </span>
+        );
+    };
 
     const actions = [];
 
@@ -95,58 +146,22 @@ export function ContractViewModal({
             size="lg"
         >
             {/* Header with Status */}
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: `${Math.round(16 * scale)}px`,
-                    backgroundColor: "#F9FAFB",
-                    borderRadius: `${Math.round(12 * scale)}px`,
-                    marginBottom: `${Math.round(24 * scale)}px`,
-                }}
-            >
-                <div>
-                    <h3
-                        style={{
-                            fontSize: `${Math.round(18 * scale)}px`,
-                            fontWeight: 600,
-                            color: "#111827",
-                            margin: 0,
-                        }}
-                    >
-                        {userName}
-                    </h3>
-                    <p
-                        style={{
-                            fontSize: `${Math.round(14 * scale)}px`,
-                            color: "#6B7280",
-                            margin: `${Math.round(4 * scale)}px 0 0 0`,
-                        }}
-                    >
-                        {rankName} at {companyName}
-                    </p>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                    <StatusBadge status={contract.status} scale={scale} />
-                    <p
-                        style={{
-                            fontSize: `${Math.round(12 * scale)}px`,
-                            color: contract.daysToExpiry < 0 ? "#DC2626" :
-                                contract.daysToExpiry <= 30 ? "#F59E0B" : "#6B7280",
-                            marginTop: `${Math.round(8 * scale)}px`,
-                            fontWeight: 500,
-                        }}
-                    >
-                        {getDaysLabel()}
-                    </p>
-                </div>
-            </div>
+            <AvatarHeader 
+                name={userName}
+                subtitle={`${rankName} at ${companyName}`}
+                status={contract.status}
+                scale={scale}
+            />
 
             {/* Contract Information */}
             <Section title="Contract Information" icon={FileText} scale={scale} columns={2}>
                 <FieldItem label="Contract ID" value={contract.id} scale={scale} />
                 <FieldItem label="Status" value={contract.status} scale={scale} />
+                <FieldItem 
+                    label="Expiry Progress" 
+                    value={getDaysLabel()} 
+                    scale={scale} 
+                />
                 <FieldItem label="Sign On Date" value={contract.sign_on_date} format="date" iconType="date" scale={scale} />
                 <FieldItem label="Sign Off Date" value={contract.sign_off_date} format="date" iconType="date" scale={scale} />
                 <FieldItem label="Duration" value={contract.duration ? `${contract.duration} months` : null} icon={Clock} scale={scale} />
@@ -213,33 +228,227 @@ export function ContractViewModal({
             {/* Job Position Requirements */}
             {contract.job_position_details && (
                 <Section title="Job Position Requirements" icon={FileText} scale={scale} columns={2}>
+                    <FieldItem label="Vacancy ID" value={`#${contract.job_position_details.id}`} scale={scale} />
                     <FieldItem label="Expected Duration" value={`${contract.job_position_details.contract_duration_months} months`} scale={scale} />
+                    <FieldItem 
+                        label="Salary Budget" 
+                        value={`${Number(contract.job_position_details.salary_min).toLocaleString()} - ${Number(contract.job_position_details.salary_max).toLocaleString()} ${contract.job_position_details.currency}`} 
+                        scale={scale} 
+                    />
                     <FieldItem label="Position Remarks" value={contract.job_position_details.remarks || "—"} scale={scale} />
                 </Section>
             )}
 
-            {/* User Documents */}
+            {/* User Documents Breakdown */}
             {contract.user_documents && (
-                <Section title="Verified Documents" icon={FileText} scale={scale} columns={2}>
-                    {contract.user_documents.passport?.passport_no && (
-                        <FieldItem label="Passport No." value={contract.user_documents.passport.passport_no} scale={scale} />
+                <>
+                    {/* Passport Section */}
+                    <Section title="Passport Details" icon={User} scale={scale} columns={2}>
+                        <FieldItem label="Passport No." value={contract.user_documents.passport?.passport_no} scale={scale} />
+                        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "flex-end" }}>
+                            {contract.user_documents.passport?.file_url && (
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleDocDownload('passport', `passport_${contract.user_name}`)}
+                                    disabled={isDownloadingDoc === 'passport'}
+                                    scale={scale}
+                                    title="Download Passport"
+                                >
+                                    <Download size={14} />
+                                </Button>
+                            )}
+                        </div>
+                        <FieldItem label="Issue Date" value={contract.user_documents.passport?.issue_date} format="date" scale={scale} />
+                        <FieldItem label="Expiry Date" value={contract.user_documents.passport?.expiry_date} format="date" scale={scale} />
+                        <FieldItem label="Issued By" value={contract.user_documents.passport?.issued_by} scale={scale} />
+                        <FieldItem label="Place of Issue" value={contract.user_documents.passport?.place_of_issue} scale={scale} />
+                    </Section>
+
+                    {/* Seaman Book Section */}
+                    <Section title="Seaman Book Details" icon={Anchor} scale={scale} columns={2}>
+                        <FieldItem label="Primary SB No." value={contract.user_documents.seaman_book?.seaman_book_no} scale={scale} />
+                        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "flex-end" }}>
+                            {contract.user_documents.seaman_book?.file_url && (
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleDocDownload('seaman_book', `seaman_book_${contract.user_name}`)}
+                                    disabled={isDownloadingDoc === 'seaman_book'}
+                                    scale={scale}
+                                    title="Download Seaman Book"
+                                >
+                                    <Download size={14} />
+                                </Button>
+                            )}
+                        </div>
+                        <FieldItem label="Issue Date" value={contract.user_documents.seaman_book?.issue_date} format="date" scale={scale} />
+                        <FieldItem label="Expiry Date" value={contract.user_documents.seaman_book?.expiry_date} format="date" scale={scale} />
+                        <FieldItem label="Issued By" value={contract.user_documents.seaman_book?.issued_by} scale={scale} />
+                        <FieldItem label="Place of Issue" value={contract.user_documents.seaman_book?.place_of_issue} scale={scale} />
+                        
+                        <div style={{ gridColumn: "span 2", height: "1px", background: "#E5E7EB", margin: "8px 0" }} />
+                        
+                        <FieldItem label="Other SB No." value={contract.user_documents.other_seaman_book?.seaman_book_no} scale={scale} />
+                        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "flex-end" }}>
+                            {contract.user_documents.other_seaman_book?.file_url && (
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleDocDownload('other_seaman_book', `other_sb_${contract.user_name}`)}
+                                    disabled={isDownloadingDoc === 'other_seaman_book'}
+                                    scale={scale}
+                                    title="Download Other SB"
+                                >
+                                    <Download size={14} />
+                                </Button>
+                            )}
+                        </div>
+                        <FieldItem label="Issue Date" value={contract.user_documents.other_seaman_book?.issue_date} format="date" scale={scale} />
+                        <FieldItem label="Expiry Date" value={contract.user_documents.other_seaman_book?.expiry_date} format="date" scale={scale} />
+                    </Section>
+
+                    {/* COC Section */}
+                    <Section title="Certificate of Competency (COC)" icon={Award} scale={scale} columns={2}>
+                        <FieldItem label="Certificate Name" value={contract.user_documents.coc?.certificate_name} scale={scale} />
+                        <FieldItem label="Certificate Number" value={contract.user_documents.coc?.certificate_number} scale={scale} />
+                        <div style={{ gridColumn: "span 2", display: "flex", justifyContent: "flex-end" }}>
+                            {contract.user_documents.coc?.file_url && (
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleDocDownload('coc', `coc_${contract.user_name}`)}
+                                    disabled={isDownloadingDoc === 'coc'}
+                                    scale={scale}
+                                    title="Download COC"
+                                >
+                                    <Download size={14} />
+                                </Button>
+                            )}
+                        </div>
+                        <FieldItem label="Issue Date" value={contract.user_documents.coc?.issue_date} format="date" scale={scale} />
+                        <FieldItem label="Expiry Date" value={contract.user_documents.coc?.expiry_date} format="date" scale={scale} />
+                        <FieldItem label="Issued By" value={contract.user_documents.coc?.issued_by} scale={scale} />
+                        <FieldItem label="Issued At" value={contract.user_documents.coc?.issued_at} scale={scale} />
+                    </Section>
+
+                    {/* GOC Section */}
+                    <Section title="General Operator Certificate (GOC)" icon={ShieldCheck} scale={scale} columns={2}>
+                        <FieldItem label="Certificate Number" value={contract.user_documents.goc?.certificate_number} scale={scale} />
+                        <div style={{ gridColumn: "span 2", display: "flex", justifyContent: "flex-end" }}>
+                            {contract.user_documents.goc?.file_url && (
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleDocDownload('goc', `goc_${contract.user_name}`)}
+                                    disabled={isDownloadingDoc === 'goc'}
+                                    scale={scale}
+                                    title="Download GOC"
+                                >
+                                    <Download size={14} />
+                                </Button>
+                            )}
+                        </div>
+                        <FieldItem label="Issue Date" value={contract.user_documents.goc?.issue_date} format="date" scale={scale} />
+                        <FieldItem label="Expiry Date" value={contract.user_documents.goc?.expiry_date} format="date" scale={scale} />
+                        <FieldItem label="Issued By" value={contract.user_documents.goc?.issued_by} scale={scale} />
+                        <FieldItem label="Issued At" value={contract.user_documents.goc?.issued_at} scale={scale} />
+                    </Section>
+
+                    {/* Medical Section */}
+                    <Section title="Medical & Health Certificates" icon={ShieldCheck} scale={scale} columns={2}>
+                        <FieldItem label="Health Cert No." value={contract.user_documents.health_certificate?.number} scale={scale} />
+                        <div style={{ gridColumn: "span 2", display: "flex", justifyContent: "flex-end" }}>
+                            {contract.user_documents.health_certificate?.file_url && (
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleDocDownload('health_certificate', `medical_${contract.user_name}`)}
+                                    disabled={isDownloadingDoc === 'health_certificate'}
+                                    scale={scale}
+                                    title="Download Medical"
+                                >
+                                    <Download size={14} />
+                                </Button>
+                            )}
+                        </div>
+                        <FieldItem label="Issue Date" value={contract.user_documents.health_certificate?.issue_date} format="date" scale={scale} />
+                        <FieldItem label="Expiry Date" value={contract.user_documents.health_certificate?.expiry_date} format="date" scale={scale} />
+                        <FieldItem label="Flag State" value={contract.user_documents.health_certificate?.flag_state} scale={scale} />
+                        <FieldItem label="Issued By" value={contract.user_documents.health_certificate?.issued_by} scale={scale} />
+                        <div style={{ gridColumn: "span 2", height: "1px", background: "#E5E7EB", margin: "8px 0" }} />
+                        <FieldItem label="Intl Medical No." value={contract.user_documents.health_certificate?.international_medical_number} scale={scale} />
+                        <FieldItem label="Intl Issue Date" value={contract.user_documents.health_certificate?.international_medical_issue_date} format="date" scale={scale} />
+                        <FieldItem label="Intl Expiry Date" value={contract.user_documents.health_certificate?.international_medical_expiry_date} format="date" scale={scale} />
+                    </Section>
+
+                    {/* Licenses Section */}
+                    {contract.user_documents.licenses?.length > 0 && (
+                        <Section title="Professional Licenses" icon={Briefcase} scale={scale} columns={1}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                                {contract.user_documents.licenses.map((lic, idx) => {
+                                    const isCurrentLic = isDownloadingDoc === `lic_${lic.id}`;
+                                    return (
+                                        <div key={idx} style={{ padding: "16px", background: "#F9FAFB", borderRadius: "10px", border: "1px solid #E5E7EB" }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                                                <div>
+                                                    <div style={{ fontWeight: 700, fontSize: "15px", color: "#111827" }}>{lic.document_name}</div>
+                                                    <div style={{ fontSize: "13px", color: "#6B7280" }}>No: {lic.document_number} • {lic.country_of_issue}</div>
+                                                </div>
+                                                {lic.file_url && (
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="sm" 
+                                                        onClick={() => handleLicenseDownload(lic.id, `${lic.document_name}_${contract.user_name}`)}
+                                                        disabled={isCurrentLic}
+                                                        scale={scale}
+                                                        title="Download License"
+                                                    >
+                                                        <Download size={14} />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                                                <FieldItem label="Issue Date" value={lic.issue_date} format="date" scale={scale} />
+                                                <FieldItem label="Expiration Date" value={lic.expiration_date} format="date" scale={scale} />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </Section>
                     )}
-                    {contract.user_documents.seaman_book?.seaman_book_no && (
-                        <FieldItem label="Seaman Book No." value={contract.user_documents.seaman_book.seaman_book_no} scale={scale} />
-                    )}
-                    {contract.user_documents.coc?.certificate_number && (
-                        <FieldItem label="COC" value={contract.user_documents.coc.certificate_name} scale={scale} />
-                    )}
-                    {contract.user_documents.health_certificate?.number && (
-                        <FieldItem label="Health Cert No." value={contract.user_documents.health_certificate.number} scale={scale} />
-                    )}
+                </>
+            )}
+
+            {/* Signed File (If available) */}
+            {contract.signed_file && (
+                <Section title="Signed Documents" icon={FileText} scale={scale} columns={1}>
+                    <div style={{ padding: "12px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <FileText size={20} color="#15803D" />
+                            <div>
+                                <div style={{ fontWeight: 600, color: "#166534", fontSize: "14px" }}>Signed Contract Available</div>
+                                <div style={{ fontSize: "12px", color: "#15803D" }}>Signed on: {new Date(contract.signed_at).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                        <a 
+                            href={contract.signed_file} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ background: "#166534", color: "white", padding: "6px 14px", borderRadius: "6px", fontSize: "13px", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: "6px" }}
+                        >
+                            View Signed Contract <ExternalLink size={14} />
+                        </a>
+                    </div>
                 </Section>
             )}
 
             {/* Metadata */}
             <Section title="Record Information" icon={Clock} scale={scale} columns={2}>
                 <FieldItem label="Generated ID" value={contract.generated_id || "—"} scale={scale} />
-                <FieldItem label="Created At" value={contract.created_at} format="datetime" scale={scale} />
+                <FieldItem label="Contract Created" value={contract.created_at} format="datetime" scale={scale} />
+                <FieldItem label="Last Updated" value={contract.updated_at} format="datetime" scale={scale} />
             </Section>
         </ViewDetailModal>
     );

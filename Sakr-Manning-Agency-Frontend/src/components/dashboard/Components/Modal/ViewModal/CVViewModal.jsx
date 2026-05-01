@@ -146,7 +146,7 @@ export function CVViewModal({
                 <Section title="Specific Vacancy Details" icon={Briefcase} scale={scale} columns={2}>
                     <FieldItem
                         label="Applied Position"
-                        value={doc.job_position}
+                        value={doc.job_position_name || "—"}
                         icon={Briefcase}
                         scale={scale}
                     />
@@ -234,7 +234,7 @@ export function CVViewModal({
                         {/* Action buttons */}
                         <div style={{ display: "flex", gap: `${Math.round(8 * scale)}px` }}>
                             {/* Open in new tab */}
-                            <a
+                            {/* <a
                                 href={doc.file}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -255,7 +255,7 @@ export function CVViewModal({
                                 title="Open in new tab"
                             >
                                 <ExternalLink size={Math.round(16 * scale)} />
-                            </a>
+                            </a> */}
 
                             {/* Download */}
                             {onDownload && (
