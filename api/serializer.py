@@ -293,7 +293,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views"""
     user_name = serializers.SerializerMethodField()
     position_name = serializers.CharField(source='position.name', read_only=True)
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
 
     # New fields pulled from the linked user profile
     generated_id = serializers.SerializerMethodField()
@@ -380,7 +380,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     # Read-only display fields (computed)
     user_name = serializers.SerializerMethodField()
     position_name = serializers.CharField(source='position.name', read_only=True)
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
     reviewed_by_name_display = serializers.CharField(source='reviewed_by.first_name', read_only=True)
     # Read-only from the linked user (for output only; input handled by write_only fields above)
     user_email_display = serializers.EmailField(source='user.email', read_only=True)
