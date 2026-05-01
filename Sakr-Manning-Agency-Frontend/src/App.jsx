@@ -21,6 +21,7 @@ import LandingPage from "./components/landing/LandingPage";
 
 import { useAuth } from "./hooks/useAuth";
 import { AUTH_STEPS } from "./utils/constants";
+import LoadingScreen from "./components/dashboard/Components/Common/LoadingScreen";
 
 const DashboardApp = lazy(() => import("./components/dashboard/DashboardApp"));
 const SakrForm = lazy(() => import("./components/form/SakrForm"));
@@ -55,9 +56,14 @@ const AuthPages = () => {
 
   const handleLogin = async (credentials) => {
     const result = await login(credentials);
-    const userRole = result.user.role;
-    const isAdmin = userRole === "admin" || userRole === "administrator" || userRole === "Admin";
+
     if (result.success && result.user) {
+      const userRole = result.user.role;
+      const isAdmin =
+        userRole === "admin" ||
+        userRole === "administrator" ||
+        userRole === "Admin";
+
       // console.log("Login successful, user:", result.user.role);
       if (testing || isAdmin) {
         navigate("/dashboard");
@@ -273,7 +279,7 @@ const Dashboard = () => {
   }
 
   return (
-    <Suspense fallback={<div>Loading Dashboard...</div>}>
+    <Suspense fallback={<LoadingScreen fullScreen={true} message="Loading Dashboard" subMessage="Preparing your maritime control panel" />}>
       <DashboardApp user={user} onLogout={handleLogout} />
     </Suspense>
   );
@@ -299,14 +305,7 @@ const FormPage = () => {
 
   // Loading state while checking application status
   if (isLoading || status === "none") {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking application status...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen fullScreen={true} message="Checking Application Status" subMessage="Verifying your credentials and role" />;
   }
 
   // Pending review — show informational modal
@@ -347,14 +346,7 @@ const FormPage = () => {
   // for Active status
   return (
     <Suspense
-      fallback={
-        <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading form...</p>
-          </div>
-        </div>
-      }
+      fallback={<LoadingScreen fullScreen={true} message="Loading Form" subMessage="Preparing the Seafarer application form" />}
     >
       <SakrForm userId={user?.id} onLogout={handleLogout} />
     </Suspense>

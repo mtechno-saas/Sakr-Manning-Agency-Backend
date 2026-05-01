@@ -12,6 +12,7 @@ import {
 
 import Button from "../Components/Common/Button";
 import ConfirmDialog from "../Components/Common/ConfirmDialog";
+import LoadingScreen from "../Components/Common/LoadingScreen";
 import EnhancedFilterModel from "../Components/Common/EnhancedFilterModel";
 import SavedFilters from "../Components/Common/SavedFilters";
 import Pagination from "../../common/Pagination";
@@ -524,7 +525,7 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
         <div className="records-list">
           {detailsLoading || recordsLoading ? (
             <div className="empty-state">
-              <p style={{ margin: 0, fontSize: `${Math.round(16 * scale)}px` }}>Loading finance records...</p>
+              <LoadingScreen scale={scale} message="Loading finance records..." subMessage="Fetching transaction history and financial statements" />
             </div>
           ) : records.length > 0 ? (
             <>

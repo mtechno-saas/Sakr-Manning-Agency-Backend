@@ -14,6 +14,7 @@ import {
 import Button from "../Components/Common/Button";
 import Calendar from "../Components/Common/Calender";
 import ConfirmDialog from "../Components/Common/ConfirmDialog";
+import LoadingScreen from "../Components/Common/LoadingScreen";
 
 import InterviewFormModal from "../Components/Modal/InterviewFormModal";
 import { InterviewViewModal } from "../Components/Modal/ViewModal";
@@ -575,7 +576,11 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
           Upcoming Interviews
         </h2>
 
-        {interviews.length > 0 ? (
+        {interviewsLoading ? (
+          <div style={{ backgroundColor: "#FFFFFF", borderRadius: `${Math.round(22 * scale)}px`, padding: `${Math.round(60 * scale)}px`, textAlign: "center" }}>
+            <LoadingScreen scale={scale} message="Loading interviews..." subMessage="Fetching upcoming candidate meetings and evaluations" />
+          </div>
+        ) : interviews.length > 0 ? (
           interviews.map((interview) => (
             <div
               key={interview.id}

@@ -21,16 +21,36 @@ import ChatWidget from "./Components/AI/ChatWidget";
 import { ASSETS } from "../../utils/constants";
 import { SearchProvider } from "./context/SearchContext";
 import { NotificationProvider } from "./context/NotificationContext";
-import { DashboardDataProvider } from "./context/DashboardDataContext";
+import { DashboardDataProvider, useDashboardData } from "./context/DashboardDataContext";
 import NotificationCenter from "./Components/Common/NotificationCenter";
+import LoadingScreen from "./Components/Common/LoadingScreen";
 
-const DashboardApp = ({ onLogout, user }) => {
+const DashboardAppContent = ({ onLogout, user }) => {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : BASE_WIDTH
   );
   const [scale, setScale] = useState(1);
+  
+  // Get loading states from context
+  const { 
+    loadingCompanies, 
+    loadingUsers, 
+    loadingRanks, 
+    loadingFlags, 
+    loadingVesselTypes, 
+    loadingCertificates,
+    companies,
+    users,
+    ranks
+  } = useDashboardData();
+
+  // Determine if we are in the initial loading phase
+  // We consider it initial loading if critical data hasn't arrived yet
+  const isInitialLoading = (loadingCompanies && companies.length === 0) || 
+                          (loadingUsers && users.length === 0) || 
+                          (loadingRanks && ranks.length === 0);
 
   const userData = user;
 
@@ -80,6 +100,10 @@ const DashboardApp = ({ onLogout, user }) => {
   );
 
   const renderCurrentPage = () => {
+    if (isInitialLoading) {
+      return <LoadingScreen scale={scale} message="Initializing Dashboard" subMessage="Loading core data and reference systems" />;
+    }
+
     switch (currentPage) {
       case "dashboard":
         return <OverviewPage {...commonProps} onNavigate={setCurrentPage} />;
@@ -114,9 +138,7 @@ const DashboardApp = ({ onLogout, user }) => {
   };
 
   return (
-    <NotificationProvider>
-      <DashboardDataProvider>
-        <SearchProvider currentPage={currentPage}>
+    <SearchProvider currentPage={currentPage}>
           <div
             style={{
               display: "flex",
@@ -182,7 +204,15 @@ const DashboardApp = ({ onLogout, user }) => {
             </div>
             <NotificationCenter scale={scale} position="bottom-left" />
           </div>
-        </SearchProvider>
+    </SearchProvider>
+  );
+};
+
+const DashboardApp = (props) => {
+  return (
+    <NotificationProvider>
+      <DashboardDataProvider>
+        <DashboardAppContent {...props} />
       </DashboardDataProvider>
     </NotificationProvider>
   );

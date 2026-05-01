@@ -2,6 +2,7 @@
 import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { Download, User, Edit, Trash2, MoreVertical, Users, Briefcase } from "lucide-react";
 import { COLORS, TOKENS, extractLeadingNumber, isISODateString } from "../../Constants";
+import LoadingScreen from "../Common/LoadingScreen";
 
 // ... (Icons: EditIcon, DeleteIcon, UserIcon, DownloadIcon - keep existing)
 const EditIcon = ({ size = 18 }) => (
@@ -231,6 +232,14 @@ export function RefinedDataTable({
     setPage(newPage);
     onPageChange && onPageChange(newPage);
   };
+
+  if (loading && (!data || data.length === 0)) {
+    return (
+      <div className={className} style={{ ...style, minHeight: `${Math.round(400 * scale)}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <LoadingScreen scale={scale} message="Fetching records..." subMessage="We're retrieving the latest data from the server" />
+      </div>
+    );
+  }
 
   if (!data || data.length === 0) {
     return emptyState ? (
