@@ -18,6 +18,7 @@ import { exportToExcel, exportToJSON } from "../../../utils/exportHelpers";
 import Button from "../Components/Common/Button";
 import EnhancedFilterModel from "../Components/Common/EnhancedFilterModel";
 import SavedFilters from "../Components/Common/SavedFilters";
+import ConfirmDialog from "../Components/Common/ConfirmDialog";
 
 import CompanyFormModal from "../Components/Modal/CompanyFormModal";
 import ShipFormModal from "../Components/Modal/ShipFormModal";
@@ -113,6 +114,10 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   // Job Order management modal
   const [showJobOrderModal, setShowJobOrderModal] = useState(false);
   const [targetCompanyForJobOrder, setTargetCompanyForJobOrder] = useState(null);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleteType, setDeleteType] = useState(null); // 'company', 'ship', 'job_order', 'rank'
 
   const [companyStats, setCompanyStats] = useState(null);
   const [flags, setFlags] = useState([]);
@@ -282,18 +287,16 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   );
 
   const handleDeleteCompany = useCallback(
-    async (id) => {
+    (id) => {
       if (!canDelete) {
         notify.error("You do not have permission to delete companies");
         return;
       }
-
-      if (window.confirm("Are you sure you want to delete this company?")) {
-        await deleteCompany(id);
-        await loadCompanyStats();
-      }
+      setItemToDelete(id);
+      setDeleteType("company");
+      setShowDeleteConfirm(true);
     },
-    [canDelete, deleteCompany, loadCompanyStats, notify]
+    [canDelete, notify]
   );
 
   const handleAddCompany = useCallback(() => {
@@ -398,17 +401,16 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   );
 
   const handleDeleteShip = useCallback(
-    async (id) => {
+    (id) => {
       if (!canDelete) {
         notify.error("You do not have permission to delete ships");
         return;
       }
-
-      if (window.confirm("Are you sure you want to delete this ship?")) {
-        await deleteShip(id);
-      }
+      setItemToDelete(id);
+      setDeleteType("ship");
+      setShowDeleteConfirm(true);
     },
-    [canDelete, deleteShip, notify]
+    [canDelete, notify]
   );
 
   const handleAddShip = useCallback(() => {
@@ -493,16 +495,16 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   );
 
   const handleDeleteJobOrder = useCallback(
-    async (id) => {
+    (id) => {
       if (!canDelete) {
         notify.error("You do not have permission to delete job orders");
         return;
       }
-      if (window.confirm("Are you sure you want to delete this job order?")) {
-        await deleteJobOrder(id);
-      }
+      setItemToDelete(id);
+      setDeleteType("job_order");
+      setShowDeleteConfirm(true);
     },
-    [canDelete, deleteJobOrder, notify]
+    [canDelete, notify]
   );
 
   const handleSaveJobOrder = async (data) => {
@@ -561,17 +563,46 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   );
 
   const handleDeleteRank = useCallback(
-    async (id) => {
+    (id) => {
       if (!canDelete) {
         notify.error("You do not have permission to delete ranks");
         return;
       }
-      if (window.confirm("Are you sure you want to delete this rank code?")) {
-        await deleteRank(id);
-      }
+      setItemToDelete(id);
+      setDeleteType("rank");
+      setShowDeleteConfirm(true);
     },
-    [canDelete, deleteRank, notify]
+    [canDelete, notify]
   );
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!itemToDelete || !deleteType) return;
+
+    let result;
+    switch (deleteType) {
+      case "company":
+        result = await deleteCompany(itemToDelete);
+        if (result.success) await loadCompanyStats();
+        break;
+      case "ship":
+        result = await deleteShip(itemToDelete);
+        break;
+      case "job_order":
+        result = await deleteJobOrder(itemToDelete);
+        break;
+      case "rank":
+        result = await deleteRank(itemToDelete);
+        break;
+      default:
+        break;
+    }
+
+    if (result && result.success) {
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
+      setDeleteType(null);
+    }
+  }, [itemToDelete, deleteType, deleteCompany, deleteShip, deleteJobOrder, deleteRank, loadCompanyStats]);
 
   const handleSaveRank = async (rankData) => {
     if (selectedRank) {
@@ -1622,6 +1653,21 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         onManageCrew={handleManageCrew}
         scale={scale}
         canDelete={canDelete}
+      />
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setItemToDelete(null);
+          setDeleteType(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title={`Delete ${deleteType ? deleteType.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Item'}`}
+        message={`Are you sure you want to delete this ${deleteType ? deleteType.replace('_', ' ') : 'item'}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        scale={scale}
+        loading={companiesLoading || shipsLoading || jobOrdersLoading || ranksLoading}
       />
     </main>
   );

@@ -15,6 +15,7 @@ import {
 import Button from "../Components/Common/Button";
 import EnhancedFilterModel from "../Components/Common/EnhancedFilterModel";
 import SavedFilters from "../Components/Common/SavedFilters";
+import ConfirmDialog from "../Components/Common/ConfirmDialog";
 import { StatisticsCard } from "../Components/Cards/StatisticsCards";
 import { RefinedDataTable } from "../Components/Data/RefinedDataTable";
 import Pagination from "../../common/Pagination";
@@ -46,6 +47,8 @@ export function CVManagement({ scale = 1, isMobile = false }) {
   const [selectedCV, setSelectedCV] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingCV, setViewingCV] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [cvToDelete, setCvToDelete] = useState(null);
 
   // Local state
   const [savedPresets, setSavedPresets] = useState([]);
@@ -206,17 +209,26 @@ export function CVManagement({ scale = 1, isMobile = false }) {
   };
 
   const handleDelete = useCallback(
-    async (id) => {
+    (id) => {
       if (!canDelete) {
         notify.error("You do not have permission to delete CVs");
         return;
       }
-      if (window.confirm("Are you sure you want to delete this CV?")) {
-        await deleteDocument(id);
-      }
+      setCvToDelete(id);
+      setShowDeleteConfirm(true);
     },
-    [canDelete, deleteDocument, notify]
+    [canDelete, notify]
   );
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!cvToDelete) return;
+    const result = await deleteDocument(cvToDelete);
+    if (result.success) {
+      setShowDeleteConfirm(false);
+      setCvToDelete(null);
+      fetchDocuments({ page: pagination.currentPage, ...activeFilters });
+    }
+  }, [cvToDelete, deleteDocument, fetchDocuments, pagination.currentPage, activeFilters]);
 
   // ── Table columns ──
   const columns = useMemo(
@@ -613,6 +625,21 @@ export function CVManagement({ scale = 1, isMobile = false }) {
         onApply={handleApplyFilters}
         onReset={handleResetFilters}
         scale={scale}
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setCvToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete CV"
+        message="Are you sure you want to delete this CV? This action cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        scale={scale}
+        loading={loading}
       />
     </main>
   );
