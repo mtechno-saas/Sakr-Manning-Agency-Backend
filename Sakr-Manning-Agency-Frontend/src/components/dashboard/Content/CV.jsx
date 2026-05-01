@@ -231,14 +231,14 @@ export function CVManagement({ scale = 1, isMobile = false }) {
       {
         key: "generated_id",
         title: "ID",
-        width: 110,
+        width: 200,
         sortable: false,
         render: (val) => val,
       },
       {
         key: "email",
         title: "Email",
-        width: 300,
+        width: 400,
         sortable: true,
         render: (value) => value,
       },
