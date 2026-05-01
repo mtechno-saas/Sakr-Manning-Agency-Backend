@@ -1404,10 +1404,11 @@ class DocumentSerializer(serializers.ModelSerializer):
     generated_id = serializers.SerializerMethodField()
     company_name = serializers.CharField(source='company.company_name', read_only=True)
     job_position_details = serializers.SerializerMethodField()
+    job_position_name = serializers.CharField(source='job_position.rank.name', read_only=True)
 
     class Meta:
         model = Document
-        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_details']
+        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details']
         read_only_fields = ['user', 'created_at', 'updated_at']
     
     def to_internal_value(self, data):
