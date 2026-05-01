@@ -692,7 +692,173 @@ Allows an Employee to apply to one or more open job positions. This creates a `D
 
 > Permission: Admin / HR / Recruiter only.
 
+---
 
+## 4. Contracts
+
+The contracts endpoint integrates directly with CV Submissions and Job Order Positions, allowing you to instantly generate a contract pre-filled with the employee's details and the salary from the job position they applied for.
+
+### `POST /api/contracts/` — Generate Contract (from CV Submission)
+
+**Permissions:** Admin / HR Manager only
+
+Allows you to instantly generate an employment contract by pointing to an approved CV Submission. It auto-fills the user, company, rank, and salary details based on the exact Job Position they applied for.
+
+**Request:**
+```json
+{
+  "cv_submission_id": 45,
+  "ship": 3,
+  "sign_on_date": "2026-06-01",
+  "repatriation_terms": "Company covers return flight to home country",
+  "leave_pay_terms": "30 days paid leave per contract cycle",
+  "status": "Draft"
+}
+```
+> *Note: We did not send `salary` or `currency` — the backend will grab those directly from the job position they applied for!*
+
+**Success Response (201 Created):**
+```json
+{
+  "id": 12,
+  "user": 7,
+  "user_name": "Mohamed Ahmed",
+  "user_email": "mohamed.ahmed@email.com",
+  "generated_id": "492817364051",
+  
+  "ship": 3,
+  "ship_name": "MV Ocean Star",
+  "company": 2,
+  "company_name": "Sakr Shipping",
+  
+  "rank": 7,
+  "rank_name": "2nd. Officer",
+  "assigned_code": "DO-3.002",
+  
+  "job_position": 4,
+  "job_position_details": {
+    "id": 4,
+    "quantity": 2,
+    "salary_min": "2500.00",
+    "salary_max": "3500.00",
+    "currency": "USD",
+    "contract_duration_months": 6,
+    "remarks": "Must have tanker experience"
+  },
+  
+  "sign_on_date": "2026-06-01",
+  "sign_off_date": null,
+  "salary": "3500.00",
+  "currency": "USD",
+  "status": "Draft",
+  
+  "signed_file": null,
+  "signed_at": null,
+  "created_at": "2026-05-01T11:45:00Z",
+  "updated_at": "2026-05-01T11:45:00Z",
+
+  "certificates": [
+    {
+      "id": 1,
+      "code": "GMDSS",
+      "name": "G.M.D.S.S"
+    }
+  ],
+  "coded_rank": [
+    {
+      "assigned_code": "DO-3.002",
+      "rank_code": "DO-3.000",
+      "rank_name": "2nd. Officer"
+    }
+  ],
+  "user_documents": {
+    "passport": {
+      "passport_no": "A12345678",
+      "issue_date": "2022-01-15",
+      "expiry_date": "2032-01-14",
+      "issued_by": "Egypt",
+      "place_of_issue": "Cairo",
+      "file_url": "http://api.backend.soon.it/media/documents/passports/passport_123.pdf"
+    },
+    "seaman_book": {
+      "seaman_book_no": "SB9876543",
+      "issue_date": "2023-05-10",
+      "expiry_date": "2028-05-09",
+      "issued_by": "Maritime Authority",
+      "place_of_issue": "Alexandria",
+      "file_url": "http://api.backend.soon.it/media/documents/seaman/sb_123.pdf"
+    },
+    "other_seaman_book": {
+      "seaman_book_no": null,
+      "issue_date": null,
+      "expiry_date": null,
+      "issued_by": "",
+      "place_of_issue": "",
+      "file_url": null
+    },
+    "coc": {
+      "certificate_name": "Officer in Charge of Navigational Watch",
+      "certificate_number": "COC-456",
+      "issue_date": "2021-08-20",
+      "expiry_date": "2026-08-19",
+      "issued_by": "EAMS",
+      "issued_at": "Alexandria"
+    },
+    "goc": {
+      "certificate_number": "GOC-789",
+      "issue_date": "2022-11-05",
+      "expiry_date": "2027-11-04",
+      "issued_by": "EAMS",
+      "issued_at": "Alexandria"
+    },
+    "health_certificate": {
+      "flag_state": "Panama",
+      "number": "MED-111",
+      "issue_date": "2025-01-10",
+      "expiry_date": "2027-01-09",
+      "issued_by": "Approved Clinic",
+      "issued_at": "Cairo",
+      "international_medical_number": "INT-222",
+      "international_medical_issue_date": "2025-01-15",
+      "international_medical_expiry_date": "2027-01-14"
+    },
+    "licenses": [
+      {
+        "id": 1,
+        "document_name": "Panama License",
+        "document_number": "PAN-333",
+        "country_of_issue": "Panama",
+        "issue_date": "2024-03-01",
+        "expiration_date": "2029-02-28",
+        "file_url": "http://api.backend.soon.it/media/documents/licenses/panama_lic.pdf"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### `PATCH /api/contracts/{id}/` — Edit a Contract
+
+Use this to update fields (e.g. changing status to "Signed" or adjusting salary). All fields are optional.
+
+**Request:**
+```json
+{
+  "salary": "4000.00",
+  "status": "Pending Signature",
+  "sign_off_date": "2026-12-15"
+}
+```
+
+**Response (200):** Full contract object with updated fields.
+
+---
+
+### `DELETE /api/contracts/{id}/` — Delete a Contract
+
+**Response:** `204 No Content`
 
 ---
 
@@ -726,6 +892,15 @@ Allows an Employee to apply to one or more open job positions. This creates a `D
 | `PATCH` | `/api/companies/job-positions/{id}/` | Admin/HR/Recruiter | Update a position |
 | `DELETE` | `/api/companies/job-positions/{id}/` | Admin/HR/Recruiter | Delete a position |
 | `POST` | `/api/companies/job-positions/apply/` | **Employee** | Quick apply to positions |
+
+### Contracts
+| Method | Endpoint | Role | Purpose |
+|---|---|---|---|
+| `GET` | `/api/contracts/` | Admin/HR | List all contracts |
+| `POST` | `/api/contracts/` | Admin/HR | Generate/create contract |
+| `GET` | `/api/contracts/{id}/` | Admin/HR | Contract detail |
+| `PATCH` | `/api/contracts/{id}/` | Admin/HR | Update a contract |
+| `DELETE` | `/api/contracts/{id}/` | Admin/HR | Delete a contract |
 
 ---
 

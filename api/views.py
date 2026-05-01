@@ -1211,6 +1211,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     user=user,
                     position=rank,
                     company=getattr(document, 'company', None),
+                    job_position=getattr(document, 'job_position', None),
                     defaults={
                         'cv_file': document.file,
                         'status': 'Approved',

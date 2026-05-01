@@ -205,6 +205,7 @@ class JobOrderPositionViewSet(viewsets.ModelViewSet):
                 title=doc_title[:255],
                 position=pos.rank.name if pos.rank else '',
                 company=pos.job_order.company,
+                job_position=pos,
                 status='Pending',
                 file=user_file
             )
