@@ -73,6 +73,8 @@ export function UserManagement({ scale = 1, isMobile }) {
   // Rank management modal
   const [showRankModal, setShowRankModal] = useState(false);
   const [rankModalUser, setRankModalUser] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   // Load users and stats on mount
   useEffect(() => {
@@ -329,21 +331,26 @@ export function UserManagement({ scale = 1, isMobile }) {
   );
 
   const handleDeleteUser = useCallback(
-    async (id) => {
+    (id) => {
       if (!canDelete) {
         notify.error("You do not have permission to delete users");
         return;
       }
-
-      if (window.confirm("Are you sure you want to delete this user?")) {
-        const result = await deleteUser(id);
-        if (result.success) {
-          await loadStatistics(); // Reload stats after deletion
-        }
-      }
+      setUserToDelete(id);
+      setShowDeleteConfirm(true);
     },
-    [canDelete, deleteUser, notify]
+    [canDelete, notify]
   );
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!userToDelete) return;
+    const result = await deleteUser(userToDelete);
+    if (result.success) {
+      setShowDeleteConfirm(false);
+      setUserToDelete(null);
+      await loadStatistics();
+    }
+  }, [userToDelete, deleteUser, loadStatistics]);
 
   const handleAddUser = useCallback(() => {
     if (!canCreate) {
@@ -925,7 +932,7 @@ export function UserManagement({ scale = 1, isMobile }) {
         scale={scale}
       />
 
-      {/* <ConfirmDialog
+      <ConfirmDialog
         isOpen={showDeleteConfirm}
         onClose={() => {
           setShowDeleteConfirm(false);
@@ -937,8 +944,8 @@ export function UserManagement({ scale = 1, isMobile }) {
         confirmLabel="Delete"
         variant="danger"
         scale={scale}
-        loading={isLoading}
-      /> */}
+        loading={usersLoading}
+      />
     </main>
   );
 }

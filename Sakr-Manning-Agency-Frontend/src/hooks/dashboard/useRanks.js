@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { ranksApi } from "../../services/Dashboard/usersApi";
 import useNotification from "../../components/dashboard/hooks/useNotification";
+import { useDashboardData } from "../../components/dashboard/context/DashboardDataContext";
 
 /**
  * Hook for managing Rank Codes (Core)
@@ -11,6 +12,7 @@ export const useRanks = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { notify } = useNotification();
+  const { fetchRanks: refreshGlobalRanks } = useDashboardData();
 
   const fetchRanks = useCallback(async () => {
     setLoading(true);
@@ -34,6 +36,10 @@ export const useRanks = () => {
     try {
       const created = await ranksApi.createRank(data);
       setRanks((prev) => [...prev, created]);
+
+      // Refresh global context cache
+      await refreshGlobalRanks(true);
+
       notify.success("Rank created successfully");
       return { success: true, data: created };
     } catch (err) {
@@ -50,6 +56,10 @@ export const useRanks = () => {
     try {
       const updated = await ranksApi.updateRank(id, data);
       setRanks((prev) => prev.map((r) => (r.id === id ? updated : r)));
+
+      // Refresh global context cache
+      await refreshGlobalRanks(true);
+
       notify.success("Rank updated successfully");
       return { success: true, data: updated };
     } catch (err) {
@@ -66,6 +76,10 @@ export const useRanks = () => {
     try {
       await ranksApi.deleteRank(id);
       setRanks((prev) => prev.filter((r) => r.id !== id));
+
+      // Refresh global context cache
+      await refreshGlobalRanks(true);
+
       notify.success("Rank deleted successfully");
       return { success: true };
     } catch (err) {

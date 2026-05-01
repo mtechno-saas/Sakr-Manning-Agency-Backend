@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { shipsApi } from "../../services/Dashboard/shipsApi";
 import useNotification from "../../components/dashboard/hooks/useNotification";
 import { usePermissions } from "./usePermissions";
+import { useDashboardData } from "../../components/dashboard/context/DashboardDataContext";
 
 /**
  * Custom hook for managing ships
@@ -21,6 +22,7 @@ export const useShips = () => {
 
   const { notify } = useNotification();
   const { canEdit, canDelete, canCreate } = usePermissions();
+  const { fetchShips: refreshGlobalShips } = useDashboardData();
 
   /**
    * Fetch ships with optional filters
@@ -89,6 +91,9 @@ export const useShips = () => {
         setShips((prev) => [newShip, ...prev]);
         setPagination((prev) => ({ ...prev, count: prev.count + 1 }));
 
+        // Refresh global context cache
+        await refreshGlobalShips(true);
+
         notify.success("Ship created successfully");
         return { success: true, data: newShip };
       } catch (err) {
@@ -121,6 +126,9 @@ export const useShips = () => {
           prev.map((ship) => (ship.id === shipId ? updatedShip : ship))
         );
 
+        // Refresh global context cache
+        await refreshGlobalShips(true);
+
         notify.success("Ship updated successfully");
         return { success: true, data: updatedShip };
       } catch (err) {
@@ -151,6 +159,9 @@ export const useShips = () => {
 
         setShips((prev) => prev.filter((ship) => ship.id !== shipId));
         setPagination((prev) => ({ ...prev, count: prev.count - 1 }));
+
+        // Refresh global context cache
+        await refreshGlobalShips(true);
 
         notify.success("Ship deleted successfully");
         return { success: true };

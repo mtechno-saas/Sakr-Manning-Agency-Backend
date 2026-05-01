@@ -9,7 +9,7 @@ export const useQuickApply = () => {
 
     /**
      * Submit a quick apply application
-     * @param {Object} data - Form data containing full_name, email, phone_number, position, file
+     * @param {Object} data - Form data containing full_name, email, phone_number, position, job_position, job_position_details, file
      * @param {Array} ranks - Array of rank objects to map position ID to name
      * @returns {Promise<{success: boolean, data?: any, error?: string}>}
      */
@@ -46,6 +46,15 @@ export const useQuickApply = () => {
             if (data.position) {
                 const selectedRank = ranks.find(r => r.id === parseInt(data.position));
                 formData.append("position", selectedRank?.name || data.position);
+            }
+
+            // Job Position (Vacancy)
+            if (data.job_position) {
+                formData.append("job_position", data.job_position);
+            }
+
+            if (data.job_position_details) {
+                formData.append("job_position_details", JSON.stringify(data.job_position_details));
             }
 
             // Submit to API

@@ -141,6 +141,46 @@ export function CVViewModal({
                 <FieldItem label="Last Updated" value={doc.updated_at} format="datetime" icon={Calendar} scale={scale} />
             </Section>
 
+            {/* ── Vacancy Details ─────────────────────────────────────────────── */}
+            {(doc.job_position || doc.job_position_details) && (
+                <Section title="Specific Vacancy Details" icon={Briefcase} scale={scale} columns={2}>
+                    <FieldItem
+                        label="Applied Position"
+                        value={doc.job_position_name || "—"}
+                        icon={Briefcase}
+                        scale={scale}
+                    />
+                    <FieldItem
+                        label="Target Company"
+                        value={doc.company_name}
+                        scale={scale}
+                    />
+                    {doc.job_position_details && (
+                        <>
+                            <FieldItem
+                                label="Monthly Salary"
+                                value={doc.job_position_details.salary_min && doc.job_position_details.salary_max ?
+                                    `${Number(doc.job_position_details.salary_min).toLocaleString()} - ${Number(doc.job_position_details.salary_max).toLocaleString()} ${doc.job_position_details.currency || 'USD'}` :
+                                    doc.job_position_details.salary_min || '—'}
+                                scale={scale}
+                            />
+                            <FieldItem
+                                label="Contract Duration"
+                                value={doc.job_position_details.contract_duration_months ? `${doc.job_position_details.contract_duration_months} Months` : '—'}
+                                scale={scale}
+                            />
+                            {doc.job_position_details.remarks && (
+                                <FieldItem
+                                    label="Vacancy Remarks"
+                                    value={doc.job_position_details.remarks}
+                                    scale={scale}
+                                />
+                            )}
+                        </>
+                    )}
+                </Section>
+            )}
+
             {/* ── Attached CV File ─────────────────────────────────────────────── */}
             <Section title="Attached File" icon={FileText} scale={scale} columns={1}>
                 {doc.file ? (
@@ -194,7 +234,7 @@ export function CVViewModal({
                         {/* Action buttons */}
                         <div style={{ display: "flex", gap: `${Math.round(8 * scale)}px` }}>
                             {/* Open in new tab */}
-                            <a
+                            {/* <a
                                 href={doc.file}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -215,7 +255,7 @@ export function CVViewModal({
                                 title="Open in new tab"
                             >
                                 <ExternalLink size={Math.round(16 * scale)} />
-                            </a>
+                            </a> */}
 
                             {/* Download */}
                             {onDownload && (

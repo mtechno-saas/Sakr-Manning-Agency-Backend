@@ -16,6 +16,7 @@ import {
 import Button from "../Components/Common/Button";
 import EnhancedFilterModel from "../Components/Common/EnhancedFilterModel";
 import SavedFilters from "../Components/Common/SavedFilters";
+import ConfirmDialog from "../Components/Common/ConfirmDialog";
 import useNotification from "../hooks/useNotification";
 import useCVSubmissions from "../../../hooks/dashboard/useCVSubmissions";
 import CVSubmissionFormModal from "../Components/Modal/CVSubmissionFormModal";
@@ -78,6 +79,8 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
     const [showAIModal, setShowAIModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
     const [showGenerateContractModal, setShowGenerateContractModal] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [submissionToDelete, setSubmissionToDelete] = useState(null);
     const [selectedSubmission, setSelectedSubmission] = useState(null);
 
     // ── Filter states ─────────────────────────────────────────────────────────
@@ -137,13 +140,21 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         else notify.error("Submission data not found");
     }, [backendSubmissions, notify]);
 
-    const handleDelete = useCallback(async (id) => {
+    const handleDelete = useCallback((id) => {
         if (!canDelete) { notify.error("You do not have permission to delete applicants"); return; }
-        if (window.confirm("Are you sure you want to delete this submission?")) {
-            const result = await deleteSubmission(id);
-            if (result.success) handleRefresh();
+        setSubmissionToDelete(id);
+        setShowDeleteConfirm(true);
+    }, [canDelete, notify]);
+
+    const handleConfirmDelete = useCallback(async () => {
+        if (!submissionToDelete) return;
+        const result = await deleteSubmission(submissionToDelete);
+        if (result.success) {
+            setShowDeleteConfirm(false);
+            setSubmissionToDelete(null);
+            handleRefresh();
         }
-    }, [canDelete, deleteSubmission, handleRefresh, notify]);
+    }, [submissionToDelete, deleteSubmission, handleRefresh]);
 
     const handleStatusChange = useCallback(async (id, newStatus) => {
         const result = await updateStatus(id, newStatus);
@@ -592,6 +603,21 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
                 scale={scale}
+            />
+
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                onClose={() => {
+                    setShowDeleteConfirm(false);
+                    setSubmissionToDelete(null);
+                }}
+                onConfirm={handleConfirmDelete}
+                title="Delete Submission"
+                message="Are you sure you want to delete this submission? This action cannot be undone."
+                confirmLabel="Delete"
+                variant="danger"
+                scale={scale}
+                loading={loading}
             />
         </main>
     );
