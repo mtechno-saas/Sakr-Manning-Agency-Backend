@@ -32,11 +32,15 @@ class ShipSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    # Expose the string names for ForeignKeys so the frontend doesn't just get IDs (like 105)
+    flag_name = serializers.CharField(source='flag.name', read_only=True)
+    ship_type_name = serializers.CharField(source='ship_type.name', read_only=True)
+
     class Meta:
         model = Ship
         # Add the new fields to the list
         fields = [
-            'id', 'ship_name', 'imo_number', 'ship_type', 'flag',
+            'id', 'ship_name', 'imo_number', 'ship_type', 'ship_type_name', 'flag', 'flag_name',
             'company', 'status', 'crew', 'crew_ids', 'official_no',
             'call_sign', 'mmsi_no', 'port_of_registry', 'gross_tonnage',
             'deadweight', 'year_built', 'builder', 'engine_type',
