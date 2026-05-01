@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { usersApi } from "../../services/Dashboard/usersApi";
 import useNotification from "../../components/dashboard/hooks/useNotification";
 import { usePermissions } from "./usePermissions";
+import { useDashboardData } from "../../components/dashboard/context/DashboardDataContext";
 
 /**
  * Custom hook for managing users in the dashboard
@@ -25,6 +26,7 @@ export const useUsers = () => {
 
   const { notify } = useNotification();
   const { canEdit, canDelete, canCreate } = usePermissions();
+  const { fetchUsers: refreshGlobalUsers } = useDashboardData();
 
   /**
    * Fetch users with optional filters
@@ -107,6 +109,9 @@ export const useUsers = () => {
         setUsers((prev) => [newUser, ...prev]);
         setPagination((prev) => ({ ...prev, count: prev.count + 1 }));
 
+        // Refresh global context cache
+        await refreshGlobalUsers(true);
+
         notify.success("User created successfully");
         return { success: true, data: newUser };
       } catch (err) {
@@ -140,6 +145,9 @@ export const useUsers = () => {
           prev.map((user) => (user.id === userId ? updatedUser : user))
         );
 
+        // Refresh global context cache
+        await refreshGlobalUsers(true);
+
         notify.success("User updated successfully");
         return { success: true, data: updatedUser };
       } catch (err) {
@@ -171,6 +179,9 @@ export const useUsers = () => {
         // Remove from local state
         setUsers((prev) => prev.filter((user) => user.id !== userId));
         setPagination((prev) => ({ ...prev, count: prev.count - 1 }));
+
+        // Refresh global context cache
+        await refreshGlobalUsers(true);
 
         notify.success("User deleted successfully");
         return { success: true };

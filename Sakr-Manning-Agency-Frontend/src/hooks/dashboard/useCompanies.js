@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { companiesApi } from "../../services/Dashboard/companiesApi";
 import useNotification from "../../components/dashboard/hooks/useNotification";
 import { usePermissions } from "./usePermissions";
+import { useDashboardData } from "../../components/dashboard/context/DashboardDataContext";
 
 /**
  * Custom hook for managing companies
@@ -21,6 +22,7 @@ export const useCompanies = () => {
 
   const { notify } = useNotification();
   const { canEdit, canDelete, canCreate } = usePermissions();
+  const { fetchCompanies: refreshGlobalCompanies } = useDashboardData();
 
   /**
    * Fetch companies with optional filters
@@ -89,6 +91,9 @@ export const useCompanies = () => {
         setCompanies((prev) => [newCompany, ...prev]);
         setPagination((prev) => ({ ...prev, count: prev.count + 1 }));
 
+        // Refresh global context cache
+        await refreshGlobalCompanies(true);
+
         notify.success("Company created successfully");
         return { success: true, data: newCompany };
       } catch (err) {
@@ -126,6 +131,9 @@ export const useCompanies = () => {
           )
         );
 
+        // Refresh global context cache
+        await refreshGlobalCompanies(true);
+
         notify.success("Company updated successfully");
         return { success: true, data: updatedCompany };
       } catch (err) {
@@ -158,6 +166,9 @@ export const useCompanies = () => {
           prev.filter((company) => company.id !== companyId)
         );
         setPagination((prev) => ({ ...prev, count: prev.count - 1 }));
+
+        // Refresh global context cache
+        await refreshGlobalCompanies(true);
 
         notify.success("Company deleted successfully");
         return { success: true };
