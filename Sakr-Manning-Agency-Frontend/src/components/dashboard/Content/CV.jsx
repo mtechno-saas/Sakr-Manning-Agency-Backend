@@ -264,11 +264,11 @@ export function CVManagement({ scale = 1, isMobile = false }) {
         render: (value, row) => {
           if (!row.file) return "—";
           return (
-            <a
-              href={row.file}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownload(row);
+              }}
               style={{
                 color: "#3B82F6",
                 textDecoration: "underline",
@@ -277,7 +277,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
               }}
             >
               {value}
-            </a>
+            </span>
           );
         },
       },
