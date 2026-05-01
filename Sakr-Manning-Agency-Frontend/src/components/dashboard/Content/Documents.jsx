@@ -20,6 +20,7 @@ import {
 } from "../Styles/cssClasses";
 import Button from "../Components/Common/Button";
 import ConfirmDialog from "../Components/Common/ConfirmDialog";
+import LoadingScreen from "../Components/Common/LoadingScreen";
 import DocumentFormModal from "../Components/Modal/DocumentsFormModal";
 import EnhancedFilterModel from "../Components/Common/EnhancedFilterModel";
 import { ContractViewModal } from "../Components/Modal/ViewModal";
@@ -497,14 +498,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
             marginBottom: `${Math.round(32 * scale)}px`,
           }}
         >
-          <div
-            style={{
-              fontSize: `${Math.round(18 * scale)}px`,
-              color: COLORS.lightText,
-            }}
-          >
-            Loading contracts...
-          </div>
+          <LoadingScreen scale={scale} message="Loading contracts..." subMessage="Fetching active maritime agreements and document statuses" />
         </div>
       )}
 

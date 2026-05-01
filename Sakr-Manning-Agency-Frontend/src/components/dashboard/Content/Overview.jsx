@@ -6,6 +6,7 @@ import { StatCard } from "../Components/Cards/StatCard";
 import { ActivityItem } from "../Components/Cards/ActivityItem";
 import { StatusBadge } from "../Components/Cards/StatusBadge";
 import { RecommendationCard } from "../Components/Cards/RecommendationCard";
+import LoadingScreen from "../Components/Common/LoadingScreen";
 import { COLORS } from "../Constants";
 import { ASSETS } from "../../../utils/constants";
 
@@ -381,14 +382,7 @@ export const OverviewPage = ({ scale, isMobile, onNavigate }) => {
           justifyContent: "center",
         }}
       >
-        <div
-          style={{
-            fontSize: `${Math.round(18 * scale)}px`,
-            color: COLORS.lightText,
-          }}
-        >
-          Loading dashboard data…
-        </div>
+        <LoadingScreen scale={scale} message="Loading Dashboard Data" subMessage="Collecting the latest maritime analytics and KPIs" />
       </main>
     );
   }
