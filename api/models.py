@@ -570,6 +570,7 @@ class Contract(models.Model):
     ship = models.ForeignKey('ships.Ship', on_delete=models.CASCADE, related_name='contracts')
     company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='api_contracts')
     rank = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True)
+    job_position = models.ForeignKey('companies.JobOrderPosition', on_delete=models.SET_NULL, null=True, blank=True, related_name='contracts')
 
     sign_on_date = models.DateField()
     sign_off_date = models.DateField(null=True, blank=True)
@@ -669,6 +670,7 @@ class CVSubmission(models.Model):
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='cv_submissions')
     company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='api_cv_submissions')
     position = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True, blank=True)
+    job_position = models.ForeignKey('companies.JobOrderPosition', on_delete=models.SET_NULL, null=True, blank=True, related_name='cv_submissions')
 
     cv_file = models.FileField(upload_to='cv_submissions/', null=True, blank=True)
     cover_letter = models.TextField(blank=True, null=True)
@@ -788,8 +790,12 @@ class Document(models.Model):
     title = models.CharField(max_length=255)
     file = models.FileField(
         upload_to='documents/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx'])]
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx'])],
+        null=True,
+        blank=True
     )
+    company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='documents')
+    job_position = models.ForeignKey('companies.JobOrderPosition', on_delete=models.SET_NULL, null=True, blank=True, related_name='documents')
     
     POSITION_CHOICES = [
         ('Master', 'Master'),
