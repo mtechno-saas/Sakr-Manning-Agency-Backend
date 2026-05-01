@@ -21,6 +21,7 @@ import useCVSubmissions from "../../../hooks/dashboard/useCVSubmissions";
 import CVSubmissionFormModal from "../Components/Modal/CVSubmissionFormModal";
 import DocumentUploadModal from "../Components/AI/DocumentUploadModal";
 import CVSubmissionViewModal from "../Components/Modal/ViewModal/CVSubmissionViewModal";
+import GenerateContractModal from "../Components/Modal/GenerateContractModal";
 import { useCompanies } from "../../../hooks/dashboard/useCompanies";
 import { useRanks } from "../../../hooks/dashboard/useRanks";
 
@@ -76,6 +77,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
     const [showSubmissionModal, setShowSubmissionModal] = useState(false);
     const [showAIModal, setShowAIModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
+    const [showGenerateContractModal, setShowGenerateContractModal] = useState(false);
     const [selectedSubmission, setSelectedSubmission] = useState(null);
 
     // ── Filter states ─────────────────────────────────────────────────────────
@@ -94,6 +96,15 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
     const handleRefresh = useCallback(() => {
         fetchSubmissions({ ...activeFilters });
     }, [fetchSubmissions, activeFilters]);
+
+    useEffect(() => {
+        const onGenerateContract = (e) => {
+            setSelectedSubmission(e.detail);
+            setShowGenerateContractModal(true);
+        };
+        document.addEventListener('generate-contract', onGenerateContract);
+        return () => document.removeEventListener('generate-contract', onGenerateContract);
+    }, []);
 
     // ── CRUD handlers ─────────────────────────────────────────────────────────
     const handleAddManual = useCallback(() => {
@@ -221,7 +232,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         {
             key: "generatedId",
             title: "ID",
-            width: 110,
+            width: 200,
             sortable: false,
             render: (val) => val,
         },
@@ -554,6 +565,18 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                     onClose={() => setShowViewModal(false)}
                     submission={selectedSubmission}
                     onDelete={handleDelete}
+                    scale={scale}
+                />
+            )}
+
+            {showGenerateContractModal && (
+                <GenerateContractModal
+                    submission={selectedSubmission}
+                    onClose={() => setShowGenerateContractModal(false)}
+                    onSuccess={() => {
+                        setShowGenerateContractModal(false);
+                        notify.success("Contract successfully generated!");
+                    }}
                     scale={scale}
                 />
             )}

@@ -38,6 +38,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
     contracts: backendContracts,
     loading,
     fetchContracts,
+    getContractById,
     createContract,
     updateContract,
     deleteContract,
@@ -306,11 +307,18 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   // ============================================
 
   const handleView = useCallback(
-    (contract) => {
-      setViewingContract(contract);
-      setShowViewModal(true);
+    async (contract) => {
+      try {
+        const result = await getContractById(contract.id);
+        if (result.success) {
+          setViewingContract(result.data);
+          setShowViewModal(true);
+        }
+      } catch (error) {
+        console.error("Failed to load contract details:", error);
+      }
     },
-    []
+    [getContractById]
   );
 
   const handleEdit = useCallback(
@@ -366,24 +374,18 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   );
 
   const handleDownload = useCallback(
-    (contract) => {
-      // TODO: Implement contract document download
-      notify.info("Download functionality coming soon");
+    async (contract) => {
+      try {
+        await documentsApi.downloadContract(contract.id);
+      } catch (err) {
+        notify.error("Failed to download contract. It may not have been signed yet.");
+      }
     },
     [notify]
   );
 
-  const handleCreateContract = useCallback(
-    async (contractData) => {
-      const result = await createContract(contractData);
-
-      if (result.success) {
-        setShowContractModal(false);
-        setSelectedContract(null);
-      }
-    },
-    [createContract]
-  );
+  // Contract Creation is now handled via CV Submissions pipeline using GenerateContractModal.
+  // Documents.jsx now only handles editing existing contracts via PATCH.
 
   const handleUpdateContract = useCallback(
     async (contractData) => {
@@ -403,11 +405,9 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
     async (contractData) => {
       if (selectedContract) {
         await handleUpdateContract(contractData);
-      } else {
-        await handleCreateContract(contractData);
       }
     },
-    [selectedContract, handleCreateContract, handleUpdateContract]
+    [selectedContract, handleUpdateContract]
   );
 
 
@@ -591,18 +591,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
             marginTop: `${Math.round(20 * scale)}px`,
           }}
         >
-          {canCreate && (
-            <Button
-              variant="primary"
-              onClick={() => {
-                setSelectedContract(null);
-                setShowContractModal(true);
-              }}
-              scale={scale}
-            >
-              Generate Contract
-            </Button>
-          )}
+          {/* Generate Contract button has been removed. Contracts are generated via CV Pipeline */}
 
           {contracts.length > 0 && (
             <Button variant="outline" onClick={handleExportExcel} scale={scale}>

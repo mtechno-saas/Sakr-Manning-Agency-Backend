@@ -138,7 +138,7 @@ export const StatusBadge = ({ status, scale = 1 }) => {
             style={{
                 display: "inline-flex",
                 alignItems: "center",
-                padding: `${Math.round(4 * scale)}px ${Math.round(12 * scale)}px`,
+                padding: `${Math.round(4 * scale)}px ${status === 'Pending Signature' ? Math.round(2 * scale) : Math.round(12 * scale)}px`,
                 borderRadius: `${Math.round(999 * scale)}px`,
                 backgroundColor: colors.bg,
                 color: colors.text,

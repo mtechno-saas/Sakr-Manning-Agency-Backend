@@ -26,6 +26,7 @@ const JobOrderManagementModal = ({
         loading, 
         fetchJobOrders, 
         createJobOrder, 
+        updateJobOrder,
         deleteJobOrder,
         addPositionToOrder,
         removePosition,
@@ -132,6 +133,23 @@ const JobOrderManagementModal = ({
         const result = await deleteJobOrder(id);
         if (result.success && selectedOrder?.id === id) {
             setSelectedOrder(null);
+        }
+    };
+
+    const handleUpdateStatus = async (newStatus) => {
+        if (!selectedOrder) return;
+        
+        // Optimistically update local state for faster UI
+        const previousOrder = { ...selectedOrder };
+        setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+        
+        const result = await updateJobOrder(selectedOrder.id, { status: newStatus });
+        if (!result.success) {
+            // Revert if failed
+            setSelectedOrder(previousOrder);
+        } else {
+            // Refresh main list
+            fetchJobOrders({ company: company.id });
         }
     };
 
@@ -289,7 +307,21 @@ const JobOrderManagementModal = ({
                                 <div style={{ padding: "20px", backgroundColor: "#F8FAFC", borderBottom: "1px solid #E5E7EB" }}>
                                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                                         <div>
-                                            <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0 }}>Positions for {selectedOrder.reference_number}</h3>
+                                            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                                <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0 }}>Positions for {selectedOrder.reference_number}</h3>
+                                                <select 
+                                                    value={selectedOrder.status || "Pending"}
+                                                    onChange={(e) => handleUpdateStatus(e.target.value)}
+                                                    style={{ fontSize: "12px", padding: "2px 8px", borderRadius: "6px", border: "1px solid #E5E7EB", backgroundColor: "#fff", cursor: "pointer", color: "#0369A1", fontWeight: 600, outline: "none" }}
+                                                >
+                                                    <option value="Pending">Pending</option>
+                                                    <option value="Open">Open</option>
+                                                    <option value="Active">Active</option>
+                                                    <option value="In Progress">In Progress</option>
+                                                    <option value="Fulfilled">Fulfilled</option>
+                                                    <option value="Cancelled">Cancelled</option>
+                                                </select>
+                                            </div>
                                             <p style={{ fontSize: "13px", color: "#6B7280", marginTop: "4px" }}>Add or remove ranks for this job order.</p>
                                         </div>
                                         <Button variant="outline" size="sm" onClick={() => setSelectedOrder(null)}>Back to New Order</Button>

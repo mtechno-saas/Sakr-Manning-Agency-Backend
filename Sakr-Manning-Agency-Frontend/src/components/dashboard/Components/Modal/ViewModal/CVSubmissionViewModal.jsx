@@ -40,6 +40,24 @@ export function CVSubmissionViewModal({
 
     // Build actions array
     const actions = [];
+
+    // Add Generate Contract button for approved/hired candidates
+    if (["Approved", "Hired", "Shortlisted"].includes(submission.status)) {
+        actions.push({
+            label: "Generate Contract",
+            onClick: () => {
+                if (window.onGenerateContract) {
+                    window.onGenerateContract(submission);
+                } else if (onClose) {
+                    onClose();
+                    // trigger event to parent
+                    document.dispatchEvent(new CustomEvent('generate-contract', { detail: submission }));
+                }
+            },
+            variant: "success", // or "primary" depending on theme, using standard primary
+        });
+    }
+
     if (canDelete && onDelete) {
         actions.push({
             label: "Remove",
