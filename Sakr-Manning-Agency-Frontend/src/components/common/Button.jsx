@@ -58,13 +58,14 @@ export default function Button({
   fullWidth = false,
   disabled = false,
   loading = false,
+  small = false,
   icon,
   iconPosition = "left",
   className = "",
   ...rest
 }) {
   const baseClasses =
-    "inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
+    `inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${small ? 'text-sm px-3 py-1.5' : 'text-base px-4 py-2'}`;
 
   const widthClass = fullWidth ? "w-full" : "";
 

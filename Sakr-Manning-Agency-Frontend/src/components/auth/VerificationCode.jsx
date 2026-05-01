@@ -227,7 +227,7 @@ export const VerificationCode = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl py-4 px-10 shadow-xl max-w-md w-full mx-4 my-8 border-3 border-maritime-600">
+    <div className="bg-white rounded-2xl py-6 px-4 sm:px-10 shadow-xl max-w-md w-[95%] sm:w-full mx-auto sm:mx-4 my-8 border-[3px] border-maritime-600">
       {/* Header */}
       <div className="text-center mb-1 flex flex-col justify-center items-center">
         <h2 className="text-2xl font-bold text-gray-900">Verification Code</h2>
@@ -246,7 +246,7 @@ export const VerificationCode = ({
       </div>
 
       {/* Code Input Fields */}
-      <div className="flex justify-center space-x-3 mb-1">
+      <div className="flex justify-center space-x-1 sm:space-x-3 mb-1">
         {codes.map((code, index) => (
           <input
             key={index}
@@ -259,7 +259,7 @@ export const VerificationCode = ({
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={index === 0 ? handlePaste : undefined}
             className={`
-              w-14 h-14 text-center text-2xl font-bold border-2 rounded-lg 
+              w-9 h-11 sm:w-14 sm:h-14 text-center text-lg sm:text-2xl font-bold border-2 rounded-lg 
               focus:outline-none focus:ring-2 transition-all duration-200
               ${
                 error

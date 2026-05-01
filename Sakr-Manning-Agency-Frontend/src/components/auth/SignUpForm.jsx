@@ -10,8 +10,9 @@ import {
   validatePassword,
   validateName,
 } from "../../utils/validation";
+import { GoogleLoginButton } from "./GoogleLoginButton";
 
-export const SignUpForm = ({ onSubmit, isLoading, onSwitchToLogin }) => {
+export const SignUpForm = ({ onSubmit, isLoading, onSwitchToLogin, onGoogleLogin }) => {
   const navigate = useNavigate();
 
   // Form validation rules
@@ -40,8 +41,19 @@ export const SignUpForm = ({ onSubmit, isLoading, onSwitchToLogin }) => {
     await onSubmit(formData);
   });
 
+  // Handle Google login
+  const handleGoogleSuccess = (googleData) => {
+    if (onGoogleLogin) {
+      onGoogleLogin(googleData);
+    }
+  };
+
+  const handleGoogleError = (error) => {
+    console.error("Google sign up error:", error);
+  };
+
   return (
-    <div className="w-[620px] h-[703px] bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-maritime-200/20 border-3 border-maritime-600 flex flex-col justify-center items-center relative">
+    <div className="w-[95%] md:w-[620px] h-auto md:h-[703px] min-h-fit md:min-h-[703px] pt-12 pb-6 md:py-8 bg-white/95 backdrop-blur-sm rounded-3xl p-4 md:p-8 shadow-2xl border border-maritime-200/20 border-[3px] border-maritime-600 flex flex-col justify-center items-center relative my-6 md:my-0 mx-auto">
       {/* Back to Home Button */}
       <button
         onClick={() => navigate("/")}
@@ -53,15 +65,33 @@ export const SignUpForm = ({ onSubmit, isLoading, onSwitchToLogin }) => {
       </button>
 
       {/* Header */}
-      <h2 className="text-3xl font-bold text-gray-900 text-center mb-8 mt-4">
-        Welcome to Sakr Manning Agency
+      <h2 className="text-xl md:text-3xl font-bold text-gray-900 text-center mb-8 md:mb-10 mt-1 md:mt-4">
+        Welcome
       </h2>
+
+      {/* Google Sign-In Button */}
+      <div className="w-full px-0 md:px-6 mb-3 md:mb-4">
+        <GoogleLoginButton
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          disabled={isLoading}
+        />
+      </div>
+
+      {/* Divider */}
+      <div className="w-full px-0 md:px-6 mb-6 md:mb-6 mt-2 md:mt-0">
+        <div className="relative flex items-center">
+          <div className="flex-grow border-t border-gray-300"></div>
+          <span className="flex-shrink mx-4 text-sm text-gray-500">or</span>
+          <div className="flex-grow border-t border-gray-300"></div>
+        </div>
+      </div>
 
       {/* Form */}
       <form
         onSubmit={onFormSubmit}
         noValidate
-        className="space-y-6 w-full px-6"
+        className="space-y-3 md:space-y-8 w-full px-0 md:px-6"
       >
         {/* Name Field */}
         <Input
@@ -70,6 +100,7 @@ export const SignUpForm = ({ onSubmit, isLoading, onSwitchToLogin }) => {
           placeholder="Enter your name"
           label=""
           required
+          small
           autoComplete="name"
           className="rounded-xl border-gray-200 focus:border-maritime-400 focus:ring-maritime-400/20"
         />
@@ -82,6 +113,7 @@ export const SignUpForm = ({ onSubmit, isLoading, onSwitchToLogin }) => {
           placeholder="Enter your email"
           label=""
           required
+          small
           autoComplete="email"
           className="rounded-xl border-gray-200 focus:border-maritime-400 focus:ring-maritime-400/20"
         />
@@ -94,6 +126,7 @@ export const SignUpForm = ({ onSubmit, isLoading, onSwitchToLogin }) => {
           placeholder="Enter your password"
           label=""
           required
+          small
           showPasswordToggle
           autoComplete="new-password"
           className="rounded-xl border-gray-200 focus:border-maritime-400 focus:ring-maritime-400/20"
