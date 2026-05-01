@@ -203,7 +203,7 @@ class CompanySerializer(serializers.ModelSerializer):
 class InterviewSerializer(serializers.ModelSerializer):
     candidate_name = serializers.CharField(source='candidate.first_name', read_only=True)
     candidate_email = serializers.CharField(source='candidate.email', read_only=True)
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
     position_name = serializers.CharField(source='position.name', read_only=True)
 
     class Meta:
