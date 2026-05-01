@@ -15,8 +15,6 @@ import { UserManagement } from "./Content/Users";
 import { FinanceRecords } from "./Content/Finance";
 import { SearchResults } from "./Content/SearchResults";
 import { CVSubmissionsManagement } from "./Content/CVSubmissions";
-// import { TestingContent } from "./Content/TestingContent"
-
 import AIApplication from "./Content/AIApplication";
 import ChatWidget from "./Components/AI/ChatWidget";
 
@@ -64,12 +62,10 @@ const DashboardApp = ({ onLogout, user }) => {
   };
 
   const handleSearchSubmit = useCallback((query) => {
-    console.log("Global search triggered:", query);
     setCurrentPage("search");
   }, []);
 
   const handleNavigateFromSearch = useCallback((page, itemId) => {
-    console.log("Navigate to:", page, "Item ID:", itemId);
     setCurrentPage(page);
   }, []);
 
@@ -110,7 +106,6 @@ const DashboardApp = ({ onLogout, user }) => {
         );
       case "cvSubmissions":
         return <CVSubmissionsManagement {...commonProps} />;
-      // return <TestingContent {...commonProps} />;
       default:
         return (
           <PlaceholderPage pageTitle={pageData[currentPage]} scale={scale} />

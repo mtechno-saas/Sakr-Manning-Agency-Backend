@@ -24,7 +24,7 @@ import { AUTH_STEPS } from "./utils/constants";
 
 const DashboardApp = lazy(() => import("./components/dashboard/DashboardApp"));
 const SakrForm = lazy(() => import("./components/form/SakrForm"));
-const testing = true;
+const testing = false;
 // Auth Pages Component (handles all authentication screens)
 const AuthPages = () => {
   const navigate = useNavigate();
