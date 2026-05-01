@@ -694,6 +694,94 @@ Allows an Employee to apply to one or more open job positions. This creates a `D
 
 ---
 
+---
+
+## 2. 📋 CVs (/api/documents/)
+
+The CVs section (internally called `Documents`) is the entry point for all applications. When a candidate uses "Quick Apply" or uploads their CV directly, a record is created here with a `Pending` status.
+
+### `GET /api/documents/` — List Applications
+**Permissions:** Admin / HR / Recruiter see all. Employees see only their own.
+
+**Success Response (200):**
+```json
+[
+  {
+    "id": 88,
+    "user": 5,
+    "title": "Application for 2nd. Officer at Sakr Shipping",
+    "name": "Ahmed Salem",
+    "email": null,
+    "phone_number": null,
+    "position": "2nd. Officer",
+    "status": "Pending",
+    "file": "http://api.backend.soon.it/media/documents/ahmed_cv.pdf",
+    "company": 2,
+    "company_name": "Sakr Shipping",
+    "job_position": 12,
+    "job_position_name": "2nd. Officer",
+    "job_position_details": {
+      "id": 12,
+      "quantity": 3,
+      "salary_min": "4000.00",
+      "salary_max": "5000.00",
+      "currency": "USD",
+      "contract_duration_months": 6,
+      "remarks": "Must have offshore experience"
+    },
+    "created_at": "2026-05-01T14:00:00Z",
+    "updated_at": "2026-05-01T14:00:00Z"
+  }
+]
+```
+
+### `POST /api/documents/` — Direct CV Upload
+Allows uploading a CV and linking it directly to a job position. The backend will automatically fill in the company and rank details.
+
+**Request (Multipart Form-Data):**
+* `file`: (The PDF/DOCX file)
+* `job_position`: `12`
+* `name`: `"Ahmed Salem"` (Optional)
+
+**Success Response (201):** Returns the full document object as shown above.
+
+---
+
+## 3. 📤 CV Submissions (/api/cv-submissions/)
+
+Once a `Document` application's status is changed to **Active** (via `/api/documents/{id}/set_status/`), it is automatically promoted to a **CV Submission**. This is where HR manages the candidate's journey (Reviewing, Interviewing, etc.).
+
+### `GET /api/cv-submissions/` — List Submissions
+**Permissions:** Admin / HR / Recruiter see all. Employees see only their own.
+
+**Success Response (200):**
+```json
+[
+  {
+    "id": 45,
+    "user": 5,
+    "user_name": "Ahmed Salem",
+    "company": 2,
+    "company_name": "Sakr Shipping",
+    "position": 7,
+    "position_name": "2nd. Officer",
+    "status": "Approved",
+    "experience_years": 5,
+    "submitted_date": "2026-05-01",
+    "job_position": 12,
+    "job_position_details": {
+      "id": 12,
+      "quantity": 3,
+      "salary_min": "4000.00",
+      "salary_max": "5000.00",
+      "currency": "USD"
+    }
+  }
+]
+```
+
+---
+
 ## 4. Contracts
 
 The contracts endpoint integrates directly with CV Submissions and Job Order Positions, allowing you to instantly generate a contract pre-filled with the employee's details and the salary from the job position they applied for.
@@ -901,6 +989,19 @@ Use this to update fields (e.g. changing status to "Signed" or adjusting salary)
 | `GET` | `/api/contracts/{id}/` | Admin/HR | Contract detail |
 | `PATCH` | `/api/contracts/{id}/` | Admin/HR | Update a contract |
 | `DELETE` | `/api/contracts/{id}/` | Admin/HR | Delete a contract |
+
+### 📋 CVs & Applications
+| Method | Endpoint | Role | Purpose |
+|---|---|---|---|
+| `GET` | `/api/documents/` | All | List pending applications |
+| `POST` | `/api/documents/` | All | Direct CV upload |
+| `POST` | `/api/documents/{id}/set_status/` | Admin/HR | Approve (Active) or Reject |
+
+### 📤 CV Submissions
+| Method | Endpoint | Role | Purpose |
+|---|---|---|---|
+| `GET` | `/api/cv-submissions/` | All | List approved submissions |
+| `GET` | `/api/cv-submissions/{id}/` | All | Submission details & documents |
 
 ---
 
