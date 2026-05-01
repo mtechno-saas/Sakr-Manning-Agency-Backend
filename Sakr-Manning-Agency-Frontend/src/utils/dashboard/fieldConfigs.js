@@ -1326,6 +1326,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     options: [
       { value: "Pending", label: "Pending" },
       { value: "Open", label: "Open" },
+      { value: "Active", label: "Active" },
       { value: "In Progress", label: "In Progress" },
       { value: "Fulfilled", label: "Fulfilled" },
       { value: "Cancelled", label: "Cancelled" },
@@ -1360,28 +1361,6 @@ export const JOB_POSITION_FORM_FIELDS = [
     validation: {
       required: "Rank is required",
     },
-    options: [], // Loaded from context
-    defaultValue: "",
-    transformOnLoad: (val) => (val && typeof val === "object" ? val.id : val),
-  },
-  {
-    name: "vessel_type",
-    label: "Vessel Type",
-    type: "select",
-    component: "Select",
-    required: true,
-    placeholder: "Select Vessel Type",
-    options: [], // Loaded from context
-    defaultValue: "",
-    transformOnLoad: (val) => (val && typeof val === "object" ? val.id : val),
-  },
-  {
-    name: "flag",
-    label: "Flag",
-    type: "select",
-    component: "Select",
-    required: false,
-    placeholder: "Select Flag",
     options: [], // Loaded from context
     defaultValue: "",
     transformOnLoad: (val) => (val && typeof val === "object" ? val.id : val),

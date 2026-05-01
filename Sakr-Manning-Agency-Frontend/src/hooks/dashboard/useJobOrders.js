@@ -71,6 +71,25 @@ export const useJobOrders = () => {
         }
     }, [canCreate, notify]);
 
+    const updateJobOrder = useCallback(async (id, data) => {
+        if (!canEdit) {
+            notify.error("Permission denied");
+            return { success: false };
+        }
+        setLoading(true);
+        try {
+            const updatedOrder = await jobOrdersApi.updateJobOrder(id, data);
+            setJobOrders(prev => prev.map(o => o.id === id ? { ...o, ...updatedOrder } : o));
+            notify.success("Job order updated");
+            return { success: true, data: updatedOrder };
+        } catch (err) {
+            notify.error(err.message || "Failed to update job order");
+            return { success: false };
+        } finally {
+            setLoading(false);
+        }
+    }, [canEdit, notify]);
+
     const deleteJobOrder = useCallback(async (id) => {
         if (!canDelete) return { success: false };
         try {
@@ -128,6 +147,7 @@ export const useJobOrders = () => {
         canDelete,
         fetchJobOrders,
         createJobOrder,
+        updateJobOrder,
         deleteJobOrder,
         addPositionToOrder,
         removePosition

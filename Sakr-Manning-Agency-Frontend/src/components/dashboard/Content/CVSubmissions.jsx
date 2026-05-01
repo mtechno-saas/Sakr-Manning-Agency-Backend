@@ -221,7 +221,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         {
             key: "generatedId",
             title: "ID",
-            width: 110,
+            width: 200,
             sortable: false,
             render: (val) => val,
         },
