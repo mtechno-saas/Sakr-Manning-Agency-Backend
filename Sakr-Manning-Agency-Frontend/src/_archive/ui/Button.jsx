@@ -16,6 +16,7 @@ const Button = forwardRef(
       leftIcon: LeftIcon,
       rightIcon: RightIcon,
       fullWidth = false,
+      small = false,
       "aria-label": ariaLabel,
       ...props
     },
@@ -119,9 +120,11 @@ const Button = forwardRef(
       onClick?.(e);
     };
 
+    const activeSize = small ? "sm" : size;
+
     const combinedClasses = `
     ${baseClasses}
-    ${sizeClasses[size]}
+    ${sizeClasses[activeSize]}
     ${variantClasses[variant]}
     ${widthClasses}
     ${className}

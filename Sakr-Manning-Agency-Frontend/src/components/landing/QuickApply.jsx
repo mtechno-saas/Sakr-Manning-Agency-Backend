@@ -8,6 +8,7 @@ import { useQuickApply } from "../../hooks/dashboard/useQuickApply";
 import { useApplicationStatus } from "../../hooks/useApplicationStatus";
 import { jobOrdersApi } from "../../services/Dashboard/jobOrdersApi";
 import { Paperclip } from 'lucide-react';
+import { Select } from "../form/inputs/Select";
 
 // Styles matching the modern aesthetic
 const styles = {
@@ -171,6 +172,7 @@ const QuickApply = () => {
     const {
         register,
         handleSubmit,
+        setValue,
         formState: { errors },
         watch,
     } = useForm();
@@ -212,15 +214,49 @@ const QuickApply = () => {
     // Success Screen
     if (isSubmitted) {
         return (
-            <div style={styles.container}>
+            <>
+                <style>{`
+                    @media (max-width: 1024px) {
+                        .quick-apply-container {
+                            padding: 20px 16px !important;
+                            justify-content: flex-start !important;
+                            align-items: center !important;
+                            flex-direction: column !important;
+                        }
+                        .quick-apply-left {
+                            position: relative !important;
+                            display: block !important;
+                            top: auto !important;
+                            left: auto !important;
+                            transform: none !important;
+                            width: 100% !important;
+                            padding-left: 0 !important;
+                            text-align: center !important;
+                            margin-top: 20px !important;
+                            margin-bottom: 48px !important;
+                        }
+                        .quick-apply-left-title {
+                            font-size: 22px !important;
+                            line-height: 1.4 !important;
+                            text-shadow: 1px 1px 3px rgba(0,0,0,0.5) !important;
+                        }
+                        .quick-apply-card {
+                            width: 100% !important;
+                            max-width: 480px !important;
+                            margin-top: 0 !important;
+                            padding: 24px !important;
+                        }
+                    }
+                `}</style>
+                <div className="quick-apply-container" style={styles.container}>
 
-                <div style={styles.overlay}></div>
-                <div style={styles.leftContent}>
-                    <h1 style={styles.leftTitle}>
-                        Create detailed crew profiles with a few simple steps.
-                    </h1>
-                </div>
-                <div style={styles.card}>
+                    <div style={styles.overlay}></div>
+                    <div className="quick-apply-left" style={styles.leftContent}>
+                        <h1 className="quick-apply-left-title" style={styles.leftTitle}>
+                            Create detailed crew profiles with a few simple steps.
+                        </h1>
+                    </div>
+                    <div className="quick-apply-card" style={styles.card}>
                     <div style={styles.successCard}>
                         <div style={{ fontSize: "48px", marginBottom: "20px" }}>🎉</div>
                         <h2 style={styles.title}>Application Received!</h2>
@@ -236,25 +272,96 @@ const QuickApply = () => {
                     </div>
                 </div>
             </div>
+            </>
         );
     }
 
     // Application Form
     return (
         <>
-            <div className="bg-white shadow-sm z-40 px-16 py-3 flex items-center gap-4">
+            <style>{`
+                @media (max-width: 1024px) {
+                    .quick-apply-container {
+                        padding: 12px 12px !important;
+                        justify-content: center !important;
+                        align-items: center !important;
+                        flex-direction: column !important;
+                    }
+                    .quick-apply-left {
+                        position: relative !important;
+                        display: block !important;
+                        top: auto !important;
+                        left: auto !important;
+                        transform: none !important;
+                        width: 100% !important;
+                        padding-left: 0 !important;
+                        text-align: center !important;
+                        margin-top: 10px !important;
+                        margin-bottom: 48px !important; /* Doubled space between rows */
+                        z-index: 10 !important;
+                    }
+                    .quick-apply-left-title {
+                        font-size: 24px !important; /* Slightly larger for tablet balance */
+                        line-height: 1.4 !important;
+                        text-shadow: 1px 1px 4px rgba(0,0,0,0.6) !important;
+                    }
+                    .quick-apply-card {
+                        width: 100% !important;
+                        max-width: 480px !important; /* Prevent over-expansion on tablets */
+                        margin-top: 0 !important;
+                        padding: 24px !important; /* Consistent padding */
+                    }
+                    .quick-apply-card h1 {
+                        font-size: 20px !important;
+                        margin-bottom: 2px !important;
+                    }
+                    .quick-apply-card p {
+                        font-size: 12px !important;
+                        margin-bottom: 8px !important;
+                    }
+                    .quick-apply-card input, .quick-apply-card select, .quick-apply-card button[role="combobox"] {
+                        padding: 8px 12px !important;
+                        font-size: 13px !important;
+                        border-radius: 8px !important;
+                        min-height: 38px !important;
+                    }
+                    .quick-apply-form-label {
+                        display: none !important;
+                    }
+                    .quick-apply-card form > div {
+                        margin-bottom: 16px !important;
+                    }
+                    .quick-apply-buttons-container {
+                        display: flex !important;
+                        flex-direction: row !important;
+                        gap: 12px !important;
+                        margin-top: 16px !important;
+                    }
+                    .quick-apply-btn {
+                        height: 38px !important;
+                        font-size: 13px !important;
+                        flex: 1 !important;
+                        width: auto !important;
+                    }
+                    .quick-apply-header {
+                        padding-left: 12px !important;
+                        padding-right: 12px !important;
+                    }
+                }
+            `}</style>
+            <div className="bg-white shadow-sm z-40 px-16 py-3 flex items-center gap-4 quick-apply-header">
                 <img src={ASSETS.LOGO} alt="Sakr Logo" className="w-10 h-10 object-contain" />
                 <h1 className="text-lg font-medium text-gray-900">SAKR MANNING AGENCY</h1>
             </div>
 
-            <div style={{ ...styles.container, backgroundImage: `url(${ASSETS.QUICKBG})` }}>
+            <div className="quick-apply-container" style={{ ...styles.container, backgroundImage: `url(${ASSETS.QUICKBG})` }}>
                 <div style={styles.overlay}></div>
-                <div style={styles.leftContent}>
-                    <h1 style={styles.leftTitle}>
+                <div className="quick-apply-left" style={styles.leftContent}>
+                    <h1 className="quick-apply-left-title" style={styles.leftTitle}>
                         Create detailed crew profiles with a few simple steps.
                     </h1>
                 </div>
-                <div style={styles.card}>
+                <div className="quick-apply-card" style={styles.card}>
                     {/* <div style={{ textAlign: "center", marginBottom: "20px" }}>
                     <img src={ASSETS.LOGO} alt="Sakr Maritime" height="40" />
                 </div> */}
@@ -295,7 +402,7 @@ const QuickApply = () => {
                     <form onSubmit={handleSubmit(onSubmit)}>
                         {/* Full Name */}
                         <div style={styles.inputGroup}>
-                            <label style={styles.label}>Full Name *</label>
+                            <label className="quick-apply-form-label" style={styles.label}>Full Name *</label>
                             <input
                                 style={styles.input}
                                 placeholder="Enter your name"
@@ -314,7 +421,7 @@ const QuickApply = () => {
 
                         {/* Email */}
                         <div style={styles.inputGroup}>
-                            <label style={styles.label}>Email Address *</label>
+                            <label className="quick-apply-form-label" style={styles.label}>Email Address *</label>
                             <input
                                 type="email"
                                 style={styles.input}
@@ -334,7 +441,7 @@ const QuickApply = () => {
 
                         {/* Phone Number */}
                         <div style={styles.inputGroup}>
-                            <label style={styles.label}>Phone Number *</label>
+                            <label className="quick-apply-form-label" style={styles.label}>Phone Number *</label>
                             <input
                                 style={styles.input}
                                 placeholder="+201242222222"
@@ -353,40 +460,43 @@ const QuickApply = () => {
 
                         {/* Position */}
                         <div style={styles.inputGroup}>
-                            <label style={styles.label}>General Position (Rank)</label>
-                            <select
-                                style={styles.input}
-                                {...register("position")}
-                            >
-                                <option value="">Select Rank (Optional)</option>
-                                {(positions || []).map((pos) => (
-                                    <option key={pos.id ?? pos.name} value={pos.id ?? pos.name}>
-                                        {pos.name ?? pos.label ?? pos.title}
-                                    </option>
-                                ))}
-                            </select>
+                            <label className="quick-apply-form-label" style={styles.label}>General Position (Rank)</label>
+                            <Select
+                                name="position"
+                                placeholder="Select Rank (Optional)"
+                                searchable={true}
+                                value={watch("position")}
+                                onChange={(val) => setValue("position", val)}
+                                options={(positions || []).map((pos) => {
+                                    const label = pos.name ?? pos.label ?? pos.title ?? String(pos);
+                                    const value = pos.id ?? pos.name ?? pos.title ?? label;
+                                    return { value, label };
+                                })}
+                                variant="light"
+                            />
                         </div>
 
                         {/* Available Vacancy */}
                         <div style={styles.inputGroup}>
-                            <label style={styles.label}>Apply for Specific Vacancy</label>
-                            <select
-                                style={styles.input}
-                                {...register("job_position")}
+                            <label className="quick-apply-form-label" style={styles.label}>Apply for Specific Vacancy</label>
+                            <Select
+                                name="job_position"
+                                placeholder="Select Vacancy (Optional)"
+                                searchable={true}
+                                value={watch("job_position")}
+                                onChange={(val) => setValue("job_position", val)}
                                 disabled={loadingVacancies}
-                            >
-                                <option value="">Select Vacancy (Optional)</option>
-                                {vacancies.map((vacancy) => (
-                                    <option key={vacancy.id} value={vacancy.id}>
-                                        {vacancy.rank_name} {vacancy.ship_name ? `@ ${vacancy.ship_name}` : ""} {vacancy.company_name ? `(${vacancy.company_name})` : ""}
-                                    </option>
-                                ))}
-                            </select>
+                                options={vacancies.map((vacancy) => ({
+                                    value: vacancy.id,
+                                    label: `${vacancy.rank_name} ${vacancy.ship_name ? `@ ${vacancy.ship_name}` : ""} ${vacancy.company_name ? `(${vacancy.company_name})` : ""}`.trim()
+                                }))}
+                                variant="light"
+                            />
                         </div>
 
                         {/* CV Upload */}
                         <div style={styles.inputGroup}>
-                            <label style={styles.label}>Upload CV *</label>
+                            <label className="quick-apply-form-label" style={styles.label}>Upload CV *</label>
                             <div style={styles.fileInput}>
                                 <div style={styles.fileInputIcon}><Paperclip size="16px" /></div>
                                 <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>
@@ -435,30 +545,32 @@ const QuickApply = () => {
                             {errors.file && <p style={styles.error}>{errors.file.message}</p>}
                         </div>
 
-                        {/* Submit Button */}
-                        <div style={{ marginTop: "8px" }}>
+                        {/* Action Buttons */}
+                        <div className="flex flex-col md:block quick-apply-buttons-container" style={{ marginTop: "8px" }}>
                             <Button
                                 variant="primary"
                                 type="submit"
                                 disabled={isSubmitting}
+                                className="quick-apply-btn"
                                 style={{
                                     width: "100%",
                                     borderRadius: "24px",
                                     height: "48px",
                                     opacity: isSubmitting ? 0.7 : 1,
-                                    cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                                    marginBottom: "8px"
                                 }}
                             >
-                                {isSubmitting ? "Submitting..." : "Submit Application"}
+                                <span className="hidden md:inline">{isSubmitting ? "Submitting..." : "Submit Application"}</span>
+                                <span className="inline md:hidden">{isSubmitting ? "Submitting" : "Submit"}</span>
                             </Button>
-                        </div>
 
-                        <div style={{ textAlign: 'center', marginTop: '8px' }}>
                             <Button
                                 variant="outlined"
                                 type="button"
                                 onClick={() => navigate('/')}
                                 disabled={isSubmitting}
+                                className="quick-apply-btn"
                                 style={{
                                     width: "100%",
                                     borderRadius: "24px",

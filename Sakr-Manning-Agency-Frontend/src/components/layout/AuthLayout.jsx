@@ -9,18 +9,18 @@ const AuthLayout = ({
   sideContent,
 }) => {
   return (
-    <div className="min-h-screen relative flex flex-row-reverse px-9">
+    <div className="min-h-screen relative flex flex-col-reverse lg:flex-row-reverse px-4 lg:px-9 py-8 lg:py-0">
       <Background />
 
-      {/* Left Side - Form */}
-      <div className="relative z-10 flex-1 flex items-center justify-center px-4 lg:px-12">
-        <div className="w-full max-w-md">{children}</div>
+      {/* Left Side - Form (DOM Order 1, appears below on mobile/tablet, right on desktop) */}
+      <div className="relative z-10 flex-1 flex items-center justify-center px-0 sm:px-4 lg:px-12 mt-2 lg:mt-0">
+        <div className="w-full max-w-[620px] flex justify-center">{children}</div>
       </div>
 
-      {/* Right Side - Content */}
+      {/* Right Side - Content (DOM Order 2, appears above on mobile/tablet, left on desktop) */}
       {showSideContent && (
-        <div className="hidden lg:flex flex-1 items-start justify-center mt-20 text-white relative z-10">
-          <div className="w-full px-4">
+        <div className="flex flex-1 items-center lg:items-start justify-center lg:mt-20 text-white relative z-10 mb-2 lg:mb-0">
+          <div className="w-full px-0 text-center lg:text-left">
             {sideContent || (
               <DefaultSideContent title={title} subtitle={subtitle} />
             )}
@@ -33,12 +33,12 @@ const AuthLayout = ({
 
 // Default side content component
 const DefaultSideContent = ({ title, subtitle }) => (
-  <div className="animate-fade-in text-center lg:text-left">
-    <h1 className="text-3xl lg:text-[55px] font-semibold mb-6 leading-[150%] tracking-wider animate-slide-up">
+  <div className="animate-fade-in">
+    <h1 className="text-2xl md:text-[50px] lg:text-[55px] font-semibold mb-2 lg:mb-6 leading-[130%] lg:leading-[150%] tracking-wider animate-slide-up" style={{ textShadow: "1px 1px 4px rgba(0,0,0,0.6)" }}>
       {title || "Sign up to access all features and services"}
     </h1>
     <p
-      className="text-lg lg:text-xl opacity-90 mb-8 leading-relaxed animate-slide-up"
+      className="text-sm md:text-2xl lg:text-xl opacity-90 mb-0 lg:mb-8 leading-relaxed animate-slide-up"
       style={{ animationDelay: "0.1s" }}
     >
       {subtitle || " "}

@@ -54,7 +54,7 @@ export const LoginForm = ({
   };
 
   return (
-    <div className="w-[620px] h-[703px] bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-maritime-200/20 border-3 border-maritime-600 flex flex-col justify-center items-center relative">
+    <div className="w-[95%] md:w-[620px] h-auto md:h-[703px] min-h-fit md:min-h-[703px] pt-12 pb-6 md:py-8 bg-white/95 backdrop-blur-sm rounded-3xl p-4 md:p-8 shadow-2xl border border-maritime-200/20 border-[3px] border-maritime-600 flex flex-col justify-center items-center relative my-6 md:my-0 mx-auto">
       {/* Back to Home Button */}
       <button
         onClick={() => navigate("/")}
@@ -66,14 +66,14 @@ export const LoginForm = ({
       </button>
 
       {/* Header */}
-      <div className="mb-6 text-center mt-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Welcome Back to Sakr Manning Agency
+      <div className="mb-3 md:mb-6 text-center mt-1 md:mt-4">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 md:mb-2">
+          Welcome Back
         </h2>
       </div>
 
       {/* Google Sign-In Button */}
-      <div className="w-full px-6 mb-4">
+      <div className="w-full px-0 md:px-6 mb-3 md:mb-4">
         <GoogleLoginButton
           onSuccess={handleGoogleSuccess}
           onError={handleGoogleError}
@@ -82,7 +82,7 @@ export const LoginForm = ({
       </div>
 
       {/* Divider */}
-      <div className="w-full px-6 mb-4">
+      <div className="w-full px-0 md:px-6 mb-6 md:mb-6 mt-2 md:mt-0">
         <div className="relative flex items-center">
           <div className="flex-grow border-t border-gray-300"></div>
           <span className="flex-shrink mx-4 text-sm text-gray-500">or</span>
@@ -94,7 +94,7 @@ export const LoginForm = ({
       <form
         onSubmit={onFormSubmit}
         noValidate
-        className="space-y-5 w-full px-6"
+        className="space-y-3 md:space-y-7 w-full px-0 md:px-6"
       >
         {/* Email Field */}
         <Input
@@ -103,6 +103,7 @@ export const LoginForm = ({
           placeholder="Enter your email address"
           label=""
           required
+          small
           autoComplete="email"
           className="rounded-xl border-gray-200 focus:border-maritime-400 focus:ring-maritime-400/20"
         />
@@ -115,6 +116,7 @@ export const LoginForm = ({
           placeholder="Enter your password"
           label=""
           required
+          small
           showPasswordToggle
           autoComplete="current-password"
           className="rounded-xl border-gray-200 focus:border-maritime-400 focus:ring-maritime-400/20"
@@ -127,15 +129,15 @@ export const LoginForm = ({
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-4 w-4 text-maritime-600 focus:ring-maritime-500 border-gray-300 rounded"
+              className="h-3.5 w-3.5 md:h-4 md:w-4 text-maritime-600 focus:ring-maritime-500 border-gray-300 rounded"
             />
-            <span className="ml-2 text-sm text-gray-600">Remember me</span>
+            <span className="ml-1.5 md:ml-2 text-xs md:text-sm text-gray-600">Remember me</span>
           </label>
 
           <button
             type="button"
             onClick={onForgotPassword}
-            className="text-sm text-gray-500 hover:text-maritime-700 font-medium transition-colors duration-200"
+            className="text-xs md:text-sm text-gray-500 hover:text-maritime-700 font-medium transition-colors duration-200"
           >
             Forgot your password?
           </button>
