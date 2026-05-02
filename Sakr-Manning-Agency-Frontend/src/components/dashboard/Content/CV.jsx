@@ -257,7 +257,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
       {
         key: "phone",
         title: "Phone",
-        width: 140,
+        width: 180,
         sortable: false,
         render: (value) => value,
       },
