@@ -439,7 +439,7 @@ const InterviewCalendar = ({
  * Helper to get color based on interview type
  */
 const getTypeColor = (type) => {
-  switch (type) {
+  switch (type?.toLowerCase()) {
     case "video":
       return "#2477C3";
     case "phone":
