@@ -381,6 +381,7 @@ export function DashboardDataProvider({ children }) {
 
         // Entity Data
         companies,
+        users,
         companyMap,
         ships,
         shipsByCompany,

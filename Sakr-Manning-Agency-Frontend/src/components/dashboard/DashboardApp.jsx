@@ -48,9 +48,9 @@ const DashboardAppContent = ({ onLogout, user }) => {
 
   // Determine if we are in the initial loading phase
   // We consider it initial loading if critical data hasn't arrived yet
-  const isInitialLoading = (loadingCompanies && companies.length === 0) || 
-                          (loadingUsers && users.length === 0) || 
-                          (loadingRanks && ranks.length === 0);
+  const isInitialLoading = (loadingCompanies && (companies?.length ?? 0) === 0) || 
+                          (loadingUsers && (users?.length ?? 0) === 0) || 
+                          (loadingRanks && (ranks?.length ?? 0) === 0);
 
   const userData = user;
 
