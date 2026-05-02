@@ -3,7 +3,8 @@
 // Enter key or click search icon to trigger global search
 
 import React, { useEffect } from "react";
-import { Search, Filter, Bell, Menu } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Filter, Bell, Menu, Home } from "lucide-react";
 import { COLORS } from "./Constants";
 import useSearch from "./hooks/useSearch";
 import UserProfile from "./Components/Data/UserProfile";
@@ -17,6 +18,7 @@ export const Header = ({
   onSearchSubmit, // ✅ NEW: Callback for search submission
   user,
 }) => {
+  const navigate = useNavigate();
   const { searchQuery, setSearchQuery } = useSearch();
 
   // ✅ NEW: Handle search submission
@@ -34,9 +36,7 @@ export const Header = ({
     }
   };
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
+
 
   const headerHeight = Math.round(101 * scale);
   const padding = Math.round(20 * scale);
@@ -310,6 +310,35 @@ export const Header = ({
             Logout
           </div>
         )} */}
+
+        {/* Home / Landing Page button */}
+        <button
+          onClick={() => navigate("/")}
+          title="Go to Landing Page"
+          style={{
+            width: `${buttonSize}px`,
+            height: `${buttonSize}px`,
+            backgroundColor: "#F5F7FA",
+            border: "none",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            flexShrink: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#dbeafe";
+            e.currentTarget.style.color = "#1d4ed8";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#F5F7FA";
+            e.currentTarget.style.color = COLORS.darkText;
+          }}
+        >
+          <Home size={Math.round(18 * scale)} color={COLORS.darkText} strokeWidth={1.5} />
+        </button>
 
         <UserProfile user={user} onLogout={onLogout} scale={scale} />
       </div>

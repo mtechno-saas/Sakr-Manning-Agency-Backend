@@ -8,8 +8,10 @@ import {
   Route,
   Navigate,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import { tokenStorage } from "./services/Auth/tokenStorage";
 
 import AuthLayout from "./components/layout/AuthLayout";
 import { LoginForm } from "./components/auth/LoginForm";
@@ -25,13 +27,34 @@ import LoadingScreen from "./components/dashboard/Components/Common/LoadingScree
 
 const DashboardApp = lazy(() => import("./components/dashboard/DashboardApp"));
 const SakrForm = lazy(() => import("./components/form/SakrForm"));
-const testing = false;
-// Auth Pages Component (handles all authentication screens)
+
+/** Shared helper – keep in sync with ProtectedRoute & authService */
+export const isAdminRole = (role) => {
+  const r = role?.toLowerCase();
+  return r === "admin" || r === "administrator";
+};
+// Auth Pages — redirect already-authenticated users away from /auth
 const AuthPages = () => {
   const navigate = useNavigate();
+  const { state } = useLocation();
+
+  // Fast pre-check: if a valid session exists in storage, skip the auth page.
+  // This prevents a logged-in admin from landing back on /auth via the back button.
+  useEffect(() => {
+    const storedUser = tokenStorage.getUser();
+    if (storedUser) {
+      if (tokenStorage.isStoredAdmin()) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/quick-apply", { replace: true });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [currentAuthStep, setCurrentAuthStep] = useState(AUTH_STEPS.LOGIN);
   const [pendingUserData, setPendingUserData] = useState(null);
-  const [intendedPath, setIntendedPath] = useState(null);
+  const [intendedPath, setIntendedPath] = useState(state?.intendedPath || null);
 
   const {
     // user,
@@ -58,21 +81,12 @@ const AuthPages = () => {
     const result = await login(credentials);
 
     if (result.success && result.user) {
-      const userRole = result.user.role;
-      const isAdmin =
-        userRole === "admin" ||
-        userRole === "administrator" ||
-        userRole === "Admin";
-
-      // console.log("Login successful, user:", result.user.role);
-      if (testing || isAdmin) {
+      if (isAdminRole(result.user.role)) {
         navigate("/dashboard");
-        setIntendedPath(null);
       } else {
-        // Navigate to intended path or quick apply page
         navigate(intendedPath || "/quick-apply");
-        setIntendedPath(null);
       }
+      setIntendedPath(null);
     }
     // Error will be displayed via the error toast
   };
@@ -86,7 +100,7 @@ const AuthPages = () => {
         await sendVerificationCode(userData.email);
         setCurrentAuthStep(AUTH_STEPS.VERIFICATION);
       } else {
-        // No verification needed - user is already logged in
+        // No verification needed — user is already logged in
         navigate(intendedPath || "/quick-apply");
         setPendingUserData(null);
         setIntendedPath(null);
@@ -210,7 +224,7 @@ const AuthPages = () => {
 const Landing = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  // console.log("user from auth : ", user);
+
   const handleLogout = async () => {
     await logout();
     navigate("/");
@@ -238,45 +252,15 @@ const Landing = () => {
   );
 };
 
-// Dashboard Wrapper
+// Dashboard Wrapper — access already enforced by ProtectedRoute above
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  useEffect(() => {
-    const checkAdminAccess = () => {
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-
-      const userRole = user.role?.toLowerCase();
-      const isAdmin = userRole === "admin" || userRole === "administrator" || userRole === "Admin";
-      if (!isAdmin) {
-        if (testing) {
-          navigate("/dashboard", { replace: true });
-        } else {
-          console.warn(
-            "Non-admin user attempted to access dashboard. Redirecting..."
-          );
-          navigate("/", { replace: true });
-        }
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
-    };
-    checkAdminAccess();
-  }, [user, navigate]);
 
   const handleLogout = async () => {
     await logout();
     navigate("/");
   };
-
-  const userRole = user?.role?.toLowerCase();
-  const isAdmin = userRole === "admin" || userRole === "administrator" || userRole === "Admin";
-  if (!testing && !isAdmin) {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <Suspense fallback={<LoadingScreen fullScreen={true} message="Loading Dashboard" subMessage="Preparing your maritime control panel" />}>
@@ -362,10 +346,10 @@ const App = () => {
           {/* Landing Page - Base Route */}
           <Route path="/" element={<Landing />} />
 
-          {/* Authentication Route */}
+          {/* Authentication Route — AuthPages itself handles redirect if already logged in */}
           <Route path="/auth" element={<AuthPages />} />
+
           {/* Dashboard Route (Admin only) */}
-          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
           <Route
             path="/dashboard"
             element={
@@ -379,9 +363,9 @@ const App = () => {
           <Route
             path="/form"
             element={
-              // <ProtectedRoute>
-              <FormPage />
-              // </ProtectedRoute>
+              <ProtectedRoute>
+                <FormPage />
+              </ProtectedRoute>
             }
           />
 

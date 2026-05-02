@@ -145,14 +145,14 @@ const HomePage = ({ onOpenForm, onNavigate }) => {
                     <Button
                       onClick={onOpenForm}
                       variant="primary"
-                      className="w-28 h-9 sm:w-32 sm:h-10 md:w-36 md:h-11 lg:w-40 lg:h-12 2xl:w-48 2xl:h-14 text-xs sm:text-sm md:text-base 2xl:text-lg font-medium"
+                      className="w-28 h-9 sm:w-32 sm:h-10 md:w-42 md:h-11 lg:w-48 lg:h-12 2xl:w-48 2xl:h-14 text-xs sm:text-sm md:text-base 2xl:text-lg font-medium"
                     >
                       Online Form
                     </Button>
                     <Button
                       onClick={scrollToJobs}
                       variant="outlined"
-                      className="w-28 h-9 sm:w-32 sm:h-10 md:w-36 md:h-11 lg:w-40 lg:h-12 2xl:w-48 2xl:h-14 text-xs sm:text-sm md:text-base 2xl:text-lg font-medium"
+                      className="w-28 h-9 sm:w-32 sm:h-10 md:w-42 md:h-11 lg:w-48 lg:h-12 2xl:w-48 2xl:h-14 text-xs sm:text-sm md:text-base 2xl:text-lg font-medium"
                     >
                       Open Vacancies
                     </Button>

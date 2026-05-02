@@ -1,22 +1,37 @@
 // tokenStorage.js
+// ─────────────────────────────────────────────────────────────────────────────
+// SECURITY MODEL
+// ─────────────────────────────────────────────────────────────────────────────
+//  • JWT tokens  → "Secure; SameSite=Strict" cookies (JS-readable, NOT HttpOnly)
+//    Note: True HttpOnly cookies require the backend to set them via Set-Cookie
+//    headers. Since this is a SPA calling a separate API, we use JS cookies which
+//    are still XSS-readable but protected from CSRF (SameSite=Strict).
+//    Risk mitigation: keep access token lifetime short (15–60 min).
+//
+//  • User profile / role → localStorage
+//    The role field is UI-only. Backend enforces permissions via JWT on every
+//    request. A user who edits their localStorage role only fools their own UI.
+// ─────────────────────────────────────────────────────────────────────────────
+
 const TOKEN_KEYS = {
-  ACCESS: "maritime_access_token_new",
-  REFRESH: "maritime_refresh_token_new",
-  USER: "maritime_user_new",
+  ACCESS: "maritime_access_token",
+  REFRESH: "maritime_refresh_token",
+  USER: "maritime_user",
 };
 
-// Production detection
-const isProduction = true;
-// Cookie helpers
+// Use Vite's built-in env flag — true in `npm run build`, false in `npm run dev`
+const isProduction = import.meta.env.PROD;
+
+// ── Cookie helpers ────────────────────────────────────────────────────────────
 const setCookie = (name, value, days = 7) => {
-  if (!isProduction) return; // Only use cookies in production
   const expires = new Date();
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;Secure;SameSite=Strict`;
+  // Secure flag only works on HTTPS — omit on localhost (dev)
+  const secureFlag = isProduction ? ";Secure" : "";
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/${secureFlag};SameSite=Strict`;
 };
 
 const getCookie = (name) => {
-  if (!isProduction) return null;
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(";").shift();
@@ -24,15 +39,15 @@ const getCookie = (name) => {
 };
 
 const deleteCookie = (name) => {
-  if (!isProduction) return;
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/;Secure;SameSite=Strict`;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/;SameSite=Strict`;
 };
 
+// ── Token storage (cookies in production, localStorage in dev) ────────────────
 export const tokenStorage = {
-  // Access Token
+  // ── Access Token ────────────────────────────────────────────────────────────
   setAccessToken: (token) => {
     if (isProduction) {
-      setCookie(TOKEN_KEYS.ACCESS, token, 1); // 1 day for access token
+      setCookie(TOKEN_KEYS.ACCESS, token, 1); // 1 day
     } else {
       localStorage.setItem(TOKEN_KEYS.ACCESS, token);
     }
@@ -53,10 +68,10 @@ export const tokenStorage = {
     }
   },
 
-  // Refresh Token
+  // ── Refresh Token ───────────────────────────────────────────────────────────
   setRefreshToken: (token) => {
     if (isProduction) {
-      setCookie(TOKEN_KEYS.REFRESH, token, 15); // 15 days for refresh token
+      setCookie(TOKEN_KEYS.REFRESH, token, 15); // 15 days
     } else {
       localStorage.setItem(TOKEN_KEYS.REFRESH, token);
     }
@@ -77,25 +92,55 @@ export const tokenStorage = {
     }
   },
 
-  // User Data (keep in localStorage as it's not sensitive)
+  // ── User Profile (localStorage — not sensitive) ─────────────────────────────
   setUser: (user) => {
-    localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(user));
+    try {
+      localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(user));
+    } catch {
+      // Storage quota exceeded — silently fail, data still lives in memory
+    }
   },
 
   getUser: () => {
-    const user = localStorage.getItem(TOKEN_KEYS.USER);
-    return user ? JSON.parse(user) : null;
+    try {
+      const user = localStorage.getItem(TOKEN_KEYS.USER);
+      return user ? JSON.parse(user) : null;
+    } catch {
+      return null;
+    }
   },
 
   removeUser: () => {
     localStorage.removeItem(TOKEN_KEYS.USER);
   },
 
-  // Clear all
+  // ── Convenience: read role directly from stored user ────────────────────────
+  // UI-only — backend enforces real permissions. Do NOT trust this for security.
+  getStoredRole: () => {
+    try {
+      const user = localStorage.getItem(TOKEN_KEYS.USER);
+      if (!user) return null;
+      const parsed = JSON.parse(user);
+      return parsed?.role?.toLowerCase() ?? null;
+    } catch {
+      return null;
+    }
+  },
+
+  isStoredAdmin: () => {
+    const role = tokenStorage.getStoredRole();
+    return role === "admin" || role === "administrator";
+  },
+
+  // ── Clear everything ────────────────────────────────────────────────────────
   clearAll: () => {
+    // Remove localStorage items
     Object.values(TOKEN_KEYS).forEach((key) => {
       localStorage.removeItem(key);
-      deleteCookie(key);
     });
+    // Remove cookies
+    deleteCookie(TOKEN_KEYS.ACCESS);
+    deleteCookie(TOKEN_KEYS.REFRESH);
+    // Do NOT delete USER cookie — there isn't one; user is in localStorage
   },
 };

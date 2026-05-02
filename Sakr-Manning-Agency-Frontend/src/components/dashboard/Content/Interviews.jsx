@@ -3,6 +3,7 @@
 // Content/Interviews.jsx - COMPLETE with Full CRUD + Calendar + Backend Filtering
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { SmallProgressCard } from "../Components/Cards/StatisticsCards";
+import { Video, Phone, Users, Info, Filter, Calendar as LucideCalendar } from "lucide-react";
 import { ASSETS } from "../../../utils/constants";
 import { exportToCSV, exportToJSON } from "../../../utils/exportHelpers";
 
@@ -35,7 +36,7 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
 
   // UI Helper Functions
   const getInterviewTypeLabel = (type) => {
-    switch (type) {
+    switch (type?.toLowerCase()) {
       case "video":
         return "Video Call";
       case "phone":
@@ -44,6 +45,39 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
         return "In-Person";
       default:
         return type;
+    }
+  };
+
+  const getInterviewTypeIcon = (type) => {
+    const size = Math.round(18 * scale);
+    const color = "#6B7280"; // Neutral gray
+    
+    switch (type?.toLowerCase()) {
+      case "video":
+        return <Video size={size} color={color} />;
+      case "phone":
+        return <Phone size={size} color={color} />;
+      case "in-person":
+        return <Users size={size} color={color} />;
+      default:
+        return <Info size={size} color={color} />;
+    }
+  };
+
+  const formatInterviewDate = (dateStr) => {
+    if (!dateStr) return "TBD";
+    try {
+      // Parse YYYY-MM-DD safely to avoid timezone shifts
+      const [year, month, day] = dateStr.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+      
+      return date.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (e) {
+      return dateStr;
     }
   };
 
@@ -457,19 +491,7 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
             title="Filter interviews"
             scale={scale}
           >
-            <svg
-              width={Math.round(21 * scale)}
-              height={Math.round(21 * scale)}
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M3 6h18M6 12h12M9 18h6"
-                stroke="#1E1E1E"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
+            <Filter size={Math.round(21 * scale)} color="#1E1E1E" strokeWidth={1.5} />
           </Button>
           {interviews.length > 0 && (
             <Button variant="outline" onClick={handleExportCSV} scale={scale}>
@@ -602,6 +624,7 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
                   alignItems: "flex-start",
                   gap: `${Math.round(66 * scale)}px`,
                   flex: 1,
+                  paddingTop: `${Math.round(4 * scale)}px`
                 }}
               >
                 {/* Date & Time */}
@@ -627,20 +650,21 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
                   <div>
                     <div
                       style={{
-                        fontSize: `${Math.round(20 * scale)}px`,
-                        fontWeight: 500,
-                        color: "#000000",
-                        fontFamily: "Poppins, sans-serif",
+                        fontSize: `${Math.round(18 * scale)}px`,
+                        fontWeight: 600,
+                        color: "#1F2937",
+                        fontFamily: "Inter, sans-serif",
+                        marginBottom: `${Math.round(2 * scale)}px`
                       }}
                     >
-                      {interview.date}
+                      {formatInterviewDate(interview.date)}
                     </div>
                     <div
                       style={{
-                        fontSize: `${Math.round(20 * scale)}px`,
+                        fontSize: `${Math.round(16 * scale)}px`,
                         fontWeight: 500,
-                        color: "#000000",
-                        fontFamily: "Poppins, sans-serif",
+                        color: "#6B7280",
+                        fontFamily: "Inter, sans-serif",
                       }}
                     >
                       {interview.time}
@@ -691,13 +715,29 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
                 {/* Interview Type */}
                 <div
                   style={{
-                    fontSize: `${Math.round(20 * scale)}px`,
-                    fontWeight: 500,
-                    color: "#000000",
-                    fontFamily: "Poppins, sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    alignSelf: "center",
+                    gap: `${Math.round(4 * scale)}px`,
+                    backgroundColor: "#F3F4F6",
+                    padding: `${Math.round(6 * scale)}px ${Math.round(10 * scale)}px`,
+                    borderRadius: `${Math.round(12 * scale)}px`,
+                    minWidth: "fit-content",
+                    whiteSpace: "nowrap"
                   }}
                 >
-                  {getInterviewTypeLabel(interview.type)}
+                  {getInterviewTypeIcon(interview.type)}
+                  <span
+                    style={{
+                      fontSize: `${Math.round(16 * scale)}px`,
+                      fontWeight: 500,
+                      color: "#374151",
+                      fontFamily: "Inter, sans-serif",
+                    }}
+                  >
+                    {getInterviewTypeLabel(interview.type)}
+                  </span>
                 </div>
               </div>
 
@@ -787,11 +827,13 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
           >
             <div
               style={{
-                fontSize: `${Math.round(48 * scale)}px`,
                 marginBottom: "20px",
+                display: "flex",
+                justifyContent: "center",
+                color: "#D1D5DB"
               }}
             >
-              📅
+              <LucideCalendar size={Math.round(64 * scale)} />
             </div>
             <h3
               style={{
