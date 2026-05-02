@@ -1,10 +1,14 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { LayoutDashboard } from "lucide-react";
 import { ASSETS } from "../../../utils/constants";
-// import { Search } from "lucide-react";
 
 const Header = ({ onNavigate, onOpenAuth, user, onLogout, currentPage }) => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [active, setActive] = useState("home");
+
+  const isAdmin = ["admin", "administrator"].includes(user?.role?.toLowerCase());
 
   const navLinks = [
     { id: "home", label: "Home" },
@@ -66,6 +70,17 @@ const Header = ({ onNavigate, onOpenAuth, user, onLogout, currentPage }) => {
             </button>
           ) : (
             <div className="flex items-center gap-3">
+              {/* Admin Dashboard shortcut */}
+              {isAdmin && (
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0065AF]/10 text-[#0065AF] hover:bg-[#0065AF]/20 transition text-sm font-medium"
+                  title="Go to Dashboard"
+                >
+                  <LayoutDashboard size={16} />
+                </button>
+              )}
+
               <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-[#0065AF] text-white font-bold">
                 {user?.profile_image ? (
                   <img
@@ -122,12 +137,26 @@ const Header = ({ onNavigate, onOpenAuth, user, onLogout, currentPage }) => {
               Sign up
             </button>
           ) : (
-            <button
-              onClick={onLogout}
-              className="text-sm sm:text-base text-gray-600 hover:text-red-500"
-            >
-              Logout
-            </button>
+            <div className="flex flex-col gap-2">
+              {/* Admin Dashboard shortcut - mobile */}
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    navigate("/dashboard");
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 w-full h-9 sm:h-10 px-4 rounded-[22px] bg-[#0065AF] text-white text-sm sm:text-base font-medium hover:bg-[#004b82] transition"
+                >
+                  <LayoutDashboard size={16} />
+                </button>
+              )}
+              <button
+                onClick={onLogout}
+                className="text-sm sm:text-base text-gray-600 hover:text-red-500"
+              >
+                Logout
+              </button>
+            </div>
           )}
         </div>
       )}
