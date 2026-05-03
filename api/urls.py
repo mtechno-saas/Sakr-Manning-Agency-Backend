@@ -36,6 +36,7 @@ from .views import (
     get_coc_choices,
     NextOfKinViewSet
 )
+from .application_views import SeafarerApplicationViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename="user")
@@ -54,6 +55,7 @@ router.register(r'my-languages', LanguageProficiencyViewSet, basename='my-langua
 router.register(r'user-languages', UserLanguageViewSet, basename="userlanguage")
 router.register(r'personal-documents', PersonalDocumentViewSet, basename="personaldocument")
 router.register(r'next-of-kin', NextOfKinViewSet, basename="nextofkin")
+router.register(r'seafarer-application', SeafarerApplicationViewSet, basename="seafarer-application")
 urlpatterns = [
     path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),
