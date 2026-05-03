@@ -132,7 +132,7 @@ export function ShipViewModal({
 
             {/* Flag & Ownership */}
             <Section title="Flag & Ownership" icon={Building} scale={scale} columns={2}>
-                <FieldItem label="Flag (ID)" value={ship.flag} icon={MapPin} scale={scale} />
+                <FieldItem label="Flag" value={ship.flag_name || ship.flag} icon={MapPin} scale={scale} />
                 <FieldItem
                     label="Company"
                     value={ship.associatedWithCompany || ship.company_name || `Company ID: ${ship.company}`}

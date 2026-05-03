@@ -147,6 +147,23 @@ export const useCVSubmissions = () => {
     }
   }, [notify]);
 
+  /**
+   * Fetch a single submission by ID (full rich payload)
+   */
+  const getSubmissionById = useCallback(async (id) => {
+    setLoading(true);
+    try {
+      const data = await cvSubmissionsApi.getSubmissionById(id);
+      return { success: true, data };
+    } catch (err) {
+      const msg = err.message || "Failed to load submission details";
+      notify.error(msg);
+      return { success: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  }, [notify]);
+
   const fetchCVStats = useCallback(async () => {
     try {
       const data = await cvSubmissionsApi.getCVSubmissionStats();
@@ -178,6 +195,7 @@ export const useCVSubmissions = () => {
     pagination,
     fetchSubmissions,
     fetchDocuments,
+    getSubmissionById,
     updateStatus,
     createSubmission,
     updateSubmission,

@@ -60,6 +60,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         submissions: backendSubmissions,
         loading,
         fetchSubmissions,
+        getSubmissionById,
         updateStatus,
         createSubmission,
         updateSubmission,
@@ -82,6 +83,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [submissionToDelete, setSubmissionToDelete] = useState(null);
     const [selectedSubmission, setSelectedSubmission] = useState(null);
+    const [viewLoading, setViewLoading] = useState(false);
 
     // ── Filter states ─────────────────────────────────────────────────────────
     const [showFilterModal, setShowFilterModal] = useState(false);
@@ -131,14 +133,22 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         else notify.error("Submission data not found");
     }, [backendSubmissions, canEdit, notify]);
 
-    const handleView = useCallback((row) => {
-        const submission = backendSubmissions.find((s) => s.id === row.id);
-        if (submission) {
-            setSelectedSubmission(submission);
-            setShowViewModal(true);
+    const handleView = useCallback(async (row) => {
+        setViewLoading(true);
+        try {
+            const result = await getSubmissionById(row.id);
+            if (result.success) {
+                setSelectedSubmission(result.data);
+                setShowViewModal(true);
+            } else {
+                notify.error("Could not load submission details");
+            }
+        } catch {
+            notify.error("Failed to load submission details");
+        } finally {
+            setViewLoading(false);
         }
-        else notify.error("Submission data not found");
-    }, [backendSubmissions, notify]);
+    }, [getSubmissionById, notify]);
 
     const handleDelete = useCallback((id) => {
         if (!canDelete) { notify.error("You do not have permission to delete applicants"); return; }
