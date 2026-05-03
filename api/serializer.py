@@ -326,6 +326,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
         pos = obj.job_position
         return {
             'id': pos.id,
+            'job_position_name': pos.rank.name if pos.rank else None,
             'quantity': pos.quantity,
             'salary_min': str(pos.salary_min) if pos.salary_min else None,
             'salary_max': str(pos.salary_max) if pos.salary_max else None,
@@ -899,6 +900,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         pos = obj.job_position
         return {
             'id': pos.id,
+            'job_position_name': pos.rank.name if pos.rank else None,
             'quantity': pos.quantity,
             'salary_min': str(pos.salary_min) if pos.salary_min else None,
             'salary_max': str(pos.salary_max) if pos.salary_max else None,
@@ -1112,6 +1114,7 @@ class ContractSerializer(serializers.ModelSerializer):
         pos = obj.job_position
         return {
             'id': pos.id,
+            'job_position_name': pos.rank.name if pos.rank else None,
             'quantity': pos.quantity,
             'salary_min': str(pos.salary_min) if pos.salary_min else None,
             'salary_max': str(pos.salary_max) if pos.salary_max else None,
@@ -1462,6 +1465,7 @@ class DocumentSerializer(serializers.ModelSerializer):
         pos = obj.job_position
         return {
             'id': pos.id,
+            'job_position_name': pos.rank.name if pos.rank else None,
             'quantity': pos.quantity,
             'salary_min': str(pos.salary_min) if pos.salary_min else None,
             'salary_max': str(pos.salary_max) if pos.salary_max else None,
