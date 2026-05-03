@@ -207,6 +207,20 @@ export const cvSubmissionsApi = {
     },
 
     /**
+     * Get a single CV Submission by ID (Section 4 — rich detail view)
+     * Returns full payload including job_position_details, user_documents, certificates, coded_rank
+     */
+    getSubmissionById: async (id) => {
+        try {
+            const response = await api.get(config.ENDPOINTS.CV_SUBMISSION_DETAIL(id));
+            return response.data;
+        } catch (error) {
+            console.error(`Failed to fetch submission ${id}:`, error);
+            throw new Error(handleApiError(error));
+        }
+    },
+
+    /**
      * Get submission statistics (Section 4 counts)
      */
     getCVSubmissionStats: async () => {
