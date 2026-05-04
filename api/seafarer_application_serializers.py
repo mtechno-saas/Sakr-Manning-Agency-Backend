@@ -7,7 +7,7 @@ from courses.models import Course
 from vaccinations.models import Vaccination
 from licenses.models import UserLicense
 from api.serializers import FlexibleDateField, FlexibleFileField
-from datetime import datetime
+from datetime import datetime, date
 
 class SeafarerApplicationSerializer(serializers.ModelSerializer):
     # Define these as fields that can be read and written
@@ -67,8 +67,8 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
     def _parse_date(self, date_str):
         if not date_str:
             return None
-        if isinstance(date_str, (datetime, datetime.date)):
-            return date_str
+        if isinstance(date_str, (date, datetime)):
+            return date_str if isinstance(date_str, date) else date_str.date()
         for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%Y'):
             try:
                 return datetime.strptime(str(date_str), fmt).date()
