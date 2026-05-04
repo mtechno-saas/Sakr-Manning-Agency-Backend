@@ -1064,15 +1064,9 @@ class ContractSerializer(serializers.ModelSerializer):
         return contract
 
     def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        try:
-            if hasattr(instance, 'ship') and instance.ship:
-                ret['ship_name'] = instance.ship.ship_name
-            else:
-                ret['ship_name'] = None
-        except Exception:
-            ret['ship_name'] = None
-        return ret
+        repr = super().to_representation(instance)
+        repr['ship_name'] = instance.ship.ship_name if instance.ship else None
+        return repr
 
     def update(self, instance, validated_data):
         # Extract Seafarer Application fields
