@@ -953,6 +953,23 @@ class ContractSerializer(serializers.ModelSerializer):
     user_documents = serializers.SerializerMethodField()
     job_position_details = serializers.SerializerMethodField()
 
+    # Seafarer Application Integration (Capabilities)
+    seafarer_application = serializers.SerializerMethodField()
+    document_info = serializers.JSONField(required=False, write_only=True)
+    application_header = serializers.JSONField(required=False, write_only=True)
+    personal_details = serializers.JSONField(required=False, write_only=True)
+    education = serializers.JSONField(required=False, write_only=True)
+    contact_details = serializers.JSONField(required=False, write_only=True)
+    travel_documents = serializers.JSONField(required=False, write_only=True)
+    professional_qualification = serializers.JSONField(required=False, write_only=True)
+    next_of_kin = serializers.JSONField(required=False, write_only=True)
+    health_certificates = serializers.JSONField(required=False, write_only=True)
+    marine_courses = serializers.JSONField(required=False, write_only=True)
+    sea_service_details = serializers.JSONField(required=False, write_only=True)
+    references = serializers.JSONField(required=False, write_only=True)
+    declaration = serializers.JSONField(required=False, write_only=True)
+    for_office_use_only = serializers.JSONField(required=False, write_only=True)
+
     class Meta:
         model = Contract
         fields = [
@@ -964,6 +981,10 @@ class ContractSerializer(serializers.ModelSerializer):
             'sign_on_date', 'sign_off_date', 'salary', 'currency', 'status',
             'signed_file', 'signed_at',
             'certificates', 'coded_rank', 'user_documents', 'job_position_details',
+            'seafarer_application', 'document_info', 'application_header', 'personal_details',
+            'education', 'contact_details', 'travel_documents', 'professional_qualification',
+            'next_of_kin', 'health_certificates', 'marine_courses', 'sea_service_details',
+            'references', 'declaration', 'for_office_use_only',
             'created_at', 'updated_at'
         ]
         extra_kwargs = {
@@ -972,6 +993,19 @@ class ContractSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+        # Extract Seafarer Application fields
+        seafarer_fields = [
+            'document_info', 'application_header', 'personal_details', 
+            'education', 'contact_details', 'travel_documents', 
+            'professional_qualification', 'next_of_kin', 'health_certificates', 
+            'marine_courses', 'sea_service_details', 'references', 
+            'declaration', 'for_office_use_only'
+        ]
+        seafarer_data = {}
+        for f in seafarer_fields:
+            if f in validated_data:
+                seafarer_data[f] = validated_data.pop(f)
+
         cv_sub_id = validated_data.pop('cv_submission_id', None)
         if cv_sub_id:
             from api.models import CVSubmission
@@ -997,7 +1031,42 @@ class ContractSerializer(serializers.ModelSerializer):
             except CVSubmission.DoesNotExist:
                 raise ValidationError({'error': f'CV Submission with id {cv_sub_id} not found.'})
         
-        return super().create(validated_data)
+        contract = super().create(validated_data)
+
+        # Apply Seafarer Application updates to the linked user
+        if seafarer_data and contract.user:
+            from .seafarer_application_serializers import SeafarerApplicationSerializer
+            SeafarerApplicationSerializer().update(contract.user, seafarer_data)
+
+        return contract
+
+    def update(self, instance, validated_data):
+        # Extract Seafarer Application fields
+        seafarer_fields = [
+            'document_info', 'application_header', 'personal_details', 
+            'education', 'contact_details', 'travel_documents', 
+            'professional_qualification', 'next_of_kin', 'health_certificates', 
+            'marine_courses', 'sea_service_details', 'references', 
+            'declaration', 'for_office_use_only'
+        ]
+        seafarer_data = {}
+        for f in seafarer_fields:
+            if f in validated_data:
+                seafarer_data[f] = validated_data.pop(f)
+
+        contract = super().update(instance, validated_data)
+
+        # Apply Seafarer Application updates to the linked user
+        if seafarer_data and contract.user:
+            from .seafarer_application_serializers import SeafarerApplicationSerializer
+            SeafarerApplicationSerializer().update(contract.user, seafarer_data)
+
+        return contract
+
+    def get_seafarer_application(self, obj):
+        if not obj.user: return None
+        from .seafarer_application_serializers import SeafarerApplicationSerializer
+        return SeafarerApplicationSerializer(obj.user).data
 
     def get_user_name(self, obj):
         if not obj.user: return ""
