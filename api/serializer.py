@@ -948,7 +948,7 @@ class ContractSerializer(serializers.ModelSerializer):
     cv_submission = serializers.IntegerField(write_only=True, required=False)
     
     # Custom ship processing
-    ship_name = serializers.CharField(write_only=True, required=False)
+    ship_name = serializers.CharField(required=False)
     
     applicant_name = serializers.CharField(write_only=True, required=False)
 
@@ -996,7 +996,6 @@ class ContractSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'required': False},
             'rank': {'required': False},
-            'ship': {'required': False},
         }
 
     def create(self, validated_data):
@@ -1050,10 +1049,6 @@ class ContractSerializer(serializers.ModelSerializer):
             except CVSubmission.DoesNotExist:
                 raise ValidationError({'error': f'CV Submission with id {cv_sub_id} not found.'})
         
-        if 'ship' not in validated_data:
-            from rest_framework.exceptions import ValidationError
-            raise ValidationError({'ship': 'This field is required (either provide ship ID or ship_name).'})
-
         contract = super().create(validated_data)
 
         # Apply Seafarer Application updates to the linked user
