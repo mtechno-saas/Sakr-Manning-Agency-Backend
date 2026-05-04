@@ -25,8 +25,8 @@ Allows you to instantly generate an employment contract by pointing to an approv
 **Data Model Inputs:**
 | Field | Source / Type | Required? | Description |
 |---|---|---|---|
-| `cv_submission_id` | `int` | **Yes** | The ID of the CV Submission. Auto-fills `user`, `company`, `rank`, and `job_position`. |
-| `ship` | `int` | **Yes** | The ID of the Ship they are joining. |
+| `cv_submission` | `int` | **Yes** | The ID of the CV Submission. Auto-fills `user`, `company`, `rank`, and `job_position`. |
+| `ship_name` | `string` | **Yes** | The name of the Ship they are joining (alternatively, you can pass `ship` as an int ID). |
 | `sign_on_date` | `date` | **Yes** | Date they board the ship (Format: YYYY-MM-DD). |
 | `salary` | `decimal` | Optional | **Auto-fills** with `salary_max` from the Job Order Position if not provided. |
 | `currency` | `string` | Optional | **Auto-fills** from the Job Order Position, otherwise defaults to `USD`. |
@@ -38,8 +38,8 @@ Allows you to instantly generate an employment contract by pointing to an approv
 **Request:**
 ```json
 {
-  "cv_submission_id": 45,
-  "ship": 3,
+  "cv_submission": 45,
+  "ship_name": "Ocean Voyager",
   "sign_on_date": "2026-06-01",
   "repatriation_terms": "Company covers return flight to home country",
   "leave_pay_terms": "30 days paid leave per contract cycle",

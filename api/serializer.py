@@ -936,7 +936,6 @@ class ContractSerializer(serializers.ModelSerializer):
     # Read-only nested fields
     user_name = serializers.SerializerMethodField()
     user_email = serializers.CharField(source='user.email', read_only=True)
-    ship_name = serializers.CharField(source='ship.ship_name', read_only=True)
     company_name = serializers.CharField(source='company.company_name', read_only=True)
     rank_name = serializers.CharField(source='rank.name', read_only=True)
     
@@ -946,6 +945,10 @@ class ContractSerializer(serializers.ModelSerializer):
 
     # Generate Contract from CV Submission
     cv_submission_id = serializers.IntegerField(write_only=True, required=False)
+    cv_submission = serializers.IntegerField(write_only=True, required=False)
+    
+    # Custom ship processing
+    ship_name = serializers.CharField(required=False)
 
     # Added detail fields (read-only)
     certificates = serializers.SerializerMethodField()
@@ -973,7 +976,7 @@ class ContractSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contract
         fields = [
-            'id', 'cv_submission_id',
+            'id', 'cv_submission_id', 'cv_submission',
             'user', 'user_name', 'user_email', 'generated_id',
             'ship', 'ship_name',
             'company', 'company_name',
@@ -1006,7 +1009,18 @@ class ContractSerializer(serializers.ModelSerializer):
             if f in validated_data:
                 seafarer_data[f] = validated_data.pop(f)
 
-        cv_sub_id = validated_data.pop('cv_submission_id', None)
+        cv_sub_id = validated_data.pop('cv_submission_id', None) or validated_data.pop('cv_submission', None)
+        ship_name_val = validated_data.pop('ship_name', None)
+
+        if ship_name_val:
+            from ships.models import Ship
+            from rest_framework.exceptions import ValidationError
+            try:
+                ship_obj = Ship.objects.get(ship_name__iexact=ship_name_val)
+                validated_data['ship'] = ship_obj
+            except Ship.DoesNotExist:
+                raise ValidationError({'ship_name': f"Ship with name '{ship_name_val}' not found."})
+
         if cv_sub_id:
             from api.models import CVSubmission
             from rest_framework.exceptions import ValidationError
@@ -1039,6 +1053,11 @@ class ContractSerializer(serializers.ModelSerializer):
             SeafarerApplicationSerializer().update(contract.user, seafarer_data)
 
         return contract
+
+    def to_representation(self, instance):
+        repr = super().to_representation(instance)
+        repr['ship_name'] = instance.ship.ship_name if instance.ship else None
+        return repr
 
     def update(self, instance, validated_data):
         # Extract Seafarer Application fields
