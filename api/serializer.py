@@ -947,10 +947,11 @@ class ContractSerializer(serializers.ModelSerializer):
     cv_submission_id = serializers.IntegerField(write_only=True, required=False)
     cv_submission = serializers.IntegerField(write_only=True, required=False)
     
-    # Custom ship processing
-    ship_name = serializers.CharField(write_only=True, required=False)
+    # Custom ship processing — write_only so it's NOT read from the model,
+    # but we preserve it in validate() so it reaches create()/update()
+    ship_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
     
-    applicant_name = serializers.CharField(write_only=True, required=False)
+    applicant_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     # Added detail fields (read-only)
     certificates = serializers.SerializerMethodField()
@@ -1013,7 +1014,12 @@ class ContractSerializer(serializers.ModelSerializer):
             if f in validated_data:
                 seafarer_data[f] = validated_data.pop(f)
 
-        cv_sub_id = validated_data.pop('cv_submission_id', None) or validated_data.pop('cv_submission', None)
+        cv_sub_id = validated_data.pop('cv_submission_id', None)
+        if not cv_sub_id:
+            cv_sub_id = validated_data.pop('cv_submission', None)
+        else:
+            validated_data.pop('cv_submission', None)  # discard the alias if both sent
+
         ship_name_val = validated_data.pop('ship_name', None)
         validated_data.pop('applicant_name', None)
 
@@ -1052,14 +1058,23 @@ class ContractSerializer(serializers.ModelSerializer):
         
         if 'ship' not in validated_data:
             from rest_framework.exceptions import ValidationError
-            raise ValidationError({'ship': 'This field is required (either provide ship ID or ship_name).'})
+            raise ValidationError({'ship': ['This field is required. Provide ship ID (ship) or ship name (ship_name).'] })
 
-        contract = super().create(validated_data)
+        try:
+            contract = super().create(validated_data)
+        except Exception as e:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'error': str(e)})
 
         # Apply Seafarer Application updates to the linked user
         if seafarer_data and contract.user:
-            from .seafarer_application_serializers import SeafarerApplicationSerializer
-            SeafarerApplicationSerializer().update(contract.user, seafarer_data)
+            try:
+                from .seafarer_application_serializers import SeafarerApplicationSerializer
+                SeafarerApplicationSerializer().update(contract.user, seafarer_data)
+            except Exception as e:
+                # Log but don't fail the contract creation
+                import logging
+                logging.getLogger(__name__).error(f'SeafarerApplicationSerializer.update failed: {e}')
 
         return contract
 
