@@ -999,6 +999,7 @@ class ContractSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'required': False},
             'rank': {'required': False},
+            'ship': {'required': False},
         }
 
     def create(self, validated_data):

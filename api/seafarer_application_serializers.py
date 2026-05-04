@@ -383,7 +383,7 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
     def get_education(self, obj):
         # Language breakdown helper
         def get_lang_breakdown(lang_name, level_field):
-            level = getattr(obj, level_field, "").lower() if hasattr(obj, level_field) else ""
+            level = (getattr(obj, level_field, "") or "").lower()
             return {
                 "fluent": "fluent" in level or "native" in level,
                 "good": "good" in level or "advanced" in level,
