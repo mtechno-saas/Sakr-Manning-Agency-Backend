@@ -247,25 +247,27 @@ export function DashboardDataProvider({ children }) {
     const fetchShipsByCompany = useCallback(async (companyId, force = false) => {
         if (!companyId) return [];
 
-        // Ensure ships are loaded (lazy load all)
-        let allShips = ships;
-        if (!force && allShips.length === 0) {
-            allShips = await fetchShips();
+        // Check if we already have it cached
+        if (!force && shipsByCompany[companyId] && shipsByCompany[companyId].length > 0) {
+            return shipsByCompany[companyId];
         }
 
-        // Filter locally since BE doesn't support /ships/?company=ID
-        const filteredShips = allShips.filter(ship => {
-            const shipCompanyId = ship.company?.id || ship.company;
-            return String(shipCompanyId) === String(companyId);
-        });
-
-        setShipsByCompany(prev => ({
-            ...prev,
-            [companyId]: filteredShips
-        }));
-
-        return filteredShips;
-    }, [ships, fetchShips]);
+        try {
+            // BE supports /ships/?company=ID through ShipFilter
+            const response = await shipsApi.getShips({ company: companyId, page_size: 1000 });
+            const companyShips = response.ships || [];
+            
+            setShipsByCompany(prev => ({
+                ...prev,
+                [companyId]: companyShips
+            }));
+            
+            return companyShips;
+        } catch (error) {
+            console.error(`Failed to fetch ships for company ${companyId}:`, error);
+            return [];
+        }
+    }, [shipsByCompany]);
 
     /**
      * Batch fetch companies by IDs and update cache
