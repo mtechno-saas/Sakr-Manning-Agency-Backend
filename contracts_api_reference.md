@@ -39,6 +39,7 @@ Allows you to instantly generate an employment contract by pointing to an approv
 ```json
 {
   "cv_submission": 45,
+  "applicant_name": "Ahmed Hassan",
   "ship_name": "Ocean Voyager",
   "sign_on_date": "2026-06-01",
   "repatriation_terms": "Company covers return flight to home country",

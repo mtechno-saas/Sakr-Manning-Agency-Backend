@@ -949,6 +949,8 @@ class ContractSerializer(serializers.ModelSerializer):
     
     # Custom ship processing
     ship_name = serializers.CharField(required=False)
+    
+    applicant_name = serializers.CharField(write_only=True, required=False)
 
     # Added detail fields (read-only)
     certificates = serializers.SerializerMethodField()
@@ -978,6 +980,7 @@ class ContractSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'cv_submission_id', 'cv_submission',
             'user', 'user_name', 'user_email', 'generated_id',
+            'applicant_name',
             'ship', 'ship_name',
             'company', 'company_name',
             'rank', 'rank_name', 'assigned_code', 'job_position',
@@ -1011,6 +1014,7 @@ class ContractSerializer(serializers.ModelSerializer):
 
         cv_sub_id = validated_data.pop('cv_submission_id', None) or validated_data.pop('cv_submission', None)
         ship_name_val = validated_data.pop('ship_name', None)
+        validated_data.pop('applicant_name', None)
 
         if ship_name_val:
             from ships.models import Ship
@@ -1072,6 +1076,8 @@ class ContractSerializer(serializers.ModelSerializer):
         for f in seafarer_fields:
             if f in validated_data:
                 seafarer_data[f] = validated_data.pop(f)
+
+        validated_data.pop('applicant_name', None)
 
         contract = super().update(instance, validated_data)
 
