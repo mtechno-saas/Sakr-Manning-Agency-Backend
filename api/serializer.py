@@ -950,7 +950,10 @@ class ContractSerializer(serializers.ModelSerializer):
     # Custom ship processing
     ship_name = serializers.CharField(required=False)
     
-    applicant_name = serializers.CharField(write_only=True, required=False)
+    applicant_name = serializers.CharField(
+        write_only=True, required=False,
+        help_text="Optional: the full name of the targeted applicant. If provided alongside cv_submission, the backend validates it matches the CV's owner."
+    )
 
     # Added detail fields (read-only)
     certificates = serializers.SerializerMethodField()
@@ -1014,7 +1017,7 @@ class ContractSerializer(serializers.ModelSerializer):
 
         cv_sub_id = validated_data.pop('cv_submission_id', None) or validated_data.pop('cv_submission', None)
         ship_name_val = validated_data.pop('ship_name', None)
-        validated_data.pop('applicant_name', None)
+        applicant_name = validated_data.pop('applicant_name', None)
 
         if ship_name_val:
             from ships.models import Ship
@@ -1030,6 +1033,17 @@ class ContractSerializer(serializers.ModelSerializer):
             from rest_framework.exceptions import ValidationError
             try:
                 cv_sub = CVSubmission.objects.get(id=cv_sub_id)
+
+                # Validate applicant_name matches the CV owner if provided
+                if applicant_name:
+                    user = cv_sub.user
+                    full_name = f"{user.first_name} {user.middle_name}".strip() if user.middle_name else user.first_name
+                    if applicant_name.strip().lower() not in [full_name.lower(), user.first_name.lower()]:
+                        from rest_framework.exceptions import ValidationError
+                        raise ValidationError({
+                            'applicant_name': f"Name '{applicant_name}' does not match the applicant on CV #{cv_sub_id} ('{full_name}'). Please verify you have the right CV."
+                        })
+
                 if not cv_sub.position:
                     raise ValidationError({'error': 'This CV Submission has no assigned position/rank. Cannot generate a contract.'})
                 if not cv_sub.company:

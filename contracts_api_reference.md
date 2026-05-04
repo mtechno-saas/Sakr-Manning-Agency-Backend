@@ -26,6 +26,7 @@ Allows you to instantly generate an employment contract by pointing to an approv
 | Field | Source / Type | Required? | Description |
 |---|---|---|---|
 | `cv_submission` | `int` | **Yes** | The ID of the CV Submission. Auto-fills `user`, `company`, `rank`, and `job_position`. |
+| `applicant_name` | `string` | Optional | The full name of the targeted applicant. If provided, the backend **validates** it matches the name on the CV. Returns an error if it doesn't match. |
 | `ship_name` | `string` | **Yes** | The name of the Ship they are joining (alternatively, you can pass `ship` as an int ID). |
 | `sign_on_date` | `date` | **Yes** | Date they board the ship (Format: YYYY-MM-DD). |
 | `salary` | `decimal` | Optional | **Auto-fills** with `salary_max` from the Job Order Position if not provided. |
@@ -48,6 +49,8 @@ Allows you to instantly generate an employment contract by pointing to an approv
 }
 ```
 > *Note: We did not send `salary` or `currency` — the backend will grab those directly from the job position they applied for!*
+
+> ⚠️ **`applicant_name` Validation:** If provided, the backend checks that the name matches the user on CV #45. If it doesn't match, you get: `{"applicant_name": "Name 'Ahmed Hassan' does not match the applicant on CV #45 ('Mohamed Ali'). Please verify you have the right CV."}`
 
 **Success Response (201 Created):**
 ```json
