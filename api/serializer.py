@@ -445,6 +445,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     job_position_details = serializers.SerializerMethodField()
     seafarer_application = serializers.SerializerMethodField()
     company_details = serializers.SerializerMethodField()
+    ship_details = serializers.SerializerMethodField()
 
     class Meta:
         model = CVSubmission
@@ -467,6 +468,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'job_position', 'job_position_details',
             'seafarer_application',
             'company_details',
+            'ship', 'ship_details',
         ]
         extra_kwargs = {
             'user': {'required': False},
@@ -921,9 +923,9 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         return SeafarerApplicationSerializer(obj.user).data
 
     def get_company_details(self, obj):
-        """Return nested company info or null if no company assigned."""
+        """Return nested company info or 'not assigned yet' if no company assigned."""
         if not obj.company:
-            return None
+            return "not assigned yet"
         company = obj.company
         return {
             'id': company.id,
@@ -933,6 +935,22 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'contact_person': getattr(company, 'contact_person', None),
             'contact_email': getattr(company, 'contact_email', None),
             'status': getattr(company, 'status', None),
+        }
+
+    def get_ship_details(self, obj):
+        """Return nested ship info or 'not assigned yet' if no ship assigned."""
+        if not obj.ship:
+            return "not assigned yet"
+        ship = obj.ship
+        ship_type = getattr(ship, 'ship_type', None)
+        flag = getattr(ship, 'flag', None)
+        return {
+            'id': ship.id,
+            'ship_name': ship.ship_name,
+            'imo_number': getattr(ship, 'imo_number', None),
+            'ship_type': str(ship_type) if ship_type else None,
+            'flag': str(flag) if flag else None,
+            'status': getattr(ship, 'status', None),
         }
 
 
