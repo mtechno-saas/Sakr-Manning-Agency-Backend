@@ -960,6 +960,8 @@ class ContractSerializer(serializers.ModelSerializer):
     coded_rank = serializers.SerializerMethodField()
     user_documents = serializers.SerializerMethodField()
     job_position_details = serializers.SerializerMethodField()
+    ship_details = serializers.SerializerMethodField()
+    company_details = serializers.SerializerMethodField()
 
     # Seafarer Application Integration (Capabilities)
     seafarer_application = serializers.SerializerMethodField()
@@ -984,8 +986,8 @@ class ContractSerializer(serializers.ModelSerializer):
             'id', 'cv_submission_id', 'cv_submission',
             'user', 'user_name', 'user_email', 'generated_id',
             'applicant_name',
-            'ship', 'ship_name',
-            'company', 'company_name',
+            'ship', 'ship_name', 'ship_details',
+            'company', 'company_name', 'company_details',
             'rank', 'rank_name', 'assigned_code', 'job_position',
             'sign_on_date', 'sign_off_date', 'salary', 'currency', 'status',
             'signed_file', 'signed_at',
@@ -1230,6 +1232,37 @@ class ContractSerializer(serializers.ModelSerializer):
             'currency': pos.currency,
             'contract_duration_months': pos.contract_duration_months,
             'remarks': pos.remarks
+        }
+
+    def get_ship_details(self, obj):
+        """Return nested ship info (id, name, type, flag, IMO) or null if no ship assigned."""
+        if not obj.ship:
+            return None
+        ship = obj.ship
+        ship_type = getattr(ship, 'ship_type', None)
+        flag = getattr(ship, 'flag', None)
+        return {
+            'id': ship.id,
+            'ship_name': ship.ship_name,
+            'imo_number': getattr(ship, 'imo_number', None),
+            'ship_type': str(ship_type) if ship_type else None,
+            'flag': str(flag) if flag else None,
+            'status': getattr(ship, 'status', None),
+        }
+
+    def get_company_details(self, obj):
+        """Return nested company info (id, name, type, country) or null if no company assigned."""
+        if not obj.company:
+            return None
+        company = obj.company
+        return {
+            'id': company.id,
+            'company_name': company.company_name,
+            'company_type': getattr(company, 'company_type', None),
+            'country': getattr(company, 'country', None),
+            'contact_person': getattr(company, 'contact_person', None),
+            'contact_email': getattr(company, 'contact_email', None),
+            'status': getattr(company, 'status', None),
         }
 
 
