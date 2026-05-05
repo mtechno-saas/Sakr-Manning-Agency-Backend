@@ -382,6 +382,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.company_name', read_only=True)
+    ship_name = serializers.CharField(source='ship.ship_name', read_only=True)
     reviewed_by_name_display = serializers.CharField(source='reviewed_by.first_name', read_only=True)
     # Read-only from the linked user (for output only; input handled by write_only fields above)
     user_email_display = serializers.EmailField(source='user.email', read_only=True)
@@ -445,12 +446,14 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     job_position_details = serializers.SerializerMethodField()
     seafarer_application = serializers.SerializerMethodField()
     company_details = serializers.SerializerMethodField()
+    ship_details = serializers.SerializerMethodField()
 
     class Meta:
         model = CVSubmission
         fields = [
             'id', 'user', 'user_name', 'user_first_name', 'user_middle_name',
             'user_email', 'user_email_display', 'company', 'company_name', 'company_name_input',
+            'ship', 'ship_name', 'ship_details',
             'position', 'position_name', 'position_name_input',
             'cv_file', 'cover_letter', 'experience_years',
             'expected_salary', 'availability_date',
@@ -933,6 +936,22 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'contact_person': getattr(company, 'contact_person', None),
             'contact_email': getattr(company, 'contact_email', None),
             'status': getattr(company, 'status', None),
+        }
+
+    def get_ship_details(self, obj):
+        """Return nested ship info or null if no ship assigned."""
+        if not obj.ship:
+            return None
+        ship = obj.ship
+        ship_type = getattr(ship, 'ship_type', None)
+        flag = getattr(ship, 'flag', None)
+        return {
+            'id': ship.id,
+            'ship_name': ship.ship_name,
+            'imo_number': getattr(ship, 'imo_number', None),
+            'ship_type': str(ship_type) if ship_type else None,
+            'flag': str(flag) if flag else None,
+            'status': getattr(ship, 'status', None),
         }
 
 
