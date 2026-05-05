@@ -1261,9 +1261,9 @@ class ContractSerializer(serializers.ModelSerializer):
         }
 
     def get_ship_details(self, obj):
-        """Return nested ship info (id, name, type, flag, IMO) or null if no ship assigned."""
+        """Return nested ship info (id, name, type, flag, IMO) or 'not assigned yet' if no ship assigned."""
         if not obj.ship:
-            return None
+            return "not assigned yet"
         ship = obj.ship
         ship_type = getattr(ship, 'ship_type', None)
         flag = getattr(ship, 'flag', None)
@@ -1277,9 +1277,9 @@ class ContractSerializer(serializers.ModelSerializer):
         }
 
     def get_company_details(self, obj):
-        """Return nested company info (id, name, type, country) or null if no company assigned."""
+        """Return nested company info (id, name, type, country) or 'not assigned yet' if no company assigned."""
         if not obj.company:
-            return None
+            return "not assigned yet"
         company = obj.company
         return {
             'id': company.id,
