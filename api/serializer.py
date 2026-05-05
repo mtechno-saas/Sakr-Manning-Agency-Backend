@@ -443,6 +443,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     reviewed_date = FlexibleDateField(required=False, allow_null=True)
     
     job_position_details = serializers.SerializerMethodField()
+    seafarer_application = serializers.SerializerMethodField()
+    company_details = serializers.SerializerMethodField()
 
     class Meta:
         model = CVSubmission
@@ -463,6 +465,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'passport_update', 'seaman_book_update', 'other_seaman_book_update',
             'coc_update', 'goc_update', 'licenses_update',
             'job_position', 'job_position_details',
+            'seafarer_application',
+            'company_details',
         ]
         extra_kwargs = {
             'user': {'required': False},
@@ -907,6 +911,28 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'currency': pos.currency,
             'contract_duration_months': pos.contract_duration_months,
             'remarks': pos.remarks
+        }
+
+    def get_seafarer_application(self, obj):
+        """Return the full nested seafarer profile for the user linked to this CV submission."""
+        if not obj.user:
+            return None
+        from .seafarer_application_serializers import SeafarerApplicationSerializer
+        return SeafarerApplicationSerializer(obj.user).data
+
+    def get_company_details(self, obj):
+        """Return nested company info or null if no company assigned."""
+        if not obj.company:
+            return None
+        company = obj.company
+        return {
+            'id': company.id,
+            'company_name': company.company_name,
+            'company_type': getattr(company, 'company_type', None),
+            'country': getattr(company, 'country', None),
+            'contact_person': getattr(company, 'contact_person', None),
+            'contact_email': getattr(company, 'contact_email', None),
+            'status': getattr(company, 'status', None),
         }
 
 
