@@ -184,6 +184,8 @@ Modifying the write-only fields directly updates the linked User and their Seafa
   "user_email": "ahmed@example.com",
   "company_name_input": "Maersk Line",
   "position_name_input": "Chief Officer",
+  "job_position": 12,
+  "ship": 3,
   "experience_years": 5,
   "expected_salary": "5500.00",
   "availability_date": "2026-06-01",
