@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Company, JobOrder, JobOrderPosition
 
 class CompanySerializer(serializers.ModelSerializer):
+    ships = serializers.SerializerMethodField()
+
     class Meta:
         model = Company
         fields = '__all__'
@@ -17,6 +19,23 @@ class CompanySerializer(serializers.ModelSerializer):
                 'allow_blank': True,
             },
         }
+
+    def get_ships(self, obj):
+        ships = obj.ships.all()
+        return [
+            {
+                "id": ship.id,
+                "ship_name": ship.ship_name,
+                "imo_number": ship.imo_number,
+                "ship_type": ship.ship_type.name if ship.ship_type else None,
+                "flag": ship.flag.name if ship.flag else None,
+                "status": ship.status,
+                "official_no": ship.official_no,
+                "call_sign": ship.call_sign,
+                "year_built": ship.year_built
+            }
+            for ship in ships
+        ]
 
 
 class JobOrderPositionSerializer(serializers.ModelSerializer):
