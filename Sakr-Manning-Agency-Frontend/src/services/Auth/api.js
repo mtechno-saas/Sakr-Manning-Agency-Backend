@@ -79,7 +79,12 @@ api.interceptors.response.use(
       if (originalRequest._retry) {
         // Second failure after refresh — session is dead
         tokenStorage.clearAll();
-        window.location.href = "/auth";
+        
+        // Only redirect if not on a public page
+        const publicPaths = ["/", "/auth"];
+        if (!publicPaths.includes(window.location.pathname)) {
+          window.location.href = "/auth";
+        }
       }
       return Promise.reject(error);
     }
@@ -118,7 +123,13 @@ api.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError, null);
       tokenStorage.clearAll();
-      window.location.href = "/auth";
+      
+      // Only redirect to auth if we are not on a public page
+      const publicPaths = ["/", "/auth"];
+      if (!publicPaths.includes(window.location.pathname)) {
+        window.location.href = "/auth";
+      }
+      
       return Promise.reject(refreshError);
     } finally {
       setTimeout(() => {

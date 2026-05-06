@@ -337,46 +337,57 @@ const FormPage = () => {
   );
 };
 
+import { AuthProvider } from "./context/AuthContext";
+
 // Main App Component
 const App = () => {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen">
-        <Routes>
-          {/* Landing Page - Base Route */}
-          <Route path="/" element={<Landing />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="min-h-screen">
+          <Routes>
+            {/* Landing Page - Base Route */}
+            <Route path="/" element={<Landing />} />
 
-          {/* Authentication Route — AuthPages itself handles redirect if already logged in */}
-          <Route path="/auth" element={<AuthPages />} />
+            {/* Authentication Route — AuthPages itself handles redirect if already logged in */}
+            <Route path="/auth" element={<AuthPages />} />
 
-          {/* Dashboard Route (Admin only) */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Dashboard Route (Admin only) */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Form Route (Protected - any authenticated user) */}
-          <Route
-            path="/form"
-            element={
-              <ProtectedRoute>
-                <FormPage />
-              </ProtectedRoute>
-            }
-          />
+            {/* Form Route (Protected - any authenticated user) */}
+            <Route
+              path="/form"
+              element={
+                <ProtectedRoute>
+                  <FormPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Quick Apply Route */}
-          <Route path="/quick-apply" element={<QuickApply />} />
+            {/* Quick Apply Route */}
+            <Route
+              path="/quick-apply"
+              element={
+                <ProtectedRoute>
+                  <QuickApply />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Catch all - redirect to landing */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+            {/* Catch all - redirect to landing */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 };
 
