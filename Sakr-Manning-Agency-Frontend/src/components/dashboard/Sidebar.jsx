@@ -64,8 +64,15 @@ export const Sidebar = ({ currentPage, onPageChange, scale }) => {
   const logoRadius = Math.round(50 * scale);
 
   return (
-    <aside
-      style={{
+    <>
+      <style>{`
+        .hide-sidebar-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <aside
+        className="hide-sidebar-scrollbar"
+        style={{
         width: `${sidebarWidth}px`,
         backgroundColor: COLORS.primary,
         height: "100vh",
@@ -78,6 +85,8 @@ export const Sidebar = ({ currentPage, onPageChange, scale }) => {
         padding: `${padding}px`,
         gap: `${gap}px`,
         overflowY: "auto",
+        msOverflowStyle: "none",
+        scrollbarWidth: "none",
         zIndex: 50,
       }}
     >
@@ -167,6 +176,7 @@ export const Sidebar = ({ currentPage, onPageChange, scale }) => {
         ))}
       </nav>
     </aside>
+    </>
   );
 };
 
@@ -251,6 +261,7 @@ export const MobileSidebar = ({
       )}
 
       <aside
+        className="hide-sidebar-scrollbar"
         style={{
           position: "fixed",
           top: 0,
@@ -268,6 +279,8 @@ export const MobileSidebar = ({
           padding: `${padding}px`,
           gap: `${gap}px`,
           overflowY: "auto",
+          msOverflowStyle: "none",
+          scrollbarWidth: "none",
         }}
       >
         <div
