@@ -29,26 +29,7 @@ const JobOrderFormModal = ({
   const { notify } = useNotification();
 
   // Pull reference data from dashboard context
-  const { referenceOptions, ships = [] } = useDashboardData();
-
-  // Build enriched field config with dynamic options
-  const enrichedFieldConfig = useMemo(() => {
-    return JOB_ORDER_FORM_FIELDS.map((field) => {
-      if (field.name === "company") {
-        return { ...field, options: referenceOptions?.companies || [] };
-      }
-      if (field.name === "ship") {
-        return {
-          ...field,
-          options: (ships || []).map((s) => ({
-            value: s.id,
-            label: s.ship_name || s.name || `Ship ${s.id}`,
-          })),
-        };
-      }
-      return field;
-    });
-  }, [referenceOptions, ships]);
+  const { referenceOptions, shipsByCompany, fetchShipsByCompany } = useDashboardData();
 
   const {
     formData,
@@ -59,7 +40,7 @@ const JobOrderFormModal = ({
     handleSave,
     handleClose,
   } = useFormModal({
-    fieldConfig: enrichedFieldConfig,
+    fieldConfig: JOB_ORDER_FORM_FIELDS,
     record: jobOrder,
     onSave,
     onClose,
@@ -67,6 +48,34 @@ const JobOrderFormModal = ({
       isEdit ? "Job order updated successfully" : "Job order created successfully",
     errorMessage: "Failed to save job order",
   });
+
+  // Fetch ships when company changes
+  useEffect(() => {
+    if (formData?.company) {
+      fetchShipsByCompany(formData.company);
+    }
+  }, [formData?.company, fetchShipsByCompany]);
+
+  // Build enriched field config with dynamic options
+  const enrichedFieldConfig = useMemo(() => {
+    const companyShips = formData?.company ? (shipsByCompany[formData.company] || []) : [];
+    
+    return JOB_ORDER_FORM_FIELDS.map((field) => {
+      if (field.name === "company") {
+        return { ...field, options: referenceOptions?.companies || [] };
+      }
+      if (field.name === "ship") {
+        return {
+          ...field,
+          options: companyShips.map((s) => ({
+            value: s.id,
+            label: s.ship_name || s.name || `Ship ${s.id}`,
+          })),
+        };
+      }
+      return field;
+    });
+  }, [referenceOptions, shipsByCompany, formData?.company]);
 
   // Keyboard shortcuts
   useEffect(() => {

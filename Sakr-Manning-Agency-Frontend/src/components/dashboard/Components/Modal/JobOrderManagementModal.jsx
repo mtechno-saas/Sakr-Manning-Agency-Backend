@@ -35,7 +35,11 @@ const JobOrderManagementModal = ({
     } = useJobOrders();
     
     const { notify } = useNotification();
-    const { referenceOptions, ships, fetchShipsByCompany } = useDashboardData();
+    const { referenceOptions, shipsByCompany, fetchShipsByCompany } = useDashboardData();
+    const companyShips = useMemo(() => {
+        if (!company?.id) return [];
+        return shipsByCompany[company.id] || [];
+    }, [shipsByCompany, company?.id]);
     
     // UI State
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -170,7 +174,7 @@ const JobOrderManagementModal = ({
             return <Select {...commonProps} key={field.name} options={referenceOptions.ranks} />;
         }
         if (field.name === "ship") {
-            const shipOptions = (ships || []).map(s => ({ 
+            const shipOptions = companyShips.map(s => ({ 
                 value: s.id, 
                 label: s.ship_name || s.name 
             }));
