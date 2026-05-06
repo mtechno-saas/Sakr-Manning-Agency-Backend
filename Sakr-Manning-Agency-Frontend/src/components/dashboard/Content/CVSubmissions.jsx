@@ -369,14 +369,6 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         } catch { notify.error("Failed to export"); }
     }, [userData, notify]);
 
-    const handleExportJSON = useCallback(() => {
-        try {
-            const out = userData.map(({ avatar, _original, ...rest }) => rest);
-            exportToJSON(out, `CVSubmissions_${new Date().toISOString().split("T")[0]}.json`);
-            notify.success("Exported to JSON!");
-        } catch { notify.error("Failed to export"); }
-    }, [userData, notify]);
-
     // ── Filter field config (full status pipeline) ────────────────────────────
     const filterFields = [
         {
@@ -481,8 +473,20 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                     </Button>
 
                     {/* Refresh */}
-                    <Button variant="outline" scale={scale} onClick={handleRefresh} style={thinBtn}>
-                        Refresh
+                    <Button
+                        variant="icon"
+                        onClick={handleRefresh}
+                        ariaLabel="Press to refresh the table"
+                        title="Press to refresh the table"
+                        scale={scale}
+                        style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
+                    >
+                        <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                            <path d="M21 3v5h-5" />
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                            <path d="M8 16H3v5" />
+                        </svg>
                     </Button>
 
                     {/* Add Applicant (Admin only) */}
@@ -497,9 +501,6 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                         <>
                             <Button variant="outline" onClick={handleExportExcel} scale={scale} style={thinBtn}>
                                 Export Excel
-                            </Button>
-                            <Button variant="outline" onClick={handleExportJSON} scale={scale} style={thinBtn}>
-                                Export JSON
                             </Button>
                         </>
                     )}

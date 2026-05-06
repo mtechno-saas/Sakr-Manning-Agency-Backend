@@ -461,37 +461,10 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
     ]
   );
 
-  const handleExportCSV = useCallback(() => {
-    try {
-      const dataToExport = interviews.map(
-        ({ id, avatar, _original, ...rest }) => rest
-      );
-      exportToCSV(
-        dataToExport,
-        `Interviews_Export_${new Date().toISOString().split("T")[0]}.csv`
-      );
-      notify.success("Interviews exported to CSV successfully!");
-    } catch (error) {
-      notify.error("Failed to export data");
-      console.error(error);
-    }
-  }, [interviews, notify]);
 
-  const handleExportJSON = useCallback(() => {
-    try {
-      const dataToExport = interviews.map(
-        ({ avatar, _original, ...rest }) => rest
-      );
-      exportToJSON(
-        dataToExport,
-        `Interviews_Export_${new Date().toISOString().split("T")[0]}.json`
-      );
-      notify.success("Interviews exported to JSON successfully!");
-    } catch (error) {
-      notify.error("Failed to export data");
-      console.error(error);
-    }
-  }, [interviews, notify]);
+  const handleRefresh = useCallback(() => {
+    fetchInterviews({ ...activeFilters, page: pagination?.currentPage || 1 });
+  }, [fetchInterviews, activeFilters, pagination]);
 
   const headerHeight = Math.round(101 * scale);
   const cardGap = Math.round(20 * scale);
@@ -519,21 +492,35 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
           Manage and schedule candidate interviews
         </h1>
 
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           <Button
             variant="icon"
             onClick={() => setShowFilterModal(true)}
             ariaLabel="Filter interviews"
             title="Filter interviews"
             scale={scale}
+            style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
           >
-            <Filter size={Math.round(21 * scale)} color="#1E1E1E" strokeWidth={1.5} />
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <path d="M3 6h18M6 12h12M9 18h6" stroke="#1E1E1E" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
           </Button>
-          {interviews.length > 0 && (
-            <Button variant="outline" onClick={handleExportCSV} scale={scale}>
-              Export CSV
-            </Button>
-          )}
+          <Button
+              variant="icon"
+              onClick={handleRefresh}
+              ariaLabel="Press to refresh the table"
+              title="Press to refresh the table"
+              scale={scale}
+              style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
+          >
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                  <path d="M8 16H3v5" />
+              </svg>
+          </Button>
+
         </div>
       </div>
 

@@ -26,9 +26,11 @@ export const companiesApi = {
       const params = new URLSearchParams();
 
       // Add filters to query params
-      if (filters.status) params.append("status", filters.status);
-      if (filters.company_type) params.append("company_type", filters.company_type);
-      if (filters.search) params.append("search", filters.search);
+      const getVal = (v) => Array.isArray(v) ? v[0] : v;
+      
+      if (filters.status) params.append("status", getVal(filters.status));
+      if (filters.company_type) params.append("company_type", getVal(filters.company_type));
+      if (filters.search) params.append("name", getVal(filters.search));
 
       // Standard pagination params
       if (filters.page) params.append("page", filters.page);

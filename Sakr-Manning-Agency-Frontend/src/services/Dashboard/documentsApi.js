@@ -23,13 +23,15 @@ export const documentsApi = {
     try {
       const params = new URLSearchParams();
 
+      const getVal = (v) => Array.isArray(v) ? v[0] : v;
+
       // Add filters to query params
-      if (filters.status) params.append("status", filters.status);
-      if (filters.user) params.append("user", filters.user);
-      if (filters.company) params.append("company", filters.company);
-      if (filters.ship) params.append("ship", filters.ship);
-      if (filters.rank) params.append("rank", filters.rank);
-      if (filters.search) params.append("search", filters.search);
+      if (filters.status) params.append("status", getVal(filters.status));
+      if (filters.user) params.append("user", getVal(filters.user));
+      if (filters.company) params.append("company", getVal(filters.company));
+      if (filters.ship) params.append("ship", getVal(filters.ship));
+      if (filters.rank) params.append("rank", getVal(filters.rank));
+      if (filters.search) params.append("search", getVal(filters.search));
 
       // Pagination params
       if (filters.page) params.append("page", filters.page);

@@ -329,6 +329,10 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
     notify.success("Finance records exported to Excel!");
   }, [records, notify]);
 
+  const handleRefresh = useCallback(() => {
+    fetchRecords({ ...activeFilters, page: pagination?.currentPage || 1 });
+  }, [fetchRecords, activeFilters, pagination]);
+
   const headerHeight = Math.round(101 * scale);
 
   return (
@@ -411,16 +415,18 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
           Finance Records
         </h1>
 
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: `${Math.round(8 * scale)}px`, alignItems: "center" }}>
           <Button
             variant="icon"
             onClick={() => setShowFilterModal(true)}
             scale={scale}
             ariaLabel="Filter records"
+            title="Filter records"
+            style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
           >
             <svg
-              width={Math.round(21 * scale)}
-              height={Math.round(21 * scale)}
+              width={16}
+              height={16}
               viewBox="0 0 24 24"
               fill="none"
             >
@@ -432,15 +438,30 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
               />
             </svg>
           </Button>
+          <Button
+              variant="icon"
+              onClick={handleRefresh}
+              ariaLabel="Press to refresh the table"
+              title="Press to refresh the table"
+              scale={scale}
+              style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
+          >
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                  <path d="M8 16H3v5" />
+              </svg>
+          </Button>
 
           {records.length > 0 && (
-            <Button variant="outline" onClick={handleExportExcel} scale={scale}>
+            <Button variant="outline" onClick={handleExportExcel} scale={scale} style={{ minHeight: 30, height: 30, padding: "0 14px", fontSize: 13, borderRadius: 8, fontWeight: 500, lineHeight: "30px" }}>
               Export Excel
             </Button>
           )}
 
           {(canCreate || canManageFinance) && (
-            <Button variant="primary" onClick={handleAdd} scale={scale}>
+            <Button variant="primary" onClick={handleAdd} scale={scale} style={{ minHeight: 30, height: 30, padding: "0 14px", fontSize: 13, borderRadius: 8, fontWeight: 500, lineHeight: "30px" }}>
               Add Record
             </Button>
           )}
