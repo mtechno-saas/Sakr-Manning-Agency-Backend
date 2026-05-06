@@ -205,6 +205,24 @@ Authorization: Bearer <JWT_TOKEN>
         "remarks": "Tanker experience preferred"
     },
     "seafarer_application": {
+        "document_info": {
+            "agency_name": "SAKR MANNING AGENCY",
+            "description": "FOR RECRUITING EGYPTIAN LABOR ABROAD",
+            "manual_name": "Crewing Management Manual",
+            "form_name": "Seafarer Employment Application",
+            "revision": "13",
+            "page": "4"
+        },
+        "application_header": {
+            "issue_date": "2026-01-15",
+            "revision_date": "2026-05-04",
+            "application_for_position_as": "1st. Officer – Chief Off.",
+            "register_code": "REG-2026-050",
+            "other_position_if_any": "",
+            "register_date": "2026-01-15",
+            "last_update_data": "2026-05-04 16:30",
+            "expected_salary_available_date": "2026-06-01"
+        },
         "1_personal_details": {
             "full_name": "Ahmed Hassan",
             "date_of_birth": "1990-05-20",
@@ -586,6 +604,7 @@ These fields are **write-only** on POST/PATCH. They update the user's profile an
 | Write Field | Type | What it Updates |
 |---|---|---|
 | `personal_details` | JSON object | User name, DOB, nationality, height, weight, sizes |
+| `application_header` | JSON object | Position, register code, dates |
 | `education` | JSON object | College, Marlins test, language levels |
 | `contact_details` | JSON object | Address, email, phone |
 | `travel_documents` | JSON array | Passport, seaman book fields on User |

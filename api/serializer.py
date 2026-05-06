@@ -921,7 +921,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         if not obj.user:
             return None
         from .seafarer_application_serializers import SeafarerApplicationSerializer
-        return SeafarerApplicationSerializer(obj.user).data
+        return SeafarerApplicationSerializer(obj.user, context={'exclude_headers': True}).data
 
     def get_company_details(self, obj):
         """Return nested company info or null if no company assigned."""

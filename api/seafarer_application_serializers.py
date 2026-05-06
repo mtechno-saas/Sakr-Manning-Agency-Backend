@@ -46,7 +46,13 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         
         # Build the final structure
-        result = {
+        result = {}
+        
+        if not self.context.get('exclude_headers', False):
+            result["document_info"] = self.get_document_info(instance)
+            result["application_header"] = self.get_application_header(instance)
+            
+        result.update({
             "1_personal_details": self.get_personal_details(instance),
             "2_education": self.get_education(instance),
             "3_contact_details": self.get_contact_details(instance),
@@ -59,7 +65,7 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
             "10_references": self.get_references(instance),
             "11_declaration": self.get_declaration(instance),
             "12_for_office_use_only": self.get_for_office_use_only(instance)
-        }
+        })
         return result
 
     def _parse_date(self, date_str):
