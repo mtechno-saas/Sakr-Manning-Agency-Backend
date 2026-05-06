@@ -25,8 +25,9 @@ Allows you to instantly generate an employment contract by pointing to an approv
 **Data Model Inputs:**
 | Field | Source / Type | Required? | Description |
 |---|---|---|---|
-| `cv_submission_id` | `int` | **Yes** | The ID of the CV Submission. Auto-fills `user`, `company`, `rank`, and `job_position`. |
-| `ship` | `int` | **Yes** | The ID of the Ship they are joining. |
+| `cv_submission` | `int` | **Yes** | The ID of the CV Submission. Auto-fills `user`, `company`, `rank`, and `job_position`. |
+| `applicant_name` | `string` | Optional | The full name of the targeted applicant. If provided, the backend **validates** it matches the name on the CV. Returns an error if it doesn't match. |
+| `ship_name` | `string` | Optional | The name of the Ship they are joining (alternatively, you can pass `ship` as an int ID). If omitted, contract is created without a ship. |
 | `sign_on_date` | `date` | **Yes** | Date they board the ship (Format: YYYY-MM-DD). |
 | `salary` | `decimal` | Optional | **Auto-fills** with `salary_max` from the Job Order Position if not provided. |
 | `currency` | `string` | Optional | **Auto-fills** from the Job Order Position, otherwise defaults to `USD`. |
@@ -38,8 +39,9 @@ Allows you to instantly generate an employment contract by pointing to an approv
 **Request:**
 ```json
 {
-  "cv_submission_id": 45,
-  "ship": 3,
+  "cv_submission": 45,
+  "applicant_name": "Ahmed Hassan",
+  "ship_name": "Ocean Voyager",
   "sign_on_date": "2026-06-01",
   "repatriation_terms": "Company covers return flight to home country",
   "leave_pay_terms": "30 days paid leave per contract cycle",
@@ -47,6 +49,8 @@ Allows you to instantly generate an employment contract by pointing to an approv
 }
 ```
 > *Note: We did not send `salary` or `currency` — the backend will grab those directly from the job position they applied for!*
+
+> ⚠️ **`applicant_name` Validation:** If provided, the backend checks that the name matches the user on CV #45. If it doesn't match, you get: `{"applicant_name": "Name 'Ahmed Hassan' does not match the applicant on CV #45 ('Mohamed Ali'). Please verify you have the right CV."}`
 
 **Success Response (201 Created):**
 ```json
@@ -59,8 +63,25 @@ Allows you to instantly generate an employment contract by pointing to an approv
   
   "ship": 3,
   "ship_name": "MV Ocean Star",
+  "ship_details": {
+    "id": 3,
+    "ship_name": "MV Ocean Star",
+    "imo_number": "1234567",
+    "ship_type": "Container",
+    "flag": "Panama",
+    "status": "Active"
+  },
   "company": 2,
   "company_name": "Sakr Shipping",
+  "company_details": {
+    "id": 2,
+    "company_name": "Sakr Shipping",
+    "company_type": "Ship Owner",
+    "country": "Egypt",
+    "contact_person": "John Doe",
+    "contact_email": "john@sakr.com",
+    "status": "Active"
+  },
   
   "rank": 7,
   "rank_name": "2nd. Officer",
@@ -172,7 +193,7 @@ Allows you to instantly generate an employment contract by pointing to an approv
 
 ### `PATCH /api/contracts/{id}/` — Edit a Contract
 
-Use this to update fields (e.g. changing status to "Signed" or adjusting salary). All fields are optional.
+Use this to update fields (e.g. changing status to "Signed", adjusting salary, or assigning a `ship` / `ship_name`). All fields are optional.
 
 **Request:**
 ```json

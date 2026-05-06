@@ -37,6 +37,20 @@ class ShipViewSet(viewsets.ModelViewSet):
             return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         ship.crew.add(user)
+
+        # Update the targeted (latest) CV submission
+        from api.models import CVSubmission, Contract
+        latest_cv = CVSubmission.objects.filter(user=user).order_by('-submitted_date').first()
+        if latest_cv:
+            latest_cv.ship = ship
+            latest_cv.save(update_fields=['ship'])
+
+        # Update the targeted (latest) Contract
+        latest_contract = Contract.objects.filter(user=user).order_by('-created_at').first()
+        if latest_contract:
+            latest_contract.ship = ship
+            latest_contract.save(update_fields=['ship'])
+
         return Response(
             {'status': f'User {user.first_name} assigned to {ship.ship_name}'},
             status=status.HTTP_200_OK

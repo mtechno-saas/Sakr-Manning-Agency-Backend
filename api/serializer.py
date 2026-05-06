@@ -326,6 +326,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
         pos = obj.job_position
         return {
             'id': pos.id,
+            'job_position_name': pos.rank.name if pos.rank else None,
             'quantity': pos.quantity,
             'salary_min': str(pos.salary_min) if pos.salary_min else None,
             'salary_max': str(pos.salary_max) if pos.salary_max else None,
@@ -381,6 +382,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.company_name', read_only=True)
+    ship_name = serializers.CharField(source='ship.ship_name', read_only=True)
     reviewed_by_name_display = serializers.CharField(source='reviewed_by.first_name', read_only=True)
     # Read-only from the linked user (for output only; input handled by write_only fields above)
     user_email_display = serializers.EmailField(source='user.email', read_only=True)
@@ -442,12 +444,16 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     reviewed_date = FlexibleDateField(required=False, allow_null=True)
     
     job_position_details = serializers.SerializerMethodField()
+    seafarer_application = serializers.SerializerMethodField()
+    company_details = serializers.SerializerMethodField()
+    ship_details = serializers.SerializerMethodField()
 
     class Meta:
         model = CVSubmission
         fields = [
             'id', 'user', 'user_name', 'user_first_name', 'user_middle_name',
             'user_email', 'user_email_display', 'company', 'company_name', 'company_name_input',
+            'ship', 'ship_name', 'ship_details',
             'position', 'position_name', 'position_name_input',
             'cv_file', 'cover_letter', 'experience_years',
             'expected_salary', 'availability_date',
@@ -462,6 +468,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'passport_update', 'seaman_book_update', 'other_seaman_book_update',
             'coc_update', 'goc_update', 'licenses_update',
             'job_position', 'job_position_details',
+            'seafarer_application',
+            'company_details',
         ]
         extra_kwargs = {
             'user': {'required': False},
@@ -899,12 +907,51 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         pos = obj.job_position
         return {
             'id': pos.id,
+            'job_position_name': pos.rank.name if pos.rank else None,
             'quantity': pos.quantity,
             'salary_min': str(pos.salary_min) if pos.salary_min else None,
             'salary_max': str(pos.salary_max) if pos.salary_max else None,
             'currency': pos.currency,
             'contract_duration_months': pos.contract_duration_months,
             'remarks': pos.remarks
+        }
+
+    def get_seafarer_application(self, obj):
+        """Return the full nested seafarer profile for the user linked to this CV submission."""
+        if not obj.user:
+            return None
+        from .seafarer_application_serializers import SeafarerApplicationSerializer
+        return SeafarerApplicationSerializer(obj.user, context={'exclude_headers': True}).data
+
+    def get_company_details(self, obj):
+        """Return nested company info or null if no company assigned."""
+        if not obj.company:
+            return None
+        company = obj.company
+        return {
+            'id': company.id,
+            'company_name': company.company_name,
+            'company_type': getattr(company, 'company_type', None),
+            'country': getattr(company, 'country', None),
+            'contact_person': getattr(company, 'contact_person', None),
+            'contact_email': getattr(company, 'contact_email', None),
+            'status': getattr(company, 'status', None),
+        }
+
+    def get_ship_details(self, obj):
+        """Return nested ship info or null if no ship assigned."""
+        if not obj.ship:
+            return None
+        ship = obj.ship
+        ship_type = getattr(ship, 'ship_type', None)
+        flag = getattr(ship, 'flag', None)
+        return {
+            'id': ship.id,
+            'ship_name': ship.ship_name,
+            'imo_number': getattr(ship, 'imo_number', None),
+            'ship_type': str(ship_type) if ship_type else None,
+            'flag': str(flag) if flag else None,
+            'status': getattr(ship, 'status', None),
         }
 
 
@@ -934,7 +981,6 @@ class ContractSerializer(serializers.ModelSerializer):
     # Read-only nested fields
     user_name = serializers.SerializerMethodField()
     user_email = serializers.CharField(source='user.email', read_only=True)
-    ship_name = serializers.CharField(source='ship.ship_name', read_only=True)
     company_name = serializers.CharField(source='company.company_name', read_only=True)
     rank_name = serializers.CharField(source='rank.name', read_only=True)
     
@@ -944,38 +990,108 @@ class ContractSerializer(serializers.ModelSerializer):
 
     # Generate Contract from CV Submission
     cv_submission_id = serializers.IntegerField(write_only=True, required=False)
+    cv_submission = serializers.IntegerField(write_only=True, required=False)
+    
+    # Custom ship processing
+    ship_name = serializers.CharField(required=False)
+    
+    applicant_name = serializers.CharField(
+        write_only=True, required=False,
+        help_text="Optional: the full name of the targeted applicant. If provided alongside cv_submission, the backend validates it matches the CV's owner."
+    )
 
     # Added detail fields (read-only)
     certificates = serializers.SerializerMethodField()
     coded_rank = serializers.SerializerMethodField()
     user_documents = serializers.SerializerMethodField()
     job_position_details = serializers.SerializerMethodField()
+    ship_details = serializers.SerializerMethodField()
+    company_details = serializers.SerializerMethodField()
+
+    # Seafarer Application Integration (Capabilities)
+    seafarer_application = serializers.SerializerMethodField()
+    document_info = serializers.JSONField(required=False, write_only=True)
+    application_header = serializers.JSONField(required=False, write_only=True)
+    personal_details = serializers.JSONField(required=False, write_only=True)
+    education = serializers.JSONField(required=False, write_only=True)
+    contact_details = serializers.JSONField(required=False, write_only=True)
+    travel_documents = serializers.JSONField(required=False, write_only=True)
+    professional_qualification = serializers.JSONField(required=False, write_only=True)
+    next_of_kin = serializers.JSONField(required=False, write_only=True)
+    health_certificates = serializers.JSONField(required=False, write_only=True)
+    marine_courses = serializers.JSONField(required=False, write_only=True)
+    sea_service_details = serializers.JSONField(required=False, write_only=True)
+    references = serializers.JSONField(required=False, write_only=True)
+    declaration = serializers.JSONField(required=False, write_only=True)
+    for_office_use_only = serializers.JSONField(required=False, write_only=True)
 
     class Meta:
         model = Contract
         fields = [
-            'id', 'cv_submission_id',
+            'id', 'cv_submission_id', 'cv_submission',
             'user', 'user_name', 'user_email', 'generated_id',
-            'ship', 'ship_name',
-            'company', 'company_name',
+            'applicant_name',
+            'ship', 'ship_name', 'ship_details',
+            'company', 'company_name', 'company_details',
             'rank', 'rank_name', 'assigned_code', 'job_position',
             'sign_on_date', 'sign_off_date', 'salary', 'currency', 'status',
             'signed_file', 'signed_at',
             'certificates', 'coded_rank', 'user_documents', 'job_position_details',
+            'seafarer_application', 'document_info', 'application_header', 'personal_details',
+            'education', 'contact_details', 'travel_documents', 'professional_qualification',
+            'next_of_kin', 'health_certificates', 'marine_courses', 'sea_service_details',
+            'references', 'declaration', 'for_office_use_only',
             'created_at', 'updated_at'
         ]
         extra_kwargs = {
             'user': {'required': False},
             'rank': {'required': False},
+            'ship': {'required': False},
         }
 
     def create(self, validated_data):
-        cv_sub_id = validated_data.pop('cv_submission_id', None)
+        # Extract Seafarer Application fields
+        seafarer_fields = [
+            'document_info', 'application_header', 'personal_details', 
+            'education', 'contact_details', 'travel_documents', 
+            'professional_qualification', 'next_of_kin', 'health_certificates', 
+            'marine_courses', 'sea_service_details', 'references', 
+            'declaration', 'for_office_use_only'
+        ]
+        seafarer_data = {}
+        for f in seafarer_fields:
+            if f in validated_data:
+                seafarer_data[f] = validated_data.pop(f)
+
+        cv_sub_id = validated_data.pop('cv_submission_id', None) or validated_data.pop('cv_submission', None)
+        ship_name_val = validated_data.pop('ship_name', None)
+        applicant_name = validated_data.pop('applicant_name', None)
+
+        if ship_name_val:
+            from ships.models import Ship
+            from rest_framework.exceptions import ValidationError
+            try:
+                ship_obj = Ship.objects.get(ship_name__iexact=ship_name_val)
+                validated_data['ship'] = ship_obj
+            except Ship.DoesNotExist:
+                raise ValidationError({'ship_name': f"Ship with name '{ship_name_val}' not found."})
+
         if cv_sub_id:
             from api.models import CVSubmission
             from rest_framework.exceptions import ValidationError
             try:
                 cv_sub = CVSubmission.objects.get(id=cv_sub_id)
+
+                # Validate applicant_name matches the CV owner if provided
+                if applicant_name:
+                    user = cv_sub.user
+                    full_name = f"{user.first_name} {user.middle_name}".strip() if user.middle_name else user.first_name
+                    if applicant_name.strip().lower() not in [full_name.lower(), user.first_name.lower()]:
+                        from rest_framework.exceptions import ValidationError
+                        raise ValidationError({
+                            'applicant_name': f"Name '{applicant_name}' does not match the applicant on CV #{cv_sub_id} ('{full_name}'). Please verify you have the right CV."
+                        })
+
                 if not cv_sub.position:
                     raise ValidationError({'error': 'This CV Submission has no assigned position/rank. Cannot generate a contract.'})
                 if not cv_sub.company:
@@ -995,7 +1111,49 @@ class ContractSerializer(serializers.ModelSerializer):
             except CVSubmission.DoesNotExist:
                 raise ValidationError({'error': f'CV Submission with id {cv_sub_id} not found.'})
         
-        return super().create(validated_data)
+        contract = super().create(validated_data)
+
+        # Apply Seafarer Application updates to the linked user
+        if seafarer_data and contract.user:
+            from .seafarer_application_serializers import SeafarerApplicationSerializer
+            SeafarerApplicationSerializer().update(contract.user, seafarer_data)
+
+        return contract
+
+    def to_representation(self, instance):
+        repr = super().to_representation(instance)
+        repr['ship_name'] = instance.ship.ship_name if instance.ship else None
+        return repr
+
+    def update(self, instance, validated_data):
+        # Extract Seafarer Application fields
+        seafarer_fields = [
+            'document_info', 'application_header', 'personal_details', 
+            'education', 'contact_details', 'travel_documents', 
+            'professional_qualification', 'next_of_kin', 'health_certificates', 
+            'marine_courses', 'sea_service_details', 'references', 
+            'declaration', 'for_office_use_only'
+        ]
+        seafarer_data = {}
+        for f in seafarer_fields:
+            if f in validated_data:
+                seafarer_data[f] = validated_data.pop(f)
+
+        validated_data.pop('applicant_name', None)
+
+        contract = super().update(instance, validated_data)
+
+        # Apply Seafarer Application updates to the linked user
+        if seafarer_data and contract.user:
+            from .seafarer_application_serializers import SeafarerApplicationSerializer
+            SeafarerApplicationSerializer().update(contract.user, seafarer_data)
+
+        return contract
+
+    def get_seafarer_application(self, obj):
+        if not obj.user: return None
+        from .seafarer_application_serializers import SeafarerApplicationSerializer
+        return SeafarerApplicationSerializer(obj.user).data
 
     def get_user_name(self, obj):
         if not obj.user: return ""
@@ -1112,12 +1270,44 @@ class ContractSerializer(serializers.ModelSerializer):
         pos = obj.job_position
         return {
             'id': pos.id,
+            'job_position_name': pos.rank.name if pos.rank else None,
             'quantity': pos.quantity,
             'salary_min': str(pos.salary_min) if pos.salary_min else None,
             'salary_max': str(pos.salary_max) if pos.salary_max else None,
             'currency': pos.currency,
             'contract_duration_months': pos.contract_duration_months,
             'remarks': pos.remarks
+        }
+
+    def get_ship_details(self, obj):
+        """Return nested ship info (id, name, type, flag, IMO) or null if no ship assigned."""
+        if not obj.ship:
+            return None
+        ship = obj.ship
+        ship_type = getattr(ship, 'ship_type', None)
+        flag = getattr(ship, 'flag', None)
+        return {
+            'id': ship.id,
+            'ship_name': ship.ship_name,
+            'imo_number': getattr(ship, 'imo_number', None),
+            'ship_type': str(ship_type) if ship_type else None,
+            'flag': str(flag) if flag else None,
+            'status': getattr(ship, 'status', None),
+        }
+
+    def get_company_details(self, obj):
+        """Return nested company info (id, name, type, country) or null if no company assigned."""
+        if not obj.company:
+            return None
+        company = obj.company
+        return {
+            'id': company.id,
+            'company_name': company.company_name,
+            'company_type': getattr(company, 'company_type', None),
+            'country': getattr(company, 'country', None),
+            'contact_person': getattr(company, 'contact_person', None),
+            'contact_email': getattr(company, 'contact_email', None),
+            'status': getattr(company, 'status', None),
         }
 
 
@@ -1462,6 +1652,7 @@ class DocumentSerializer(serializers.ModelSerializer):
         pos = obj.job_position
         return {
             'id': pos.id,
+            'job_position_name': pos.rank.name if pos.rank else None,
             'quantity': pos.quantity,
             'salary_min': str(pos.salary_min) if pos.salary_min else None,
             'salary_max': str(pos.salary_max) if pos.salary_max else None,

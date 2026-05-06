@@ -567,7 +567,7 @@ class Contract(models.Model):
     ]
 
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='contracts')
-    ship = models.ForeignKey('ships.Ship', on_delete=models.CASCADE, related_name='contracts')
+    ship = models.ForeignKey('ships.Ship', on_delete=models.SET_NULL, null=True, blank=True, related_name='contracts')
     company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='api_contracts')
     rank = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True)
     job_position = models.ForeignKey('companies.JobOrderPosition', on_delete=models.SET_NULL, null=True, blank=True, related_name='contracts')
@@ -669,6 +669,7 @@ class CVSubmission(models.Model):
 
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='cv_submissions')
     company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='api_cv_submissions')
+    ship = models.ForeignKey('ships.Ship', on_delete=models.SET_NULL, null=True, blank=True, related_name='cv_submissions')
     position = models.ForeignKey(Rank, on_delete=models.SET_NULL, null=True, blank=True)
     job_position = models.ForeignKey('companies.JobOrderPosition', on_delete=models.SET_NULL, null=True, blank=True, related_name='cv_submissions')
 
