@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useFormField, cx } from "../../../../hooks/useFormField";
 
 /**
@@ -50,6 +50,7 @@ export function Select({
   error: externalError,
   variant = "default",
   className = "",
+  isLoading = false,
   ...props
 }) {
   const {
@@ -127,6 +128,7 @@ export function Select({
   }, []);
 
   function onKeyDown(e) {
+    if (isLoading) return;
     if (
       !open &&
       (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ")
@@ -186,8 +188,9 @@ export function Select({
           aria-haspopup="listbox"
           aria-invalid={!!err}
           aria-describedby={err ? `${name}-error` : undefined}
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => !isLoading && setOpen((o) => !o)}
           onKeyDown={onKeyDown}
+          disabled={isLoading || props.disabled}
           className={cx(
             "w-full appearance-none font-poppins text-base px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-between gap-2 text-left",
             variants[variant],
@@ -197,15 +200,19 @@ export function Select({
           {...props}
         >
           <span className={selectedDisplay ? "text-gray-900" : "text-gray-400"}>
-            {selectedDisplay || placeholder}
+            {isLoading ? "Loading..." : (selectedDisplay || placeholder)}
           </span>
-          <ChevronDown
-            className={cx(
-              "w-4 h-4 text-gray-400 transition-transform ml-auto",
-              open ? "rotate-180" : ""
-            )}
-            aria-hidden="true"
-          />
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 text-gray-400 animate-spin ml-auto" aria-hidden="true" />
+          ) : (
+            <ChevronDown
+              className={cx(
+                "w-4 h-4 text-gray-400 transition-transform ml-auto",
+                open ? "rotate-180" : ""
+              )}
+              aria-hidden="true"
+            />
+          )}
         </button>
 
         {open && (
