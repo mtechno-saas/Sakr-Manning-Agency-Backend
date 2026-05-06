@@ -47,8 +47,6 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         
         # Build the final structure
         result = {
-            "document_info": self.get_document_info(instance),
-            "application_header": self.get_application_header(instance),
             "1_personal_details": self.get_personal_details(instance),
             "2_education": self.get_education(instance),
             "3_contact_details": self.get_contact_details(instance),

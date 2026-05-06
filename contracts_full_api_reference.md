@@ -8,7 +8,7 @@
 |---|---|---|---|
 | `id` | int | Auto | Primary key |
 | `user` | FK → Users | Yes* | The seafarer. *Auto-filled if using `cv_submission_id` |
-| `ship` | FK → Ship | Yes | The ship they are joining |
+| `ship` | FK → Ship | No | The ship they are joining |
 | `company` | FK → Company | No* | The hiring company. *Auto-filled from CV |
 | `rank` | FK → Rank | No* | Position/rank. *Auto-filled from CV |
 | `job_position` | FK → JobOrderPosition | No | Linked job order position |
@@ -103,8 +103,25 @@ Authorization: Bearer <JWT_TOKEN>
     "generated_id": "240503000012",
     "ship": 2,
     "ship_name": "Ocean Voyager",
+    "ship_details": {
+        "id": 2,
+        "ship_name": "Ocean Voyager",
+        "imo_number": "1234567",
+        "ship_type": "Container",
+        "flag": "Panama",
+        "status": "Active"
+    },
     "company": 5,
     "company_name": "Global Maritime Solutions",
+    "company_details": {
+        "id": 5,
+        "company_name": "Global Maritime Solutions",
+        "company_type": "Ship Owner",
+        "country": "Egypt",
+        "contact_person": "John Doe",
+        "contact_email": "john@example.com",
+        "status": "Active"
+    },
     "rank": 3,
     "rank_name": "Chief Officer",
     "assigned_code": "D.01",
@@ -188,24 +205,6 @@ Authorization: Bearer <JWT_TOKEN>
         "remarks": "Tanker experience preferred"
     },
     "seafarer_application": {
-        "document_info": {
-            "agency_name": "SAKR MANNING AGENCY",
-            "description": "FOR RECRUITING EGYPTIAN LABOR ABROAD",
-            "manual_name": "Crewing Management Manual",
-            "form_name": "Seafarer Employment Application",
-            "revision": "13",
-            "page": "4"
-        },
-        "application_header": {
-            "issue_date": "2026-01-15",
-            "revision_date": "2026-05-04",
-            "application_for_position_as": "1st. Officer – Chief Off.",
-            "register_code": "REG-2026-050",
-            "other_position_if_any": "",
-            "register_date": "2026-01-15",
-            "last_update_data": "2026-05-04 16:30",
-            "expected_salary_available_date": "2026-06-01"
-        },
         "1_personal_details": {
             "full_name": "Ahmed Hassan",
             "date_of_birth": "1990-05-20",
@@ -324,7 +323,7 @@ Auto-fills `user`, `company`, `rank`, `salary`, `currency` from the CV.
 |---|---|---|---|
 | `cv_submission` | int | **Yes** | ID of the approved CV Submission. Auto-fills user, company, rank, job_position. |
 | `applicant_name` | string | Optional | Full name of the targeted applicant. If provided, the backend **validates** it matches the CV owner. Returns a `400` error if it doesn't match. |
-| `ship_name` | string | **Yes** | Name of the ship (case-insensitive lookup). Alternatively pass `ship` as an int ID. |
+| `ship_name` | string | Optional | Name of the ship (case-insensitive lookup). Alternatively pass `ship` as an int ID. If omitted, contract is created without a ship. |
 | `sign_on_date` | date | **Yes** | Board date — format `YYYY-MM-DD`. |
 | `sign_off_date` | date | No | Planned disembarkation date. |
 | `salary` | decimal | No | Auto-fills from `job_position.salary_max` if omitted. |
@@ -524,7 +523,7 @@ Content-Type: application/json
 ### Response — `200 OK`
 | Error Code | Reason |
 |---|---|
-| `400` | Missing required fields (`ship`, `sign_on_date`) |
+| `400` | Missing required fields (`sign_on_date`) |
 | `401` | Unauthorized |
 | `403` | Recruiter/Employee attempting update |
 | `404` | Contract ID not found |
@@ -587,7 +586,6 @@ These fields are **write-only** on POST/PATCH. They update the user's profile an
 | Write Field | Type | What it Updates |
 |---|---|---|
 | `personal_details` | JSON object | User name, DOB, nationality, height, weight, sizes |
-| `application_header` | JSON object | Position, register code, dates |
 | `education` | JSON object | College, Marlins test, language levels |
 | `contact_details` | JSON object | Address, email, phone |
 | `travel_documents` | JSON array | Passport, seaman book fields on User |

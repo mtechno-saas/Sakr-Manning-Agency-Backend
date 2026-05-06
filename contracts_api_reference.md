@@ -27,7 +27,7 @@ Allows you to instantly generate an employment contract by pointing to an approv
 |---|---|---|---|
 | `cv_submission` | `int` | **Yes** | The ID of the CV Submission. Auto-fills `user`, `company`, `rank`, and `job_position`. |
 | `applicant_name` | `string` | Optional | The full name of the targeted applicant. If provided, the backend **validates** it matches the name on the CV. Returns an error if it doesn't match. |
-| `ship_name` | `string` | **Yes** | The name of the Ship they are joining (alternatively, you can pass `ship` as an int ID). |
+| `ship_name` | `string` | Optional | The name of the Ship they are joining (alternatively, you can pass `ship` as an int ID). If omitted, contract is created without a ship. |
 | `sign_on_date` | `date` | **Yes** | Date they board the ship (Format: YYYY-MM-DD). |
 | `salary` | `decimal` | Optional | **Auto-fills** with `salary_max` from the Job Order Position if not provided. |
 | `currency` | `string` | Optional | **Auto-fills** from the Job Order Position, otherwise defaults to `USD`. |
@@ -63,8 +63,25 @@ Allows you to instantly generate an employment contract by pointing to an approv
   
   "ship": 3,
   "ship_name": "MV Ocean Star",
+  "ship_details": {
+    "id": 3,
+    "ship_name": "MV Ocean Star",
+    "imo_number": "1234567",
+    "ship_type": "Container",
+    "flag": "Panama",
+    "status": "Active"
+  },
   "company": 2,
   "company_name": "Sakr Shipping",
+  "company_details": {
+    "id": 2,
+    "company_name": "Sakr Shipping",
+    "company_type": "Ship Owner",
+    "country": "Egypt",
+    "contact_person": "John Doe",
+    "contact_email": "john@sakr.com",
+    "status": "Active"
+  },
   
   "rank": 7,
   "rank_name": "2nd. Officer",
@@ -176,7 +193,7 @@ Allows you to instantly generate an employment contract by pointing to an approv
 
 ### `PATCH /api/contracts/{id}/` — Edit a Contract
 
-Use this to update fields (e.g. changing status to "Signed" or adjusting salary). All fields are optional.
+Use this to update fields (e.g. changing status to "Signed", adjusting salary, or assigning a `ship` / `ship_name`). All fields are optional.
 
 **Request:**
 ```json
