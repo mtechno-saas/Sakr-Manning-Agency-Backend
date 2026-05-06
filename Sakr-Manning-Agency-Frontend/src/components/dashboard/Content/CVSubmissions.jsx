@@ -87,8 +87,8 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
 
     // ── Filter states ─────────────────────────────────────────────────────────
     const [showFilterModal, setShowFilterModal] = useState(false);
-    const [filters, setFilters] = useState({ search: "", status: "" });
-    const [activeFilters, setActiveFilters] = useState({ search: "", status: "" });
+    const [filters, setFilters] = useState({ search: "", status: "", position: "", submitted_date_from: "", submitted_date_to: "" });
+    const [activeFilters, setActiveFilters] = useState({ search: "", status: "", position: "", submitted_date_from: "", submitted_date_to: "" });
     const [savedPresets, setSavedPresets] = useState([]);
 
     // ── Data fetch ────────────────────────────────────────────────────────────
@@ -343,7 +343,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
     }, [filters, fetchSubmissions]);
 
     const handleResetFilters = useCallback(() => {
-        const empty = { search: "", status: "" };
+        const empty = { search: "", status: "", position: "", submitted_date_from: "", submitted_date_to: "" };
         setFilters(empty);
         setActiveFilters(empty);
         setShowFilterModal(false);
@@ -391,6 +391,23 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
             type: "select",
             placeholder: "All Statuses",
             options: STATUS_PIPELINE.map(s => ({ value: s, label: `⬤ ${s}` })),
+        },
+        {
+            key: "position",
+            label: "Position",
+            type: "select",
+            placeholder: "All Positions",
+            options: ranks.map(r => ({ value: r.id, label: r.rank_name || r.name })),
+        },
+        {
+            key: "submitted_date_from",
+            label: "Submitted Date From",
+            type: "date",
+        },
+        {
+            key: "submitted_date_to",
+            label: "Submitted Date To",
+            type: "date",
         },
     ];
 
@@ -578,6 +595,29 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                     onSuccess={handleAISuccess}
                     scale={scale}
                 />
+            )}
+
+            {/* ── View Loading Overlay ─────────────────────────────────────── */}
+            {viewLoading && (
+                <div style={{
+                    position: "fixed", inset: 0, zIndex: 9999,
+                    background: "rgba(15, 23, 42, 0.55)",
+                    backdropFilter: "blur(4px)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexDirection: "column", gap: Math.round(16 * scale),
+                }}>
+                    <div style={{
+                        width: Math.round(52 * scale), height: Math.round(52 * scale),
+                        border: `${Math.round(4 * scale)}px solid rgba(255,255,255,0.15)`,
+                        borderTopColor: "#6366F1",
+                        borderRadius: "50%",
+                        animation: "cv-spin 0.75s linear infinite",
+                    }} />
+                    <p style={{ color: "#fff", fontSize: Math.round(14 * scale), fontWeight: 500, margin: 0 }}>
+                        Loading application details…
+                    </p>
+                    <style>{`@keyframes cv-spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
             )}
 
             {showViewModal && (

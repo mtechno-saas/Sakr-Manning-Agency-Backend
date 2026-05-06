@@ -89,6 +89,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   // View modal state
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingContract, setViewingContract] = useState(null);
+  const [viewLoading, setViewLoading] = useState(false);
 
   const contracts = useMemo(() => {
     return backendContracts.map((contract) => ({
@@ -309,17 +310,23 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
 
   const handleView = useCallback(
     async (contract) => {
+      setViewLoading(true);
       try {
         const result = await getContractById(contract.id);
         if (result.success) {
           setViewingContract(result.data);
           setShowViewModal(true);
+        } else {
+          notify.error("Could not load contract details");
         }
       } catch (error) {
         console.error("Failed to load contract details:", error);
+        notify.error("Failed to load contract details");
+      } finally {
+        setViewLoading(false);
       }
     },
-    [getContractById]
+    [getContractById, notify]
   );
 
   const handleEdit = useCallback(
@@ -635,6 +642,29 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
           scale={scale}
           title="Filter Contracts"
         />
+      )}
+
+      {/* Contract View Loading Overlay */}
+      {viewLoading && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(15, 23, 42, 0.55)",
+          backdropFilter: "blur(4px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexDirection: "column", gap: Math.round(16 * scale),
+        }}>
+          <div style={{
+            width: Math.round(52 * scale), height: Math.round(52 * scale),
+            border: `${Math.round(4 * scale)}px solid rgba(255,255,255,0.15)`,
+            borderTopColor: "#0065AF",
+            borderRadius: "50%",
+            animation: "doc-spin 0.75s linear infinite",
+          }} />
+          <p style={{ color: "#fff", fontSize: Math.round(14 * scale), fontWeight: 500, margin: 0 }}>
+            Loading contract details…
+          </p>
+          <style>{`@keyframes doc-spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
       )}
 
       {/* Contract View Modal */}

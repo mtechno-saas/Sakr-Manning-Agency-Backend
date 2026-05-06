@@ -28,6 +28,8 @@ import useNotification from "../hooks/useNotification";
 import usePermissions from "../../../hooks/dashboard/usePermissions";
 import useInterviews from "../../../hooks/dashboard/useInterviews";
 import { useDashboardData } from "../context/DashboardDataContext";
+import { useCompanies } from "../../../hooks/dashboard/useCompanies";
+import { useRanks } from "../../../hooks/dashboard/useRanks";
 
 export function InterviewManagement({ scale = 1, isMObile = false }) {
   const { notify } = useNotification();
@@ -115,6 +117,9 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
     pagination
   } = useInterviews();
 
+  const { companies, fetchCompanies: fetchAllCompanies } = useCompanies();
+  const { ranks, fetchRanks } = useRanks();
+
   // centralized data
   const { fetchCompaniesByIds, companyMap, getCompanyName } = useDashboardData();
 
@@ -137,12 +142,16 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
     search: "",
     status: "",
     company: "",
+    position: "",
+    date: "",
     interview_type: "",
   });
   const [activeFilters, setActiveFilters] = useState({
     search: "",
     status: "",
     company: "",
+    position: "",
+    date: "",
     interview_type: "",
   });
   const [savedPresets, setSavedPresets] = useState([]);
@@ -151,7 +160,9 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
   useEffect(() => {
     fetchInterviews({ ...activeFilters });
     loadStatistics();
-  }, [fetchInterviews, activeFilters]);
+    fetchAllCompanies({ page_size: 1000 });
+    fetchRanks();
+  }, [fetchInterviews, activeFilters, fetchAllCompanies, fetchRanks]);
 
   // Batch fetch companies when interviews load
   useEffect(() => {
@@ -257,7 +268,7 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
   }, [filters, fetchInterviews]);
 
   const handleResetFilters = useCallback(() => {
-    const empty = { search: "", status: "", company: "", interview_type: "" };
+    const empty = { search: "", status: "", company: "", position: "", date: "", interview_type: "" };
     setFilters(empty);
     setActiveFilters(empty);
     setShowFilterModal(false);
@@ -284,6 +295,12 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
 
   const filterFields = [
     {
+      key: "search",
+      label: "Search",
+      type: "text",
+      placeholder: "Search by name or email...",
+    },
+    {
       key: "status",
       label: "Status",
       type: "select",
@@ -294,6 +311,25 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
         { value: "Cancelled", label: "Cancelled" },
         { value: "Rescheduled", label: "Rescheduled" },
       ]
+    },
+    {
+      key: "company",
+      label: "Company",
+      type: "select",
+      placeholder: "All Companies",
+      options: companies.map(c => ({ value: c.id, label: c.company_name || c.name })),
+    },
+    {
+      key: "position",
+      label: "Position",
+      type: "select",
+      placeholder: "All Positions",
+      options: ranks.map(r => ({ value: r.id, label: r.rank_name || r.name })),
+    },
+    {
+      key: "date",
+      label: "Date",
+      type: "date",
     },
     {
       key: "interview_type",

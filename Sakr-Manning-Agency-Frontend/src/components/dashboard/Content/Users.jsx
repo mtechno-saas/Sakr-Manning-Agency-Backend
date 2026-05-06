@@ -226,11 +226,17 @@ export function UserManagement({ scale = 1, isMobile }) {
     search: "",
     status: "",
     role: "",
+    nationality: "",
+    marital_status: "",
+    is_blacklisted: false,
   });
   const [activeFilters, setActiveFilters] = useState({
     search: "",
     status: "",
     role: "",
+    nationality: "",
+    marital_status: "",
+    is_blacklisted: false,
   });
 
   // Check if any filters are active
@@ -251,6 +257,10 @@ export function UserManagement({ scale = 1, isMobile }) {
       // Align with Document.html: Status values "On Site" / "Vacation"
       if (activeFilters.status === 'Active') backendFilters.user_status = 'On Site';
       if (activeFilters.status === 'Inactive') backendFilters.user_status = 'Vacation';
+
+      if (activeFilters.nationality) backendFilters.nationality = activeFilters.nationality;
+      if (activeFilters.marital_status) backendFilters.marital_status = activeFilters.marital_status;
+      if (activeFilters.is_blacklisted) backendFilters.is_blacklisted = activeFilters.is_blacklisted;
 
       fetchUsers({ ...backendFilters, page: newPage });
     },
@@ -274,11 +284,15 @@ export function UserManagement({ scale = 1, isMobile }) {
     if (filters.status === 'Active') backendFilters.user_status = 'On Site';
     if (filters.status === 'Inactive') backendFilters.user_status = 'Vacation';
 
+    if (filters.nationality) backendFilters.nationality = filters.nationality;
+    if (filters.marital_status) backendFilters.marital_status = filters.marital_status;
+    if (filters.is_blacklisted) backendFilters.is_blacklisted = filters.is_blacklisted;
+
     fetchUsers({ ...backendFilters, page: 1 });
   }, [filters, fetchUsers]);
 
   const handleResetFilters = useCallback(() => {
-    const emptyFilters = { search: "", status: "", role: "" };
+    const emptyFilters = { search: "", status: "", role: "", nationality: "", marital_status: "", is_blacklisted: false };
     setFilters(emptyFilters);
     setActiveFilters(emptyFilters);
     setShowFilterModal(false);
@@ -584,6 +598,12 @@ export function UserManagement({ scale = 1, isMobile }) {
 
   const filterFields = [
     {
+      key: "search",
+      label: "Search",
+      type: "text",
+      placeholder: "Search by name, email, etc...",
+    },
+    {
       key: "status",
       label: "Status",
       type: "select",
@@ -604,6 +624,27 @@ export function UserManagement({ scale = 1, isMobile }) {
         { value: "Recruiter", label: "Recruiter" },
         { value: "Employee", label: "Employee" },
       ],
+    },
+    {
+      key: "nationality",
+      label: "Nationality",
+      type: "text",
+      placeholder: "Filter by nationality...",
+    },
+    {
+      key: "marital_status",
+      label: "Marital Status",
+      type: "select",
+      placeholder: "All Statuses",
+      options: [
+        { value: "SINGLE", label: "Single" },
+        { value: "MARRIED", label: "Married" },
+      ],
+    },
+    {
+      key: "is_blacklisted",
+      label: "Blacklisted Only",
+      type: "checkbox",
     },
   ];
   const headerHeight = Math.round(101 * scale);
