@@ -499,14 +499,18 @@ export const usersApi = {
       const params = new URLSearchParams();
 
       // Add filter params (for both endpoints)
-      if (filters.search) params.append("search", filters.search);
-      if (filters.role) params.append("role", filters.role);
-      if (filters.nationality) params.append("nationality", filters.nationality);
-      if (filters.user_status) params.append("user_status", filters.user_status);
-      if (filters.marital_status) params.append("marital_status", filters.marital_status);
-      if (filters.email) params.append("email", filters.email);
-      if (filters.first_name) params.append("first_name", filters.first_name);
-      if (filters.status) params.append("user_status", filters.status);
+      // Array handling: if a filter is an array (from multi-select), we use the first value or join if BE supported. 
+      // Since BE uses iexact, we extract the first string if it's an array to avoid comma-joined invalid strings.
+      const getVal = (v) => Array.isArray(v) ? v[0] : v;
+
+      if (filters.search) params.append("name", getVal(filters.search));
+      if (filters.role) params.append("role", getVal(filters.role));
+      if (filters.nationality) params.append("nationality", getVal(filters.nationality));
+      if (filters.user_status) params.append("user_status", getVal(filters.user_status));
+      if (filters.marital_status) params.append("marital_status", getVal(filters.marital_status));
+      if (filters.email) params.append("email", getVal(filters.email));
+      if (filters.first_name) params.append("name", getVal(filters.first_name));
+      if (filters.status) params.append("user_status", getVal(filters.status));
       if (filters.is_blacklisted !== undefined) params.append("is_blacklisted", filters.is_blacklisted);
 
       // Only add pagination params for /users/users/ endpoint (not for /filter/)

@@ -11,11 +11,13 @@
  */
 
 import React, { useState } from "react";
+import { pdf } from "@react-pdf/renderer";
 import {
     FileText, User, Building, Ship, Calendar, Briefcase, Award,
     DollarSign, Clock, MapPin, Anchor, ShieldCheck, Download, ExternalLink,
     Hash, Globe, CheckCircle2, Waves, Mail, AlertCircle
 } from "lucide-react";
+import { SeafarerApplicationPDF } from "../../PDF/SeafarerApplicationPDF";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const fmt = (val, fallback = "—") =>
@@ -126,16 +128,31 @@ export function ContractViewModal({
 
     const actions = [];
 
-    // Always show Download Contract button as it's generated via backend
+    // Generate PDF client-side from seafarer_application data
     actions.push({
-        label: isDownloading ? "Downloading..." : "Download Contract",
+        label: isDownloading ? "Generating PDF..." : "Download Contract PDF",
         onClick: async () => {
             try {
                 setIsDownloading(true);
-                await documentsApi.downloadContract(contract.id);
+                const app = contract.seafarer_application ?? contract.cv_submission?.seafarer_application ?? null;
+                const blob = await pdf(
+                    <SeafarerApplicationPDF app={app} contract={contract} />
+                ).toBlob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                const safeName = (userName || `contract_${contract.id}`)
+                    .replace(/[^a-zA-Z0-9_\- ]/g, "")
+                    .trim()
+                    .replace(/\s+/g, "_");
+                link.setAttribute("download", `${safeName}_Application.pdf`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
             } catch (err) {
-                console.error("Failed to download contract:", err);
-                alert("Failed to download contract. It may not be available yet.");
+                console.error("Failed to generate PDF:", err);
+                alert("Failed to generate PDF. Please try again.");
             } finally {
                 setIsDownloading(false);
             }

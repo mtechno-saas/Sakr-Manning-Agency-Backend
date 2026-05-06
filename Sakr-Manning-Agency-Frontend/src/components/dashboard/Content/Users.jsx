@@ -476,11 +476,10 @@ export function UserManagement({ scale = 1, isMobile }) {
   //   [userData, selectedUser, updateAllData, notify]
   // );
 
-  // ✅ Export Handlers
   const handleExportCSV = useCallback(() => {
     try {
       const dataToExport = userData.map(
-        ({ id, avatar, ...rest }) => rest
+        ({ id, avatar, _original, ...rest }) => rest
       );
       exportToCSV(
         dataToExport,
@@ -493,19 +492,9 @@ export function UserManagement({ scale = 1, isMobile }) {
     }
   }, [userData, notify]);
 
-  const handleExportJSON = useCallback(() => {
-    try {
-      const dataToExport = userData.map(({ avatar, ...rest }) => rest);
-      exportToJSON(
-        dataToExport,
-        `Users_Export_${new Date().toISOString().split("T")[0]}.json`
-      );
-      notify.success("Users exported to JSON successfully!");
-    } catch (error) {
-      notify.error("Failed to export data");
-      console.error(error);
-    }
-  }, [userData, notify]);
+  const handleRefresh = useCallback(() => {
+    fetchUsers({ ...activeFilters, page: pagination?.currentPage || 1 });
+  }, [fetchUsers, activeFilters, pagination]);
 
   // ✅ Table columns
   const userColumns = useMemo(
@@ -844,27 +833,65 @@ export function UserManagement({ scale = 1, isMobile }) {
           >
             User Management
           </h2>
-          <Button
-            variant="icon"
-            scale={scale}
-            onClick={() => setShowFilterModal(true)}
-            ariaLabel="Filter users"
-            title="Filter users"
-          >
-            <svg
-              width={Math.round(21 * scale)}
-              height={Math.round(21 * scale)}
-              viewBox="0 0 24 24"
-              fill="none"
+          <div style={{ display: "flex", gap: `${Math.round(8 * scale)}px`, alignItems: "center" }}>
+            <Button
+              variant="icon"
+              scale={scale}
+              onClick={() => setShowFilterModal(true)}
+              ariaLabel="Filter users"
+              title="Filter users"
+              style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
             >
-              <path
-                d="M3 6h18M6 12h12M9 18h6"
-                stroke="#1E1E1E"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </Button>
+              <svg
+                width={16}
+                height={16}
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M3 6h18M6 12h12M9 18h6"
+                  stroke="#1E1E1E"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </Button>
+            <Button
+                variant="icon"
+                onClick={handleRefresh}
+                ariaLabel="Press to refresh the table"
+                title="Press to refresh the table"
+                scale={scale}
+                style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
+            >
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                  <path d="M8 16H3v5" />
+              </svg>
+            </Button>
+            {canCreate && (
+              <Button
+                variant="primary"
+                onClick={handleAddUser}
+                scale={scale}
+                style={{ minHeight: 30, height: 30, padding: "0 14px", fontSize: 13, borderRadius: 8, fontWeight: 500, lineHeight: "30px" }}
+              >
+                Add User
+              </Button>
+            )}
+            {userData.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={handleExportCSV}
+                scale={scale}
+                style={{ minHeight: 30, height: 30, padding: "0 14px", fontSize: 13, borderRadius: 8, fontWeight: 500, lineHeight: "30px" }}
+              >
+                Export CSV
+              </Button>
+            )}
+          </div>
         </div>
 
         <RefinedDataTable
@@ -907,39 +934,7 @@ export function UserManagement({ scale = 1, isMobile }) {
           />
         )} */}
 
-        {/* Action Buttons */}
-        {canCreate && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: `${Math.round(12 * scale)}px`,
-              marginTop: `${Math.round(20 * scale)}px`,
-            }}
-          >
-            <Button variant="primary" onClick={handleAddUser} scale={scale}>
-              Add User
-            </Button>
-            {userData.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={handleExportCSV}
-                  scale={scale}
-                >
-                  Export CSV
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleExportJSON}
-                  scale={scale}
-                >
-                  Export JSON
-                </Button>
-              </>
-            )}
-          </div>
-        )}
+
       </section>
 
       {showUserModal && (

@@ -719,20 +719,6 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     }
   }, [companyData, notify]);
 
-  const handleExportCompaniesJSON = useCallback(() => {
-    try {
-      const dataToExport = companyData.map(
-        ({ id, avatar, _original, ...rest }) => rest
-      );
-      exportToJSON(
-        dataToExport,
-        `Companies_Export_${new Date().toISOString().split("T")[0]}.json`
-      );
-      notify.success("Companies exported to JSON!");
-    } catch (error) {
-      notify.error("Failed to export");
-    }
-  }, [companyData, notify]);
 
   const handleExportShipsExcel = useCallback(() => {
     try {
@@ -750,20 +736,13 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     }
   }, [shipData, notify]);
 
-  const handleExportShipsJSON = useCallback(() => {
-    try {
-      const dataToExport = shipData.map(
-        ({ id, avatar, _original, ...rest }) => rest
-      );
-      exportToJSON(
-        dataToExport,
-        `Ships_Export_${new Date().toISOString().split("T")[0]}.json`
-      );
-      notify.success("Ships exported to JSON!");
-    } catch (error) {
-      notify.error("Failed to export");
-    }
-  }, [shipData, notify]);
+  const handleRefreshCompanies = useCallback(() => {
+    fetchCompanies({ ...activeCompanyFilters, page: 1 });
+  }, [fetchCompanies, activeCompanyFilters]);
+
+  const handleRefreshShips = useCallback(() => {
+    fetchShips({ ...activeShipFilters, page: 1 });
+  }, [fetchShips, activeShipFilters]);
 
   // ✅ NEW: Saved filters handlers
   const handleApplyCompanyPreset = useCallback(
@@ -1052,7 +1031,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     {
       key: "status",
       label: "Status",
-      type: "multi-select",
+      type: "select",
       placeholder: "All Statuses",
       options: [
         { value: "Active", label: "Active" },
@@ -1063,7 +1042,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     {
       key: "type",
       label: "Type",
-      type: "multi-select",
+      type: "select",
       placeholder: "All Types",
       options: [
         { value: "Ship Owner", label: "Ship Owner" },
@@ -1078,7 +1057,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     {
       key: "status",
       label: "Status",
-      type: "multi-select",
+      type: "select",
       placeholder: "All Statuses",
       options: [
         { value: "Active", label: "Active" },
@@ -1198,9 +1177,9 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
               marginTop: `${Math.round(20 * scale)}px`,
-              gap: `${Math.round(12 * scale)}px`,
+              gap: `${Math.round(8 * scale)}px`,
+              alignItems: "center"
             }}
           >
             <Button
@@ -1209,10 +1188,11 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
               ariaLabel="Filter companies"
               title="Filter companies"
               scale={scale}
+              style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
             >
               <svg
-                width={Math.round(21 * scale)}
-                height={Math.round(21 * scale)}
+                width={16}
+                height={16}
                 viewBox="0 0 24 24"
                 fill="none"
               >
@@ -1224,31 +1204,40 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
                 />
               </svg>
             </Button>
+            <Button
+                variant="icon"
+                onClick={handleRefreshCompanies}
+                ariaLabel="Press to refresh the table"
+                title="Press to refresh the table"
+                scale={scale}
+                style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
+            >
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                    <path d="M21 3v5h-5" />
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                    <path d="M8 16H3v5" />
+                </svg>
+            </Button>
             {canCreate && (
               <Button
                 variant="primary"
                 onClick={handleAddCompany}
                 scale={scale}
+                style={{ minHeight: 30, height: 30, padding: "0 14px", fontSize: 13, borderRadius: 8, fontWeight: 500, lineHeight: "30px" }}
               >
                 Add Company
               </Button>
             )}
-            {/* ✅ NEW: Export JSON */}
             {companyData.length > 0 && (
               <>
                 <Button
                   variant="outline"
                   onClick={handleExportCompaniesExcel}
                   scale={scale}
+                  style={{ minHeight: 30, height: 30, padding: "0 14px", fontSize: 13, borderRadius: 8, fontWeight: 500, lineHeight: "30px" }}
                 >
                   Export Excel
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleExportCompaniesJSON}
-                  scale={scale}
-                >
-                  Export JSON
                 </Button>
               </>
             )}
@@ -1315,7 +1304,8 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
               display: "flex",
               justifyContent: "flex-end",
               marginTop: `${Math.round(20 * scale)}px`,
-              gap: `${Math.round(12 * scale)}px`,
+              gap: `${Math.round(8 * scale)}px`,
+              alignItems: "center"
             }}
           >
             <Button
@@ -1324,10 +1314,11 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
               ariaLabel="Filter ships"
               title="Filter ships"
               scale={scale}
+              style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
             >
               <svg
-                width={Math.round(21 * scale)}
-                height={Math.round(21 * scale)}
+                width={16}
+                height={16}
                 viewBox="0 0 24 24"
                 fill="none"
               >
@@ -1339,27 +1330,35 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
                 />
               </svg>
             </Button>
+            <Button
+                variant="icon"
+                onClick={handleRefreshShips}
+                ariaLabel="Press to refresh the table"
+                title="Press to refresh the table"
+                scale={scale}
+                style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
+            >
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                    <path d="M21 3v5h-5" />
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                    <path d="M8 16H3v5" />
+                </svg>
+            </Button>
             {canCreate && (
-              <Button variant="primary" onClick={handleAddShip} scale={scale}>
+              <Button variant="primary" onClick={handleAddShip} scale={scale} style={{ minHeight: 30, height: 30, padding: "0 14px", fontSize: 13, borderRadius: 8, fontWeight: 500, lineHeight: "30px" }}>
                 Add Ship
               </Button>
             )}
-            {/* ✅ NEW: Export JSON */}
             {shipData.length > 0 && (
               <>
                 <Button
                   variant="outline"
                   onClick={handleExportShipsExcel}
                   scale={scale}
+                  style={{ minHeight: 30, height: 30, padding: "0 14px", fontSize: 13, borderRadius: 8, fontWeight: 500, lineHeight: "30px" }}
                 >
                   Export Excel
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleExportShipsJSON}
-                  scale={scale}
-                >
-                  Export JSON
                 </Button>
               </>
             )}
@@ -1572,7 +1571,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
           {
             key: "status",
             label: "Status",
-            type: "multi-select",
+            type: "select",
             placeholder: "All Statuses",
             options: [
               { value: "Open", label: "Open" },
