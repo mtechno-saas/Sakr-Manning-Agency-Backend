@@ -12,7 +12,7 @@
 import React from "react";
 import {
     Building, Phone, Mail, MapPin, Users, Ship,
-    FileText, Globe, Hash, Calendar, Briefcase
+    FileText, Globe, Hash, Calendar, Briefcase, Waves
 } from "lucide-react";
 import {
     ViewDetailModal,
@@ -80,11 +80,11 @@ export function CompanyViewModal({
         }
 
         return (
-            <div 
+            <div
                 key={ship.id}
-                style={{ 
-                    padding: `${Math.round(12 * scale)}px`, 
-                    background: "#F9FAFB", 
+                style={{
+                    padding: `${Math.round(12 * scale)}px`,
+                    background: "#F9FAFB",
                     borderRadius: `${Math.round(10 * scale)}px`,
                     border: "1px solid #E5E7EB",
                     display: "flex",
@@ -99,13 +99,13 @@ export function CompanyViewModal({
                     </div>
                     <StatusBadge status={ship.status} scale={scale * 0.8} />
                 </div>
-                
-                <div style={{ 
-                    display: "grid", 
-                    gridTemplateColumns: "1fr 1fr", 
-                    gap: `${Math.round(8 * scale)}px`, 
-                    fontSize: `${Math.round(12 * scale)}px`, 
-                    color: "#6B7280" 
+
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: `${Math.round(8 * scale)}px`,
+                    fontSize: `${Math.round(12 * scale)}px`,
+                    color: "#6B7280"
                 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                         <Hash size={10} /> IMO: {fmt(ship.imo_number)}
@@ -188,18 +188,18 @@ export function CompanyViewModal({
 
             {/* Basic Information */}
             <Section title="Company Information" icon={Building} scale={scale} columns={2}>
-                <FieldItem label="Company Name"   value={fmt(company.company_name || company.name)} scale={scale} />
-                <FieldItem label="Company Type"   value={fmt(company.company_type)} icon={Briefcase} scale={scale} />
-                <FieldItem label="Status"         value={fmt(company.status)} scale={scale} />
+                <FieldItem label="Company Name" value={fmt(company.company_name || company.name)} scale={scale} />
+                <FieldItem label="Company Type" value={fmt(company.company_type)} icon={Briefcase} scale={scale} />
+                <FieldItem label="Status" value={fmt(company.status)} scale={scale} />
                 <FieldItem label="Open Positions" value={fmt(company.open_positions)} icon={Users} scale={scale} />
-                <FieldItem label="Hourly Rate"    value={fmt(company.hourly_rate)} icon={Hash} scale={scale} />
+                <FieldItem label="Hourly Rate" value={fmt(company.hourly_rate)} icon={Hash} scale={scale} />
             </Section>
 
             {/* Contact Information */}
             <Section title="Contact Information" icon={Phone} scale={scale} columns={2}>
-                <FieldItem label="Email"           value={fmt(company.contact_email || company.email)} iconType="email" scale={scale} />
-                <FieldItem label="Website"         value={fmt(company.website)} icon={Globe} scale={scale} />
-                <FieldItem label="Company Flag"    value={fmt(company.company_flag)} icon={Globe} scale={scale} />
+                <FieldItem label="Email" value={fmt(company.contact_email || company.email)} iconType="email" scale={scale} />
+                <FieldItem label="Website" value={fmt(company.website)} icon={Globe} scale={scale} />
+                <FieldItem label="Company Flag" value={fmt(company.company_flag)} icon={Globe} scale={scale} />
             </Section>
 
             {/* Business Information */}
@@ -213,9 +213,9 @@ export function CompanyViewModal({
             {/* Related Ships */}
             {company.ships && company.ships.length > 0 && (
                 <Section title={`Assigned Ships (${company.ships.length})`} icon={Ship} scale={scale} columns={1}>
-                    <div style={{ 
-                        display: "grid", 
-                        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", 
+                    <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
                         gap: `${Math.round(12 * scale)}px`,
                         marginTop: `${Math.round(8 * scale)}px`
                     }}>
