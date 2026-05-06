@@ -43,6 +43,7 @@ export function DashboardDataProvider({ children }) {
     const [companyMap, setCompanyMap] = useState({});
     const [ships, setShips] = useState([]);
     const [shipsByCompany, setShipsByCompany] = useState({}); // { companyId: ships[] }
+    const shipsByCompanyRef = useRef({}); // mirror for stable reads inside callbacks
 
     // Loading states
     const [loadingCompanies, setLoadingCompanies] = useState(false);
@@ -247,27 +248,28 @@ export function DashboardDataProvider({ children }) {
     const fetchShipsByCompany = useCallback(async (companyId, force = false) => {
         if (!companyId) return [];
 
-        // Check if we already have it cached
-        if (!force && shipsByCompany[companyId] && shipsByCompany[companyId].length > 0) {
-            return shipsByCompany[companyId];
+        // Read from ref so this callback has no state dependency (avoids infinite loop)
+        if (!force && shipsByCompanyRef.current[companyId]?.length > 0) {
+            return shipsByCompanyRef.current[companyId];
         }
 
+        setLoadingShips(true);
         try {
-            // BE supports /ships/?company=ID through ShipFilter
             const response = await shipsApi.getShips({ company: companyId, page_size: 1000 });
-            const companyShips = response.ships || [];
-            
-            setShipsByCompany(prev => ({
-                ...prev,
-                [companyId]: companyShips
-            }));
-            
-            return companyShips;
+            const filteredShips = response.ships || [];
+
+            shipsByCompanyRef.current = { ...shipsByCompanyRef.current, [companyId]: filteredShips };
+            setShipsByCompany(prev => ({ ...prev, [companyId]: filteredShips }));
+
+            return filteredShips;
         } catch (error) {
-            console.error(`Failed to fetch ships for company ${companyId}:`, error);
+            console.error("Failed to fetch ships by company:", error);
             return [];
+        } finally {
+            setLoadingShips(false);
         }
-    }, [shipsByCompany]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // stable — reads cache via ref, not state
 
     /**
      * Batch fetch companies by IDs and update cache

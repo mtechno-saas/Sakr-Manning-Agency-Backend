@@ -35,7 +35,11 @@ const JobOrderManagementModal = ({
     } = useJobOrders();
     
     const { notify } = useNotification();
-    const { referenceOptions, ships, fetchShipsByCompany } = useDashboardData();
+    const { referenceOptions, shipsByCompany, fetchShipsByCompany, loadingShips } = useDashboardData();
+    const companyShips = useMemo(() => {
+        if (!company?.id) return [];
+        return shipsByCompany[company.id] || [];
+    }, [shipsByCompany, company?.id]);
     
     // UI State
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -170,11 +174,11 @@ const JobOrderManagementModal = ({
             return <Select {...commonProps} key={field.name} options={referenceOptions.ranks} />;
         }
         if (field.name === "ship") {
-            const shipOptions = (ships || []).map(s => ({ 
+            const shipOptions = companyShips.map(s => ({ 
                 value: s.id, 
                 label: s.ship_name || s.name 
             }));
-            return <Select {...commonProps} key={field.name} options={shipOptions} />;
+            return <Select {...commonProps} key={field.name} options={shipOptions} isLoading={loadingShips} />;
         }
         if (field.component === "DateInput") {
             return <DateInput {...commonProps} key={field.name} />;
@@ -239,7 +243,12 @@ const JobOrderManagementModal = ({
                         </div>
                         
                         <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
-                            {jobOrders.length === 0 ? (
+                            {loading ? (
+                                <div style={{ textAlign: "center", padding: "40px", color: "#6B7280" }}>
+                                    <Loader2 size={32} className="animate-spin" style={{ margin: "0 auto 12px", color: "#0369A1" }} />
+                                    <p style={{ fontSize: "13px" }}>Loading job orders...</p>
+                                </div>
+                            ) : jobOrders.length === 0 ? (
                                 <div style={{ textAlign: "center", padding: "40px", color: "#6B7280" }}>
                                     <FileText size={32} style={{ margin: "0 auto 12px", opacity: 0.3 }} />
                                     <p style={{ fontSize: "13px" }}>No job orders found.</p>
