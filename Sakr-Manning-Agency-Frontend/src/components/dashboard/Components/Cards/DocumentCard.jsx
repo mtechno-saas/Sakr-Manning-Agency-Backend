@@ -138,6 +138,7 @@ const DocumentCard = ({ document, scale = 1, onView, onDownload, onEdit, onDelet
         width: "100%",
         maxWidth: "fit-content",
         boxSizing: "border-box",
+        justifyContent: "space-between",
       }}
     >
       {/* 1. Status Bar (Left Pill) - Indicates Document Status */}

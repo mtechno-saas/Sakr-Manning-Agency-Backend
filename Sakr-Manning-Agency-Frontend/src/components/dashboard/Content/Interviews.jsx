@@ -31,7 +31,7 @@ import { useDashboardData } from "../context/DashboardDataContext";
 import { useCompanies } from "../../../hooks/dashboard/useCompanies";
 import { useRanks } from "../../../hooks/dashboard/useRanks";
 
-export function InterviewManagement({ scale = 1, isMObile = false }) {
+export function InterviewManagement({ scale = 1, isMobile = false }) {
   const { notify } = useNotification();
 
   const { canScheduleInterviews, canEdit, canDelete } = usePermissions();
@@ -121,7 +121,7 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
   const { ranks, fetchRanks } = useRanks();
 
   // centralized data
-  const { fetchCompaniesByIds, companyMap, getCompanyName } = useDashboardData();
+  const { fetchCompaniesByIds, companyMap, getCompanyName, users } = useDashboardData();
 
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
@@ -139,20 +139,20 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
   // ✅ Filter State
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
-    search: "",
+    candidate: "",
     status: "",
     company: "",
-    position: "",
-    date: "",
-    interview_type: "",
+    scheduled_date: "",
+    scheduled_date_from: "",
+    scheduled_date_to: "",
   });
   const [activeFilters, setActiveFilters] = useState({
-    search: "",
+    candidate: "",
     status: "",
     company: "",
-    position: "",
-    date: "",
-    interview_type: "",
+    scheduled_date: "",
+    scheduled_date_from: "",
+    scheduled_date_to: "",
   });
   const [savedPresets, setSavedPresets] = useState([]);
 
@@ -267,14 +267,6 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
     fetchInterviews({ ...filters, page: 1 });
   }, [filters, fetchInterviews]);
 
-  const handleResetFilters = useCallback(() => {
-    const empty = { search: "", status: "", company: "", position: "", date: "", interview_type: "" };
-    setFilters(empty);
-    setActiveFilters(empty);
-    setShowFilterModal(false);
-    fetchInterviews({ page: 1 });
-  }, [fetchInterviews]);
-
   const handlePageChange = useCallback((newPage) => {
     fetchInterviews({ ...activeFilters, page: newPage });
   }, [fetchInterviews, activeFilters]);
@@ -295,10 +287,18 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
 
   const filterFields = [
     {
-      key: "search",
-      label: "Search",
-      type: "text",
-      placeholder: "Search by name or email...",
+      key: "candidate",
+      label: "Candidate",
+      type: "select",
+      placeholder: "Select Candidate",
+      options: users.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` })),
+    },
+    {
+      key: "company",
+      label: "Company",
+      type: "select",
+      placeholder: "All Companies",
+      options: companies.map(c => ({ value: c.id, label: c.company_name || c.name })),
     },
     {
       key: "status",
@@ -309,40 +309,45 @@ export function InterviewManagement({ scale = 1, isMObile = false }) {
         { value: "Scheduled", label: "Scheduled" },
         { value: "Completed", label: "Completed" },
         { value: "Cancelled", label: "Cancelled" },
+        { value: "Pending", label: "Pending" },
+        { value: "No Show", label: "No Show" },
         { value: "Rescheduled", label: "Rescheduled" },
-      ]
+      ],
     },
     {
-      key: "company",
-      label: "Company",
-      type: "select",
-      placeholder: "All Companies",
-      options: companies.map(c => ({ value: c.id, label: c.company_name || c.name })),
-    },
-    {
-      key: "position",
-      label: "Position",
-      type: "select",
-      placeholder: "All Positions",
-      options: ranks.map(r => ({ value: r.id, label: r.rank_name || r.name })),
-    },
-    {
-      key: "date",
-      label: "Date",
+      key: "scheduled_date",
+      label: "Specific Date",
       type: "date",
     },
     {
-      key: "interview_type",
-      label: "Type",
-      type: "select",
-      placeholder: "All Types",
-      options: [
-        { value: "Video", label: "Video Call" },
-        { value: "Phone", label: "Phone Call" },
-        { value: "In-Person", label: "In-Person" },
-      ]
-    }
+      key: "scheduled_date_from",
+      label: "Date From",
+      type: "date",
+    },
+    {
+      key: "scheduled_date_to",
+      label: "Date To",
+      type: "date",
+    },
   ];
+
+  const handleResetFilters = useCallback(() => {
+    const emptyFilters = {
+      search: "",
+      candidate: "",
+      status: "",
+      company: "",
+      position: "",
+      scheduled_date: "",
+      scheduled_date_from: "",
+      scheduled_date_to: "",
+      interview_type: "",
+    };
+    setFilters(emptyFilters);
+    setActiveFilters(emptyFilters);
+    setShowFilterModal(false);
+    fetchInterviews({ page: 1 });
+  }, [fetchInterviews]);
 
   // ============================================
   // CRUD HANDLERS

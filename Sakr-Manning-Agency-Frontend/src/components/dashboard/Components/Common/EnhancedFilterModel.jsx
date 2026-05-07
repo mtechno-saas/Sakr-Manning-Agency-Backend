@@ -1,44 +1,15 @@
 // components/Common/EnhancedFilterModal.jsx
-// Updated FilterModal that supports multi-select fields
-// Drop-in replacement for existing FilterModal
-
-import React, { useEffect, useRef } from "react";
+// Premium FilterModal with scalable grid layout and standard FormField components
+import React, { useEffect, useRef, useState } from "react";
 import Button from "./Button";
-import MultiSelectFilter from "./MultiSelectFilter";
-import { getModalStyles } from "../../Styles/componentStyles";
+import FormField from "./FormField";
+import { getModalStyles, getFormFieldStyles } from "../../Styles/componentStyles";
 import { getModalTitleStyles } from "../../Styles/cssClasses";
-import { getFormFieldStyles } from "../../Styles/componentStyles";
+import { STYLE_TOKENS, getScaledValue } from "../../Styles/globalStyles";
+
 /**
  * EnhancedFilterModal Component
- *
- * Extended version of FilterModal with multi-select support
- * Backwards compatible with existing FilterModal usage
- *
- * Field types supported:
- * - 'select': Single select dropdown
- * - 'multi-select': Multi-select with checkboxes
- * - 'text': Text input
- * - 'date': Date input
- * - 'number': Number input
- *
- * @param {boolean} isOpen - Modal visibility
- * @param {function} onClose - Close callback
- * @param {string} title - Modal title
- * @param {array} fields - Field configurations
- * @param {object} values - Filter values
- * @param {function} onValuesChange - Value change callback
- * @param {function} onApply - Apply filters callback
- * @param {function} onReset - Reset filters callback
- * @param {number} scale - Scale factor
- *
- * Field Configuration:
- * {
- *   key: 'status',
- *   label: 'Status',
- *   type: 'select' OR 'multi-select',
- *   options: [{ value: 'Active', label: 'Active' }],
- *   placeholder: 'Select...'
- * }
+ * Scalable grid layout utilizing standard dashboard FormFields
  */
 const EnhancedFilterModal = ({
   isOpen,
@@ -51,143 +22,258 @@ const EnhancedFilterModal = ({
   onReset,
   scale = 1,
 }) => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const firstFieldRef = useRef(null);
+
+  // Style objects
   const modalStyles = getModalStyles(scale);
   const formFieldStyles = getFormFieldStyles(scale);
   const titleStyles = getModalTitleStyles(scale);
 
   useEffect(() => {
-    if (isOpen && firstFieldRef.current) {
-      firstFieldRef.current.focus();
-    }
-
     if (isOpen) {
-      const handleKeyDown = (e) => {
-        if (e.key === "Escape") {
-          onClose();
-        }
-      };
-
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
+      setIsMounted(true);
+      const timer = setTimeout(() => setIsVisible(true), 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+      const timer = setTimeout(() => setIsMounted(false), 300);
+      return () => clearTimeout(timer);
     }
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isVisible) document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isVisible, onClose]);
 
-  const handleFieldChange = (fieldKey, value) => {
-    onValuesChange({
-      ...values,
-      [fieldKey]: value,
-    });
-  };
+  if (!isMounted) return null;
 
-  const renderField = (field, isFirst = false) => {
-    const fieldValue =
-      values[field.key] || (field.type === "multi-select" ? [] : "");
-
-    switch (field.type) {
-      case "multi-select":
-        return (
-          <MultiSelectFilter
-            label={field.label}
-            options={field.options || []}
-            selectedValues={Array.isArray(fieldValue) ? fieldValue : []}
-            onChange={(selected) => handleFieldChange(field.key, selected)}
-            scale={scale}
-            placeholder={field.placeholder || "Select options"}
-          />
-        );
-
-      case "select":
-        return (
-          <select
-            ref={isFirst ? firstFieldRef : null}
-            value={fieldValue}
-            onChange={(e) => handleFieldChange(field.key, e.target.value || "")}
-            style={formFieldStyles.input}
-          >
-            <option value="">{field.placeholder || "All Options"}</option>
-            {field.options?.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        );
-
-      case "date":
-        return (
-          <input
-            ref={isFirst ? firstFieldRef : null}
-            type="date"
-            value={fieldValue}
-            onChange={(e) => handleFieldChange(field.key, e.target.value)}
-            style={formFieldStyles.input}
-          />
-        );
-
-      case "text":
-        return (
-          <input
-            ref={isFirst ? firstFieldRef : null}
-            type="text"
-            placeholder={field.placeholder || "Enter text"}
-            value={fieldValue}
-            onChange={(e) => handleFieldChange(field.key, e.target.value)}
-            style={formFieldStyles.input}
-          />
-        );
-
-      case "number":
-        return (
-          <input
-            ref={isFirst ? firstFieldRef : null}
-            type="number"
-            placeholder={field.placeholder || "Enter number"}
-            value={fieldValue}
-            onChange={(e) => handleFieldChange(field.key, e.target.value)}
-            style={formFieldStyles.input}
-          />
-        );
-
-      default:
-        return null;
-    }
+  const handleFieldChange = (fieldName, value) => {
+    onValuesChange({ ...values, [fieldName]: value });
   };
 
   return (
     <div
-      style={modalStyles.overlay}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="filter-modal-title"
+      className={`filter-overlay-root ${isVisible ? "active" : ""}`}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(15, 23, 42, 0.5)",
+        backdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 2000,
+        opacity: isVisible ? 1 : 0,
+        transition: "opacity 0.3s ease",
+      }}
       onClick={onClose}
     >
-      <div style={modalStyles.panel} onClick={(e) => e.stopPropagation()}>
-        <h2 id="filter-modal-title" style={titleStyles}>
-          {title}
-        </h2>
+      <style>{`
+        .filter-overlay-root {
+          font-family: ${STYLE_TOKENS.colors.primary};
+        }
+        .filter-panel-root {
+          transform: translateY(${isVisible ? "0" : "30px"}) scale(${isVisible ? "1" : "0.98"});
+          opacity: ${isVisible ? 1 : 0};
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        }
+        .filter-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: ${getScaledValue(8, scale)}px ${getScaledValue(24, scale)}px;
+          padding: 2px;
+        }
+        @media (max-width: 600px) {
+          .filter-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        .field-item {
+          opacity: 0;
+          animation: fadeIn 0.4s ease forwards;
+          position: relative;
+          z-index: 1;
+          transition: z-index 0s;
+        }
+        .field-item:focus-within, .field-item:hover {
+          z-index: 50;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .close-btn {
+          width: ${getScaledValue(36, scale)}px;
+          height: ${getScaledValue(36, scale)}px;
+          border-radius: 12px;
+          border: 1px solid #E5E7EB;
+          background: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          color: #6B7280;
+        }
+        .close-btn:hover {
+          background: #F9FAFB;
+          color: #111827;
+          border-color: #D1D5DB;
+          transform: rotate(90deg);
+        }
+        /* Override FormField labels for filter look */
+        .filter-field label {
+          font-size: ${getScaledValue(12, scale)}px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.8px !important;
+          color: #6B7280 !important;
+          font-weight: 700 !important;
+          margin-bottom: ${getScaledValue(6, scale)}px !important;
+        }
+        .filter-field input, .filter-field select {
+            background-color: #FAFAFA !important;
+            border-width: 1.5px !important;
+            border-radius: ${getScaledValue(12, scale)}px !important;
+        }
+        .filter-field input:focus, .filter-field select:focus {
+            background-color: #FFFFFF !important;
+            border-color: ${STYLE_TOKENS.colors.primary} !important;
+        }
+        /* Tighten spacing between grid rows */
+        .filter-field > div {
+            margin-bottom: ${getScaledValue(12, scale)}px !important;
+        }
+      `}</style>
 
-        {fields.map((field, index) => (
-          <div key={field.key} style={formFieldStyles.wrapper}>
-            <label style={formFieldStyles.label}>{field.label}</label>
-            {renderField(field, index === 0)}
-          </div>
-        ))}
-
+      <div
+        className="filter-panel-root"
+        style={{
+          ...modalStyles.panel,
+          position: "relative",
+          maxWidth: getScaledValue(780, scale),
+          width: "95%",
+          padding: getScaledValue(36, scale),
+          borderRadius: getScaledValue(32, scale),
+          boxShadow: "0 25px 70px rgba(0, 0, 0, 0.2)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 0,
+          overflow: "hidden",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
         <div
           style={{
             display: "flex",
-            gap: `${Math.round(12 * scale)}px`,
-            justifyContent: "flex-end",
-            marginTop: `${Math.round(24 * scale)}px`,
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            marginBottom: getScaledValue(32, scale),
           }}
         >
-          <Button variant="outline" onClick={onReset} scale={scale}>
-            Reset
+          <div style={{ display: "flex", flexDirection: "column", gap: getScaledValue(6, scale) }}>
+            <h2 style={{ ...titleStyles, margin: 0, fontSize: getScaledValue(26, scale), fontWeight: 700, letterSpacing: "-0.5px" }}>
+              {title}
+            </h2>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: STYLE_TOKENS.colors.primary }}></div>
+              <p style={{ color: STYLE_TOKENS.colors.lightText, fontSize: getScaledValue(14, scale), margin: 0, fontWeight: 500 }}>
+                {fields.length} available filters
+              </p>
+            </div>
+          </div>
+          <button className="close-btn" onClick={onClose} aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        {/* Scalable Grid Body */}
+        <div 
+          style={{ 
+            maxHeight: "65vh", 
+            overflowY: "auto", 
+            paddingRight: getScaledValue(12, scale),
+            marginRight: getScaledValue(-12, scale),
+            paddingBottom: getScaledValue(12, scale)
+          }}
+        >
+          <div className="filter-grid">
+            {fields.map((field, index) => (
+              <div 
+                key={field.key} 
+                className="field-item filter-field"
+                style={{ 
+                  animationDelay: `${index * 0.04}s`,
+                  gridColumn: (field.fullWidth || field.type === "multi-select" || (index === fields.length - 1 && fields.length % 2 !== 0)) ? "1 / -1" : "auto" 
+                }}
+              >
+                <FormField
+                    field={{
+                        ...field,
+                        name: field.key,
+                        placeholder: field.placeholder || (field.type === 'select' ? "All Options" : `Enter ${field.label}...`)
+                    }}
+                    value={values[field.key]}
+                    onChange={handleFieldChange}
+                    scale={scale}
+                    ref={index === 0 ? firstFieldRef : null}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            display: "flex",
+            gap: getScaledValue(16, scale),
+            justifyContent: "flex-end",
+            marginTop: getScaledValue(36, scale),
+            paddingTop: getScaledValue(28, scale),
+            borderTop: `1.5px solid #F3F4F6`,
+          }}
+        >
+          <Button 
+            variant="outline" 
+            onClick={onReset} 
+            scale={scale}
+            style={{ 
+              borderRadius: getScaledValue(16, scale),
+              minWidth: getScaledValue(110, scale),
+              border: "1.5px solid #E5E7EB",
+              color: "#6B7280",
+              fontSize: getScaledValue(14, scale),
+              fontWeight: 600,
+              backgroundColor: "transparent"
+            }}
+          >
+            Clear All
           </Button>
-          <Button variant="primary" onClick={onApply} scale={scale}>
+          <Button 
+            variant="primary" 
+            onClick={onApply} 
+            scale={scale}
+            style={{ 
+              borderRadius: getScaledValue(16, scale),
+              minWidth: getScaledValue(160, scale),
+              boxShadow: "0 10px 25px -5px rgba(0, 101, 175, 0.25)",
+              fontSize: getScaledValue(14, scale),
+              fontWeight: 600
+            }}
+          >
             Apply Filters
           </Button>
         </div>
@@ -197,3 +283,6 @@ const EnhancedFilterModal = ({
 };
 
 export default EnhancedFilterModal;
+
+
+

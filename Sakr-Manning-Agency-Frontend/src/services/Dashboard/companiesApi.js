@@ -25,12 +25,15 @@ export const companiesApi = {
     try {
       const params = new URLSearchParams();
 
-      // Add filters to query params
-      const getVal = (v) => Array.isArray(v) ? v[0] : v;
-      
-      if (filters.status) params.append("status", getVal(filters.status));
+      // Add filters to query params — aligned with BE docs
+      const getVal = (v) => (Array.isArray(v) ? v[0] : v);
+
+      if (filters.name) params.append("name", getVal(filters.name));
       if (filters.company_type) params.append("company_type", getVal(filters.company_type));
-      if (filters.search) params.append("name", getVal(filters.search));
+      if (filters.status) params.append("status", getVal(filters.status));
+      
+      // Fallback for older search key
+      if (filters.search && !filters.name) params.append("name", getVal(filters.search));
 
       // Standard pagination params
       if (filters.page) params.append("page", filters.page);

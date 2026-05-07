@@ -39,6 +39,7 @@ import RankFormModal from "../Components/Modal/RankFormModal";
 import CrewManagementModal from "../Components/Modal/CrewManagementModal";
 import JobOrderManagementModal from "../Components/Modal/JobOrderManagementModal";
 import useJobOrders from "../../../hooks/dashboard/useJobOrders";
+import { useDashboardData } from "../context/DashboardDataContext";
 
 export function CompanyManagement({ scale = 1, isMobile = false }) {
   const { notify } = useNotification();
@@ -54,6 +55,8 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     fetchCompanyStats,
     pagination: companyPagination,
   } = useCompanies();
+
+  const { flags, vesselTypes, referenceOptions } = useDashboardData();
 
   const {
     ships: backendShips,
@@ -99,8 +102,22 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   const [viewingShip, setViewingShip] = useState(null);
 
   // Job Orders filter state
-  const [jobOrderFilters, setJobOrderFilters] = useState({ search: "", status: "", company: "" });
-  const [activeJobOrderFilters, setActiveJobOrderFilters] = useState({ search: "", status: "", company: "" });
+  const [jobOrderFilters, setJobOrderFilters] = useState({ 
+    company: "", 
+    ship: "", 
+    status: "", 
+    reference_number: "", 
+    request_date_from: "", 
+    request_date_to: "" 
+  });
+  const [activeJobOrderFilters, setActiveJobOrderFilters] = useState({ 
+    company: "", 
+    ship: "", 
+    status: "", 
+    reference_number: "", 
+    request_date_from: "", 
+    request_date_to: "" 
+  });
   const [showJobOrderFilterModal, setShowJobOrderFilterModal] = useState(false);
 
   // Ranks modal state
@@ -120,18 +137,16 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   const [deleteType, setDeleteType] = useState(null); // 'company', 'ship', 'job_order', 'rank'
 
   const [companyStats, setCompanyStats] = useState(null);
-  const [flags, setFlags] = useState([]);
-  const [vesselTypes, setVesselTypes] = useState([]);
 
   // Filter state for Companies
   const [showCompanyFilterModal, setShowCompanyFilterModal] = useState(false);
   const [companyFilters, setCompanyFilters] = useState({
-    search: "",
+    name: "",
     status: "",
     company_type: "",
   });
   const [activeCompanyFilters, setActiveCompanyFilters] = useState({
-    search: "",
+    name: "",
     status: "",
     company_type: "",
   });
@@ -139,33 +154,20 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   // Filter state for Ships
   const [showShipFilterModal, setShowShipFilterModal] = useState(false);
   const [shipFilters, setShipFilters] = useState({
-    search: "",
+    name: "",
+    imo_number: "",
+    company: "",
     status: "",
-    type: "",
+    vessel_type: "",
   });
   const [activeShipFilters, setActiveShipFilters] = useState({
-    search: "",
+    name: "",
+    imo_number: "",
+    company: "",
     status: "",
-    type: "",
+    vessel_type: "",
   });
 
-  useEffect(() => {
-    const loadReferenceData = async () => {
-      try {
-        const [flagsResponse, vesselTypesResponse] = await Promise.all([
-          coreApi.getFlags(),
-          coreApi.getVesselTypes(),
-        ]);
-        setFlags(flagsResponse);
-        setVesselTypes(vesselTypesResponse);
-      } catch (error) {
-        console.error("Failed to load reference data:", error);
-        notify.error("Failed to load flags and vessel types");
-      }
-    };
-
-    loadReferenceData();
-  }, [notify]);
   // ✅ NEW: Saved filter presets for both companies and ships
   const [savedCompanyPresets, setSavedCompanyPresets] = useState([]);
   const [savedShipPresets, setSavedShipPresets] = useState([]);
@@ -524,7 +526,14 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   }, [jobOrderFilters, fetchJobOrders]);
 
   const handleResetJobOrderFilters = useCallback(() => {
-    const empty = { search: "", status: "", company: "" };
+    const empty = { 
+      company: "", 
+      ship: "", 
+      status: "", 
+      reference_number: "", 
+      request_date_from: "", 
+      request_date_to: "" 
+    };
     setJobOrderFilters(empty);
     setActiveJobOrderFilters(empty);
     setShowJobOrderFilterModal(false);
@@ -667,7 +676,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   }, [companyFilters, fetchCompanies]);
 
   const handleResetCompanyFilters = useCallback(() => {
-    const emptyFilters = { search: "", status: "", company_type: "" };
+    const emptyFilters = { name: "", status: "", company_type: "" };
     setCompanyFilters(emptyFilters);
     setActiveCompanyFilters(emptyFilters);
     setShowCompanyFilterModal(false);
@@ -682,7 +691,13 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   }, [shipFilters, fetchShips]);
 
   const handleResetShipFilters = useCallback(() => {
-    const emptyFilters = { search: "", status: "", type: "" };
+    const emptyFilters = {
+      name: "",
+      imo_number: "",
+      company: "",
+      status: "",
+      vessel_type: "",
+    };
     setShipFilters(emptyFilters);
     setActiveShipFilters(emptyFilters);
     setShowShipFilterModal(false);
@@ -1026,8 +1041,14 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     [canEdit, canDelete, handleEditRank, handleDeleteRank]
   );
 
-  // ✅ NEW: Enhanced filter fields with multi-select
+  // ✅ NEW: Enhanced filter fields aligned with BE documentation
   const companyFilterFields = [
+    {
+      key: "name",
+      label: "Company Name",
+      type: "text",
+      placeholder: "Search by name...",
+    },
     {
       key: "status",
       label: "Status",
@@ -1040,20 +1061,44 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       ],
     },
     {
-      key: "type",
-      label: "Type",
+      key: "company_type",
+      label: "Company Type",
       type: "select",
       placeholder: "All Types",
       options: [
-        { value: "Ship Owner", label: "Ship Owner" },
-        { value: "Ship Manager", label: "Ship Manager" },
-        { value: "Crewing Agency", label: "Crewing Agency" },
-        { value: "Manning Agency", label: "Manning Agency" },
+        { value: "Shipping Manning Companies", label: "Shipping Manning Companies" },
+        { value: "Cargo Manning Companies", label: "Cargo Manning Companies" },
+        { value: "Cruise & Hospitality Manning Companies", label: "Cruise & Hospitality Manning Companies" },
+        { value: "Offshore & Oil/Gas Manning Companies", label: "Offshore & Oil/Gas Manning Companies" },
+        { value: "Fishing Fleet Manning Companies", label: "Fishing Fleet Manning Companies" },
+        { value: "General Crew Manning Companies", label: "General Crew Manning Companies" },
+        { value: "Specialized Marine Manning Companies", label: "Specialized Marine Manning Companies" },
+        { value: "Temporary / Contract Manning Agencies", label: "Temporary / Contract Manning Agencies" },
+        { value: "Full Crew Management Companies", label: "Full Crew Management Companies" },
       ],
     },
   ];
 
   const shipFilterFields = [
+    {
+      key: "name",
+      label: "Ship Name",
+      type: "text",
+      placeholder: "Search by ship name...",
+    },
+    {
+      key: "imo_number",
+      label: "IMO Number",
+      type: "text",
+      placeholder: "Search by IMO number...",
+    },
+    {
+      key: "company",
+      label: "Company",
+      type: "select",
+      placeholder: "All Companies",
+      options: referenceOptions.companies,
+    },
     {
       key: "status",
       label: "Status",
@@ -1064,6 +1109,13 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         { value: "Under Maintenance", label: "Under Maintenance" },
         { value: "Inactive", label: "Inactive" },
       ],
+    },
+    {
+      key: "vessel_type",
+      label: "Ship Type",
+      type: "select",
+      placeholder: "All Types",
+      options: vesselTypes.map(v => ({ value: v.id, label: v.name })),
     },
   ];
 
@@ -1569,6 +1621,26 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         title="Filter Job Orders"
         fields={[
           {
+            key: "reference_number",
+            label: "Reference Number",
+            type: "text",
+            placeholder: "Search by reference...",
+          },
+          {
+            key: "company",
+            label: "Company",
+            type: "select",
+            placeholder: "All Companies",
+            options: backendCompanies.map(c => ({ value: c.id, label: c.company_name })),
+          },
+          {
+            key: "ship",
+            label: "Ship",
+            type: "select",
+            placeholder: "All Ships",
+            options: backendShips.map(s => ({ value: s.id, label: s.ship_name })),
+          },
+          {
             key: "status",
             label: "Status",
             type: "select",
@@ -1578,6 +1650,16 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
               { value: "Closed", label: "Closed" },
               { value: "Cancelled", label: "Cancelled" },
             ],
+          },
+          {
+            key: "request_date_from",
+            label: "Request Date From",
+            type: "date",
+          },
+          {
+            key: "request_date_to",
+            label: "Request Date To",
+            type: "date",
           },
         ]}
         values={jobOrderFilters}
