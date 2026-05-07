@@ -1116,11 +1116,12 @@ class ContractSerializer(serializers.ModelSerializer):
         job_position = validated_data.get('job_position')
 
         if user and job_position and job_position.job_order:
-            from dateutil.relativedelta import relativedelta
+            from datetime import timedelta
             from rest_framework.exceptions import ValidationError
             
             new_start = job_position.job_order.target_joining_date
-            new_end = new_start + relativedelta(months=job_position.contract_duration_months)
+            duration_months = job_position.contract_duration_months or 6
+            new_end = new_start + timedelta(days=30 * duration_months)
             
             # Find existing active contracts for this user that are linked to a job position
             # We assume Draft and Cancelled status contracts do not block new assignments.
@@ -1133,7 +1134,8 @@ class ContractSerializer(serializers.ModelSerializer):
             for ec in existing_contracts:
                 if ec.job_position.job_order:
                     ec_start = ec.job_position.job_order.target_joining_date
-                    ec_end = ec_start + relativedelta(months=ec.job_position.contract_duration_months)
+                    ec_duration = ec.job_position.contract_duration_months or 6
+                    ec_end = ec_start + timedelta(days=30 * ec_duration)
                     
                     # Check for date overlap (inclusive)
                     if new_start <= ec_end and new_end >= ec_start:
