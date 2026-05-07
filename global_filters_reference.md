@@ -100,7 +100,7 @@ This document outlines all the available query parameters (filters) you can appe
 
 ## 8. Logistics
 
-### Flight Bookings (`/api/logistics/flight-bookings/`)
+### Flight Bookings (`/api/logistics/flights/`)
 | Query Parameter | Type | Match Type | Description |
 |---|---|---|---|
 | `user` | `int` | `exact` | Filter by Seafarer (User) ID |
@@ -108,13 +108,18 @@ This document outlines all the available query parameters (filters) you can appe
 | `airline` | `string` | `icontains` | Partial match on airline name |
 | `departure_date` | `date` | `exact` | Exact departure date |
 
-### Visa Applications (`/api/logistics/visa-applications/`)
+### Visa Applications (`/api/logistics/visas/`)
 | Query Parameter | Type | Match Type | Description |
 |---|---|---|---|
 | `user` | `int` | `exact` | Filter by Seafarer (User) ID |
 | `country` | `string` | `icontains` | Partial match on country name |
 | `status` | `string` | `iexact` | Exact match on status |
 | `visa_type` | `string` | `iexact` | Exact match on visa type |
+
+### Joining Instructions (`/api/logistics/joining-instructions/`)
+| Query Parameter | Type | Match Type | Description |
+|---|---|---|---|
+| `user` | `int` | `exact` | Filter by Seafarer (User) ID |
 
 ---
 
