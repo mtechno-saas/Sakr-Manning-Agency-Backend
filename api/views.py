@@ -910,6 +910,12 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
             else:
                 serializer.save()
 
+    def perform_destroy(self, instance):
+        # If the applicant was assigned to the ship's crew for this CV submission, remove them
+        if instance.ship and instance.user:
+            instance.ship.crew.remove(instance.user)
+        super().perform_destroy(instance)
+
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
         """CV statistics for dashboard"""
