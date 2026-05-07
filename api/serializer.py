@@ -1144,6 +1144,11 @@ class ContractSerializer(serializers.ModelSerializer):
         
         contract = super().create(validated_data)
 
+        # Decrease Job Order Position quantity
+        if contract.job_position:
+            contract.job_position.quantity = max(0, contract.job_position.quantity - 1)
+            contract.job_position.save(update_fields=['quantity'])
+
         # Apply Seafarer Application updates to the linked user
         if seafarer_data and contract.user:
             from .seafarer_application_serializers import SeafarerApplicationSerializer

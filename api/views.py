@@ -691,6 +691,12 @@ class ContractViewSet(viewsets.ModelViewSet):
             return Contract.objects.select_related('user', 'ship', 'company', 'rank').all()
         return Contract.objects.filter(user=user)
 
+    def perform_destroy(self, instance):
+        if instance.job_position:
+            instance.job_position.quantity += 1
+            instance.job_position.save(update_fields=['quantity'])
+        super().perform_destroy(instance)
+
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
         """Contract statistics for Documents Management dashboard"""
