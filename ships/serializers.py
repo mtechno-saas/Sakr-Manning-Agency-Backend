@@ -38,6 +38,7 @@ class ShipSerializer(serializers.ModelSerializer):
     
     # Expose related Job Orders and their positions
     job_orders = serializers.SerializerMethodField()
+    jobs_order_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Ship
@@ -47,8 +48,11 @@ class ShipSerializer(serializers.ModelSerializer):
             'company', 'status', 'crew', 'crew_ids', 'official_no',
             'call_sign', 'mmsi_no', 'port_of_registry', 'gross_tonnage',
             'deadweight', 'year_built', 'builder', 'engine_type',
-            'engine_power_kw', 'created_at', 'updated_at', 'job_orders'
+            'engine_power_kw', 'created_at', 'updated_at', 'job_orders', 'jobs_order_count'
         ]
+
+    def get_jobs_order_count(self, obj):
+        return obj.job_orders.count()
 
     def get_job_orders(self, obj):
         orders = obj.job_orders.all().prefetch_related('positions__rank')
