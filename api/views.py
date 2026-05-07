@@ -701,6 +701,20 @@ class ContractViewSet(viewsets.ModelViewSet):
         if instance.ship and instance.user:
             instance.ship.crew.remove(instance.user)
             
+        # Also clean up related CV Submissions
+        if instance.user:
+            from api.models import CVSubmission
+            cvs = CVSubmission.objects.filter(user=instance.user)
+            if instance.ship:
+                cvs = cvs.filter(ship=instance.ship)
+            if instance.company:
+                cvs = cvs.filter(company=instance.company)
+                
+            for cv in cvs:
+                cv.ship = None
+                cv.company = None
+                cv.save(update_fields=['ship', 'company'])
+            
         super().perform_destroy(instance)
 
     @action(detail=False, methods=['get'], url_path='stats')
