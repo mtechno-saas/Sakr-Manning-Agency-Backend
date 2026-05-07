@@ -26,3 +26,4 @@ django-cors-headers
 wikipedia
 email-validator==2.2.0
 google-auth>=2.0.0
+google-auth==2.51.0
