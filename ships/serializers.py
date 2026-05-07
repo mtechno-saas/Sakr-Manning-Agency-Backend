@@ -35,6 +35,9 @@ class ShipSerializer(serializers.ModelSerializer):
     # Expose the string names for ForeignKeys so the frontend doesn't just get IDs (like 105)
     flag_name = serializers.CharField(source='flag.name', read_only=True)
     ship_type_name = serializers.CharField(source='ship_type.name', read_only=True)
+    
+    # Expose related Job Orders and their positions
+    job_orders = serializers.SerializerMethodField()
 
     class Meta:
         model = Ship
@@ -44,5 +47,34 @@ class ShipSerializer(serializers.ModelSerializer):
             'company', 'status', 'crew', 'crew_ids', 'official_no',
             'call_sign', 'mmsi_no', 'port_of_registry', 'gross_tonnage',
             'deadweight', 'year_built', 'builder', 'engine_type',
-            'engine_power_kw', 'created_at', 'updated_at'
+            'engine_power_kw', 'created_at', 'updated_at', 'job_orders'
         ]
+
+    def get_job_orders(self, obj):
+        orders = obj.job_orders.all().prefetch_related('positions__rank')
+        result = []
+        for order in orders:
+            positions = []
+            for pos in order.positions.all():
+                positions.append({
+                    "id": pos.id,
+                    "rank": pos.rank.id if pos.rank else None,
+                    "rank_name": pos.rank.name if pos.rank else None,
+                    "quantity": pos.quantity,
+                    "salary_min": pos.salary_min,
+                    "salary_max": pos.salary_max,
+                    "currency": pos.currency,
+                    "contract_duration_months": pos.contract_duration_months,
+                    "remarks": pos.remarks
+                })
+            
+            result.append({
+                "id": order.id,
+                "reference_number": order.reference_number,
+                "request_date": order.request_date,
+                "target_joining_date": order.target_joining_date,
+                "status": order.status,
+                "notes": order.notes,
+                "positions": positions
+            })
+        return result
