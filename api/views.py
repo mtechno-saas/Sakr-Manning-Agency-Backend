@@ -705,15 +705,18 @@ class ContractViewSet(viewsets.ModelViewSet):
         if instance.user:
             from api.models import CVSubmission
             cvs = CVSubmission.objects.filter(user=instance.user)
-            if instance.ship:
-                cvs = cvs.filter(ship=instance.ship)
-            if instance.company:
-                cvs = cvs.filter(company=instance.company)
-                
+            
             for cv in cvs:
-                cv.ship = None
-                cv.company = None
-                cv.save(update_fields=['ship', 'company'])
+                update_fields = []
+                if instance.ship and cv.ship == instance.ship:
+                    cv.ship = None
+                    update_fields.append('ship')
+                if instance.company and cv.company == instance.company:
+                    cv.company = None
+                    update_fields.append('company')
+                
+                if update_fields:
+                    cv.save(update_fields=update_fields)
             
         super().perform_destroy(instance)
 
