@@ -1111,6 +1111,37 @@ class ContractSerializer(serializers.ModelSerializer):
             except CVSubmission.DoesNotExist:
                 raise ValidationError({'error': f'CV Submission with id {cv_sub_id} not found.'})
         
+        # --- Overlap Validation ---
+        user = validated_data.get('user')
+        job_position = validated_data.get('job_position')
+
+        if user and job_position and job_position.job_order:
+            from dateutil.relativedelta import relativedelta
+            from rest_framework.exceptions import ValidationError
+            
+            new_start = job_position.job_order.target_joining_date
+            new_end = new_start + relativedelta(months=job_position.contract_duration_months)
+            
+            # Find existing active contracts for this user that are linked to a job position
+            # We assume Draft and Cancelled status contracts do not block new assignments.
+            existing_contracts = Contract.objects.filter(
+                user=user, 
+                job_position__isnull=False,
+                status__in=['Pending Signature', 'Signed', 'Active']
+            )
+            
+            for ec in existing_contracts:
+                if ec.job_position.job_order:
+                    ec_start = ec.job_position.job_order.target_joining_date
+                    ec_end = ec_start + relativedelta(months=ec.job_position.contract_duration_months)
+                    
+                    # Check for date overlap (inclusive)
+                    if new_start <= ec_end and new_end >= ec_start:
+                        raise ValidationError({
+                            'error': f"Applicant {user.first_name} is already assigned to a ship during this period (From {ec_start} to {ec_end}). Overlapping Job Order: {ec.job_position.job_order.reference_number}"
+                        })
+        # --------------------------
+        
         contract = super().create(validated_data)
 
         # Apply Seafarer Application updates to the linked user
