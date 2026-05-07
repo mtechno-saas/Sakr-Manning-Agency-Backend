@@ -1,4 +1,5 @@
 import os
+
 from django.shortcuts import get_object_or_404
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
@@ -695,6 +696,11 @@ class ContractViewSet(viewsets.ModelViewSet):
         if instance.job_position:
             instance.job_position.quantity += 1
             instance.job_position.save(update_fields=['quantity'])
+            
+        # If the applicant was assigned to the ship's crew for this contract, remove them
+        if instance.ship and instance.user:
+            instance.ship.crew.remove(instance.user)
+            
         super().perform_destroy(instance)
 
     @action(detail=False, methods=['get'], url_path='stats')
