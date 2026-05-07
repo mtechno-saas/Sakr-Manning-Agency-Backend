@@ -126,7 +126,6 @@ export const cvSubmissionsApi = {
         try {
             const params = new URLSearchParams();
             if (filters.page) params.append("page", filters.page);
-            if (filters.search) params.append("search", filters.search);
             if (filters.status) params.append("status", filters.status);
             if (filters.user) params.append("user", filters.user);
             if (filters.position) params.append("position", filters.position);

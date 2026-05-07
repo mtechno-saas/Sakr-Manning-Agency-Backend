@@ -4,6 +4,7 @@
 import React from "react";
 import { STYLE_TOKENS, getScaledValue } from "../../Styles/globalStyles";
 import MultiSelectFilter from "./MultiSelectFilter";
+import { Select } from "../inputs/Select";
 
 /**
  * FormField Component
@@ -130,25 +131,16 @@ const FormField = React.forwardRef(
 
         case "select":
           return (
-            <select
-              id={name}
+            <Select
               name={name}
               value={value || ""}
-              onChange={handleChange}
-              onBlur={handleBlur}
+              onChange={(val) => onChange(name, val)}
+              options={options}
+              placeholder={placeholder || "Select an option..."}
               disabled={disabled}
-              style={{
-                ...inputBaseStyle,
-                cursor: disabled ? "not-allowed" : "pointer",
-              }}
-            >
-              <option value="">{placeholder || "Select an option..."}</option>
-              {options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              searchable={true}
+              variant="dashboard"
+            />
           );
 
         case "multi-select":

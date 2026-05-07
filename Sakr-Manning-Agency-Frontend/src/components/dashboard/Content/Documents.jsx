@@ -31,6 +31,8 @@ import useNotification from "../hooks/useNotification";
 
 import useDocuments from "../../../hooks/dashboard/useDocuments";
 import usePermissions from "../../../hooks/dashboard/usePermissions";
+import { useReferenceDataContext } from "../../../context/ReferenceDataContext";
+import useUsers from "../../../hooks/dashboard/useUsers";
 
 export function DocumentManagement({ scale = 1, isMobile = false }) {
   const { notify } = useNotification();
@@ -47,6 +49,14 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
     pagination,
     canManageContracts,
   } = useDocuments();
+
+  const referenceData = useReferenceDataContext();
+  const { users: allUsers, fetchUsers } = useUsers();
+
+  // Fetch users for filters
+  useEffect(() => {
+    fetchUsers({ page_size: 1000 });
+  }, []);
 
   // Fetch contracts on mount
   useEffect(() => {
@@ -66,14 +76,24 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   // ✅ Local state for filters
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
-    search: "",
-    status: "",
-    expiry_status: "", // Mapping UI "Expiry Status" to backend filters might need logic or just status
-  });
-  const [activeFilters, setActiveFilters] = useState({
-    search: "",
+    user_name: "",
+    ship_name: "",
     status: "",
     expiry_status: "",
+    start_date_from: "",
+    start_date_to: "",
+    company: "",
+    user: "",
+  });
+  const [activeFilters, setActiveFilters] = useState({
+    user_name: "",
+    ship_name: "",
+    status: "",
+    expiry_status: "",
+    start_date_from: "",
+    start_date_to: "",
+    company: "",
+    user: "",
   });
 
   // ✅ Saved Filters state
@@ -133,7 +153,14 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   }, [filters, fetchContracts]);
 
   const handleResetFilters = useCallback(() => {
-    const emptyFilters = { search: "", status: "", expiry_status: "" };
+    const emptyFilters = { 
+        user_name: "", 
+        ship_name: "", 
+        status: "", 
+        expiry_status: "",
+        start_date_from: "",
+        start_date_to: ""
+    };
     setFilters(emptyFilters);
     setActiveFilters(emptyFilters);
     setShowFilterModal(false);
@@ -168,17 +195,43 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   // Filter Fields Configuration
   const filterFields = [
     {
+      key: "user_name",
+      label: "User Name",
+      type: "text",
+      placeholder: "Search by user name...",
+    },
+    {
+      key: "ship_name",
+      label: "Ship Name",
+      type: "text",
+      placeholder: "Search by ship name...",
+    },
+    {
       key: "status",
       label: "Contract Status",
       type: "select",
       placeholder: "All Statuses",
       options: [
         { value: "Signed", label: "Signed" },
-        { value: "Pending Signature", label: "PendingSignature" },
+        { value: "Pending Signature", label: "Pending Signature" },
         { value: "Draft", label: "Draft" },
         { value: "Expired", label: "Expired" },
         { value: "Cancelled", label: "Cancelled" },
       ],
+    },
+    {
+        key: "company",
+        label: "Company",
+        type: "select",
+        placeholder: "All Companies",
+        options: (referenceData?.companies || []).map(c => ({ value: c.value, label: c.label }))
+    },
+    {
+        key: "user",
+        label: "User (Seafarer)",
+        type: "select",
+        placeholder: "All Seafarers",
+        options: allUsers.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` }))
     },
     {
       key: "expiry_status",
@@ -191,6 +244,16 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
         { value: "critical", label: "Critical (< 7 days)" },
         { value: "expired", label: "Expired" },
       ],
+    },
+    {
+        key: "start_date_from",
+        label: "Start Date From",
+        type: "date",
+    },
+    {
+        key: "start_date_to",
+        label: "Start Date To",
+        type: "date",
     },
   ];
 

@@ -15,7 +15,7 @@ import {
   getRowBetweenStyles,
 } from "../Styles/cssClasses";
 import Button from "../Components/Common/Button";
-import FilterModel from "../Components/Common/FilterModel";
+import EnhancedFilterModel from "../Components/Common/EnhancedFilterModel";
 import ConfirmDialog from "../Components/Common/ConfirmDialog";
 
 import UserFormModal from "../Components/Modal/UserFormModal";
@@ -29,10 +29,12 @@ import useNotification from "../hooks/useNotification";
 
 import usePermissions from "../../../hooks/dashboard/usePermissions";
 import useUsers from "../../../hooks/dashboard/useUsers";
+import { useReferenceDataContext } from "../../../context/ReferenceDataContext";
 
 export function UserManagement({ scale = 1, isMobile }) {
   const { notify } = useNotification();
   const { canCreate, canEdit, canDelete } = usePermissions();
+  const referenceData = useReferenceDataContext();
 
   // Helper: Check if user is online (last login within 1 hour)
   const isUserOnline = (lastLogin) => {
@@ -219,49 +221,39 @@ export function UserManagement({ scale = 1, isMobile }) {
     return userData.filter((user) => user.isOnline).length;
   }, [userData]);
 
-  // ✅ Table filters
-  // Filter state for backend filtering
+  // ✅ Table filters — keys match BE query params directly
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
-    search: "",
-    status: "",
+    name: "",
+    user_status: "",
     role: "",
     nationality: "",
+    status: "",
     marital_status: "",
+    nearest_port: "",
     is_blacklisted: false,
   });
   const [activeFilters, setActiveFilters] = useState({
-    search: "",
-    status: "",
+    name: "",
+    user_status: "",
     role: "",
     nationality: "",
+    status: "",
     marital_status: "",
+    nearest_port: "",
     is_blacklisted: false,
   });
 
   // Check if any filters are active
-  const hasActiveFilters = activeFilters.search || activeFilters.status || activeFilters.role;
+  const hasActiveFilters = Object.entries(activeFilters).some(([, v]) => v !== "" && v !== false);
 
   // Handle page change for server-side pagination
   const handlePageChange = useCallback(
     (newPage) => {
-      // Build current filters for pagination context
-      const backendFilters = {};
-
-      // Align with Document.html: search -> name
-      if (activeFilters.search) backendFilters.name = activeFilters.search;
-
-      // "role" is NOT in Document.html, but keeping as it likely maps to internal staff roles
-      if (activeFilters.role) backendFilters.role = activeFilters.role;
-
-      // Align with Document.html: Status values "On Site" / "Vacation"
-      if (activeFilters.status === 'Active') backendFilters.user_status = 'On Site';
-      if (activeFilters.status === 'Inactive') backendFilters.user_status = 'Vacation';
-
-      if (activeFilters.nationality) backendFilters.nationality = activeFilters.nationality;
-      if (activeFilters.marital_status) backendFilters.marital_status = activeFilters.marital_status;
-      if (activeFilters.is_blacklisted) backendFilters.is_blacklisted = activeFilters.is_blacklisted;
-
+      // Filter keys match BE params directly — strip empty values
+      const backendFilters = Object.fromEntries(
+        Object.entries(activeFilters).filter(([, v]) => v !== "" && v !== false)
+      );
       fetchUsers({ ...backendFilters, page: newPage });
     },
     [fetchUsers, activeFilters]
@@ -271,28 +263,15 @@ export function UserManagement({ scale = 1, isMobile }) {
   const handleApplyFilters = useCallback(() => {
     setActiveFilters({ ...filters });
     setShowFilterModal(false);
-
-    const backendFilters = {};
-
-    // Align with Document.html: search -> name
-    if (filters.search) backendFilters.name = filters.search;
-
-    // "role" is NOT in Document.html, but keeping as it likely maps to internal staff roles
-    if (filters.role) backendFilters.role = filters.role;
-
-    // Align with Document.html: Status values "On Site" / "Vacation"
-    if (filters.status === 'Active') backendFilters.user_status = 'On Site';
-    if (filters.status === 'Inactive') backendFilters.user_status = 'Vacation';
-
-    if (filters.nationality) backendFilters.nationality = filters.nationality;
-    if (filters.marital_status) backendFilters.marital_status = filters.marital_status;
-    if (filters.is_blacklisted) backendFilters.is_blacklisted = filters.is_blacklisted;
-
+    // Keys match BE params directly — strip empty values before sending
+    const backendFilters = Object.fromEntries(
+      Object.entries(filters).filter(([, v]) => v !== "" && v !== false)
+    );
     fetchUsers({ ...backendFilters, page: 1 });
   }, [filters, fetchUsers]);
 
   const handleResetFilters = useCallback(() => {
-    const emptyFilters = { search: "", status: "", role: "", nationality: "", marital_status: "", is_blacklisted: false };
+    const emptyFilters = { name: "", user_status: "", role: "", nationality: "", status: "", marital_status: "", nearest_port: "", is_blacklisted: false };
     setFilters(emptyFilters);
     setActiveFilters(emptyFilters);
     setShowFilterModal(false);
@@ -304,6 +283,7 @@ export function UserManagement({ scale = 1, isMobile }) {
       admin: userData.filter((d) => d.role === "Admin").length,
       hr_manager: userData.filter((d) => d.role === "HR Manager").length,
       recruiter: userData.filter((d) => d.role === "Recruiter").length,
+      employee: userData.filter((d) => d.role === "Employee").length,
     };
   }, [userData]);
 
@@ -402,79 +382,6 @@ export function UserManagement({ scale = 1, isMobile }) {
       }
     }
   };
-
-  // TODOs:
-  // const handleConfirmDelete = useCallback(async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     await userAPI.delete(userToDelete);
-
-  //     const newData = userData.filter((item) => item.id !== userToDelete);
-  //     updateAllData("users", newData);
-
-  //     notify.success("User deleted successfully!");
-  //     setShowDeleteConfirm(false);
-  //     setUserToDelete(null);
-  //   } catch (error) {
-  //     notify.error("Failed to delete user");
-  //     console.error(error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }, [userData, userToDelete, updateAllData, notify]);
-
-  // const handleSubmitAdd = useCallback(
-  //   async (formData) => {
-  //     setIsLoading(true);
-  //     try {
-  //       const result = await userAPI.create(formData);
-
-  //       const newUser = {
-  //         ...formData,
-  //         id: result.id,
-  //         lastLogin: new Date().toISOString().split("T")[0],
-  //         avatar: ASSETS.LOGO,
-  //       };
-
-  //       const newData = [newUser, ...userData];
-  //       updateAllData("users", newData);
-
-  //       notify.success("User added successfully!");
-  //       setShowAddModal(false);
-  //     } catch (error) {
-  //       notify.error("Failed to add user");
-  //       console.error(error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   },
-  //   [userData, updateAllData, notify]
-  // );
-
-  // const handleSubmitEdit = useCallback(
-  //   async (formData) => {
-  //     setIsLoading(true);
-  //     try {
-  //       await userAPI.update(selectedUser.id, formData);
-
-  //       const newData = userData.map((user) =>
-  //         user.id === selectedUser.id ? { ...user, ...formData } : user
-  //       );
-
-  //       updateAllData("users", newData);
-
-  //       notify.success("User updated successfully!");
-  //       setShowEditModal(false);
-  //       setSelectedUser(null);
-  //     } catch (error) {
-  //       notify.error("Failed to update user");
-  //       console.error(error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   },
-  //   [userData, selectedUser, updateAllData, notify]
-  // );
 
   const handleExportCSV = useCallback(() => {
     try {
@@ -587,19 +494,20 @@ export function UserManagement({ scale = 1, isMobile }) {
 
   const filterFields = [
     {
-      key: "search",
-      label: "Search",
+      key: "name",
+      label: "Search by Name",
       type: "text",
-      placeholder: "Search by name, email, etc...",
+      placeholder: "Search by first name (partial match)...",
     },
     {
-      key: "status",
-      label: "Status",
+      key: "user_status",
+      label: "User Status",
       type: "select",
       placeholder: "All Statuses",
       options: [
-        { value: "Active", label: "Active" },
-        { value: "Inactive", label: "Inactive" },
+        { value: "ON_SITE", label: "On Site" },
+        { value: "VACATION", label: "Vacation" },
+        { value: "MEDICAL VACATION", label: "Medical Vacation" },
       ],
     },
     {
@@ -608,17 +516,29 @@ export function UserManagement({ scale = 1, isMobile }) {
       type: "select",
       placeholder: "All Roles",
       options: [
-        { value: "Admin", label: "Admin" },
-        { value: "HR Manager", label: "HR Manager" },
-        { value: "Recruiter", label: "Recruiter" },
-        { value: "Employee", label: "Employee" },
+        { value: "ADMIN", label: "Admin" },
+        { value: "MANAGER", label: "HR Manager" },
+        { value: "RECRUITER", label: "Recruiter" },
+        { value: "EMPLOYEE", label: "Employee" },
       ],
     },
     {
       key: "nationality",
       label: "Nationality",
       type: "text",
-      placeholder: "Filter by nationality...",
+      placeholder: "Filter by nationality (partial match)...",
+    },
+    {
+      key: "status",
+      label: "Account Status",
+      type: "select",
+      placeholder: "All Statuses",
+      options: [
+        { value: "Active", label: "Active" },
+        { value: "Inactive", label: "Inactive" },
+        { value: "Suspended", label: "Suspended" },
+        { value: "Pending", label: "Pending" },
+      ],
     },
     {
       key: "marital_status",
@@ -631,9 +551,17 @@ export function UserManagement({ scale = 1, isMobile }) {
       ],
     },
     {
+      key: "nearest_port",
+      label: "Nearest Port",
+      type: "text",
+      placeholder: "Filter by nearest port (partial match)...",
+      fullWidth: true,
+    },
+    {
       key: "is_blacklisted",
       label: "Blacklisted Only",
       type: "checkbox",
+      fullWidth: true,
     },
   ];
   const headerHeight = Math.round(101 * scale);
@@ -921,20 +849,6 @@ export function UserManagement({ scale = 1, isMobile }) {
           scale={scale}
           canDelete={canDelete}
         />
-
-        {/* Server-side Pagination - only when NO filters active */}
-        {/* {!hasActiveFilters && (
-          <Pagination
-            page={pagination.currentPage}
-            pageSize={pagination.pageSize}
-            total={pagination.count}
-            onChange={handlePageChange}
-            scale={scale}
-            showInfo={true}
-          />
-        )} */}
-
-
       </section>
 
       {showUserModal && (
@@ -956,17 +870,19 @@ export function UserManagement({ scale = 1, isMobile }) {
       )}
 
       {/* Filter Modal */}
-      <FilterModel
-        isOpen={showFilterModal}
-        onClose={() => setShowFilterModal(false)}
-        title="Filter Users"
-        fields={filterFields}
-        values={filters}
-        onValuesChange={setFilters}
-        onApply={handleApplyFilters}
-        onReset={handleResetFilters}
-        scale={scale}
-      />
+      {showFilterModal && (
+        <EnhancedFilterModel
+          isOpen={showFilterModal}
+          onClose={() => setShowFilterModal(false)}
+          title="Filter Users"
+          fields={filterFields}
+          values={filters}
+          onValuesChange={setFilters}
+          onApply={handleApplyFilters}
+          onReset={handleResetFilters}
+          scale={scale}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}

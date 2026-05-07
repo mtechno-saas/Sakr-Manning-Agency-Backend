@@ -87,8 +87,9 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
 
     // ── Filter states ─────────────────────────────────────────────────────────
     const [showFilterModal, setShowFilterModal] = useState(false);
-    const [filters, setFilters] = useState({ search: "", status: "", position: "", submitted_date_from: "", submitted_date_to: "" });
-    const [activeFilters, setActiveFilters] = useState({ search: "", status: "", position: "", submitted_date_from: "", submitted_date_to: "" });
+    // Keys match BE params: position (int rank ID), status (iexact), date range
+    const [filters, setFilters] = useState({ status: "", position: "", submitted_date_from: "", submitted_date_to: "" });
+    const [activeFilters, setActiveFilters] = useState({ status: "", position: "", submitted_date_from: "", submitted_date_to: "" });
     const [savedPresets, setSavedPresets] = useState([]);
 
     // ── Data fetch ────────────────────────────────────────────────────────────
@@ -343,7 +344,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
     }, [filters, fetchSubmissions]);
 
     const handleResetFilters = useCallback(() => {
-        const empty = { search: "", status: "", position: "", submitted_date_from: "", submitted_date_to: "" };
+        const empty = { status: "", position: "", submitted_date_from: "", submitted_date_to: "" };
         setFilters(empty);
         setActiveFilters(empty);
         setShowFilterModal(false);
@@ -369,14 +370,8 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         } catch { notify.error("Failed to export"); }
     }, [userData, notify]);
 
-    // ── Filter field config (full status pipeline) ────────────────────────────
+    // ── Filter field config (all keys match BE query params) ──────────────────
     const filterFields = [
-        {
-            key: "search",
-            label: "Search",
-            type: "text",
-            placeholder: "Search by name or email…",
-        },
         {
             key: "status",
             label: "Application Status",
@@ -386,19 +381,19 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         },
         {
             key: "position",
-            label: "Position",
+            label: "Position (Rank)",
             type: "select",
             placeholder: "All Positions",
             options: ranks.map(r => ({ value: r.id, label: r.rank_name || r.name })),
         },
         {
             key: "submitted_date_from",
-            label: "Submitted Date From",
+            label: "Submitted From",
             type: "date",
         },
         {
             key: "submitted_date_to",
-            label: "Submitted Date To",
+            label: "Submitted To",
             type: "date",
         },
     ];

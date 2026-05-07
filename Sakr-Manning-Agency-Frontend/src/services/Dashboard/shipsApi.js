@@ -27,14 +27,20 @@ export const shipsApi = {
     try {
       const params = new URLSearchParams();
 
-      const getVal = (v) => Array.isArray(v) ? v[0] : v;
+      const getVal = (v) => (Array.isArray(v) ? v[0] : v);
 
-      // Add filters to query params
-      if (filters.status) params.append("status", getVal(filters.status));
-      if (filters.ship_type) params.append("ship_type", getVal(filters.ship_type));
-      if (filters.flag) params.append("flag", getVal(filters.flag));
+      // Add filters to query params — aligned with BE docs
+      if (filters.name) params.append("name", getVal(filters.name));
+      if (filters.imo_number) params.append("imo_number", getVal(filters.imo_number));
       if (filters.company) params.append("company", getVal(filters.company));
-      if (filters.search) params.append("name", getVal(filters.search));
+      if (filters.status) params.append("status", getVal(filters.status));
+      if (filters.flag) params.append("flag", getVal(filters.flag));
+      if (filters.ship_type) params.append("ship_type", getVal(filters.ship_type));
+      if (filters.vessel_type) params.append("ship_type", getVal(filters.vessel_type));
+      
+      // Fallback for older search key
+      if (filters.search && !filters.name) params.append("name", getVal(filters.search));
+
       if (filters.page) params.append("page", filters.page);
       if (filters.page_size) params.append("page_size", filters.page_size);
 

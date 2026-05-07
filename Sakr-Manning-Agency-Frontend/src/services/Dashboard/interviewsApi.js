@@ -26,14 +26,20 @@ export const interviewsApi = {
     try {
       const params = new URLSearchParams();
 
-      const getVal = (v) => Array.isArray(v) ? v[0] : v;
+      const getVal = (v) => (Array.isArray(v) ? v[0] : v);
 
-      // Add filters to query params
-      if (filters.search) params.append("search", getVal(filters.search));
-      if (filters.status) params.append("status", getVal(filters.status));
-      if (filters.date) params.append("scheduled_date", getVal(filters.date));
+      // Add filters to query params — aligned with BE docs
+      if (filters.candidate) params.append("candidate", getVal(filters.candidate));
       if (filters.company) params.append("company", getVal(filters.company));
-      if (filters.position) params.append("position", getVal(filters.position));
+      if (filters.status) params.append("status", getVal(filters.status));
+      if (filters.scheduled_date) params.append("scheduled_date", getVal(filters.scheduled_date));
+      if (filters.scheduled_date_from) params.append("scheduled_date_from", getVal(filters.scheduled_date_from));
+      if (filters.scheduled_date_to) params.append("scheduled_date_to", getVal(filters.scheduled_date_to));
+      
+      // Fallback for older search/date keys if used
+      if (filters.search && !filters.candidate) params.append("candidate", getVal(filters.search));
+      if (filters.date && !filters.scheduled_date) params.append("scheduled_date", getVal(filters.date));
+
       if (filters.page) params.append("page", filters.page);
       if (filters.page_size) params.append("page_size", filters.page_size);
 

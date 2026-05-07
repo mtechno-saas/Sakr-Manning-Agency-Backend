@@ -26,6 +26,7 @@ import usePermissions from "../../../hooks/dashboard/usePermissions";
 import useFinance from "../../../hooks/dashboard/useFinance";
 import useUsers from "../../../hooks/dashboard/useUsers";
 import useCompanies from "../../../hooks/dashboard/useCompanies";
+import { useDashboardData } from "../context/DashboardDataContext";
 
 export function FinanceRecords({ scale = 1, isMobile = false }) {
   const { notify } = useNotification();
@@ -43,6 +44,8 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
     exportRecords,
     pagination,
   } = useFinance();
+
+  const { referenceOptions } = useDashboardData();
 
   // For mapping IDs to names
   const { getUserById } = useUsers();
@@ -63,20 +66,20 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
   // ✅ Filter State
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
-    search: "",
     status: "",
     user: "",
     company: "",
-    start_date: "",
-    end_date: "",
+    record_type: "",
+    start_date_from: "",
+    start_date_to: "",
   });
   const [activeFilters, setActiveFilters] = useState({
-    search: "",
     status: "",
     user: "",
     company: "",
-    start_date: "",
-    end_date: "",
+    record_type: "",
+    start_date_from: "",
+    start_date_to: "",
   });
   const [savedPresets, setSavedPresets] = useState([]);
 
@@ -180,7 +183,7 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
   }, [filters, fetchRecords]);
 
   const handleResetFilters = useCallback(() => {
-    const empty = { search: "", status: "", user: "", company: "", start_date: "", end_date: "" };
+    const empty = { status: "", user: "", company: "", record_type: "", start_date_from: "", start_date_to: "" };
     setFilters(empty);
     setActiveFilters(empty);
     setShowFilterModal(false);
@@ -207,6 +210,16 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
 
   const filterFields = [
     {
+      key: "record_type",
+      label: "Record Type",
+      type: "select",
+      placeholder: "All Types",
+      options: [
+        { value: "INCOME", label: "Income" },
+        { value: "EXPENSE", label: "Expense" },
+      ]
+    },
+    {
       key: "status",
       label: "Status",
       type: "select",
@@ -218,15 +231,30 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
         { value: "Cancelled", label: "Cancelled" },
       ]
     },
-    // Note: User and Company filters would ideally be AsyncSelects or text search in a real app
-    // For now we rely on the main "search" bar or add text inputs if needed.
-    // EnhancedFilterModel supports inputs.
     {
-      key: "search",
-      label: "Search",
-      type: "text",
-      placeholder: "Search..."
-    }
+      key: "user",
+      label: "User / Seafarer",
+      type: "select",
+      placeholder: "All Users",
+      options: referenceOptions.users
+    },
+    {
+      key: "company",
+      label: "Company",
+      type: "select",
+      placeholder: "All Companies",
+      options: referenceOptions.companies
+    },
+    {
+      key: "start_date_from",
+      label: "Start Date From",
+      type: "date",
+    },
+    {
+      key: "start_date_to",
+      label: "Start Date To",
+      type: "date",
+    },
   ];
 
   // ============================================
@@ -416,7 +444,7 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
         </h1>
 
         <div style={{ display: "flex", gap: `${Math.round(8 * scale)}px`, alignItems: "center" }}>
-          <Button
+          {/* <Button
             variant="icon"
             onClick={() => setShowFilterModal(true)}
             scale={scale}
@@ -437,21 +465,21 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
                 strokeLinecap="round"
               />
             </svg>
-          </Button>
+          </Button> */}
           <Button
-              variant="icon"
-              onClick={handleRefresh}
-              ariaLabel="Press to refresh the table"
-              title="Press to refresh the table"
-              scale={scale}
-              style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
+            variant="icon"
+            onClick={handleRefresh}
+            ariaLabel="Press to refresh the table"
+            title="Press to refresh the table"
+            scale={scale}
+            style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
           >
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                  <path d="M21 3v5h-5" />
-                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                  <path d="M8 16H3v5" />
-              </svg>
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+              <path d="M8 16H3v5" />
+            </svg>
           </Button>
 
           {records.length > 0 && (
@@ -468,14 +496,14 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
         </div>
       </div>
 
-      <SavedFilters
+      {/* <SavedFilters
         scale={scale}
         savedPresets={savedPresets}
         currentFilters={activeFilters}
         onApplyPreset={handleApplyPreset}
         onSavePreset={handleSavePreset}
         onDeletePreset={handleDeletePreset}
-      />
+      /> */}
 
       {/* Statistics Summary */}
       {statistics && (
@@ -688,7 +716,7 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
       />
 
       {/* Filter Modal */}
-      {showFilterModal && (
+      {/* {showFilterModal && (
         <EnhancedFilterModel
           isOpen={showFilterModal}
           onClose={() => setShowFilterModal(false)}
@@ -700,7 +728,7 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
           scale={scale}
           title="Filter Finance Records"
         />
-      )}
+      )} */}
 
       {/* Delete Confirmation */}
       {showDeleteConfirm && (

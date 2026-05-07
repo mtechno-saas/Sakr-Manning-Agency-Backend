@@ -28,10 +28,15 @@ export const documentsApi = {
       // Add filters to query params
       if (filters.status) params.append("status", getVal(filters.status));
       if (filters.user) params.append("user", getVal(filters.user));
+      if (filters.user_name) params.append("user_name", getVal(filters.user_name));
       if (filters.company) params.append("company", getVal(filters.company));
       if (filters.ship) params.append("ship", getVal(filters.ship));
+      if (filters.ship_name) params.append("ship_name", getVal(filters.ship_name));
       if (filters.rank) params.append("rank", getVal(filters.rank));
       if (filters.search) params.append("search", getVal(filters.search));
+      if (filters.expiry_status) params.append("expiry_status", getVal(filters.expiry_status));
+      if (filters.start_date_from) params.append("start_date_from", getVal(filters.start_date_from));
+      if (filters.start_date_to) params.append("start_date_to", getVal(filters.start_date_to));
 
       // Pagination params
       if (filters.page) params.append("page", filters.page);

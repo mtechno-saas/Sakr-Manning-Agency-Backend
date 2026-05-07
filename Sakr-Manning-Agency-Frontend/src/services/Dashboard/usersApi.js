@@ -504,14 +504,18 @@ export const usersApi = {
       const getVal = (v) => Array.isArray(v) ? v[0] : v;
 
       if (filters.search) params.append("name", getVal(filters.search));
+      if (filters.name) params.append("name", getVal(filters.name));
       if (filters.role) params.append("role", getVal(filters.role));
       if (filters.nationality) params.append("nationality", getVal(filters.nationality));
       if (filters.user_status) params.append("user_status", getVal(filters.user_status));
       if (filters.marital_status) params.append("marital_status", getVal(filters.marital_status));
+      if (filters.nearest_port) params.append("nearest_port", getVal(filters.nearest_port));
+      if (filters.rank_name) params.append("rank_name", getVal(filters.rank_name));
+      if (filters.company) params.append("company", getVal(filters.company));
       if (filters.email) params.append("email", getVal(filters.email));
       if (filters.first_name) params.append("name", getVal(filters.first_name));
-      if (filters.status) params.append("user_status", getVal(filters.status));
-      if (filters.is_blacklisted !== undefined) params.append("is_blacklisted", filters.is_blacklisted);
+      if (filters.status) params.append("status", getVal(filters.status));
+      if (filters.is_blacklisted !== undefined && filters.is_blacklisted !== "") params.append("is_blacklisted", filters.is_blacklisted);
 
       // Only add pagination params for /users/users/ endpoint (not for /filter/)
       // /filter/ returns ALL filtered data, we paginate on frontend
