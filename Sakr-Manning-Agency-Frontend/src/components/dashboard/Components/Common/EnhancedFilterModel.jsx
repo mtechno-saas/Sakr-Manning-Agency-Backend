@@ -59,33 +59,20 @@ const EnhancedFilterModal = ({
 
   return (
     <div
-      className={`filter-overlay-root ${isVisible ? "active" : ""}`}
       style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(15, 23, 42, 0.5)",
-        backdropFilter: "blur(6px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 2000,
+        ...modalStyles.overlay,
+        overflowY: "auto",
+        padding: `${Math.round(40 * scale)}px 0`,
         opacity: isVisible ? 1 : 0,
         transition: "opacity 0.3s ease",
+        zIndex: 2000,
       }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="filter-modal-title"
     >
       <style>{`
-        .filter-overlay-root {
-          font-family: ${STYLE_TOKENS.colors.primary};
-        }
-        .filter-panel-root {
-          transform: translateY(${isVisible ? "0" : "30px"}) scale(${isVisible ? "1" : "0.98"});
-          opacity: ${isVisible ? 1 : 0};
-          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-        }
         .filter-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
@@ -98,37 +85,7 @@ const EnhancedFilterModal = ({
           }
         }
         .field-item {
-          opacity: 0;
-          animation: fadeIn 0.4s ease forwards;
           position: relative;
-          z-index: 1;
-          transition: z-index 0s;
-        }
-        .field-item:focus-within, .field-item:hover {
-          z-index: 50;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .close-btn {
-          width: ${getScaledValue(36, scale)}px;
-          height: ${getScaledValue(36, scale)}px;
-          border-radius: 12px;
-          border: 1px solid #E5E7EB;
-          background: #FFFFFF;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          color: #6B7280;
-        }
-        .close-btn:hover {
-          background: #F9FAFB;
-          color: #111827;
-          border-color: #D1D5DB;
-          transform: rotate(90deg);
         }
         /* Override FormField labels for filter look */
         .filter-field label {
@@ -155,7 +112,6 @@ const EnhancedFilterModal = ({
       `}</style>
 
       <div
-        className="filter-panel-root"
         style={{
           ...modalStyles.panel,
           position: "relative",
@@ -167,7 +123,8 @@ const EnhancedFilterModal = ({
           display: "flex",
           flexDirection: "column",
           gap: 0,
-          overflow: "hidden",
+          overflow: "visible",
+          margin: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -181,7 +138,7 @@ const EnhancedFilterModal = ({
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: getScaledValue(6, scale) }}>
-            <h2 style={{ ...titleStyles, margin: 0, fontSize: getScaledValue(26, scale), fontWeight: 700, letterSpacing: "-0.5px" }}>
+            <h2 id="filter-modal-title" style={{ ...titleStyles, margin: 0, fontSize: getScaledValue(26, scale), fontWeight: 700, letterSpacing: "-0.5px" }}>
               {title}
             </h2>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -191,7 +148,22 @@ const EnhancedFilterModal = ({
               </p>
             </div>
           </div>
-          <button className="close-btn" onClick={onClose} aria-label="Close">
+          <button 
+            style={{
+              width: getScaledValue(36, scale),
+              height: getScaledValue(36, scale),
+              borderRadius: "12px",
+              border: "1px solid #E5E7EB",
+              background: "#FFFFFF",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#6B7280",
+            }}
+            onClick={onClose} 
+            aria-label="Close"
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -199,23 +171,14 @@ const EnhancedFilterModal = ({
           </button>
         </div>
 
-        {/* Scalable Grid Body */}
-        <div 
-          style={{ 
-            maxHeight: "65vh", 
-            overflowY: "auto", 
-            paddingRight: getScaledValue(12, scale),
-            marginRight: getScaledValue(-12, scale),
-            paddingBottom: getScaledValue(12, scale)
-          }}
-        >
+        {/* Grid Body */}
+        <div style={{ paddingBottom: getScaledValue(12, scale) }}>
           <div className="filter-grid">
             {fields.map((field, index) => (
               <div 
                 key={field.key} 
                 className="field-item filter-field"
                 style={{ 
-                  animationDelay: `${index * 0.04}s`,
                   gridColumn: (field.fullWidth || field.type === "multi-select" || (index === fields.length - 1 && fields.length % 2 !== 0)) ? "1 / -1" : "auto" 
                 }}
               >
@@ -277,12 +240,14 @@ const EnhancedFilterModal = ({
             Apply Filters
           </Button>
         </div>
+
+        {/* Keyboard Shortcuts Hint */}
+        <div style={{ marginTop: "16px", fontSize: "11px", color: "#8C8C8C", textAlign: "center" }}>
+          Press <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Esc</kbd> to close
+        </div>
       </div>
     </div>
   );
 };
 
 export default EnhancedFilterModal;
-
-
-

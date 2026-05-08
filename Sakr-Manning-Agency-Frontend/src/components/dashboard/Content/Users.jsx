@@ -863,7 +863,10 @@ export function UserManagement({ scale = 1, isMobile }) {
       {showRankModal && (
         <RankManagementModal
           isOpen={showRankModal}
-          onClose={() => { setShowRankModal(false); setRankModalUser(null); }}
+          onClose={() => {
+            setShowRankModal(false);
+            setRankModalUser(null);
+          }}
           user={rankModalUser}
           scale={scale}
         />
@@ -898,6 +901,46 @@ export function UserManagement({ scale = 1, isMobile }) {
         scale={scale}
         loading={usersLoading}
       />
+
+      {/* View Loading Overlay */}
+      {viewLoading && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(15, 23, 42, 0.55)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: Math.round(16 * scale),
+          }}
+        >
+          <div
+            style={{
+              width: Math.round(52 * scale),
+              height: Math.round(52 * scale),
+              border: `${Math.round(4 * scale)}px solid rgba(255,255,255,0.15)`,
+              borderTopColor: "#6366F1",
+              borderRadius: "50%",
+              animation: "user-spin 0.75s linear infinite",
+            }}
+          />
+          <p
+            style={{
+              color: "#fff",
+              fontSize: Math.round(14 * scale),
+              fontWeight: 500,
+              margin: 0,
+            }}
+          >
+            Loading user profile...
+          </p>
+          <style>{`@keyframes user-spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
     </main>
   );
 }

@@ -116,9 +116,10 @@ const GenerateContractModal = ({ submission, onClose, onSuccess, scale = 1 }) =>
 
   // ─── Static fields config ──────────────────────────────────────────────────
   const staticFields = [
-    { name: "sign_on_date",  label: "Sign-On Date",          type: "date",   component: "DateInput", required: true,  defaultValue: "" },
-    { name: "sign_off_date", label: "Sign-Off Date (Optional)", type: "date", component: "DateInput", required: false, defaultValue: "" },
+    { name: "sign_on_date",  label: "Sign-On Date",          type: "date",   component: "DateInput", required: true,  defaultValue: "", gridCols: 6 },
+    { name: "sign_off_date", label: "Sign-Off Date (Optional)", type: "date", component: "DateInput", required: false, defaultValue: "", gridCols: 6 },
     { name: "status",        label: "Initial Status",         type: "select", component: "Select",    required: true,
+      gridCols: 12,
       options: [
         { value: "Draft",              label: "Draft" },
         { value: "Pending Signature",  label: "Pending Signature" },
@@ -126,8 +127,8 @@ const GenerateContractModal = ({ submission, onClose, onSuccess, scale = 1 }) =>
       ],
       defaultValue: "Draft"
     },
-    { name: "repatriation_terms", label: "Repatriation Terms", type: "text", component: "BaseInput", required: false, placeholder: "e.g., Company covers return flight...", defaultValue: "" },
-    { name: "leave_pay_terms",    label: "Leave Pay Terms",    type: "text", component: "BaseInput", required: false, placeholder: "e.g., 30 days paid leave...",          defaultValue: "" },
+    { name: "repatriation_terms", label: "Repatriation Terms", type: "text", component: "BaseInput", required: false, placeholder: "e.g., Company covers return flight...", defaultValue: "", gridCols: 6 },
+    { name: "leave_pay_terms",    label: "Leave Pay Terms",    type: "text", component: "BaseInput", required: false, placeholder: "e.g., 30 days paid leave...",          defaultValue: "", gridCols: 6 },
   ];
 
   // ─── handleCreate ──────────────────────────────────────────────────────────
@@ -184,7 +185,7 @@ const GenerateContractModal = ({ submission, onClose, onSuccess, scale = 1 }) =>
   return (
     <div style={modalStyles.overlay} onClick={handleClose}>
       <div
-        style={{ ...modalStyles.panel, maxWidth: `${Math.round(580 * scale)}px` }}
+        style={{ ...modalStyles.panel, maxWidth: `${Math.round(800 * scale)}px` }}
         onClick={e => e.stopPropagation()}
       >
         <h2 style={{ ...titleStyles, marginBottom: `${Math.round(4 * scale)}px` }}>Generate Contract</h2>
@@ -193,11 +194,16 @@ const GenerateContractModal = ({ submission, onClose, onSuccess, scale = 1 }) =>
           {submission.position_name ? ` — ${submission.position_name}` : ""}.
         </p>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: `${Math.round(16 * scale)}px` }}>
-
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(12, 1fr)",
+            gap: `${Math.round(16 * scale)}px`,
+          }}
+        >
           {/* ── Ship selector (only when no pre-assigned ship) ── */}
           {!preAssignedShipId && (
-            <div>
+            <div style={{ gridColumn: "span 12" }}>
               <Select
                 name="ship"
                 label="Ship Assignment"
@@ -227,13 +233,19 @@ const GenerateContractModal = ({ submission, onClose, onSuccess, scale = 1 }) =>
 
           {/* ── Pre-assigned ship info badge ── */}
           {preAssignedShipId && (
-            <div style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
-              background: "#EFF6FF", border: "1px solid #BFDBFE",
-              borderRadius: Math.round(8 * scale),
-              fontSize: Math.round(13 * scale),
-            }}>
+            <div
+              style={{
+                gridColumn: "span 12",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
+                background: "#EFF6FF",
+                border: "1px solid #BFDBFE",
+                borderRadius: Math.round(8 * scale),
+                fontSize: Math.round(13 * scale),
+              }}
+            >
               <span style={{ fontWeight: 600, color: "#1D4ED8" }}>Ship:</span>
               <span style={{ color: "#1E40AF" }}>
                 {preAssignedShip?.ship_name || `Ship #${preAssignedShipId}`}
@@ -244,7 +256,7 @@ const GenerateContractModal = ({ submission, onClose, onSuccess, scale = 1 }) =>
 
           {/* ── Position selector (shown once we have a ship) ── */}
           {!noShipYet && (
-            <div>
+            <div style={{ gridColumn: "span 12" }}>
               <Select
                 name="job_position"
                 label="Job Position"
@@ -257,9 +269,11 @@ const GenerateContractModal = ({ submission, onClose, onSuccess, scale = 1 }) =>
                 options={positionOptions}
                 disabled={loadingShipDetail || positionOptions.length === 0}
                 placeholder={
-                  loadingShipDetail ? "Loading positions…"
-                  : positionOptions.length === 0 ? "No positions available on this ship's job orders"
-                  : "Select a position"
+                  loadingShipDetail
+                    ? "Loading positions…"
+                    : positionOptions.length === 0
+                      ? "No positions available on this ship's job orders"
+                      : "Select a position"
                 }
                 variant="dashboard"
                 error={positionError}
@@ -273,12 +287,40 @@ const GenerateContractModal = ({ submission, onClose, onSuccess, scale = 1 }) =>
           )}
 
           {/* ── Rest of contract fields ── */}
-          {staticFields.map(renderField)}
+          {staticFields.map((field) => (
+            <div
+              key={field.name}
+              style={{
+                gridColumn: `span ${field.gridCols || 12}`,
+              }}
+            >
+              {renderField(field)}
+            </div>
+          ))}
         </div>
 
-        <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px", paddingTop: "16px", borderTop: "1px solid #E5E7EB" }}>
-          <Button variant="outline" onClick={handleClose} disabled={loading} scale={scale}>Cancel</Button>
-          <Button variant="primary" onClick={handleSave} disabled={loading || noShipYet} loading={loading} scale={scale}>Generate</Button>
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            justifyContent: "flex-end",
+            marginTop: "24px",
+            paddingTop: "16px",
+            borderTop: "1px solid #E5E7EB",
+          }}
+        >
+          <Button variant="outline" onClick={handleClose} disabled={loading} scale={scale}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleSave}
+            disabled={loading || noShipYet}
+            loading={loading}
+            scale={scale}
+          >
+            Generate
+          </Button>
         </div>
       </div>
     </div>
