@@ -4,7 +4,7 @@ import BaseModal from "./BaseModal";
 import Button from "../Common/Button";
 
 // Import form components
-import { BaseInput } from "../inputs/BaseInput";
+import { BaseInput, SuggestionInput } from "../inputs/BaseInput";
 import { Select } from "../inputs/Select";
 import { DateInput } from "../inputs/DateInput";
 import { Checkbox } from "../../../form/inputs/Checkbox";
@@ -12,9 +12,10 @@ import { Checkbox } from "../../../form/inputs/Checkbox";
 // Import refactoring utilities
 import { useFormModal } from "../../hooks/useFormModal"
 import { USER_FORM_FIELDS } from "../../../../utils/dashboard/fieldConfigs";
+import { POPULAR_NATIONALITIES } from "../../../../config/formConfig";
 
 // Import APIs
-import { certificatesApi, usersApi } from "../../../../services/Dashboard/usersApi";
+import { usersApi } from "../../../../services/Dashboard/usersApi";
 import useNotification from "../../hooks/useNotification";
 
 /**
@@ -24,7 +25,6 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
   const { notify } = useNotification();
 
   // Reference data
-  const [certificates, setCertificates] = useState([]);
   const [ranks, setRanks] = useState([]);
   const [loadingReference, setLoadingReference] = useState(true);
 
@@ -32,15 +32,10 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [certsRes, ranksRes] = await Promise.all([
-          certificatesApi.getCertificates(),
-          usersApi.getPositions(),
-        ]);
-        setCertificates(certsRes);
+        const ranksRes = await usersApi.getPositions();
         setRanks(ranksRes);
       } catch (error) {
         console.error("Failed to load reference data:", error);
-        notify.error("Failed to load certificates and ranks");
       } finally {
         setLoadingReference(false);
       }
@@ -51,27 +46,24 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
   // Enrich field config with dynamic data
   const enrichedFieldConfig = useMemo(() => {
     return USER_FORM_FIELDS.map((field) => {
-      if (field.name === "certificate_ids") {
-        return {
-          ...field,
-          options: certificates.map((cert) => ({
-            value: cert.id,
-            label: cert.name,
-          })),
-        };
-      }
       if (field.name === "rank_ids") {
         return {
           ...field,
           options: ranks.map((pos) => ({
-            value: pos.value ?? pos.id,
-            label: pos.label ?? pos.name ?? pos.value,
+            value: pos.label ?? pos.name ?? pos.value ?? pos,
+            label: pos.label ?? pos.name ?? pos.value ?? pos,
           })),
+        };
+      }
+      if (field.name === "nationality") {
+        return {
+          ...field,
+          suggestions: POPULAR_NATIONALITIES,
         };
       }
       return field;
     });
-  }, [certificates, ranks]);
+  }, [ranks]);
 
   // Use form modal hook
   const {
@@ -121,6 +113,9 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
     switch (field.component) {
       case "BaseInput":
         return <BaseInput {...commonProps} type={field.type} />;
+
+      case "SuggestionInput":
+        return <SuggestionInput {...commonProps} suggestions={field.suggestions || []} />;
 
       case "Select":
         return <Select {...commonProps} options={field.options} />;

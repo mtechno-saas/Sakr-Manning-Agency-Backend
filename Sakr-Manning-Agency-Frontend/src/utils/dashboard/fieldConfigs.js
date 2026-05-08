@@ -539,9 +539,9 @@ export const USER_FORM_FIELDS = [
     name: "nationality",
     label: "Nationality",
     type: "text",
-    component: "BaseInput",
+    component: "SuggestionInput",
     required: false,
-    placeholder: "Egypt",
+    placeholder: "Egyptian",
     gridCols: 6,
     validation: {},
     defaultValue: "",
@@ -601,7 +601,12 @@ export const USER_FORM_FIELDS = [
     validation: {},
     options: [], // Will be loaded dynamically
     defaultValue: [],
-    transformOnLoad: (val) => (Array.isArray(val) ? val.map(i => (i && typeof i === "object" ? i.id : i)) : val),
+    transformOnLoad: (val, record) => {
+      const source = val || record?.ranks || [];
+      return Array.isArray(source)
+        ? source.map((i) => (i?.rank_name || i?.name || i?.rank?.name || i))
+        : [];
+    },
   },
 ];
 
@@ -688,14 +693,14 @@ export const INTERVIEW_FORM_FIELDS = [
     defaultValue: "",
     transformOnLoad: (val, record) => {
       const dateTime = record?.scheduled_date;
-      
+
       // 1. Try extracting from combined date-time field first (most reliable)
       if (dateTime && typeof dateTime === "string" && (dateTime.includes("T") || dateTime.includes(" "))) {
-          const separator = dateTime.includes("T") ? "T" : " ";
-          const parts = dateTime.split(separator);
-          if (parts.length >= 2 && parts[1].includes(":")) {
-              return parts[1].substring(0, 5);
-          }
+        const separator = dateTime.includes("T") ? "T" : " ";
+        const parts = dateTime.split(separator);
+        if (parts.length >= 2 && parts[1].includes(":")) {
+          return parts[1].substring(0, 5);
+        }
       }
 
       // 2. Fallback to direct time field if it looks valid
@@ -707,7 +712,7 @@ export const INTERVIEW_FORM_FIELDS = [
       if (dateTime && typeof dateTime === "string" && dateTime.includes(":")) {
         return dateTime.substring(0, 5);
       }
-      
+
       return "";
     },
   },
