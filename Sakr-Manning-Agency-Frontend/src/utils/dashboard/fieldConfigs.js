@@ -557,17 +557,7 @@ export const USER_FORM_FIELDS = [
     },
     defaultValue: "VACATION",
   },
-  {
-    name: "certificate_ids",
-    label: "Certificates",
-    type: "checkbox-array",
-    component: "CheckboxArray",
-    required: false,
-    validation: {},
-    options: [], // Will be loaded dynamically
-    defaultValue: [],
-    transformOnLoad: (val) => (Array.isArray(val) ? val.map(i => (i && typeof i === "object" ? i.id : i)) : val),
-  },
+
   {
     name: "rank_ids",
     label: "Ranks",
@@ -1110,14 +1100,16 @@ export const CV_FORM_FIELDS = [
   {
     name: "position",
     label: "Position / Rank",
-    type: "text",
-    component: "BaseInput",
+    type: "select",
+    component: "Select",
     required: true,
-    placeholder: "e.g., Chief Officer",
+    placeholder: "Select Position (Rank)",
+    options: [], // Will be loaded dynamically
     validation: {
       required: "Position is required",
     },
     defaultValue: "",
+    transformOnLoad: (val) => (val && typeof val === "object" ? val.id : val),
   },
   {
     name: "status",

@@ -1115,7 +1115,18 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       label: "Ship Type",
       type: "select",
       placeholder: "All Types",
-      options: vesselTypes.map(v => ({ value: v.id, label: v.name })),
+      options: [
+        { value: "Container Ships", label: "Container Ships" },
+        { value: "Bulk Carriers", label: "Bulk Carriers" },
+        { value: "Tankers", label: "Tankers" },
+        { value: "Ro-Ro Ships", label: "Ro-Ro Ships" },
+        { value: "Passenger Ships", label: "Passenger Ships" },
+        { value: "Fishing Vessels", label: "Fishing Vessels" },
+        { value: "Recreational", label: "Recreational" },
+        { value: "Offshore Support Vessels", label: "Offshore Support Vessels" },
+        { value: "Icebreakers", label: "Icebreakers" },
+        { value: "Tugboats", label: "Tugboats" },
+      ],
     },
   ];
 
