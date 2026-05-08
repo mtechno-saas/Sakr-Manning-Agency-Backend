@@ -182,21 +182,26 @@ const CVSubmissionFormModal = ({ submission = null, onClose, onSave, scale = 1 }
 
   return (
     <div
-      style={modalStyles.overlay}
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="cv-submission-form-modal-title"
+      style={{
+        ...modalStyles.overlay,
+        overflowY: "auto",
+        padding: `${Math.round(40 * scale)}px 0`,
+      }}
     >
       <div
         style={{
           ...modalStyles.panel,
           maxWidth: `${Math.round(800 * scale)}px`, // Wider for submission details
-          maxHeight: "90vh",
-          overflowY: "auto",
+          overflow: "visible",
+          margin: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={titleStyles}>
+        <h2 id="cv-submission-form-modal-title" style={titleStyles}>
           {isEditMode ? "Edit Submission Pipeline" : "New Pipeline Submission"}
         </h2>
 
@@ -239,6 +244,11 @@ const CVSubmissionFormModal = ({ submission = null, onClose, onSave, scale = 1 }
               <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
                 {loading ? "Saving..." : isEditMode ? "Update Submission" : "Create Submission"}
               </Button>
+            </div>
+
+            <div style={{ marginTop: "12px", fontSize: "11px", color: "#8C8C8C", textAlign: "center" }}>
+              Press <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Esc</kbd> to close •{" "}
+              <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Ctrl+Enter</kbd> to save
             </div>
           </>
         )}

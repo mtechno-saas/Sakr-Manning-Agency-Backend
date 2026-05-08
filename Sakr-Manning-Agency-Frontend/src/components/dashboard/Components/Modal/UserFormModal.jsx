@@ -201,18 +201,22 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
 
   return (
     <div
-      style={modalStyles.overlay}
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="user-form-modal-title"
+      style={{
+        ...modalStyles.overlay,
+        overflowY: "auto",
+        padding: `${Math.round(40 * scale)}px 0`,
+      }}
     >
       <div
         style={{
           ...modalStyles.panel,
           maxWidth: `${Math.round(800 * scale)}px`,
-          maxHeight: "90vh",
-          overflowY: "auto",
+          overflow: "visible",
+          margin: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
       >

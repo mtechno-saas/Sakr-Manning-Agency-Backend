@@ -192,18 +192,22 @@ const ShipFormModal = ({
 
   return (
     <div
-      style={modalStyles.overlay}
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="ship-form-modal-title"
+      style={{
+        ...modalStyles.overlay,
+        overflowY: "auto",
+        padding: `${Math.round(40 * scale)}px 0`,
+      }}
     >
       <div
         style={{
           ...modalStyles.panel,
           maxWidth: `${Math.round(900 * scale)}px`,
-          maxHeight: "90vh",
-          overflowY: "auto",
+          overflow: "visible",
+          margin: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
       >
