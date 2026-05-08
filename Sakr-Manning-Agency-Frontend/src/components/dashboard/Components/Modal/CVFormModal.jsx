@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Button from "../Common/Button";
 import { getModalStyles } from "../../Styles/componentStyles";
 import { getModalTitleStyles } from "../../Styles/cssClasses";
@@ -6,12 +6,48 @@ import { BaseInput } from "../inputs/BaseInput";
 import { Select } from "../inputs/Select";
 import { useFormModal } from "../../hooks/useFormModal";
 import { CV_FORM_FIELDS } from "../../../../utils/dashboard/fieldConfigs";
+import { usersApi } from "../../../../services/Dashboard/usersApi";
 
 const CVFormModal = ({ isOpen, cv = null, onClose, onSave, scale = 1 }) => {
   if (!isOpen) return null;
 
   const modalStyles = getModalStyles(scale);
   const titleStyles = getModalTitleStyles(scale);
+
+  const [ranks, setRanks] = useState([]);
+  const [loadingReference, setLoadingReference] = useState(true);
+
+  // Load reference data
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const ranksRes = await usersApi.getPositions();
+        setRanks(ranksRes);
+      } catch (error) {
+        console.error("Failed to load reference data:", error);
+      } finally {
+        setLoadingReference(false);
+      }
+    };
+    if (isOpen) {
+      loadData();
+    }
+  }, [isOpen]);
+
+  const enrichedFieldConfig = useMemo(() => {
+    return CV_FORM_FIELDS.map((field) => {
+      if (field.name === "position") {
+        return {
+          ...field,
+          options: ranks.map((pos) => ({
+            value: pos.value ?? pos.id,
+            label: pos.label ?? pos.name ?? pos.value,
+          })),
+        };
+      }
+      return field;
+    });
+  }, [ranks]);
 
   // Use form modal hook
   const {
@@ -23,7 +59,7 @@ const CVFormModal = ({ isOpen, cv = null, onClose, onSave, scale = 1 }) => {
     handleSave,
     handleClose,
   } = useFormModal({
-    fieldConfig: CV_FORM_FIELDS,
+    fieldConfig: enrichedFieldConfig,
     record: cv,
     onSave: async (data) => {
       // Create FormData for submission
@@ -138,15 +174,21 @@ const CVFormModal = ({ isOpen, cv = null, onClose, onSave, scale = 1 }) => {
           {isEditMode ? "Edit CV Details" : "Upload New CV"}
         </h2>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: `${Math.round(16 * scale)}px`,
-          }}
-        >
-          {CV_FORM_FIELDS.map((field) => renderField(field))}
-        </div>
+        {loadingReference ? (
+          <div style={{ padding: "40px", textAlign: "center", color: "#8C8C8C" }}>
+            Loading form data...
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: `${Math.round(16 * scale)}px`,
+            }}
+          >
+            {enrichedFieldConfig.map((field) => renderField(field))}
+          </div>
+        )}
 
         <div
           style={{
