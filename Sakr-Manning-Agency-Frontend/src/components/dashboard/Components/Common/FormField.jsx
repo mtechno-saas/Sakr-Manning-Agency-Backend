@@ -37,10 +37,10 @@ const FormField = React.forwardRef(
     } = field;
 
     // Calculate sizes
-    const labelFontSize = getScaledValue(14, scale);
-    const inputPadding = getScaledValue(10, scale);
-    const borderRadius = getScaledValue(8, scale);
-    const fontSize = getScaledValue(14, scale);
+    const labelFontSize = getScaledValue(STYLE_TOKENS.fontSize.sm, scale);
+    const inputPadding = getScaledValue(8, scale);
+    const borderRadius = getScaledValue(STYLE_TOKENS.borderRadius.sm, scale);
+    const fontSize = getScaledValue(STYLE_TOKENS.fontSize.sm, scale);
 
     // Base styles
     const labelStyle = {

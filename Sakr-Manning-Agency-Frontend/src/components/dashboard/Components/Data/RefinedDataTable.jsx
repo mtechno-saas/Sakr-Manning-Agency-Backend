@@ -1,5 +1,6 @@
 // ... (imports)
 import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Download, User, Edit, Trash2, MoreVertical, Users, Briefcase } from "lucide-react";
 import { COLORS, TOKENS, extractLeadingNumber, isISODateString } from "../../Constants";
 import LoadingScreen from "../Common/LoadingScreen";
@@ -128,15 +129,20 @@ export function RefinedDataTable({
   const [sort, setSort] = useState(initialSort);
   const [page, setPage] = useState(initialPage);
   const [activeActionRowId, setActiveActionRowId] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, openUp: false });
   const [isScrolledEnd, setIsScrolledEnd] = useState(false);
 
   const scrollContainerRef = useRef(null);
 
-  // Close menu when clicking outside
+  // Close menu when clicking outside or scrolling
   useEffect(() => {
-    const handleClickOutside = () => setActiveActionRowId(null);
-    window.addEventListener("click", handleClickOutside);
-    return () => window.removeEventListener("click", handleClickOutside);
+    const handleClose = () => setActiveActionRowId(null);
+    window.addEventListener("click", handleClose);
+    window.addEventListener("scroll", handleClose, true); // Close on any scroll
+    return () => {
+      window.removeEventListener("click", handleClose);
+      window.removeEventListener("scroll", handleClose, true);
+    };
   }, []);
 
   // Scroll detection for sticky shadow
@@ -512,7 +518,22 @@ export function RefinedDataTable({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveActionRowId(isActive ? null : (row[rowKey] || rIdx));
+                              const isActive = activeActionRowId === (row[rowKey] || rIdx);
+                              if (isActive) {
+                                setActiveActionRowId(null);
+                              } else {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const spaceBelow = window.innerHeight - rect.bottom;
+                                const menuHeight = 220; // approximate max height
+                                const openUp = spaceBelow < menuHeight;
+                                
+                                setMenuPosition({
+                                  top: openUp ? rect.top : rect.bottom,
+                                  left: rect.left,
+                                  openUp
+                                });
+                                setActiveActionRowId(row[rowKey] || rIdx);
+                              }
                             }}
                             style={{
                               background: "transparent",
@@ -528,23 +549,24 @@ export function RefinedDataTable({
                             <MoreVertical size={Math.round(20 * scale)} />
                           </button>
 
-                          {/* Dropdown Menu */}
-                          {isActive && (
+                          {/* Dropdown Menu via Portal */}
+                          {isActive && createPortal(
                             <div
                               style={{
-                                position: "absolute",
-                                top: "70%",
-                                right: "100%", // Open to the left
+                                position: "fixed",
+                                top: menuPosition.openUp ? "auto" : `${menuPosition.top}px`,
+                                bottom: menuPosition.openUp ? `${window.innerHeight - menuPosition.top}px` : "auto",
+                                left: `${menuPosition.left - 160}px`,
                                 width: "160px",
                                 backgroundColor: "white",
                                 borderRadius: "8px",
                                 boxShadow: "0px 4px 12px rgba(0,0,0,0.15)",
-                                zIndex: 100,
+                                zIndex: 9999,
                                 padding: "8px 0",
                                 border: `1px solid ${COLORS.borderColor}`,
                                 flexDirection: "column",
                                 display: "flex",
-                                marginRight: "8px",
+                                animation: "fadeIn 0.1s ease-out",
                               }}
                               onClick={(e) => e.stopPropagation()}
                             >
@@ -709,9 +731,9 @@ export function RefinedDataTable({
                                       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                                     >
                                       <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 8v8M8 12l4-4 4 4"/>
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" /><path d="M12 8v8M8 12l4-4 4 4" />
                                       </svg>
-                                       Manage Ranks
+                                      Manage Ranks
                                     </button>
                                   )}
 
@@ -743,7 +765,8 @@ export function RefinedDataTable({
                                   )}
                                 </>
                               )}
-                            </div>
+                            </div>,
+                            document.body
                           )}
                         </div>
                       );

@@ -1,10 +1,8 @@
-// components/dashboard/Modals/InterviewFormModal.jsx - REFACTORED v2
-import React, { useEffect, useMemo } from "react";
+// components/dashboard/Modals/InterviewFormModal.jsx - REFACTORED v2.1
+import React, { useMemo } from "react";
+import BaseModal from "./BaseModal";
 import Button from "../Common/Button";
-import { getModalStyles } from "../../Styles/componentStyles";
-import { getModalTitleStyles } from "../../Styles/cssClasses";
 
-// Import form components
 // Import form components
 import { BaseInput } from "../inputs/BaseInput";
 import { Select } from "../inputs/Select";
@@ -19,18 +17,8 @@ import { INTERVIEW_FORM_FIELDS } from "../../../../utils/dashboard/fieldConfigs"
 import { useDashboardData } from "../../context/DashboardDataContext";
 
 /**
- * InterviewFormModal v2 - REFACTORED
- * 
- * Reduced from 437 lines → ~250 lines (43% reduction)
- * 
- * Key Improvements:
- * - Centralized field configuration
- * - useFormModal hook for logic
- * - TypeaheadInput for candidate & company
- * - Edit mode shows disabled fields
- * - Conditional rendering (meeting link)
+ * InterviewFormModal v2.1 - Uses BaseModal for responsive scrolling
  */
-
 const InterviewFormModal = ({
   interview = null,
   onClose,
@@ -38,9 +26,6 @@ const InterviewFormModal = ({
   preSelectedDate = null,
   scale = 1,
 }) => {
-  const modalStyles = getModalStyles(scale);
-  const titleStyles = getModalTitleStyles(scale);
-
   // Get data from context
   const { referenceOptions } = useDashboardData();
 
@@ -87,7 +72,6 @@ const InterviewFormModal = ({
     loading,
     isEditMode,
     handleChange,
-    handleBatchChange,
     handleSave,
     handleClose,
   } = useFormModal({
@@ -97,7 +81,6 @@ const InterviewFormModal = ({
     onClose,
     successMessage: (isEdit) =>
       isEdit ? "Interview updated successfully" : "Interview scheduled successfully",
-    // Custom transform for interview
     transformBeforeSave: (data) => ({
       ...data,
       candidate: parseInt(data.candidate),
@@ -107,28 +90,11 @@ const InterviewFormModal = ({
     }),
   });
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") handleClose();
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        handleSave();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, handleSave]);
-
   // Render field
   const renderField = (field) => {
-    // Check conditional display
     if (field.conditionalDisplay && !field.conditionalDisplay(formData)) {
       return null;
     }
-
-    // Removed temporary edit mode workaround for TypeaheadInputs
-
 
     const commonProps = {
       key: field.name,
@@ -136,9 +102,7 @@ const InterviewFormModal = ({
       label: field.label,
       required: field.required,
       value: formData[field.name],
-      onChange: (val) => {
-        handleChange(field.name, val);
-      },
+      onChange: (val) => handleChange(field.name, val),
       error: errors[field.name],
       placeholder: field.placeholder,
       variant: "dashboard",
@@ -148,91 +112,64 @@ const InterviewFormModal = ({
     switch (field.component) {
       case "BaseInput":
         return <BaseInput {...commonProps} type={field.type} />;
-
       case "Select":
         return <Select {...commonProps} options={field.options} />;
-
       case "DateInput":
         return <DateInput {...commonProps} />;
-
       case "TextArea":
         return <TextArea {...commonProps} scale={scale} />;
-
       default:
         return null;
     }
   };
 
+  const footer = (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+      <div style={{ display: "flex", gap: `${Math.round(12 * scale)}px`, justifyContent: "flex-end" }}>
+        <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
+          Cancel
+        </Button>
+        <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
+          {loading ? "Saving..." : isEditMode ? "Update Interview" : "Schedule Interview"}
+        </Button>
+      </div>
+      <div style={{ fontSize: "11px", color: "#8C8C8C", textAlign: "center" }}>
+        Press <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Esc</kbd> to close •{" "}
+        <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Ctrl+Enter</kbd> to save
+      </div>
+    </div>
+  );
+
   return (
-    <div
-      onClick={handleClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="interview-form-modal-title"
-      style={{
-        ...modalStyles.overlay,
-        overflowY: "auto",
-        padding: `${Math.round(40 * scale)}px 0`,
-      }}
+    <BaseModal
+      isOpen={true}
+      onClose={handleClose}
+      title={isEditMode ? "Edit Interview" : "Schedule New Interview"}
+      size="lg"
+      footer={footer}
+      scale={scale}
     >
       <div
         style={{
-          ...modalStyles.panel,
-          maxWidth: `${Math.round(800 * scale)}px`,
-          overflow: "visible",
-          margin: "auto",
+          display: "grid",
+          gridTemplateColumns: "repeat(12, 1fr)",
+          gap: `${Math.round(16 * scale)}px`,
+          padding: "2px",
         }}
-        onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="interview-form-modal-title" style={titleStyles}>
-          {isEditMode ? "Edit Interview" : "Schedule New Interview"}
-        </h2>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, 1fr)",
-            gap: `${Math.round(16 * scale)}px`,
-          }}
-        >
-          {enrichedFieldConfig.map((field) => (
-            <div
-              key={field.name}
-              style={{
-                gridColumn: `span ${field.gridCols || 12}`,
-                display:
-                  field.conditionalDisplay && !field.conditionalDisplay(formData)
-                    ? "none"
-                    : "block",
-              }}
-            >
-              {renderField(field)}
-            </div>
-          ))}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: `${Math.round(12 * scale)}px`,
-            justifyContent: "flex-end",
-            marginTop: `${Math.round(24 * scale)}px`,
-          }}
-        >
-          <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
-            {loading ? "Saving..." : isEditMode ? "Update Interview" : "Schedule Interview"}
-          </Button>
-        </div>
-
-        <div style={{ marginTop: "12px", fontSize: "11px", color: "#8C8C8C", textAlign: "center" }}>
-          Press <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Esc</kbd> to close •{" "}
-          <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Ctrl+Enter</kbd> to save
-        </div>
+        {enrichedFieldConfig.map((field) => (
+          <div
+            key={field.name}
+            style={{
+              gridColumn: `span ${field.gridCols || 12}`,
+              display: field.conditionalDisplay && !field.conditionalDisplay(formData) ? "none" : "block",
+            }}
+          >
+            {renderField(field)}
+          </div>
+        ))}
       </div>
-    </div>
+    </BaseModal>
   );
 };
 

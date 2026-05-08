@@ -268,7 +268,7 @@ export function DashboardDataProvider({ children }) {
         } finally {
             setLoadingShips(false);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // stable — reads cache via ref, not state
 
     /**
@@ -352,7 +352,7 @@ export function DashboardDataProvider({ children }) {
     const referenceOptions = useMemo(() => ({
         ranks: ranks.map(r => ({
             value: r.id,
-            label: r.code ? `${r.code} - ${r.name}` : r.name
+            label: r.name
         })),
         certificates: certificates.map(c => ({
             value: c.id,

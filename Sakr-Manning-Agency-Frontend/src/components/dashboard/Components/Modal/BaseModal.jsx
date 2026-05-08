@@ -7,6 +7,7 @@ import { useClickOutside } from '../../hooks/useClickOutside';
 import useKeyboardShortcuts from '../../hooks/useKeyboardShortcuts';
 import { getModalTitleStyles } from '../../Styles/cssClasses';
 import { getModalStyles } from "../../Styles/componentStyles";
+import { STYLE_TOKENS, getScaledValue } from "../../Styles/globalStyles";
 
 /** 
 @param {boolean} isOpen - Controls modal visibility
@@ -84,6 +85,7 @@ export function BaseModal({
             style={{
                 ...modalStyles.overlay,
                 animation: 'fadeIn 0.2s ease-out',
+                overflowY: "auto"
             }}
             role="dialog"
             aria-modal="true"
@@ -106,6 +108,7 @@ export function BaseModal({
                     ...modalStyles.panel,
                     maxWidth,
                     animation: 'slideUp 0.3s ease-out',
+                    overflowY: "hidden",
                 }}
                 className={className}
                 onClick={(e) => e.stopPropagation()}
@@ -117,6 +120,7 @@ export function BaseModal({
                         justifyContent: 'space-between',
                         alignItems: 'flex-start',
                         marginBottom: subtitle ? `${Math.round(12 * scale)}px` : `${Math.round(20 * scale)}px`,
+                        flexShrink: 0,
                     }}
                 >
                     <div style={{ flex: 1 }}>
@@ -128,7 +132,7 @@ export function BaseModal({
                                 style={{
                                     margin: 0,
                                     marginTop: `${Math.round(4 * scale)}px`,
-                                    fontSize: `${Math.round(14 * scale)}px`,
+                                    fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.sm, scale)}px`,
                                     color: '#6B7280',
                                     fontFamily: 'Inter, sans-serif',
                                 }}
@@ -171,7 +175,7 @@ export function BaseModal({
                     style={{
                         flex: 1,
                         overflowY: 'auto',
-                        marginBottom: footer ? `${Math.round(20 * scale)}px` : 0,
+                        paddingRight: `${Math.round(8 * scale)}px`,
                     }}
                 >
                     {children}
@@ -184,6 +188,7 @@ export function BaseModal({
                             borderTop: '1px solid #E5E7EB',
                             paddingTop: `${Math.round(16 * scale)}px`,
                             marginTop: `${Math.round(16 * scale)}px`,
+                            flexShrink: 0,
                         }}
                     >
                         {footer}

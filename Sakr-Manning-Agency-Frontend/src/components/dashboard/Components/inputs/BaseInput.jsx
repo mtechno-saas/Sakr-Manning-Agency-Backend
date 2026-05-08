@@ -33,7 +33,7 @@ const variants = {
   calendar:
     "font-inter text-sm bg-white border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100",
   dashboard:
-    "w-full bg-white border border-gray-300 rounded-lg py-3 px-4 text-base shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-gray-400 transition-all duration-200",
+    "w-full bg-white border border-gray-300 rounded-lg py-2 px-3 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-gray-400 transition-all duration-200",
 };
 
 export function BaseInput({
@@ -83,7 +83,7 @@ export function BaseInput({
             })}
           placeholder={placeholder}
           className={cx(
-            "w-full px-4 py-3 rounded-lg text-xl transition-all duration-200 outline-none",
+            "w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 outline-none",
             variants[variant],
             icon ? "pr-10" : "",
             err ? "border-red-400 focus:ring-red-100 focus:border-red-500" : "",
@@ -171,7 +171,7 @@ export function SuggestionInput({
             })}
           placeholder={placeholder}
           className={cx(
-            "w-full px-4 py-3 rounded-lg text-xl transition-all duration-200 outline-none",
+            "w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 outline-none",
             variants[variant],
             icon ? "pr-10" : "",
             err ? "border-red-400 focus:ring-red-100 focus:border-red-500" : "",
@@ -307,7 +307,7 @@ export function DBBaseInput({
           }}
           placeholder={placeholder}
           className={cx(
-            "w-full px-4 py-3 rounded-lg text-base transition-all duration-200 outline-none",
+            "w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 outline-none",
             variants[variant],
             leadingIcon ? "pl-10" : "",
             (icon || trailingIcon || (showClearButton && hasValue)) ? "pr-10" : "",

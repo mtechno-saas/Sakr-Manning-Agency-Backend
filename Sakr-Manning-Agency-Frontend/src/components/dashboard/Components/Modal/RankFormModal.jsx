@@ -1,8 +1,7 @@
 // components/dashboard/Modals/RankFormModal.jsx
-import React, { useEffect } from "react";
+import React from "react";
+import BaseModal from "./BaseModal";
 import Button from "../Common/Button";
-import { getModalStyles } from "../../Styles/componentStyles";
-import { getModalTitleStyles } from "../../Styles/cssClasses";
 
 // Import form components
 import { BaseInput } from "../inputs/BaseInput";
@@ -11,15 +10,15 @@ import { BaseInput } from "../inputs/BaseInput";
 import { useFormModal } from "../../hooks/useFormModal";
 import { RANK_FORM_FIELDS } from "../../../../utils/dashboard/fieldConfigs";
 
+/**
+ * RankFormModal - Uses BaseModal for responsive scrolling
+ */
 const RankFormModal = ({
   rank = null,
   onClose,
   onSave,
   scale = 1
 }) => {
-  const modalStyles = getModalStyles(scale);
-  const titleStyles = getModalTitleStyles(scale);
-
   // Use form modal hook
   const {
     formData,
@@ -38,22 +37,6 @@ const RankFormModal = ({
       isEdit ? "Rank updated successfully" : "Rank created successfully",
     errorMessage: "Failed to save rank",
   });
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        handleClose();
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        handleSave();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, handleSave]);
 
   // Render field based on configuration
   const renderField = (field) => {
@@ -78,81 +61,46 @@ const RankFormModal = ({
     }
   };
 
+  const footer = (
+    <div style={{ display: "flex", gap: `${Math.round(12 * scale)}px`, justifyContent: "flex-end", width: "100%" }}>
+      <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
+        Cancel
+      </Button>
+      <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
+        {loading ? "Saving..." : isEditMode ? "Update Rank" : "Create Rank"}
+      </Button>
+    </div>
+  );
+
   return (
-    <div
-      style={modalStyles.overlay}
-      onClick={handleClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="rank-form-modal-title"
+    <BaseModal
+      isOpen={true}
+      onClose={handleClose}
+      title={isEditMode ? "Edit Rank" : "Add New Rank"}
+      size="sm"
+      footer={footer}
+      scale={scale}
     >
       <div
         style={{
-          ...modalStyles.panel,
-          maxWidth: `${Math.round(600 * scale)}px`,
-          maxHeight: "90vh",
-          overflowY: "auto",
+          display: "grid",
+          gridTemplateColumns: "repeat(12, 1fr)",
+          gap: `${Math.round(16 * scale)}px`,
+          padding: "2px",
         }}
-        onClick={(e) => e.stopPropagation()}
       >
-        {/* Title */}
-        <h2 id="rank-form-modal-title" style={titleStyles}>
-          {isEditMode ? "Edit Rank" : "Add New Rank"}
-        </h2>
-
-        {/* Form Fields - Dynamic Rendering */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, 1fr)",
-            gap: `${Math.round(16 * scale)}px`,
-          }}
-        >
-          {RANK_FORM_FIELDS.map((field) => (
-            <div
-              key={field.name}
-              style={{
-                gridColumn: `span ${field.gridCols || 12}`,
-              }}
-            >
-              {renderField(field)}
-            </div>
-          ))}
-        </div>
-
-        {/* Action Buttons */}
-        <div
-          style={{
-            display: "flex",
-            gap: `${Math.round(12 * scale)}px`,
-            justifyContent: "flex-end",
-            marginTop: `${Math.round(24 * scale)}px`,
-          }}
-        >
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            scale={scale}
-            disabled={loading}
+        {RANK_FORM_FIELDS.map((field) => (
+          <div
+            key={field.name}
+            style={{
+              gridColumn: `span ${field.gridCols || 12}`,
+            }}
           >
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleSave}
-            scale={scale}
-            disabled={loading}
-            loading={loading}
-          >
-            {loading
-              ? "Saving..."
-              : isEditMode
-                ? "Update Rank"
-                : "Create Rank"}
-          </Button>
-        </div>
+            {renderField(field)}
+          </div>
+        ))}
       </div>
-    </div>
+    </BaseModal>
   );
 };
 

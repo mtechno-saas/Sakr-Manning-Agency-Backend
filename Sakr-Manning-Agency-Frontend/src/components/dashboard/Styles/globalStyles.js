@@ -42,22 +42,22 @@ export const STYLE_TOKENS = {
 
   // Spacing
   spacing: {
-    xs: 4,
-    sm: 8,
-    md: 12,
-    lg: 16,
-    xl: 24,
-    xxl: 32,
+    xs: 3,
+    sm: 6,
+    md: 10,
+    lg: 12,
+    xl: 20,
+    xxl: 28,
   },
 
   // Font Sizes
   fontSize: {
-    xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 18,
-    xl: 20,
-    xxl: 24,
+    xs: 11,
+    sm: 12,
+    md: 14,
+    lg: 16,
+    xl: 18,
+    xxl: 22,
   },
 
   // Fonts
@@ -83,20 +83,20 @@ export const getScaledValue = (baseValue, scale = 1) => {
 export const getButtonBaseStyles = (scale = 1) => ({
   fontFamily: STYLE_TOKENS.fonts.heading,
   fontWeight: 500,
-  fontSize: `${getScaledValue(16, scale)}px`,
+  fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.md, scale)}px`,
   border: "none",
   borderRadius: `${getScaledValue(22, scale)}px`,
   cursor: "pointer",
   transition: STYLE_TOKENS.transition.normal,
-  minHeight: `${getScaledValue(40, scale)}px`,
-  padding: `${getScaledValue(8, scale)}px ${getScaledValue(19, scale)}px`,
+  minHeight: `${getScaledValue(36, scale)}px`,
+  padding: `${getScaledValue(6, scale)}px ${getScaledValue(16, scale)}px`,
 });
 
 // Helper to generate input/select base styles
 export const getInputBaseStyles = (scale = 1) => ({
   fontFamily: STYLE_TOKENS.fonts.primary,
-  fontSize: `${getScaledValue(14, scale)}px`,
-  padding: `${getScaledValue(10, scale)}px`,
+  fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.sm, scale)}px`,
+  padding: `${getScaledValue(8, scale)}px`,
   borderRadius: `${getScaledValue(8, scale)}px`,
   border: `1px solid ${STYLE_TOKENS.colors.borderColor}`,
   backgroundColor: STYLE_TOKENS.colors.white,
@@ -118,6 +118,7 @@ export const getModalOverlayStyles = () => ({
   alignItems: "center",
   justifyContent: "center",
   zIndex: 1000,
+  overflowY: "auto",
 });
 
 // Helper to generate modal panel styles
@@ -130,7 +131,9 @@ export const getModalPanelStyles = (scale = 1) => ({
   maxWidth: "400px",
   width: "90%",
   maxHeight: "90vh",
-  overflowY: "none !important",
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden", // Inner body handles scrolling
 });
 
 // Helper for hover state styling

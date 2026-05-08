@@ -35,9 +35,9 @@ export const getButtonStyles = (variant = "primary", scale = 1) => {
       },
     },
     icon: {
-      width: `${getScaledValue(40, scale)}px`,
-      height: `${getScaledValue(40, scale)}px`,
-      borderRadius: `${getScaledValue(16, scale)}px`,
+      width: `${getScaledValue(32, scale)}px`,
+      height: `${getScaledValue(32, scale)}px`,
+      borderRadius: `${getScaledValue(12, scale)}px`,
       backgroundColor: "#F5F7FA",
       border: "none",
       display: "flex",
@@ -100,7 +100,7 @@ export const getFilterModalStyles = (scale = 1) => {
       ...getModalPanelStyles(scale),
     },
     title: {
-      fontSize: `${getScaledValue(20, scale)}px`,
+      fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.lg, scale)}px`,
       fontWeight: 500,
       color: STYLE_TOKENS.colors.darkText,
       margin: `0 0 ${getScaledValue(20, scale)}px 0`,
@@ -111,7 +111,7 @@ export const getFilterModalStyles = (scale = 1) => {
     },
     label: {
       display: "block",
-      fontSize: `${getScaledValue(14, scale)}px`,
+      fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.sm, scale)}px`,
       fontWeight: 500,
       color: STYLE_TOKENS.colors.darkText,
       marginBottom: `${getScaledValue(8, scale)}px`,
@@ -140,7 +140,7 @@ export const getFormFieldStyles = (scale = 1) => ({
   },
   label: {
     display: "block",
-    fontSize: `${getScaledValue(14, scale)}px`,
+    fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.sm, scale)}px`,
     fontWeight: 500,
     color: STYLE_TOKENS.colors.darkText,
     fontFamily: STYLE_TOKENS.fonts.heading,
@@ -164,11 +164,11 @@ export const getStatusBadgeStyles = (scale = 1) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: `${getScaledValue(8, scale)}px ${getScaledValue(16, scale)}px`,
-    borderRadius: `${getScaledValue(100, scale)}px`,
+    padding: `${getScaledValue(4, scale)}px ${getScaledValue(12, scale)}px`,
+    borderRadius: `${getScaledValue(STYLE_TOKENS.borderRadius.pill, scale)}px`,
     fontFamily: STYLE_TOKENS.fonts.heading,
     fontWeight: 500,
-    fontSize: `${getScaledValue(15, scale)}px`,
+    fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.xs, scale)}px`,
   },
 });
 
@@ -224,9 +224,9 @@ export const STATUS_COLORS = {
 
 export const iconButtonStyles = (scale = 1) => `
   .icon-btn {
-    width: ${getScaledValue(40, scale)}px;
-    height: ${getScaledValue(40, scale)}px;
-    border-radius: ${getScaledValue(16, scale)}px;
+    width: ${getScaledValue(32, scale)}px;
+    height: ${getScaledValue(32, scale)}px;
+    border-radius: ${getScaledValue(12, scale)}px;
     background: #F5F7FA;
     border: none;
     display: flex;
@@ -246,8 +246,8 @@ export const iconButtonStyles = (scale = 1) => `
 
 export const primaryButtonStyles = (scale = 1) => `
   .primary-btn {
-    padding: ${getScaledValue(8, scale)}px ${getScaledValue(19, scale)}px;
-    height: ${getScaledValue(40, scale)}px;
+    padding: ${getScaledValue(6, scale)}px ${getScaledValue(16, scale)}px;
+    height: ${getScaledValue(36, scale)}px;
     background: ${STYLE_TOKENS.colors.primary};
     color: ${STYLE_TOKENS.colors.white};
     border-radius: 22px;
@@ -255,10 +255,10 @@ export const primaryButtonStyles = (scale = 1) => `
     font-weight: 500;
     cursor: pointer;
     font-family: ${STYLE_TOKENS.fonts.heading};
-    font-size: ${getScaledValue(16, scale)}px;
+    font-size: ${getScaledValue(STYLE_TOKENS.fontSize.md, scale)}px;
     transition: ${STYLE_TOKENS.transition.normal};
     min-width: ${getScaledValue(80, scale)}px;
-    min-height: ${getScaledValue(40, scale)}px;
+    min-height: ${getScaledValue(36, scale)}px;
   }
   .primary-btn:hover {
     background: #1565C0;
@@ -271,8 +271,8 @@ export const primaryButtonStyles = (scale = 1) => `
 
 export const outlineButtonStyles = (scale = 1) => `
   .outline-btn {
-    padding: ${getScaledValue(8, scale)}px ${getScaledValue(19, scale)}px;
-    height: ${getScaledValue(40, scale)}px;
+    padding: ${getScaledValue(6, scale)}px ${getScaledValue(16, scale)}px;
+    height: ${getScaledValue(36, scale)}px;
     background: ${STYLE_TOKENS.colors.white};
     color: ${STYLE_TOKENS.colors.primary};
     border-radius: 22px;
@@ -280,10 +280,10 @@ export const outlineButtonStyles = (scale = 1) => `
     font-weight: 400;
     font-family: ${STYLE_TOKENS.fonts.heading};
     cursor: pointer;
-    font-size: ${getScaledValue(16, scale)}px;
+    font-size: ${getScaledValue(STYLE_TOKENS.fontSize.md, scale)}px;
     transition: ${STYLE_TOKENS.transition.normal};
-    min-width: ${getScaledValue(170, scale)}px;
-    min-height: ${getScaledValue(40, scale)}px;
+    min-width: ${getScaledValue(140, scale)}px;
+    min-height: ${getScaledValue(36, scale)}px;
   }
   .outline-btn:hover {
     background: ${STYLE_TOKENS.colors.hoverBackground};
@@ -296,15 +296,15 @@ export const outlineButtonStyles = (scale = 1) => `
 
 export const actionButtonStyles = (scale = 1) => `
   .action-btn {
-    width: ${getScaledValue(70, scale)}px;
-    height: ${getScaledValue(45, scale)}px;
-    padding: ${getScaledValue(8, scale)}px ${getScaledValue(19, scale)}px;
+    width: ${getScaledValue(60, scale)}px;
+    height: ${getScaledValue(36, scale)}px;
+    padding: ${getScaledValue(6, scale)}px ${getScaledValue(16, scale)}px;
     border-radius: 22px;
     border: none;
     cursor: pointer;
     font-family: ${STYLE_TOKENS.fonts.heading};
     font-weight: 400;
-    font-size: ${getScaledValue(16, scale)}px;
+    font-size: ${getScaledValue(STYLE_TOKENS.fontSize.md, scale)}px;
     background: ${STYLE_TOKENS.colors.primary};
     color: ${STYLE_TOKENS.colors.white};
     transition: ${STYLE_TOKENS.transition.normal};

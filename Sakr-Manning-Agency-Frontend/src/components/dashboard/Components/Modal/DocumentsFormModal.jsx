@@ -1,8 +1,7 @@
-// components/dashboard/Components/Modal/DocumentFormModal.jsx
-import React, { useEffect, useMemo } from "react";
+// components/dashboard/Components/Modal/DocumentsFormModal.jsx
+import React from "react";
+import BaseModal from "./BaseModal";
 import Button from "../Common/Button";
-import { getModalStyles } from "../../Styles/componentStyles";
-import { getModalTitleStyles } from "../../Styles/cssClasses";
 
 import { BaseInput } from "../inputs/BaseInput";
 import { Select } from "../inputs/Select";
@@ -59,9 +58,6 @@ const EDIT_CONTRACT_FIELDS = [
 ];
 
 const DocumentFormModal = ({ contract, onClose, onSave, scale = 1 }) => {
-  const modalStyles = getModalStyles(scale);
-  const titleStyles = getModalTitleStyles(scale);
-
   const {
     formData,
     errors,
@@ -87,19 +83,6 @@ const DocumentFormModal = ({ contract, onClose, onSave, scale = 1 }) => {
     },
   });
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") handleClose();
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        handleSave();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, handleSave]);
-
   const renderField = (field) => {
     const commonProps = {
       key: field.name,
@@ -118,34 +101,31 @@ const DocumentFormModal = ({ contract, onClose, onSave, scale = 1 }) => {
     return <BaseInput {...commonProps} type={field.type} />;
   };
 
-  return (
-    <div style={modalStyles.overlay} onClick={handleClose} role="dialog" aria-modal="true">
-      <div
-        style={{
-          ...modalStyles.panel,
-          maxWidth: `${Math.round(500 * scale)}px`,
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 style={titleStyles}>Edit Contract</h2>
-        <p style={{ fontSize: `${Math.round(14 * scale)}px`, color: "#6B7280", marginBottom: `${Math.round(20 * scale)}px` }}>
-          Updating contract for <strong>{contract?.user_name || "Employee"}</strong>.
-        </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: `${Math.round(16 * scale)}px` }}>
-          {EDIT_CONTRACT_FIELDS.map(renderField)}
-        </div>
-
-        <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px", paddingTop: "16px", borderTop: "1px solid #E5E7EB" }}>
-          <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
-            {loading ? "Saving..." : "Update Contract"}
-          </Button>
-        </div>
-      </div>
+  const footer = (
+    <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", width: "100%" }}>
+      <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
+        Cancel
+      </Button>
+      <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
+        {loading ? "Saving..." : "Update Contract"}
+      </Button>
     </div>
+  );
+
+  return (
+    <BaseModal
+      isOpen={true}
+      onClose={handleClose}
+      title="Edit Contract"
+      subtitle={`Updating contract for ${contract?.user_name || "Employee"}`}
+      size="sm"
+      footer={footer}
+      scale={scale}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: `${Math.round(16 * scale)}px` }}>
+        {EDIT_CONTRACT_FIELDS.map(renderField)}
+      </div>
+    </BaseModal>
   );
 };
 

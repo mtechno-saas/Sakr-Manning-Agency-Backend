@@ -1,8 +1,7 @@
-// components/dashboard/Modals/UserFormModal.jsx - REFACTORED v2
+// components/dashboard/Modals/UserFormModal.jsx - REFACTORED v2.1
 import React, { useState, useEffect, useMemo } from "react";
+import BaseModal from "./BaseModal";
 import Button from "../Common/Button";
-import { getModalStyles } from "../../Styles/componentStyles";
-import { getModalTitleStyles } from "../../Styles/cssClasses";
 
 // Import form components
 import { BaseInput } from "../inputs/BaseInput";
@@ -19,20 +18,9 @@ import { certificatesApi, usersApi } from "../../../../services/Dashboard/usersA
 import useNotification from "../../hooks/useNotification";
 
 /**
- * UserFormModal v2 - REFACTORED
- * 
- * Reduced from 363 lines → ~220 lines (39% reduction)
- * 
- * Key Improvements:
- * - Centralized field configuration
- * - useFormModal hook handles logic
- * - Checkbox array pattern for certificates/ranks
- * - Dynamic reference data loading
+ * UserFormModal v2.1 - Uses BaseModal for responsive scrolling
  */
-
 const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
-  const modalStyles = getModalStyles(scale);
-  const titleStyles = getModalTitleStyles(scale);
   const { notify } = useNotification();
 
   // Reference data
@@ -49,7 +37,6 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
           usersApi.getPositions(),
         ]);
         setCertificates(certsRes);
-        // getPositions returns [{ value, label }] — normalize to match rank shape
         setRanks(ranksRes);
       } catch (error) {
         console.error("Failed to load reference data:", error);
@@ -77,7 +64,6 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
         return {
           ...field,
           options: ranks.map((pos) => ({
-            // positions endpoint returns { value, label } — use value as the stored key
             value: pos.value ?? pos.id,
             label: pos.label ?? pos.name ?? pos.value,
           })),
@@ -105,19 +91,6 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
       isEdit ? "User updated successfully" : "User created successfully",
   });
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") handleClose();
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        handleSave();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, handleSave]);
-
   // Handle checkbox array change
   const handleCheckboxArrayChange = (fieldName, value) => {
     const currentValues = formData[fieldName] || [];
@@ -129,8 +102,6 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
 
   // Render field
   const renderField = (field) => {
-    // Email is disabled in edit mode
-    // const isDisabled = field.props?.disabled === "editMode" && isEditMode;
     const isDisabled = false;
 
     const commonProps = {
@@ -199,80 +170,58 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
     }
   };
 
-  return (
-    <div
-      onClick={handleClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="user-form-modal-title"
-      style={{
-        ...modalStyles.overlay,
-        overflowY: "auto",
-        padding: `${Math.round(40 * scale)}px 0`,
-      }}
-    >
-      <div
-        style={{
-          ...modalStyles.panel,
-          maxWidth: `${Math.round(800 * scale)}px`,
-          overflow: "visible",
-          margin: "auto",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 id="user-form-modal-title" style={titleStyles}>
-          {isEditMode ? "Edit User" : "Add New User"}
-        </h2>
-
-        {loadingReference ? (
-          <div style={{ padding: "40px", textAlign: "center", color: "#8C8C8C" }}>
-            Loading form data...
-          </div>
-        ) : (
-          <>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(12, 1fr)",
-                gap: `${Math.round(16 * scale)}px`,
-              }}
-            >
-              {enrichedFieldConfig.map((field) => (
-                <div
-                  key={field.name}
-                  style={{
-                    gridColumn: `span ${field.gridCols || 12}`,
-                  }}
-                >
-                  {renderField(field)}
-                </div>
-              ))}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: `${Math.round(12 * scale)}px`,
-                justifyContent: "flex-end",
-                marginTop: `${Math.round(24 * scale)}px`,
-              }}
-            >
-              <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
-                {loading ? "Saving..." : isEditMode ? "Update User" : "Create User"}
-              </Button>
-            </div>
-
-            <div style={{ marginTop: "12px", fontSize: "11px", color: "#8C8C8C", textAlign: "center" }}>
-              Press <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Esc</kbd> to close •{" "}
-              <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Ctrl+Enter</kbd> to save
-            </div>
-          </>
-        )}
+  const footer = (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+      <div style={{ display: "flex", gap: `${Math.round(12 * scale)}px`, justifyContent: "flex-end" }}>
+        <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
+          Cancel
+        </Button>
+        <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
+          {loading ? "Saving..." : isEditMode ? "Update User" : "Create User"}
+        </Button>
+      </div>
+      <div style={{ fontSize: "11px", color: "#8C8C8C", textAlign: "center" }}>
+        Press <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Esc</kbd> to close •{" "}
+        <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Ctrl+Enter</kbd> to save
       </div>
     </div>
+  );
+
+  return (
+    <BaseModal
+      isOpen={true}
+      onClose={handleClose}
+      title={isEditMode ? "Edit User" : "Add New User"}
+      size="lg"
+      footer={footer}
+      scale={scale}
+    >
+      {loadingReference ? (
+        <div style={{ padding: "40px", textAlign: "center", color: "#8C8C8C" }}>
+          Loading form data...
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(12, 1fr)",
+            gap: `${Math.round(16 * scale)}px`,
+            padding: "2px", // Avoid clipping field focus rings
+          }}
+        >
+          {enrichedFieldConfig.map((field) => (
+            <div
+              key={field.name}
+              style={{
+                gridColumn: `span ${field.gridCols || 12}`,
+              }}
+            >
+              {renderField(field)}
+            </div>
+          ))}
+        </div>
+      )}
+    </BaseModal>
   );
 };
 

@@ -34,7 +34,7 @@ const variants = {
   calendar:
     "font-inter text-sm bg-white border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100",
   dashboard:
-    "bg-white border border-gray-300 rounded-lg py-3 px-4 text-base shadow-sm hover:border-gray-400 transition-all duration-200",
+    "bg-white border border-gray-300 rounded-lg py-2 px-3 text-sm shadow-sm hover:border-gray-400 transition-all duration-200",
 };
 
 export function Select({
@@ -192,7 +192,7 @@ export function Select({
           onKeyDown={onKeyDown}
           disabled={isLoading || props.disabled}
           className={cx(
-            "w-full appearance-none font-poppins text-base px-4 py-3 rounded-lg transition-all duration-200 flex items-center justify-between gap-2 text-left",
+            "w-full appearance-none font-poppins text-sm px-3 py-2 rounded-lg transition-all duration-200 flex items-center justify-between gap-2 text-left",
             variants[variant],
             err ? "border-red-400 focus:ring-red-100 focus:border-red-500" : "",
             className
@@ -244,7 +244,7 @@ export function Select({
                   setVal(isMulti ? [] : "");
                   if (!isMulti) setOpen(false);
                 }}
-                className="px-4 py-3 text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 cursor-pointer border-b border-gray-100"
+                className="px-3 py-2 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600 cursor-pointer border-b border-gray-100"
               >
                 Clear selection
               </div>
@@ -274,7 +274,7 @@ export function Select({
                     }
                   }}
                   className={cx(
-                    "px-4 py-3 text-sm cursor-pointer flex items-center justify-between",
+                    "px-3 py-2 text-xs cursor-pointer flex items-center justify-between",
                     selected ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700 hover:bg-gray-50"
                   )}
                 >
