@@ -1361,13 +1361,12 @@ class UsersSerializer(serializers.ModelSerializer):
     sea_services = SeaServiceSerializer(many=True, read_only=True)
 
     # Write-only fields for accepting lists of IDs during create/update
-    rank_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Rank.objects.all(),
-        many=True,
+    rank_ids = serializers.ListField(
+        child=serializers.CharField(),
         write_only=True,
         source='codes',
         required=False,
-        help_text="List of Rank IDs to assign."
+        help_text="List of Rank IDs or codes/names to assign."
     )
     certificate_ids = serializers.PrimaryKeyRelatedField(
         queryset=Certificate.objects.all(),
@@ -1527,8 +1526,19 @@ class UsersSerializer(serializers.ModelSerializer):
             user.save()
 
         # Handle the M2M relationships
-        for rank in codes_data:
-            UserRank.objects.create(user=user, rank=rank)
+        from django.db.models import Q
+        for rank_identifier in codes_data:
+            rank_identifier = str(rank_identifier).strip()
+            rank_obj = None
+            if rank_identifier.isdigit():
+                try:
+                    rank_obj = Rank.objects.get(pk=int(rank_identifier))
+                except Rank.DoesNotExist:
+                    pass
+            if not rank_obj:
+                rank_obj = Rank.objects.filter(Q(code__iexact=rank_identifier) | Q(name__iexact=rank_identifier)).first()
+            if rank_obj:
+                UserRank.objects.create(user=user, rank=rank_obj)
         if certificates_data:
             user.certificates.set(certificates_data)
 
@@ -1554,8 +1564,19 @@ class UsersSerializer(serializers.ModelSerializer):
         # Handle relationship updates
         if codes_data is not None:
             instance.user_ranks.all().delete()
-            for rank in codes_data:
-                UserRank.objects.create(user=instance, rank=rank)
+            from django.db.models import Q
+            for rank_identifier in codes_data:
+                rank_identifier = str(rank_identifier).strip()
+                rank_obj = None
+                if rank_identifier.isdigit():
+                    try:
+                        rank_obj = Rank.objects.get(pk=int(rank_identifier))
+                    except Rank.DoesNotExist:
+                        pass
+                if not rank_obj:
+                    rank_obj = Rank.objects.filter(Q(code__iexact=rank_identifier) | Q(name__iexact=rank_identifier)).first()
+                if rank_obj:
+                    UserRank.objects.create(user=instance, rank=rank_obj)
         if certificates_data is not None:
             instance.certificates.set(certificates_data)
 
