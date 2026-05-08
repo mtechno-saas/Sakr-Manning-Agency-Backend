@@ -174,7 +174,7 @@ const InterviewFormModal = ({
       <div
         style={{
           ...modalStyles.panel,
-          maxWidth: `${Math.round(600 * scale)}px`,
+          maxWidth: `${Math.round(800 * scale)}px`,
           maxHeight: "90vh",
           overflowY: "auto",
         }}
@@ -186,30 +186,25 @@ const InterviewFormModal = ({
 
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
+            display: "grid",
+            gridTemplateColumns: "repeat(12, 1fr)",
             gap: `${Math.round(16 * scale)}px`,
           }}
         >
-          {/* Time fields in grid */}
-          {enrichedFieldConfig.map((field) => {
-            if (field.name === "scheduled_time" || field.name === "duration_minutes") {
-              return null; // Rendered in grid below
-            }
-            return renderField(field);
-          })}
-
-          {/* Time & Duration Grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: `${Math.round(12 * scale)}px`,
-            }}
-          >
-            {renderField(enrichedFieldConfig.find((f) => f.name === "scheduled_time"))}
-            {renderField(enrichedFieldConfig.find((f) => f.name === "duration_minutes"))}
-          </div>
+          {enrichedFieldConfig.map((field) => (
+            <div
+              key={field.name}
+              style={{
+                gridColumn: `span ${field.gridCols || 12}`,
+                display:
+                  field.conditionalDisplay && !field.conditionalDisplay(formData)
+                    ? "none"
+                    : "block",
+              }}
+            >
+              {renderField(field)}
+            </div>
+          ))}
         </div>
 
         <div

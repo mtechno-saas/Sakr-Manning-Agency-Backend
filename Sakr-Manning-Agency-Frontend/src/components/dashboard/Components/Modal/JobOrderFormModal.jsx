@@ -130,7 +130,7 @@ const JobOrderFormModal = ({
       <div
         style={{
           ...modalStyles.panel,
-          maxWidth: `${Math.round(620 * scale)}px`,
+          maxWidth: `${Math.round(800 * scale)}px`,
           maxHeight: "90vh",
           overflowY: "auto",
         }}
@@ -142,12 +142,21 @@ const JobOrderFormModal = ({
 
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
+            display: "grid",
+            gridTemplateColumns: "repeat(12, 1fr)",
             gap: `${Math.round(16 * scale)}px`,
           }}
         >
-          {enrichedFieldConfig.map((field) => renderField(field))}
+          {enrichedFieldConfig.map((field) => (
+            <div
+              key={field.name}
+              style={{
+                gridColumn: `span ${field.gridCols || 12}`,
+              }}
+            >
+              {renderField(field)}
+            </div>
+          ))}
         </div>
 
         <div

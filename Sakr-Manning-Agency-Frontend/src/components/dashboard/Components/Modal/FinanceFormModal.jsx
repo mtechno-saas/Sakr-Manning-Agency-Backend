@@ -194,7 +194,7 @@ const FinanceFormModal = ({ record = null, onClose, onSave, scale = 1 }) => {
       <div
         style={{
           ...modalStyles.panel,
-          maxWidth: `${Math.round(600 * scale)}px`,
+          maxWidth: `${Math.round(800 * scale)}px`,
           maxHeight: "90vh",
           overflowY: "auto",
         }}
@@ -206,33 +206,21 @@ const FinanceFormModal = ({ record = null, onClose, onSave, scale = 1 }) => {
 
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
+            display: "grid",
+            gridTemplateColumns: "repeat(12, 1fr)",
             gap: `${Math.round(16 * scale)}px`,
           }}
         >
-          {enrichedFieldConfig.map((field) => {
-            // Dates in grid
-            if (field.name === "end_date") return null;
-
-            if (field.name === "start_date") {
-              return (
-                <div
-                  key="date-grid"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: `${Math.round(16 * scale)}px`,
-                  }}
-                >
-                  {renderField(field)}
-                  {renderField(enrichedFieldConfig.find((f) => f.name === "end_date"))}
-                </div>
-              );
-            }
-
-            return renderField(field);
-          })}
+          {enrichedFieldConfig.map((field) => (
+            <div
+              key={field.name}
+              style={{
+                gridColumn: `span ${field.gridCols || 12}`,
+              }}
+            >
+              {renderField(field)}
+            </div>
+          ))}
 
           {/* Calculation Preview */}
           <div

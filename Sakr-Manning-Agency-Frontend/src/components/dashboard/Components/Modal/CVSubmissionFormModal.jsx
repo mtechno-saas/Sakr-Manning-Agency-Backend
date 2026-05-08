@@ -209,24 +209,20 @@ const CVSubmissionFormModal = ({ submission = null, onClose, onSave, scale = 1 }
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: `${Math.round(20 * scale)}px`,
+                gridTemplateColumns: "repeat(12, 1fr)",
+                gap: `${Math.round(16 * scale)}px`,
               }}
             >
-              {/* Links & Logistics */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {renderField(enrichedFieldConfig.find(f => f.name === "user"))}
-                {renderField(enrichedFieldConfig.find(f => f.name === "company"))}
-                {renderField(enrichedFieldConfig.find(f => f.name === "position"))}
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {renderField(enrichedFieldConfig.find(f => f.name === "status"))}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                  {renderField(enrichedFieldConfig.find(f => f.name === "experience_years"))}
-                  {renderField(enrichedFieldConfig.find(f => f.name === "salary"))}
+              {enrichedFieldConfig.map((field) => (
+                <div
+                  key={field.name}
+                  style={{
+                    gridColumn: `span ${field.gridCols || 12}`,
+                  }}
+                >
+                  {renderField(field)}
                 </div>
-              </div>
+              ))}
             </div>
 
             <div

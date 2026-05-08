@@ -89,7 +89,7 @@ const RankFormModal = ({
       <div
         style={{
           ...modalStyles.panel,
-          maxWidth: `${Math.round(400 * scale)}px`,
+          maxWidth: `${Math.round(600 * scale)}px`,
           maxHeight: "90vh",
           overflowY: "auto",
         }}
@@ -103,12 +103,21 @@ const RankFormModal = ({
         {/* Form Fields - Dynamic Rendering */}
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
+            display: "grid",
+            gridTemplateColumns: "repeat(12, 1fr)",
             gap: `${Math.round(16 * scale)}px`,
           }}
         >
-          {RANK_FORM_FIELDS.map((field) => renderField(field))}
+          {RANK_FORM_FIELDS.map((field) => (
+            <div
+              key={field.name}
+              style={{
+                gridColumn: `span ${field.gridCols || 12}`,
+              }}
+            >
+              {renderField(field)}
+            </div>
+          ))}
         </div>
 
         {/* Action Buttons */}

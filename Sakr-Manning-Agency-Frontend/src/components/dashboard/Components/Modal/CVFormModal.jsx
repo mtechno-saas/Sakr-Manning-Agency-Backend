@@ -166,7 +166,7 @@ const CVFormModal = ({ isOpen, cv = null, onClose, onSave, scale = 1 }) => {
       <div
         style={{
           ...modalStyles.panel,
-          maxWidth: `${Math.round(500 * scale)}px`,
+          maxWidth: `${Math.round(700 * scale)}px`,
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -181,12 +181,21 @@ const CVFormModal = ({ isOpen, cv = null, onClose, onSave, scale = 1 }) => {
         ) : (
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
+              display: "grid",
+              gridTemplateColumns: "repeat(12, 1fr)",
               gap: `${Math.round(16 * scale)}px`,
             }}
           >
-            {enrichedFieldConfig.map((field) => renderField(field))}
+            {enrichedFieldConfig.map((field) => (
+              <div
+                key={field.name}
+                style={{
+                  gridColumn: `span ${field.gridCols || 12}`,
+                }}
+              >
+                {renderField(field)}
+              </div>
+            ))}
           </div>
         )}
 

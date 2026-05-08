@@ -56,11 +56,30 @@ export const COMPANY_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "Enter the Company Name",
+    gridCols: 9,
     validation: {
       required: "Company name is required",
       minLength: { value: 2, message: "Company name must be at least 2 characters" },
     },
     defaultValue: "",
+  },
+  {
+    name: "status",
+    label: "Status",
+    type: "select",
+    component: "Select",
+    required: true,
+    placeholder: "Select Status",
+    gridCols: 3,
+    options: [
+      { value: "Active", label: "Active" },
+      { value: "Inactive", label: "Inactive" },
+      { value: "Prospect", label: "Prospect" },
+    ],
+    validation: {
+      required: "Status is required",
+    },
+    defaultValue: "Active",
   },
   {
     name: "company_type",
@@ -69,6 +88,7 @@ export const COMPANY_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Type",
+    gridCols: 12,
     options: [
       { value: "Shipping Manning Companies", label: "Shipping Manning Companies" },
       { value: "Cargo Manning Companies", label: "Cargo Manning Companies" },
@@ -86,20 +106,21 @@ export const COMPANY_FORM_FIELDS = [
     defaultValue: "",
   },
   {
-    name: "contact_email",
-    label: "Contact Email",
-    type: "email",
+    name: "open_positions",
+    label: "Open Positions",
+    type: "number",
     component: "BaseInput",
-    required: true,
-    placeholder: "info@company.com",
-    validation: {
-      required: "Email is required",
-      pattern: {
-        value: /\S+@\S+\.\S+/,
-        message: "Invalid email format",
-      },
+    required: false,
+    placeholder: "0",
+    gridCols: 4,
+    props: {
+      min: "0",
     },
-    defaultValue: "",
+    validation: {
+      min: { value: 0, message: "Cannot be negative" },
+    },
+    defaultValue: 0,
+    transformOnSave: (value) => parseInt(value, 10),
   },
   {
     name: "hourly_rate",
@@ -108,6 +129,7 @@ export const COMPANY_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "0.00",
+    gridCols: 4,
     props: {
       step: "0.01",
       min: "0",
@@ -126,6 +148,7 @@ export const COMPANY_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select country",
+    gridCols: 4,
     options: [
       "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia",
       "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
@@ -159,20 +182,21 @@ export const COMPANY_FORM_FIELDS = [
     defaultValue: "",
   },
   {
-    name: "open_positions",
-    label: "Open Positions",
-    type: "number",
+    name: "contact_email",
+    label: "Contact Email",
+    type: "email",
     component: "BaseInput",
-    required: false,
-    placeholder: "0",
-    props: {
-      min: "0",
-    },
+    required: true,
+    placeholder: "info@company.com",
+    gridCols: 6,
     validation: {
-      min: { value: 0, message: "Cannot be negative" },
+      required: "Email is required",
+      pattern: {
+        value: /\S+@\S+\.\S+/,
+        message: "Invalid email format",
+      },
     },
-    defaultValue: 0,
-    transformOnSave: (value) => parseInt(value, 10),
+    defaultValue: "",
   },
   {
     name: "website",
@@ -181,6 +205,7 @@ export const COMPANY_FORM_FIELDS = [
     component: "BaseInput",
     required: false,
     placeholder: "https://www.company.com",
+    gridCols: 6,
     validation: {
       pattern: {
         value: /^(https?:\/\/)?[\w.-]+\.[a-z]{2,}(\/.*)*/i,
@@ -188,23 +213,6 @@ export const COMPANY_FORM_FIELDS = [
       },
     },
     defaultValue: "",
-  },
-  {
-    name: "status",
-    label: "Status",
-    type: "select",
-    component: "Select",
-    required: true,
-    placeholder: "Select Status",
-    options: [
-      { value: "Active", label: "Active" },
-      { value: "Inactive", label: "Inactive" },
-      { value: "Prospect", label: "Prospect" },
-    ],
-    validation: {
-      required: "Status is required",
-    },
-    defaultValue: "Active",
   },
 ];
 
@@ -220,104 +228,10 @@ export const SHIP_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "M/V Ocean Voyager",
+    gridCols: 9,
     validation: {
       required: "Ship name is required",
       minLength: { value: 2, message: "Ship name must be at least 2 characters" },
-    },
-    defaultValue: "",
-  },
-  {
-    name: "imo_number",
-    label: "IMO Number",
-    type: "text",
-    component: "BaseInput",
-    required: false,
-    placeholder: "1234567",
-    validation: {
-      pattern: {
-        value: /^\d{7}$/,
-        message: "IMO number must be exactly 7 digits",
-      },
-    },
-    props: {
-      maxLength: 7,
-    },
-    defaultValue: "",
-  },
-  {
-    name: "company",
-    label: "Company",
-    type: "select",
-    component: "Select",
-    required: true,
-    placeholder: "Select Company",
-    validation: {
-      required: "Company is required",
-    },
-    // options will be loaded dynamically from context
-    options: [],
-    defaultValue: "",
-    transformOnLoad: (val) => (val && typeof val === "object" ? val.id : val),
-  },
-  {
-    name: "ship_type",
-    label: "Ship Type",
-    type: "select",
-    component: "Select",
-    required: true,
-    placeholder: "Select Ship Type",
-    validation: {
-      required: "Ship type is required",
-    },
-    // options will be loaded dynamically
-    options: [],
-    defaultValue: "",
-    transformOnLoad: (val) => (val && typeof val === "object" ? val.id : val),
-  },
-  {
-    name: "flag",
-    label: "Flag",
-    type: "select",
-    component: "Select",
-    required: true,
-    placeholder: "Select Flag",
-    validation: {
-      required: "Flag is required",
-    },
-    // options will be loaded dynamically from context
-    options: [],
-    defaultValue: "",
-  },
-  {
-    name: "gross_tonnage",
-    label: "Gross Tonnage",
-    type: "number",
-    component: "BaseInput",
-    required: false,
-    placeholder: "50000",
-    validation: {
-      min: { value: 0, message: "Cannot be negative" },
-    },
-    props: {
-      min: "0",
-    },
-    defaultValue: 0,
-    transformOnSave: (value) => parseInt(value, 10) || 0,
-  },
-  {
-    name: "year_built",
-    label: "Year Built",
-    type: "number",
-    component: "BaseInput",
-    required: false,
-    placeholder: "2020",
-    validation: {
-      min: { value: 1900, message: "Year must be after 1900" },
-      max: { value: new Date().getFullYear(), message: "Year cannot be in the future" },
-    },
-    props: {
-      min: "1900",
-      max: new Date().getFullYear(),
     },
     defaultValue: "",
   },
@@ -328,6 +242,7 @@ export const SHIP_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select Status",
+    gridCols: 3,
     options: [
       { value: "Active", label: "Active" },
       { value: "Under Maintenance", label: "Under Maintenance" },
@@ -337,56 +252,20 @@ export const SHIP_FORM_FIELDS = [
     defaultValue: "Active",
   },
   {
-    name: "deadweight",
-    label: "Deadweight (DWT)",
-    type: "number",
-    component: "BaseInput",
-    required: false,
-    placeholder: "22000",
-    props: { min: "0" },
-    validation: { min: { value: 0, message: "Cannot be negative" } },
+    name: "company",
+    label: "Company",
+    type: "select",
+    component: "Select",
+    required: true,
+    placeholder: "Select Company",
+    gridCols: 6,
+    validation: {
+      required: "Company is required",
+    },
+    // options will be loaded dynamically from context
+    options: [],
     defaultValue: "",
-    transformOnSave: (v) => parseInt(v, 10) || 0,
-  },
-  {
-    name: "official_no",
-    label: "Official Number",
-    type: "text",
-    component: "BaseInput",
-    required: false,
-    placeholder: "EG-2024-001",
-    validation: {},
-    defaultValue: "",
-  },
-  {
-    name: "call_sign",
-    label: "Call Sign",
-    type: "text",
-    component: "BaseInput",
-    required: false,
-    placeholder: "SUAN2",
-    validation: {},
-    defaultValue: "",
-  },
-  {
-    name: "mmsi_no",
-    label: "MMSI Number",
-    type: "text",
-    component: "BaseInput",
-    required: false,
-    placeholder: "622123456",
-    validation: {},
-    defaultValue: "",
-  },
-  {
-    name: "port_of_registry",
-    label: "Port of Registry",
-    type: "text",
-    component: "BaseInput",
-    required: false,
-    placeholder: "Alexandria",
-    validation: {},
-    defaultValue: "",
+    transformOnLoad: (val) => (val && typeof val === "object" ? val.id : val),
   },
   {
     name: "builder",
@@ -395,30 +274,9 @@ export const SHIP_FORM_FIELDS = [
     component: "BaseInput",
     required: false,
     placeholder: "Hyundai Heavy Industries",
+    gridCols: 6,
     validation: {},
     defaultValue: "",
-  },
-  {
-    name: "engine_type",
-    label: "Engine Type",
-    type: "text",
-    component: "BaseInput",
-    required: false,
-    placeholder: "MAN B&W",
-    validation: {},
-    defaultValue: "",
-  },
-  {
-    name: "engine_power_kw",
-    label: "Engine Power (kW)",
-    type: "number",
-    component: "BaseInput",
-    required: false,
-    placeholder: "12000",
-    props: { min: "0" },
-    validation: { min: { value: 0, message: "Cannot be negative" } },
-    defaultValue: "",
-    transformOnSave: (v) => parseInt(v, 10) || 0,
   },
   {
     name: "crew",
@@ -427,6 +285,7 @@ export const SHIP_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select Crew Members",
+    gridCols: 12,
     props: {
       isMulti: true, // For our Select component to handle multiple
     },
@@ -448,6 +307,172 @@ export const SHIP_FORM_FIELDS = [
       return [];
     }
   },
+  {
+    name: "ship_type",
+    label: "Ship Type",
+    type: "select",
+    component: "Select",
+    required: true,
+    placeholder: "Select Ship Type",
+    gridCols: 4,
+    validation: {
+      required: "Ship type is required",
+    },
+    // options will be loaded dynamically
+    options: [],
+    defaultValue: "",
+    transformOnLoad: (val) => (val && typeof val === "object" ? val.id : val),
+  },
+  {
+    name: "flag",
+    label: "Flag",
+    type: "select",
+    component: "Select",
+    required: true,
+    placeholder: "Select Flag",
+    gridCols: 4,
+    validation: {
+      required: "Flag is required",
+    },
+    // options will be loaded dynamically from context
+    options: [],
+    defaultValue: "",
+  },
+  {
+    name: "imo_number",
+    label: "IMO Number",
+    type: "text",
+    component: "BaseInput",
+    required: false,
+    placeholder: "1234567",
+    gridCols: 4,
+    validation: {
+      pattern: {
+        value: /^\d{7}$/,
+        message: "IMO number must be exactly 7 digits",
+      },
+    },
+    props: {
+      maxLength: 7,
+    },
+    defaultValue: "",
+  },
+  {
+    name: "mmsi_no",
+    label: "MMSI Number",
+    type: "text",
+    component: "BaseInput",
+    required: false,
+    placeholder: "622123456",
+    gridCols: 6,
+    validation: {},
+    defaultValue: "",
+  },
+  {
+    name: "official_no",
+    label: "Official Number",
+    type: "text",
+    component: "BaseInput",
+    required: false,
+    placeholder: "EG-2024-001",
+    gridCols: 6,
+    validation: {},
+    defaultValue: "",
+  },
+  {
+    name: "engine_type",
+    label: "Engine Type",
+    type: "text",
+    component: "BaseInput",
+    required: false,
+    placeholder: "MAN B&W",
+    gridCols: 6,
+    validation: {},
+    defaultValue: "",
+  },
+  {
+    name: "engine_power_kw",
+    label: "Engine Power (kW)",
+    type: "number",
+    component: "BaseInput",
+    required: false,
+    placeholder: "12000",
+    gridCols: 6,
+    props: { min: "0" },
+    validation: { min: { value: 0, message: "Cannot be negative" } },
+    defaultValue: "",
+    transformOnSave: (v) => parseInt(v, 10) || 0,
+  },
+  {
+    name: "gross_tonnage",
+    label: "Gross Tonnage",
+    type: "number",
+    component: "BaseInput",
+    required: false,
+    placeholder: "50000",
+    gridCols: 4,
+    validation: {
+      min: { value: 0, message: "Cannot be negative" },
+    },
+    props: {
+      min: "0",
+    },
+    defaultValue: 0,
+    transformOnSave: (value) => parseInt(value, 10) || 0,
+  },
+  {
+    name: "year_built",
+    label: "Year Built",
+    type: "number",
+    component: "BaseInput",
+    required: false,
+    placeholder: "2020",
+    gridCols: 4,
+    validation: {
+      min: { value: 1900, message: "Year must be after 1900" },
+      max: { value: new Date().getFullYear(), message: "Year cannot be in the future" },
+    },
+    props: {
+      min: "1900",
+      max: new Date().getFullYear(),
+    },
+    defaultValue: "",
+  },
+  {
+    name: "deadweight",
+    label: "Deadweight (DWT)",
+    type: "number",
+    component: "BaseInput",
+    required: false,
+    placeholder: "22000",
+    gridCols: 4,
+    props: { min: "0" },
+    validation: { min: { value: 0, message: "Cannot be negative" } },
+    defaultValue: "",
+    transformOnSave: (v) => parseInt(v, 10) || 0,
+  },
+  {
+    name: "call_sign",
+    label: "Call Sign",
+    type: "text",
+    component: "BaseInput",
+    required: false,
+    placeholder: "SUAN2",
+    gridCols: 6,
+    validation: {},
+    defaultValue: "",
+  },
+  {
+    name: "port_of_registry",
+    label: "Port of Registry",
+    type: "text",
+    component: "BaseInput",
+    required: false,
+    placeholder: "Alexandria",
+    gridCols: 6,
+    validation: {},
+    defaultValue: "",
+  },
 ];
 
 // ============================================
@@ -462,6 +487,7 @@ export const USER_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "john.doe@example.com",
+    gridCols: 12,
     validation: {
       required: "Email is required",
       pattern: {
@@ -478,6 +504,7 @@ export const USER_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "John",
+    gridCols: 6,
     validation: {
       required: "First name is required",
       minLength: { value: 2, message: "First name must be at least 2 characters" },
@@ -491,6 +518,7 @@ export const USER_FORM_FIELDS = [
     component: "BaseInput",
     required: false,
     placeholder: "Robert",
+    gridCols: 6,
     validation: {},
     defaultValue: "",
   },
@@ -501,6 +529,7 @@ export const USER_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "+1234567890",
+    gridCols: 6,
     validation: {
       required: "Phone number is required",
     },
@@ -513,6 +542,7 @@ export const USER_FORM_FIELDS = [
     component: "BaseInput",
     required: false,
     placeholder: "Egypt",
+    gridCols: 6,
     validation: {},
     defaultValue: "",
   },
@@ -523,6 +553,7 @@ export const USER_FORM_FIELDS = [
     component: "DateInput",
     required: false,
     placeholder: "Select date",
+    gridCols: 6,
     validation: {},
     defaultValue: "",
   },
@@ -533,6 +564,7 @@ export const USER_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select status",
+    gridCols: 6,
     options: [
       { value: "SINGLE", label: "Single" },
       { value: "MARRIED", label: "Married" },
@@ -547,6 +579,7 @@ export const USER_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Status",
+    gridCols: 12,
     options: [
       { value: "ON_SITE", label: "ON_SITE" },
       { value: "VACATION", label: "VACATION" },
@@ -564,6 +597,7 @@ export const USER_FORM_FIELDS = [
     type: "checkbox-array",
     component: "CheckboxArray",
     required: false,
+    gridCols: 12,
     validation: {},
     options: [], // Will be loaded dynamically
     defaultValue: [],
@@ -583,6 +617,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Candidate",
+    gridCols: 12,
     validation: {
       required: "Candidate is required",
     },
@@ -597,6 +632,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Company",
+    gridCols: 6,
     validation: {
       required: "Company is required",
     },
@@ -611,6 +647,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select Position (Rank)",
+    gridCols: 6,
     validation: {},
     options: [], // Will be loaded from context
     defaultValue: "",
@@ -623,6 +660,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "DateInput",
     required: true,
     placeholder: "Select date",
+    gridCols: 6,
     validation: {
       required: "Date is required",
     },
@@ -643,6 +681,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "Select time",
+    gridCols: 6,
     validation: {
       required: "Time is required",
     },
@@ -679,6 +718,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select duration",
+    gridCols: 6,
     options: [
       { value: 15, label: "15 minutes" },
       { value: 30, label: "30 minutes" },
@@ -698,6 +738,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select type",
+    gridCols: 6,
     options: [
       { value: "Video", label: "Video Call" },
       { value: "Phone", label: "Phone Call" },
@@ -713,6 +754,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "BaseInput",
     required: false,
     placeholder: "https://teams.microsoft.com/meet/...",
+    gridCols: 12,
     validation: {
       pattern: {
         value: /^https?:\/\/.+/,
@@ -729,6 +771,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "BaseInput",
     required: false,
     placeholder: "e.g., Cairo Office or Meeting Room 1",
+    gridCols: 6,
     defaultValue: "",
   },
   {
@@ -738,6 +781,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "BaseInput",
     required: false,
     placeholder: "e.g., Capt. Ali",
+    gridCols: 6,
     defaultValue: "",
   },
   {
@@ -747,6 +791,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "BaseInput",
     required: false,
     placeholder: "ali@example.com",
+    gridCols: 6,
     defaultValue: "",
   },
   {
@@ -756,6 +801,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select status",
+    gridCols: 6,
     options: [
       { value: "Scheduled", label: "Scheduled" },
       { value: "Completed", label: "Completed" },
@@ -772,6 +818,7 @@ export const INTERVIEW_FORM_FIELDS = [
     component: "TextArea",
     required: false,
     placeholder: "Additional notes about the interview...",
+    gridCols: 12,
     props: {
       minHeight: 80,
     },
@@ -792,6 +839,7 @@ export const FINANCE_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select User",
+    gridCols: 12,
     validation: {
       required: "User is required",
     },
@@ -805,6 +853,7 @@ export const FINANCE_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Company",
+    gridCols: 12,
     validation: {
       required: "Company is required",
     },
@@ -818,6 +867,7 @@ export const FINANCE_FORM_FIELDS = [
     component: "DateInput",
     required: true,
     placeholder: "Select start date",
+    gridCols: 6,
     validation: {
       required: "Start date is required",
     },
@@ -830,6 +880,7 @@ export const FINANCE_FORM_FIELDS = [
     component: "DateInput",
     required: true,
     placeholder: "Select end date",
+    gridCols: 6,
     validation: {
       required: "End date is required",
       custom: (value, formData) => {
@@ -848,6 +899,7 @@ export const FINANCE_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select status",
+    gridCols: 12,
     options: [
       { value: "Cancelled", label: "Cancelled" },
       { value: "Overdue", label: "Overdue" },
@@ -873,6 +925,7 @@ export const DOCUMENT_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select User",
+    gridCols: 12,
     validation: {
       required: "User is required",
     },
@@ -887,6 +940,7 @@ export const DOCUMENT_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Company",
+    gridCols: 6,
     validation: {
       required: "Company is required",
     },
@@ -901,6 +955,7 @@ export const DOCUMENT_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select Ship (Optional)",
+    gridCols: 6,
     validation: {},
     options: [], // Loaded based on company selection
     defaultValue: "",
@@ -914,6 +969,7 @@ export const DOCUMENT_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Rank",
+    gridCols: 6,
     validation: {
       required: "Rank is required",
     },
@@ -928,6 +984,7 @@ export const DOCUMENT_FORM_FIELDS = [
     component: "DateInput",
     required: true,
     placeholder: "Select sign-on date",
+    gridCols: 6,
     validation: {
       required: "Sign-on date is required",
     },
@@ -940,6 +997,7 @@ export const DOCUMENT_FORM_FIELDS = [
     component: "DateInput",
     required: true,
     placeholder: "Select sign-off date",
+    gridCols: 6,
     validation: {
       required: "Sign-off date is required",
       custom: (value, formData) => {
@@ -969,6 +1027,7 @@ export const DOCUMENT_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "5500.00",
+    gridCols: 4,
     validation: {
       required: "Salary is required",
       min: { value: 0, message: "Salary must be positive" },
@@ -987,6 +1046,7 @@ export const DOCUMENT_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "USD",
+    gridCols: 4,
     options: [
       { value: "USD", label: "USD" },
       { value: "EUR", label: "EUR" },
@@ -1008,6 +1068,7 @@ export const DOCUMENT_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select status",
+    gridCols: 4,
     options: [
       { value: "Pending Signature", label: "Pending Signature" },
       { value: "Signed", label: "Signed" },
@@ -1032,6 +1093,7 @@ export const RANK_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "e.g., Master",
+    gridCols: 6,
     validation: {
       required: "Rank name is required",
     },
@@ -1044,6 +1106,7 @@ export const RANK_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "e.g., MST",
+    gridCols: 6,
     validation: {
       required: "Rank code is required",
     },
@@ -1063,6 +1126,7 @@ export const CV_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "e.g., John Doe",
+    gridCols: 12,
     validation: {
       required: "Full name is required",
       minLength: { value: 2, message: "Name must be at least 2 characters" },
@@ -1076,6 +1140,7 @@ export const CV_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "john@example.com",
+    gridCols: 6,
     validation: {
       required: "Email is required",
       pattern: {
@@ -1092,6 +1157,7 @@ export const CV_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "+1234567890",
+    gridCols: 6,
     validation: {
       required: "Phone number is required",
     },
@@ -1105,6 +1171,7 @@ export const CV_FORM_FIELDS = [
     required: true,
     placeholder: "Select Position (Rank)",
     options: [], // Will be loaded dynamically
+    gridCols: 6,
     validation: {
       required: "Position is required",
     },
@@ -1118,6 +1185,7 @@ export const CV_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Status",
+    gridCols: 6,
     options: [
       { value: "Pending", label: "Pending" },
       { value: "Active", label: "Active" },
@@ -1135,6 +1203,7 @@ export const CV_FORM_FIELDS = [
     component: "BaseInput",
     required: true, // Required for creation
     placeholder: "Choose CV file...",
+    gridCols: 12,
     props: {
       type: "file",
       accept: ".pdf,.doc,.docx",
@@ -1158,6 +1227,7 @@ export const CV_SUBMISSION_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Seafarer",
+    gridCols: 12,
     validation: { required: "Seafarer is required" },
     options: [], // Loaded dynamically
     defaultValue: "",
@@ -1170,6 +1240,7 @@ export const CV_SUBMISSION_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select Company",
+    gridCols: 6,
     validation: {},
     options: [], // Loaded dynamically
     defaultValue: "",
@@ -1182,32 +1253,11 @@ export const CV_SUBMISSION_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select Position",
+    gridCols: 6,
     validation: {},
     options: [], // Loaded dynamically
     defaultValue: "",
     transformOnLoad: (val) => (val && typeof val === "object" ? val.id : val),
-  },
-  {
-    name: "experience_years",
-    label: "Experience Years",
-    type: "number",
-    component: "BaseInput",
-    required: false,
-    placeholder: "0",
-    props: { min: "0" },
-    validation: { min: { value: 0, message: "Cannot be negative" } },
-    defaultValue: 0,
-    transformOnSave: (v) => parseInt(v, 10) || 0,
-  },
-  {
-    name: "salary",
-    label: "Salary / Expectations",
-    type: "text",
-    component: "BaseInput",
-    required: false,
-    placeholder: "e.g., 5000 USD",
-    validation: {},
-    defaultValue: "",
   },
   {
     name: "status",
@@ -1216,6 +1266,7 @@ export const CV_SUBMISSION_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Status",
+    gridCols: 4,
     options: [
       { value: "Pending", label: "Pending" },
       { value: "Under Review", label: "Under Review" },
@@ -1228,11 +1279,31 @@ export const CV_SUBMISSION_FORM_FIELDS = [
     validation: { required: "Status is required" },
     defaultValue: "Pending",
   },
+  {
+    name: "salary",
+    label: "Salary / Expectations",
+    type: "text",
+    component: "BaseInput",
+    required: false,
+    placeholder: "e.g., 5000 USD",
+    gridCols: 4,
+    validation: {},
+    defaultValue: "",
+  },
+  {
+    name: "experience_years",
+    label: "Experience Years",
+    type: "number",
+    component: "BaseInput",
+    required: false,
+    placeholder: "0",
+    gridCols: 4,
+    props: { min: "0" },
+    validation: { min: { value: 0, message: "Cannot be negative" } },
+    defaultValue: 0,
+    transformOnSave: (v) => parseInt(v, 10) || 0,
+  },
 ];
-
-// ============================================
-// JOB ORDER FORM FIELDS
-// ============================================
 
 export const JOB_ORDER_FORM_FIELDS = [
   {
@@ -1242,6 +1313,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "e.g. JO-2024-001",
+    gridCols: 12,
     validation: {
       required: "Reference number is required",
     },
@@ -1254,6 +1326,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Company",
+    gridCols: 6,
     validation: {
       required: "Company is required",
     },
@@ -1267,6 +1340,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     component: "Select",
     required: false,
     placeholder: "Select Ship",
+    gridCols: 6,
     options: [], // Loaded from context
     defaultValue: "",
   },
@@ -1276,6 +1350,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     type: "date",
     component: "DateInput",
     required: true,
+    gridCols: 6,
     validation: {
       required: "Request date is required",
     },
@@ -1287,6 +1362,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     type: "date",
     component: "DateInput",
     required: true,
+    gridCols: 6,
     validation: {
       required: "Joining date is required",
     },
@@ -1297,6 +1373,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     label: "Vessel Type Override (Optional)",
     type: "text",
     component: "BaseInput",
+    gridCols: 6,
     placeholder: "Override default vessel type",
     defaultValue: "",
   },
@@ -1305,6 +1382,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     label: "Trading Area",
     type: "text",
     component: "BaseInput",
+    gridCols: 6,
     placeholder: "e.g. Mediterranean",
     defaultValue: "",
   },
@@ -1315,6 +1393,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     component: "Select",
     required: true,
     placeholder: "Select Status",
+    gridCols: 6,
     options: [
       { value: "Pending", label: "Pending" },
       { value: "Open", label: "Open" },
@@ -1333,6 +1412,7 @@ export const JOB_ORDER_FORM_FIELDS = [
     label: "Notes",
     type: "textarea",
     component: "TextArea",
+    gridCols: 12,
     placeholder: "Additional internal notes...",
     defaultValue: "",
   },
