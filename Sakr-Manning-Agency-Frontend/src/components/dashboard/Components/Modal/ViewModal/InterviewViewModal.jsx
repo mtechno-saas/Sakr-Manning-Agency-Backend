@@ -104,6 +104,8 @@ export function InterviewViewModal({
                     backgroundColor: "#F9FAFB",
                     borderRadius: `${Math.round(12 * scale)}px`,
                     marginBottom: `${Math.round(24 * scale)}px`,
+                    overflow: "hidden",
+
                 }}
             >
                 <div style={{ display: "flex", alignItems: "center", gap: `${Math.round(16 * scale)}px` }}>

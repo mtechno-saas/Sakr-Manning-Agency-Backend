@@ -409,6 +409,7 @@ export function ViewDetailModal({
                 display: "flex",
                 gap: `${Math.round(12 * scale)}px`,
                 justifyContent: "flex-end",
+                padding: `${Math.round(2 * scale)}px`
             }}
         >
             {actions.map((action, index) => (
@@ -457,15 +458,7 @@ export function ViewDetailModal({
                     />
                 </div>
             ) : (
-                <div
-                    style={{
-                        maxHeight: "60vh",
-                        overflowY: "auto",
-                        paddingRight: `${Math.round(8 * scale)}px`,
-                    }}
-                >
-                    {children}
-                </div>
+                children
             )}
         </BaseModal>
     );

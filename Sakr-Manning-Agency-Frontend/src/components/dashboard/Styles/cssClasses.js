@@ -100,7 +100,7 @@ export const generateAllPageStyles = (scale = 1) => `
 
 // Header/Page title
 export const getPageTitleStyles = (scale = 1) => ({
-  fontSize: `${getScaledValue(22, scale)}px`,
+  fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.xxl, scale)}px`,
   fontWeight: 500,
   color: STYLE_TOKENS.colors.darkText,
   margin: 0,
@@ -110,7 +110,7 @@ export const getPageTitleStyles = (scale = 1) => ({
 
 // Section title
 export const getSectionTitleStyles = (scale = 1) => ({
-  fontSize: `${getScaledValue(20, scale)}px`,
+  fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.xl, scale)}px`,
   fontWeight: 500,
   color: STYLE_TOKENS.colors.darkText,
   margin: `0 0 ${getScaledValue(20, scale)}px 0`,
@@ -120,7 +120,7 @@ export const getSectionTitleStyles = (scale = 1) => ({
 
 // Subtitle/description
 export const getSubtitleStyles = (scale = 1) => ({
-  fontSize: `${getScaledValue(16, scale)}px`,
+  fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.md, scale)}px`,
   fontWeight: 400,
   color: STYLE_TOKENS.colors.lightText,
   fontFamily: STYLE_TOKENS.fonts.primary,
@@ -129,7 +129,7 @@ export const getSubtitleStyles = (scale = 1) => ({
 
 // Main container/section
 export const getMainContainerStyles = (scale = 1, headerHeight = 101) => ({
-  padding: `${getScaledValue(32, scale)}px`,
+  padding: `${getScaledValue(20, scale)}px`,
   paddingTop: `calc(${getScaledValue(headerHeight, scale)}px + ${getScaledValue(
     32,
     scale
@@ -143,7 +143,7 @@ export const getMainContainerStyles = (scale = 1, headerHeight = 101) => ({
 export const getCardStyles = (scale = 1) => ({
   backgroundColor: STYLE_TOKENS.colors.white,
   borderRadius: `${getScaledValue(22, scale)}px`,
-  padding: `${getScaledValue(24, scale)}px`,
+  padding: `${getScaledValue(16, scale)}px`,
   boxShadow: STYLE_TOKENS.shadow.sm,
   minHeight: `${getScaledValue(200, scale)}px`,
 });
@@ -167,7 +167,7 @@ export const getButtonGroupStyles = (scale = 1) => ({
 
 // Modal title
 export const getModalTitleStyles = (scale = 1) => ({
-  fontSize: `${getScaledValue(20, scale)}px`,
+  fontSize: `${getScaledValue(STYLE_TOKENS.fontSize.xl, scale)}px`,
   fontWeight: 500,
   color: STYLE_TOKENS.colors.darkText,
   margin: `0 0 ${getScaledValue(20, scale)}px 0`,

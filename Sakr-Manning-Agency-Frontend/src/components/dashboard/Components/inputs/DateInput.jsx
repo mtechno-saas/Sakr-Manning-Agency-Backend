@@ -63,7 +63,7 @@ const variants = {
     bordered: "bg-white border border-[#91BBE1] rounded-[8px] p-2 font-inter",
     shadowed: "font-poppins bg-white border border-gray-300 rounded-[8px] p-2 shadow-lg",
     light: "font-inter bg-gray-50 border border-gray-200 rounded-[8px] p-2 focus:ring-1 focus:ring-blue-300",
-    dashboard: "font-inter bg-white border border-gray-300 rounded-lg py-3 px-4 text-base shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-gray-400 transition-all duration-200",
+    dashboard: "font-inter bg-white border border-gray-300 rounded-lg py-2 px-3 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 hover:border-gray-400 transition-all duration-200",
 };
 
 // Default quick select presets
@@ -299,7 +299,7 @@ export function DateInput({
                                 onClick={() => handleQuickSelect(preset.key)}
                                 disabled={disabled}
                                 className={cx(
-                                    "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                                    "px-2 py-1 text-[10px] font-medium rounded-md transition-colors",
                                     "border border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600",
                                     disabled && "opacity-50 cursor-not-allowed"
                                 )}
@@ -318,7 +318,7 @@ export function DateInput({
                             className="absolute inset-0 flex items-center px-4 pointer-events-none z-10"
                             onClick={() => inputRef.current?.focus()}
                         >
-                            <span className="text-gray-400 text-base select-none">
+                            <span className="text-gray-400 text-sm select-none">
                                 {placeholder}
                             </span>
                         </div>
@@ -397,7 +397,7 @@ export function DateInput({
                     {hasValue && !isFocused && currentValue && (
                         <div className="absolute inset-0 flex items-center px-4 pointer-events-none bg-transparent">
                             <div className="flex items-center gap-2">
-                                <span className="text-gray-700 text-base">
+                                <span className="text-gray-700 text-sm">
                                     {formatDateDisplay(currentValue)}
                                 </span>
                                 {relativeDisplay && (
@@ -721,7 +721,7 @@ export function DateRangeInput({
                                 onClick={() => handleQuickSelect(preset.key)}
                                 disabled={disabled}
                                 className={cx(
-                                    "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                                    "px-2 py-1 text-[10px] font-medium rounded-md transition-colors",
                                     "border border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600",
                                     disabled && "opacity-50 cursor-not-allowed"
                                 )}

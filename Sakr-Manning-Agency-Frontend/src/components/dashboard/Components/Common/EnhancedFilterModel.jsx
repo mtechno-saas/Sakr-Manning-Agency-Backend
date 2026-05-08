@@ -117,13 +117,14 @@ const EnhancedFilterModal = ({
           position: "relative",
           maxWidth: getScaledValue(780, scale),
           width: "95%",
+          maxHeight: "90vh",
           padding: getScaledValue(36, scale),
           borderRadius: getScaledValue(32, scale),
           boxShadow: "0 25px 70px rgba(0, 0, 0, 0.2)",
           display: "flex",
           flexDirection: "column",
           gap: 0,
-          overflow: "visible",
+          overflow: "hidden",
           margin: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
@@ -135,15 +136,16 @@ const EnhancedFilterModal = ({
             justifyContent: "space-between",
             alignItems: "flex-start",
             marginBottom: getScaledValue(32, scale),
+            flexShrink: 0,
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: getScaledValue(6, scale) }}>
-            <h2 id="filter-modal-title" style={{ ...titleStyles, margin: 0, fontSize: getScaledValue(26, scale), fontWeight: 700, letterSpacing: "-0.5px" }}>
+            <h2 id="filter-modal-title" style={{ ...titleStyles, margin: 0, fontSize: getScaledValue(STYLE_TOKENS.fontSize.xl, scale), fontWeight: 700, letterSpacing: "-0.5px" }}>
               {title}
             </h2>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: STYLE_TOKENS.colors.primary }}></div>
-              <p style={{ color: STYLE_TOKENS.colors.lightText, fontSize: getScaledValue(14, scale), margin: 0, fontWeight: 500 }}>
+              <p style={{ color: STYLE_TOKENS.colors.lightText, fontSize: getScaledValue(STYLE_TOKENS.fontSize.sm, scale), margin: 0, fontWeight: 500 }}>
                 {fields.length} available filters
               </p>
             </div>
@@ -172,7 +174,13 @@ const EnhancedFilterModal = ({
         </div>
 
         {/* Grid Body */}
-        <div style={{ paddingBottom: getScaledValue(12, scale) }}>
+        <div style={{ 
+          flex: 1, 
+          overflowY: "auto", 
+          paddingRight: getScaledValue(8, scale),
+          paddingBottom: getScaledValue(12, scale),
+          scrollbarWidth: 'thin'
+        }}>
           <div className="filter-grid">
             {fields.map((field, index) => (
               <div 
@@ -204,9 +212,10 @@ const EnhancedFilterModal = ({
             display: "flex",
             gap: getScaledValue(16, scale),
             justifyContent: "flex-end",
-            marginTop: getScaledValue(36, scale),
-            paddingTop: getScaledValue(28, scale),
+            marginTop: getScaledValue(24, scale),
+            paddingTop: getScaledValue(24, scale),
             borderTop: `1.5px solid #F3F4F6`,
+            flexShrink: 0,
           }}
         >
           <Button 
@@ -242,7 +251,7 @@ const EnhancedFilterModal = ({
         </div>
 
         {/* Keyboard Shortcuts Hint */}
-        <div style={{ marginTop: "16px", fontSize: "11px", color: "#8C8C8C", textAlign: "center" }}>
+        <div style={{ marginTop: "16px", fontSize: "11px", color: "#8C8C8C", textAlign: "center", flexShrink: 0 }}>
           Press <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Esc</kbd> to close
         </div>
       </div>

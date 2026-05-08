@@ -200,17 +200,19 @@ const FilterModal = ({
     >
       <div style={modalStyles.panel} onClick={(e) => e.stopPropagation()}>
         {/* Modal Title */}
-        <h2 id="filter-modal-title" style={titleStyles}>
+        <h2 id="filter-modal-title" style={{ ...titleStyles, flexShrink: 0 }}>
           {title}
         </h2>
 
         {/* Filter Fields */}
-        {fields.map((field, index) => (
-          <div key={field.key} style={formFieldStyles.wrapper}>
-            <label style={formFieldStyles.label}>{field.label}</label>
-            {renderField(field, index === 0)}
-          </div>
-        ))}
+        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
+          {fields.map((field, index) => (
+            <div key={field.key} style={formFieldStyles.wrapper}>
+              <label style={formFieldStyles.label}>{field.label}</label>
+              {renderField(field, index === 0)}
+            </div>
+          ))}
+        </div>
 
         {/* Action Buttons */}
         <div
@@ -219,6 +221,7 @@ const FilterModal = ({
             gap: `${Math.round(12 * scale)}px`,
             justifyContent: "flex-end",
             marginTop: `${Math.round(24 * scale)}px`,
+            flexShrink: 0,
           }}
         >
           <Button variant="outline" onClick={onReset} scale={scale}>

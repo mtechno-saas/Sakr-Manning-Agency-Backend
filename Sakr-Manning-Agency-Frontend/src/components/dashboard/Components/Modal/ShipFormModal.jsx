@@ -1,8 +1,7 @@
-// components/dashboard/Modals/ShipFormModal.jsx - REFACTORED v2
+// components/dashboard/Modals/ShipFormModal.jsx - REFACTORED v2.1
 import React, { useState, useEffect, useMemo } from "react";
+import BaseModal from "./BaseModal";
 import Button from "../Common/Button";
-import { getModalStyles } from "../../Styles/componentStyles";
-import { getModalTitleStyles } from "../../Styles/cssClasses";
 
 // Import form components
 import { BaseInput } from "../inputs/BaseInput";
@@ -18,29 +17,14 @@ import { coreApi } from "../../../../services/Dashboard/shipsApi";
 import useNotification from "../../hooks/useNotification";
 
 /**
- * ShipFormModal v2 - REFACTORED
- * 
- * Reduced from 287 lines → ~170 lines (41% reduction)
- * 
- * Key Improvements:
- * - Uses centralized field configuration
- * - Leverages useFormModal hook for common logic
- * - Dynamic field rendering with TypeaheadInput support
- * - Async reference data loading
- * - Consistent validation
- * 
- * Props remain the same for backward compatibility
+ * ShipFormModal v2.1 - Uses BaseModal for responsive scrolling
  */
-
 const ShipFormModal = ({
   ship = null,
-  companies = [], // Legacy prop, we'll use context instead
   onClose,
   onSave,
   scale = 1,
 }) => {
-  const modalStyles = getModalStyles(scale);
-  const titleStyles = getModalTitleStyles(scale);
   const { notify } = useNotification();
 
   // Get data from context
@@ -74,7 +58,6 @@ const ShipFormModal = ({
   // Prepare field config with dynamic options
   const enrichedFieldConfig = useMemo(() => {
     return SHIP_FORM_FIELDS.map((field) => {
-      // Add dynamic options for ship_type
       if (field.name === "ship_type") {
         return {
           ...field,
@@ -84,8 +67,6 @@ const ShipFormModal = ({
           })),
         };
       }
-
-      // Add dynamic options for flag
       if (field.name === "flag") {
         return {
           ...field,
@@ -95,23 +76,18 @@ const ShipFormModal = ({
           })),
         };
       }
-
-      // Add dynamic options for company
       if (field.name === "company") {
         return {
           ...field,
           options: referenceOptions.companies,
         };
       }
-
-      // Add dynamic options for crew
       if (field.name === "crew") {
         return {
           ...field,
           options: referenceOptions.users,
         };
       }
-
       return field;
     });
   }, [vesselTypes, flags, referenceOptions.companies, referenceOptions.users]);
@@ -134,22 +110,6 @@ const ShipFormModal = ({
       isEdit ? "Ship updated successfully" : "Ship created successfully",
     errorMessage: "Failed to save ship",
   });
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        handleClose();
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        handleSave();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleClose, handleSave]);
 
   // Render field based on configuration
   const renderField = (field) => {
@@ -187,137 +147,60 @@ const ShipFormModal = ({
     }
   };
 
-  // Check if still loading critical reference data
   const isLoadingReferenceData = loadingVesselTypes || loadingFlags;
 
-  return (
-    <div
-      onClick={handleClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="ship-form-modal-title"
-      style={{
-        ...modalStyles.overlay,
-        overflowY: "auto",
-        padding: `${Math.round(40 * scale)}px 0`,
-      }}
-    >
-      <div
-        style={{
-          ...modalStyles.panel,
-          maxWidth: `${Math.round(900 * scale)}px`,
-          overflow: "visible",
-          margin: "auto",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Title */}
-        <h2 id="ship-form-modal-title" style={titleStyles}>
-          {isEditMode ? "Edit Ship" : "Add New Ship"}
-        </h2>
-
-        {/* Loading Reference Data */}
-        {isLoadingReferenceData ? (
-          <div
-            style={{
-              padding: `${Math.round(40 * scale)}px`,
-              textAlign: "center",
-              color: "#8C8C8C",
-            }}
-          >
-            Loading form data...
-          </div>
-        ) : (
-          <>
-            {/* Form Fields - Dynamic Rendering */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(12, 1fr)",
-                gap: `${Math.round(16 * scale)}px`,
-              }}
-            >
-              {enrichedFieldConfig.map((field) => (
-                <div
-                  key={field.name}
-                  style={{
-                    gridColumn: `span ${field.gridCols || 12}`,
-                  }}
-                >
-                  {renderField(field)}
-                </div>
-              ))}
-            </div>
-
-            {/* Action Buttons */}
-            <div
-              style={{
-                display: "flex",
-                gap: `${Math.round(12 * scale)}px`,
-                justifyContent: "flex-end",
-                marginTop: `${Math.round(24 * scale)}px`,
-              }}
-            >
-              <Button
-                variant="outline"
-                onClick={handleClose}
-                scale={scale}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSave}
-                scale={scale}
-                disabled={loading}
-                loading={loading}
-              >
-                {loading
-                  ? "Saving..."
-                  : isEditMode
-                    ? "Update Ship"
-                    : "Create Ship"}
-              </Button>
-            </div>
-
-            {/* Keyboard Shortcuts Hint */}
-            <div
-              style={{
-                marginTop: `${Math.round(12 * scale)}px`,
-                fontSize: `${Math.round(11 * scale)}px`,
-                color: "#8C8C8C",
-                textAlign: "center",
-              }}
-            >
-              Press{" "}
-              <kbd
-                style={{
-                  padding: `${Math.round(2 * scale)}px ${Math.round(4 * scale)}px`,
-                  backgroundColor: "#F3F4F6",
-                  borderRadius: `${Math.round(3 * scale)}px`,
-                  fontFamily: "monospace",
-                }}
-              >
-                Esc
-              </kbd>{" "}
-              to close •{" "}
-              <kbd
-                style={{
-                  padding: `${Math.round(2 * scale)}px ${Math.round(4 * scale)}px`,
-                  backgroundColor: "#F3F4F6",
-                  borderRadius: `${Math.round(3 * scale)}px`,
-                  fontFamily: "monospace",
-                }}
-              >
-                Ctrl+Enter
-              </kbd>{" "}
-              to save
-            </div>
-          </>
-        )}
+  const footer = (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+      <div style={{ display: "flex", gap: `${Math.round(12 * scale)}px`, justifyContent: "flex-end" }}>
+        <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
+          Cancel
+        </Button>
+        <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
+          {loading ? "Saving..." : isEditMode ? "Update Ship" : "Create Ship"}
+        </Button>
+      </div>
+      <div style={{ fontSize: "11px", color: "#8C8C8C", textAlign: "center" }}>
+        Press <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Esc</kbd> to close •{" "}
+        <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Ctrl+Enter</kbd> to save
       </div>
     </div>
+  );
+
+  return (
+    <BaseModal
+      isOpen={true}
+      onClose={handleClose}
+      title={isEditMode ? "Edit Ship" : "Add New Ship"}
+      size="lg"
+      footer={footer}
+      scale={scale}
+    >
+      {isLoadingReferenceData ? (
+        <div style={{ padding: "40px", textAlign: "center", color: "#8C8C8C" }}>
+          Loading form data...
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(12, 1fr)",
+            gap: `${Math.round(16 * scale)}px`,
+            padding: "2px",
+          }}
+        >
+          {enrichedFieldConfig.map((field) => (
+            <div
+              key={field.name}
+              style={{
+                gridColumn: `span ${field.gridCols || 12}`,
+              }}
+            >
+              {renderField(field)}
+            </div>
+          ))}
+        </div>
+      )}
+    </BaseModal>
   );
 };
 

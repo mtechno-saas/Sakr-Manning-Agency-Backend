@@ -1,8 +1,7 @@
 // components/dashboard/Modals/JobOrderFormModal.jsx
 import React, { useEffect, useMemo } from "react";
+import BaseModal from "./BaseModal";
 import Button from "../Common/Button";
-import { getModalStyles } from "../../Styles/componentStyles";
-import { getModalTitleStyles } from "../../Styles/cssClasses";
 
 import { BaseInput } from "../inputs/BaseInput";
 import { Select } from "../inputs/Select";
@@ -24,8 +23,6 @@ const JobOrderFormModal = ({
   onSave,
   scale = 1,
 }) => {
-  const modalStyles = getModalStyles(scale);
-  const titleStyles = getModalTitleStyles(scale);
   const { notify } = useNotification();
 
   // Pull reference data from dashboard context
@@ -77,19 +74,6 @@ const JobOrderFormModal = ({
     });
   }, [referenceOptions, shipsByCompany, formData?.company]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") handleClose();
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        handleSave();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [handleClose, handleSave]);
-
   // Dynamic field renderer
   const renderField = (field) => {
     const commonProps = {
@@ -119,106 +103,52 @@ const JobOrderFormModal = ({
     }
   };
 
+  const footer = (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+      <div style={{ display: "flex", gap: `${Math.round(12 * scale)}px`, justifyContent: "flex-end" }}>
+        <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
+          Cancel
+        </Button>
+        <Button variant="primary" onClick={handleSave} scale={scale} disabled={loading} loading={loading}>
+          {loading ? "Saving..." : isEditMode ? "Update Job Order" : "Create Job Order"}
+        </Button>
+      </div>
+      <div style={{ fontSize: "11px", color: "#8C8C8C", textAlign: "center" }}>
+        Press <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Esc</kbd> to close •{" "}
+        <kbd style={{ padding: "2px 4px", backgroundColor: "#F3F4F6", borderRadius: "3px", fontFamily: "monospace" }}>Ctrl+Enter</kbd> to save
+      </div>
+    </div>
+  );
+
   return (
-    <div
-      style={modalStyles.overlay}
-      onClick={handleClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="job-order-modal-title"
+    <BaseModal
+      isOpen={true}
+      onClose={handleClose}
+      title={isEditMode ? "Edit Job Order" : "Create Job Order"}
+      size="lg"
+      footer={footer}
+      scale={scale}
     >
       <div
         style={{
-          ...modalStyles.panel,
-          maxWidth: `${Math.round(800 * scale)}px`,
-          maxHeight: "90vh",
-          overflowY: "auto",
+          display: "grid",
+          gridTemplateColumns: "repeat(12, 1fr)",
+          gap: `${Math.round(16 * scale)}px`,
+          padding: "2px",
         }}
-        onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="job-order-modal-title" style={titleStyles}>
-          {isEditMode ? "Edit Job Order" : "Create Job Order"}
-        </h2>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, 1fr)",
-            gap: `${Math.round(16 * scale)}px`,
-          }}
-        >
-          {enrichedFieldConfig.map((field) => (
-            <div
-              key={field.name}
-              style={{
-                gridColumn: `span ${field.gridCols || 12}`,
-              }}
-            >
-              {renderField(field)}
-            </div>
-          ))}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: `${Math.round(12 * scale)}px`,
-            justifyContent: "flex-end",
-            marginTop: `${Math.round(24 * scale)}px`,
-          }}
-        >
-          <Button variant="outline" onClick={handleClose} scale={scale} disabled={loading}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleSave}
-            scale={scale}
-            disabled={loading}
-            loading={loading}
-          >
-            {loading
-              ? "Saving..."
-              : isEditMode
-              ? "Update Job Order"
-              : "Create Job Order"}
-          </Button>
-        </div>
-
-        <div
-          style={{
-            marginTop: `${Math.round(12 * scale)}px`,
-            fontSize: `${Math.round(11 * scale)}px`,
-            color: "#8C8C8C",
-            textAlign: "center",
-          }}
-        >
-          Press{" "}
-          <kbd
+        {enrichedFieldConfig.map((field) => (
+          <div
+            key={field.name}
             style={{
-              padding: `${Math.round(2 * scale)}px ${Math.round(4 * scale)}px`,
-              backgroundColor: "#F3F4F6",
-              borderRadius: `${Math.round(3 * scale)}px`,
-              fontFamily: "monospace",
+              gridColumn: `span ${field.gridCols || 12}`,
             }}
           >
-            Esc
-          </kbd>{" "}
-          to close •{" "}
-          <kbd
-            style={{
-              padding: `${Math.round(2 * scale)}px ${Math.round(4 * scale)}px`,
-              backgroundColor: "#F3F4F6",
-              borderRadius: `${Math.round(3 * scale)}px`,
-              fontFamily: "monospace",
-            }}
-          >
-            Ctrl+Enter
-          </kbd>{" "}
-          to save
-        </div>
+            {renderField(field)}
+          </div>
+        ))}
       </div>
-    </div>
+    </BaseModal>
   );
 };
 
