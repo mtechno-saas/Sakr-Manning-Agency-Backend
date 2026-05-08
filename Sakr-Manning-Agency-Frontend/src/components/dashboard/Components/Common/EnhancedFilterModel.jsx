@@ -250,4 +250,4 @@ const EnhancedFilterModal = ({
   );
 };
 
-
+export default EnhancedFilterModal;
