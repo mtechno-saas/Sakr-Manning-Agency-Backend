@@ -17,6 +17,11 @@ export function useClickOutside(ref, handler, isActive = true) {
     useEffect(() => {
         if (!isActive) return;
         const handleClickOutside = (event) => {
+            // Ignore clicks that land inside a portalled dropdown (Select / MultiSelect).
+            // Those are appended to document.body so they're always "outside" any modal
+            // ref, but they should not trigger an outside-click close.
+            if (event.target.closest('[data-portal-dropdown]')) return;
+
             if (ref.current && !ref.current.contains(event.target)) {
                 handler(event);
             }

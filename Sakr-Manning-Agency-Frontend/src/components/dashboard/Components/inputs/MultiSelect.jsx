@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useId, useMemo } from "react";
+import ReactDOM from "react-dom";
 import { ChevronDown, Search, X, Check, Loader2, Plus, Tag as TagIcon } from "lucide-react";
 import { useFormField, cx } from "../../../../hooks/useFormField";
 
@@ -124,7 +125,9 @@ export function MultiSelect({
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(false);
     const [filteredOptions, setFilteredOptions] = useState(options);
+    const [dropdownStyle, setDropdownStyle] = useState({});
 
+    const triggerRef = useRef(null);
     const dropdownRef = useRef(null);
     const searchInputRef = useRef(null);
     const debounceRef = useRef(null);
@@ -182,12 +185,47 @@ export function MultiSelect({
         };
     }, []);
 
-    // Close on outside click
+    // Compute portal dropdown position
+    const updateDropdownPosition = useCallback(() => {
+        if (!triggerRef.current) return;
+        const rect = triggerRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const dropdownMaxHeight = 320;
+        const openUpward = spaceBelow < dropdownMaxHeight && spaceAbove > spaceBelow;
+
+        setDropdownStyle({
+            position: "fixed",
+            left: `${rect.left}px`,
+            width: `${rect.width}px`,
+            zIndex: 99999,
+            ...(openUpward
+                ? { bottom: `${viewportHeight - rect.top}px`, top: "auto" }
+                : { top: `${rect.bottom + 4}px`, bottom: "auto" }),
+        });
+    }, []);
+
+    useEffect(() => {
+        if (open) {
+            updateDropdownPosition();
+            window.addEventListener("scroll", updateDropdownPosition, true);
+            window.addEventListener("resize", updateDropdownPosition);
+        }
+        return () => {
+            window.removeEventListener("scroll", updateDropdownPosition, true);
+            window.removeEventListener("resize", updateDropdownPosition);
+        };
+    }, [open, updateDropdownPosition]);
+
+    // Close on outside click (checks both trigger button and portalled list)
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-                setOpen(false);
-            }
+            if (
+                triggerRef.current?.contains(e.target) ||
+                dropdownRef.current?.contains(e.target)
+            ) return;
+            setOpen(false);
         };
 
         if (open) {
@@ -310,9 +348,10 @@ export function MultiSelect({
                 </label>
             )}
 
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative">
                 {/* Main input button */}
                 <button
+                    ref={triggerRef}
                     type="button"
                     id={name}
                     onClick={() => !disabled && setOpen(!open)}
@@ -372,13 +411,16 @@ export function MultiSelect({
                     </div>
                 </button>
 
-                {/* Dropdown */}
-                {open && (
+                {/* Dropdown — rendered via portal to escape overflow:hidden parents (e.g. modals) */}
+                {open && ReactDOM.createPortal(
                     <div
+                        ref={dropdownRef}
+                        data-portal-dropdown="true"
                         id={listId}
                         role="listbox"
                         aria-multiselectable="true"
-                        className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden flex flex-col"
+                        style={dropdownStyle}
+                        className="bg-white border border-gray-300 rounded-lg shadow-xl max-h-80 overflow-hidden flex flex-col"
                     >
                         {/* Search input */}
                         {searchable && (
@@ -471,7 +513,8 @@ export function MultiSelect({
                                 )}
                             </div>
                         )}
-                    </div>
+                    </div>,
+                    document.body
                 )}
             </div>
 
