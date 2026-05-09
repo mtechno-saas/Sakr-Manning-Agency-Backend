@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useFormField, cx } from "../../../../hooks/useFormField";
 
@@ -88,6 +89,7 @@ export function Select({
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [dropdownStyle, setDropdownStyle] = useState({});
   const buttonRef = useRef(null);
   const listRef = useRef(null);
   const listId = useId();
@@ -118,10 +120,47 @@ export function Select({
     filtered.findIndex((o) => isSelected(getValue(o)))
   );
 
+  // Compute portal dropdown position
+  const updateDropdownPosition = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const dropdownMaxHeight = 240;
+    const openUpward = spaceBelow < dropdownMaxHeight && spaceAbove > spaceBelow;
+
+    setDropdownStyle({
+      position: "fixed",
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      zIndex: 99999,
+      ...(openUpward
+        ? { bottom: `${viewportHeight - rect.top}px`, top: "auto" }
+        : { top: `${rect.bottom + 4}px`, bottom: "auto" }),
+    });
+  };
+
+  useEffect(() => {
+    if (open) {
+      updateDropdownPosition();
+      window.addEventListener("scroll", updateDropdownPosition, true);
+      window.addEventListener("resize", updateDropdownPosition);
+    }
+    return () => {
+      window.removeEventListener("scroll", updateDropdownPosition, true);
+      window.removeEventListener("resize", updateDropdownPosition);
+    };
+  }, [open]);
+
+  // Close on outside click (checks both trigger and portalled list)
   useEffect(() => {
     function onDocClick(e) {
-      if (!buttonRef.current) return;
-      if (!buttonRef.current.parentElement.contains(e.target)) setOpen(false);
+      if (
+        buttonRef.current?.contains(e.target) ||
+        listRef.current?.contains(e.target)
+      ) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
@@ -215,9 +254,11 @@ export function Select({
           )}
         </button>
 
-        {open && (
+        {open && ReactDOM.createPortal(
           <div
-            className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+            data-portal-dropdown="true"
+            style={dropdownStyle}
+            className="bg-white border border-gray-300 rounded-lg shadow-xl max-h-60 overflow-y-auto"
             role="listbox"
             id={listId}
             ref={listRef}
@@ -285,7 +326,8 @@ export function Select({
                 </div>
               );
             })}
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 

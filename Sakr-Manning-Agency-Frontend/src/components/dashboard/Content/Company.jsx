@@ -102,21 +102,21 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   const [viewingShip, setViewingShip] = useState(null);
 
   // Job Orders filter state
-  const [jobOrderFilters, setJobOrderFilters] = useState({ 
-    company: "", 
-    ship: "", 
-    status: "", 
-    reference_number: "", 
-    request_date_from: "", 
-    request_date_to: "" 
+  const [jobOrderFilters, setJobOrderFilters] = useState({
+    company: "",
+    ship: "",
+    status: "",
+    reference_number: "",
+    request_date_from: "",
+    request_date_to: ""
   });
-  const [activeJobOrderFilters, setActiveJobOrderFilters] = useState({ 
-    company: "", 
-    ship: "", 
-    status: "", 
-    reference_number: "", 
-    request_date_from: "", 
-    request_date_to: "" 
+  const [activeJobOrderFilters, setActiveJobOrderFilters] = useState({
+    company: "",
+    ship: "",
+    status: "",
+    reference_number: "",
+    request_date_from: "",
+    request_date_to: ""
   });
   const [showJobOrderFilterModal, setShowJobOrderFilterModal] = useState(false);
 
@@ -197,7 +197,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       companyFlag: company.company_flag,
       type: company.company_type || "N/A",
       email: company.contact_email || "N/A",
-      website: company.website || "—",
+      website: company.website,
       createdAt: company.created_at,
       hourRate: company.hourly_rate || 0,
       openPositions: company.open_positions || 0,
@@ -526,13 +526,13 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   }, [jobOrderFilters, fetchJobOrders]);
 
   const handleResetJobOrderFilters = useCallback(() => {
-    const empty = { 
-      company: "", 
-      ship: "", 
-      status: "", 
-      reference_number: "", 
-      request_date_from: "", 
-      request_date_to: "" 
+    const empty = {
+      company: "",
+      ship: "",
+      status: "",
+      reference_number: "",
+      request_date_from: "",
+      request_date_to: ""
     };
     setJobOrderFilters(empty);
     setActiveJobOrderFilters(empty);
@@ -838,13 +838,13 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "website",
         title: "Website",
-        width: 200,
+        width: 300,
         sortable: true,
         render: (value, row) => {
-          if (!row.file) return "—";
+          if (!row.website) return "—";
           return (
             <a
-              href={row.file}
+              href={row.website}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}

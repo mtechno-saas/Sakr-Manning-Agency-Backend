@@ -60,6 +60,10 @@ const useKeyboardShortcuts = (
     if (!key || !callback) return;
 
     const handleKeyDown = (e) => {
+      // If focus is inside a portalled dropdown, let the dropdown handle
+      // the event first (e.g. Escape should close the dropdown, not the modal).
+      if (document.activeElement?.closest('[data-portal-dropdown]')) return;
+
       // Check if key matches
       const keyMatches =
         e.key.toLowerCase() === key.toLowerCase() ||
