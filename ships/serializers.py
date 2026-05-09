@@ -51,6 +51,34 @@ class ShipSerializer(serializers.ModelSerializer):
             'engine_power_kw', 'created_at', 'updated_at', 'job_orders', 'jobs_order_count'
         ]
 
+    def to_internal_value(self, data):
+        """
+        Accept `ship_type` and `flag` as either integer IDs or string names.
+        """
+        if 'ship_type' in data:
+            val = data['ship_type']
+            if isinstance(val, str) and not val.isdigit() and val.strip():
+                from core.models import VesselType
+                vt, _ = VesselType.objects.get_or_create(name=val.strip())
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                data['ship_type'] = vt.id
+
+        if 'flag' in data:
+            val = data['flag']
+            if isinstance(val, str) and not val.isdigit() and val.strip():
+                from core.models import Flag
+                flag, _ = Flag.objects.get_or_create(name=val.strip())
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                data['flag'] = flag.id
+
+        return super().to_internal_value(data)
+
     def get_jobs_order_count(self, obj):
         return obj.job_orders.count()
 

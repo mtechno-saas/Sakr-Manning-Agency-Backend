@@ -217,24 +217,28 @@ class Flag(models.Model):
         return self.name
 
 
+class CompanyType(models.Model):
+    """
+    Represents a type of company (e.g., Shipping Manning Companies).
+    Used by the Company model.
+    """
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = 'Company Type'
+        verbose_name_plural = 'Company Types'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class VesselType(models.Model):
     """
     Represents a type of vessel (e.g., Bulk Carrier).
     Used by the Ship model.
     """
-    VESSEL_TYPE_CHOICES = [
-        ('Container Ships', 'Container Ships'),
-        ('Bulk Carriers', 'Bulk Carriers'),
-        ('Tankers', 'Tankers'),
-        ('Ro-Ro Ships', 'Ro-Ro Ships'),
-        ('Passenger Ships', 'Passenger Ships'),
-        ('Fishing Vessels', 'Fishing Vessels'),
-        ('Recreational', 'Recreational'),
-        ('Offshore Support Vessels', 'Offshore Support Vessels'),
-        ('Icebreakers', 'Icebreakers'),
-        ('Tugboats', 'Tugboats'),
-    ]
-    name = models.CharField(max_length=100, unique=True, choices=VESSEL_TYPE_CHOICES)
+    name = models.CharField(max_length=100, unique=True)
 
     class Meta:
         ordering = ['name']

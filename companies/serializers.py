@@ -3,6 +3,7 @@ from .models import Company, JobOrder, JobOrderPosition
 
 class CompanySerializer(serializers.ModelSerializer):
     ships = serializers.SerializerMethodField()
+    company_type_name = serializers.CharField(source='company_type.name', read_only=True)
 
     class Meta:
         model = Company
@@ -19,6 +20,23 @@ class CompanySerializer(serializers.ModelSerializer):
                 'allow_blank': True,
             },
         }
+
+    def to_internal_value(self, data):
+        """
+        Accept `company_type` as either an integer ID or a string name.
+        """
+        if 'company_type' in data:
+            val = data['company_type']
+            if isinstance(val, str) and not val.isdigit() and val.strip():
+                from core.models import CompanyType
+                # Resolve or create the CompanyType by name
+                ct, _ = CompanyType.objects.get_or_create(name=val.strip())
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                data['company_type'] = ct.id
+        return super().to_internal_value(data)
 
     def validate_contact_email(self, value):
         if not value:

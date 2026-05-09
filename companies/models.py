@@ -1,20 +1,7 @@
 from django.db import models
-from core.models import Flag
+from core.models import Flag, CompanyType
 
 class Company(models.Model):
-    COMPANY_TYPES = [
-        ('Shipping Manning Companies', 'Shipping Manning Companies'),
-        ('Cargo Manning Companies', 'Cargo Manning Companies'),
-        ('Cruise & Hospitality Manning Companies', 'Cruise & Hospitality Manning Companies'),
-        ('Offshore & Oil/Gas Manning Companies', 'Offshore & Oil/Gas Manning Companies'),
-        ('Fishing Fleet Manning Companies', 'Fishing Fleet Manning Companies'),
-        ('General Crew Manning Companies', 'General Crew Manning Companies'),
-        ('Specialized Marine Manning Companies', 'Specialized Marine Manning Companies'),
-        ('Temporary / Contract Manning Agencies', 'Temporary / Contract Manning Agencies'),
-        ('Full Crew Management Companies', 'Full Crew Management Companies'),
-        ('Other', 'Other'),
-    ]
-
     STATUS_CHOICES = [
         ('Active', 'Active'),
         ('Inactive', 'Inactive'),
@@ -22,7 +9,13 @@ class Company(models.Model):
     ]
 
     company_name = models.CharField(max_length=200, unique=True)
-    company_type = models.CharField(max_length=100, choices=COMPANY_TYPES)
+    company_type = models.ForeignKey(
+        CompanyType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='companies'
+    )
     open_positions = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
     contact_email = models.EmailField()
