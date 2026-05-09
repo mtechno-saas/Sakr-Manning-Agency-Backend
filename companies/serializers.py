@@ -43,6 +43,17 @@ class CompanySerializer(serializers.ModelSerializer):
                     data = dict(data)
                 data['company_flag'] = flag.id
 
+        if 'website' in data and data['website']:
+            website_val = data['website']
+            if isinstance(website_val, str) and website_val.strip():
+                website_val = website_val.strip()
+                if not website_val.startswith(('http://', 'https://')):
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['website'] = f'https://{website_val}'
+
         return super().to_internal_value(data)
 
     def validate_contact_email(self, value):
