@@ -1663,23 +1663,32 @@ class DocumentSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         # Auto-fill company and position if job_position is provided
         if 'job_position' in data and data['job_position']:
-            from companies.models import JobOrderPosition
             try:
-                job_pos = JobOrderPosition.objects.get(id=data['job_position'])
-                if hasattr(data, 'copy'):
-                    data = data.copy()
+                # Handle both integer IDs and potential string inputs
+                jp_id = data.get('job_position')
+                if isinstance(jp_id, str) and not jp_id.isdigit():
+                    # If it's a string name, try to find a matching rank position
+                    from companies.models import JobOrderPosition
+                    job_pos = JobOrderPosition.objects.filter(rank__name__iexact=jp_id).first()
                 else:
-                    data = dict(data)
-                
-                if 'company' not in data and job_pos.job_order and job_pos.job_order.company:
-                    data['company'] = job_pos.job_order.company.id
-                if 'position' not in data and job_pos.rank:
-                    data['position'] = job_pos.rank.name
-                if 'title' not in data:
-                    company_name = job_pos.job_order.company.company_name if job_pos.job_order and job_pos.job_order.company else "Unknown Company"
-                    rank_name = job_pos.rank.name if job_pos.rank else "Unknown Position"
-                    data['title'] = f"Application for {rank_name} at {company_name}"
-            except JobOrderPosition.DoesNotExist:
+                    from companies.models import JobOrderPosition
+                    job_pos = JobOrderPosition.objects.get(id=jp_id)
+
+                if job_pos:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    
+                    if 'company' not in data and job_pos.job_order and job_pos.job_order.company:
+                        data['company'] = job_pos.job_order.company.id
+                    if 'position' not in data and job_pos.rank:
+                        data['position'] = job_pos.rank.name
+                    if not data.get('title'):
+                        company_name = job_pos.job_order.company.company_name if job_pos.job_order and job_pos.job_order.company else "Unknown Company"
+                        rank_name = job_pos.rank.name if job_pos.rank else "Unknown Position"
+                        data['title'] = f"Application for {rank_name} at {company_name}"
+            except (JobOrderPosition.DoesNotExist, ValueError, TypeError):
                 pass
 
         return super().to_internal_value(data)

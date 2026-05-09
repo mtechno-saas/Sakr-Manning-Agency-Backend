@@ -68,7 +68,6 @@ urlpatterns = [
     path('filter/', get_filter_users, name='get_filter_users'),
     path('users/<int:pk>/', user_detail, name='user-detail'),
     path('users/<int:user_id>/assign-rank/<int:rank_id>/', assign_rank, name='assign-rank'),
-    path('api/', include(router.urls)),
     # User-specific certificate and rank endpoints
     path('users/<int:user_id>/certificates/', get_user_certificates, name='user-certificates'),
     path('users/<int:user_id>/ranks/', get_user_ranks, name='user-ranks'),
