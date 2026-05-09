@@ -246,7 +246,7 @@ class InterviewSerializer(serializers.ModelSerializer):
 class InterviewCalendarSerializer(serializers.ModelSerializer):
     """Lightweight serializer for calendar view"""
     candidate_name = serializers.SerializerMethodField()
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
 
     class Meta:
         model = Interview
@@ -267,7 +267,7 @@ class InterviewCalendarSerializer(serializers.ModelSerializer):
 class FinanceRecordSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     user_email = serializers.CharField(source='user.email', read_only=True)
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
     approved_by_name = serializers.CharField(source='approved_by.first_name', read_only=True)
 
     class Meta:
@@ -582,7 +582,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
 
         # Propagate company name to the Company model
         if company_name_input is not None and instance.company:
-            instance.company.name = company_name_input
+            instance.company.company_name = company_name_input
             instance.company.save()
 
         # Propagate position name to the Rank model
@@ -931,8 +931,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         return {
             'id': company.id,
             'company_name': company.company_name,
-            'company_type': getattr(company, 'company_type', None),
-            'country': getattr(company, 'country', None),
+            'company_type': str(company.company_type) if company.company_type else None,
+            'company_flag': str(company.company_flag) if company.company_flag else None,
             'contact_person': getattr(company, 'contact_person', None),
             'contact_email': getattr(company, 'contact_email', None),
             'status': getattr(company, 'status', None),
@@ -1341,8 +1341,8 @@ class ContractSerializer(serializers.ModelSerializer):
         return {
             'id': company.id,
             'company_name': company.company_name,
-            'company_type': getattr(company, 'company_type', None),
-            'country': getattr(company, 'country', None),
+            'company_type': str(company.company_type) if company.company_type else None,
+            'company_flag': str(company.company_flag) if company.company_flag else None,
             'contact_person': getattr(company, 'contact_person', None),
             'contact_email': getattr(company, 'contact_email', None),
             'status': getattr(company, 'status', None),

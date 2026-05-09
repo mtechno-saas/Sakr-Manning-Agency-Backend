@@ -23,6 +23,7 @@ from .models import (
     Company, Interview, CVSubmission, Document,
     UserLanguage, PersonalDocument, Declaration, NextOfKin
 )
+from core.models import Flag, VesselType, CompanyType
 
 # For Verification Link
 from django.contrib.auth.tokens import default_token_generator
@@ -1782,14 +1783,22 @@ class DeclarationViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def get_positions(request):
     """
-    Return all available positions.
+    Return all available positions (Ranks).
     Accessible by any authenticated user.
     GET /api/positions/
     """
-    positions = [
-        {"value": value, "label": label}
-        for value, label in Document.POSITION_CHOICES
-    ]
+    ranks = Rank.objects.all().order_by('name')
+    if ranks.exists():
+        positions = [
+            {"value": r.id, "label": r.name, "code": r.code}
+            for r in ranks
+        ]
+    else:
+        # Fallback to hardcoded choices if Rank table is empty
+        positions = [
+            {"value": value, "label": label}
+            for value, label in Document.POSITION_CHOICES
+        ]
     return Response(positions)
 
 
@@ -1811,11 +1820,18 @@ def get_coc_choices(request):
 @permission_classes([IsAuthenticated])
 def get_flags(request):
     """
-    Return all available maritime flag states.
+    Return all available maritime flag states from dynamic core.models.Flag.
     Accessible by any authenticated user.
     GET /api/flags/
     """
+    db_flags = Flag.objects.all().order_by('name')
+    if db_flags.exists():
+        return Response([
+            {"value": f.id, "label": f.name, "icon": f.icon.url if f.icon else None}
+            for f in db_flags
+        ])
 
+    # Legacy fallback if DB is empty
     FLAGS = [
         ("Algeria", "Algeria"),
         ("Angola", "Angola"),
@@ -1969,12 +1985,23 @@ def get_flags(request):
         ("Yemen", "Yemen"),
         ("Zanzibar", "Zanzibar"),
     ]
+    return Response([{"value": val, "label": lab} for val, lab in FLAGS])
 
-    flags = [
-        {"value": value, "label": label}
-        for value, label in FLAGS
-    ]
-    return Response(flags)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_vessel_types(request):
+    """Return all available vessel types from dynamic core.models.VesselType."""
+    types = VesselType.objects.all().order_by('name')
+    return Response([{"value": t.id, "label": t.name} for t in types])
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_company_types(request):
+    """Return all available company types from dynamic core.models.CompanyType."""
+    types = CompanyType.objects.all().order_by('name')
+    return Response([{"value": t.id, "label": t.name} for t in types])
 
 
 class NextOfKinViewSet(viewsets.ModelViewSet):
