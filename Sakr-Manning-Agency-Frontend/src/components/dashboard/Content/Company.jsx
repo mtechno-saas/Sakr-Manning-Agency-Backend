@@ -3,9 +3,11 @@
 // Content/Company.jsx - COMPLETE with All Features from CV.jsx
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { RefinedDataTable } from "../Components/Data/RefinedDataTable";
+import { ExpandableDataTable } from "../Components/Data/ExpandableDataTable";
 import Pagination from "../../common/Pagination";
 import { StatisticsCard } from "../Components/Cards/StatisticsCards";
 import { ASSETS } from "../../../utils/constants";
+import { COLORS } from "../Constants";
 
 import {
   generateAllPageStyles,
@@ -176,7 +178,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   useEffect(() => {
     fetchCompanies();
     fetchShips();
-    // fetchJobOrders();
+    fetchJobOrders();
     // fetchRanks();
   }, []);
 
@@ -237,6 +239,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         companyID: ship.company || "N/A",
         associatedWithCompany: associatedCompany?.company_name || "N/A",
         shipCrew: ship.crew || [],
+        jobOrdersCount: ship.jobs_order_count || 0,
         crewCount: Array.isArray(ship.crew) ? ship.crew.length : 0,
         imoNumber: ship.imo_number || "N/A",
         status: ship.status || "N/A",
@@ -939,6 +942,13 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         render: (value) => value,
       },
       {
+        key: "jobOrdersCount",
+        title: "Jobs",
+        width: 80,
+        sortable: true,
+        render: (value) => value,
+      },
+      {
         key: "crewCount",
         title: "Crew",
         width: 80,
@@ -1428,7 +1438,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
           </div>
         </div>
 
-        <RefinedDataTable
+        <ExpandableDataTable
           data={shipData}
           columns={shipColumns}
           rowKey="id"
@@ -1436,6 +1446,49 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
           pageSize={25}
           hidePagination={true}
           initialPage={1}
+          expandable={true}
+          renderExpandedRow={(row) => {
+            const shipJobOrders = backendJobOrders.filter(jo => jo.ship === row.id);
+            if (!shipJobOrders || shipJobOrders.length === 0) {
+              return (
+                <div style={{ color: COLORS.lightText, fontSize: Math.round(14 * scale), fontStyle: "italic", padding: "12px 0" }}>
+                  No job orders assigned to this ship.
+                </div>
+              );
+            }
+            return (
+              <div style={{ padding: `${Math.round(8 * scale)}px 0` }}>
+                <h4 style={{ margin: 0, marginBottom: Math.round(12 * scale), color: COLORS.primary, fontSize: Math.round(14 * scale), fontWeight: 600 }}>Associated Job Orders</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: Math.round(8 * scale) }}>
+                  {shipJobOrders.map(jo => (
+                    <div key={jo.id} style={{
+                      border: `1px solid ${COLORS.borderColor}`,
+                      borderRadius: Math.round(6 * scale),
+                      padding: Math.round(12 * scale),
+                      background: COLORS.white
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: Math.round(8 * scale) }}>
+                        <div style={{ fontWeight: 500, color: COLORS.darkText, fontSize: Math.round(13 * scale) }}>Reference: {jo.reference_number || 'N/A'}</div>
+                        <div style={{ fontSize: Math.round(12 * scale), color: COLORS.lightText }}>Status: {jo.status || 'Active'}</div>
+                      </div>
+                      {jo.positions && jo.positions.length > 0 ? (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: Math.round(8 * scale) }}>
+                          {jo.positions.map(pos => (
+                            <div key={pos.id} style={{ background: COLORS.cardBg, padding: Math.round(8 * scale), borderRadius: Math.round(4 * scale), fontSize: Math.round(12 * scale), display: "flex", justifyContent: "space-between" }}>
+                              <span style={{ color: COLORS.darkText }}>{pos.rank_name || pos.rank || 'N/A'}</span>
+                              <span style={{ color: COLORS.primary, fontWeight: 500 }}>{pos.quantity || 1} needed</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: Math.round(12 * scale), color: COLORS.lightText }}>No positions defined for this order.</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }}
           actions={
             canEdit && canDelete
               ? ["Edit", "Download", "Delete"]
