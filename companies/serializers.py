@@ -20,6 +20,34 @@ class CompanySerializer(serializers.ModelSerializer):
             },
         }
 
+    def validate_contact_email(self, value):
+        if not value:
+            return value
+        allowed_suffixes = ['.de', '.dk', '.no', '.nl', '.it', '.gr', '.ch', '.co.uk', '.com']
+        value_lower = value.lower()
+        if not any(value_lower.endswith(suffix) for suffix in allowed_suffixes):
+            raise serializers.ValidationError(
+                f"Email must end with one of the allowed domains: {', '.join(allowed_suffixes)}"
+            )
+        return value
+
+    def validate_website(self, value):
+        if not value:
+            return value
+        allowed_suffixes = ['.de', '.dk', '.no', '.nl', '.it', '.gr', '.ch', '.co.uk', '.com']
+        
+        # Simple check for the domain suffix in the URL
+        from urllib.parse import urlparse
+        parsed = urlparse(value)
+        # If no netloc (e.g. "example.com"), check the path
+        domain = parsed.netloc.lower() or parsed.path.lower().split('/')[0]
+        
+        if not any(domain.endswith(suffix) for suffix in allowed_suffixes):
+            raise serializers.ValidationError(
+                f"Website must end with one of the allowed domains: {', '.join(allowed_suffixes)}"
+            )
+        return value
+
     def get_ships(self, obj):
         ships = obj.ships.all()
         return [
