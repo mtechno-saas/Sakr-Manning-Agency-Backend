@@ -20,11 +20,12 @@ class Company(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
     contact_email = models.EmailField()
     website = models.URLField(max_length=255, blank=True, null=True, help_text="Company website URL")
-    company_flag = models.CharField(
-        max_length=100,
-        choices=Flag.FLAG_CHOICES,
-        blank=True,
+    company_flag = models.ForeignKey(
+        Flag,
+        on_delete=models.SET_NULL,
         null=True,
+        blank=True,
+        related_name='companies_with_flag',
         help_text="Country flag / nationality of the company"
     )
     hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # 💰 hourly rate
