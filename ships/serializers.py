@@ -77,6 +77,17 @@ class ShipSerializer(serializers.ModelSerializer):
                     data = dict(data)
                 data['flag'] = flag.id
 
+        # Handle empty strings for numeric and foreign key fields
+        # This prevents validation errors when the frontend sends "" for optional numbers
+        fields_to_clean = ['gross_tonnage', 'deadweight', 'year_built', 'engine_power_kw', 'company', 'ship_type', 'flag']
+        for field in fields_to_clean:
+            if field in data and data[field] == "":
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                data[field] = None
+
         return super().to_internal_value(data)
 
     def get_jobs_order_count(self, obj):
