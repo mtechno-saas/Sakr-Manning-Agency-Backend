@@ -1733,18 +1733,16 @@ class DocumentSerializer(serializers.ModelSerializer):
         pos_value = instance.position
         pos_id = instance.position_id
         
+        # Keep 'position' as a string for the UI to prevent React rendering errors
+        # Provide 'position_id' as a separate field for logic/IDs
         if pos_value or pos_id:
             from api.models import Rank
-            # If we have a name, try to find the actual rank to verify/sync ID if missing
+            # Sync name/ID if one is missing
             rank = Rank.objects.filter(name__iexact=pos_value).first() if pos_value else None
             
-            representation['position'] = {
-                "id": pos_id or (rank.id if rank else None),
-                "name": pos_value or (rank.name if rank else None)
-            }
+            representation['position'] = pos_value or (rank.name if rank else None)
+            representation['position_id'] = pos_id or (rank.id if rank else None)
         
-        # Hide the raw position_id field from output as it's now nested in 'position'
-        representation.pop('position_id', None)
         return representation
     
     def to_internal_value(self, data):
