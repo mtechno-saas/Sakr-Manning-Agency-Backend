@@ -1444,6 +1444,40 @@ class UsersSerializer(serializers.ModelSerializer):
             'next_of_kin_email': {'required': False, 'allow_null': True},
         }
 
+    def to_internal_value(self, data):
+        # Pre-process 'application_for_position' if it's a list or an ID
+        if 'application_for_position' in data:
+            val = data.get('application_for_position')
+            # Handle list input
+            if isinstance(val, list):
+                val = val[0] if len(val) > 0 else None
+            
+            if val:
+                from api.models import Rank
+                rank_obj = None
+                # Handle ID input (integer or numeric string)
+                if isinstance(val, int) or (isinstance(val, str) and str(val).isdigit()):
+                    rank_obj = Rank.objects.filter(id=int(val)).first()
+                # Handle string name input
+                elif isinstance(val, str):
+                    rank_obj = Rank.objects.filter(name__iexact=val).first()
+                
+                if rank_obj:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['application_for_position'] = rank_obj.name
+                else:
+                    # Fallback to the string value if no rank found
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['application_for_position'] = str(val)
+
+        return super().to_internal_value(data)
+
     def to_representation(self, instance):
         """Override to ensure proper serialization of nested fields"""
         representation = super().to_representation(instance)
@@ -1641,6 +1675,40 @@ class RegisterSerializer(serializers.ModelSerializer):
             }
         }
 
+    def to_internal_value(self, data):
+        # Pre-process 'application_for_position' if it's a list or an ID
+        if 'application_for_position' in data:
+            val = data.get('application_for_position')
+            # Handle list input
+            if isinstance(val, list):
+                val = val[0] if len(val) > 0 else None
+            
+            if val:
+                from api.models import Rank
+                rank_obj = None
+                # Handle ID input (integer or numeric string)
+                if isinstance(val, int) or (isinstance(val, str) and str(val).isdigit()):
+                    rank_obj = Rank.objects.filter(id=int(val)).first()
+                # Handle string name input
+                elif isinstance(val, str):
+                    rank_obj = Rank.objects.filter(name__iexact=val).first()
+                
+                if rank_obj:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['application_for_position'] = rank_obj.name
+                else:
+                    # Fallback to the string value if no rank found
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['application_for_position'] = str(val)
+
+        return super().to_internal_value(data)
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = Users(**validated_data)
@@ -1657,10 +1725,87 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Document
-        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details']
+        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'position_id', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details']
         read_only_fields = ['user', 'created_at', 'updated_at']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        pos_value = instance.position
+        pos_id = instance.position_id
+        
+        if pos_value or pos_id:
+            from api.models import Rank
+            # If we have a name, try to find the actual rank to verify/sync ID if missing
+            rank = Rank.objects.filter(name__iexact=pos_value).first() if pos_value else None
+            
+            representation['position'] = {
+                "id": pos_id or (rank.id if rank else None),
+                "name": pos_value or (rank.name if rank else None)
+            }
+        
+        # Hide the raw position_id field from output as it's now nested in 'position'
+        representation.pop('position_id', None)
+        return representation
     
     def to_internal_value(self, data):
+        # Alias common field names from frontend
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        else:
+            data = dict(data)
+
+        if 'rank_ids' in data and 'position' not in data:
+            data['position'] = data['rank_ids']
+        
+        if 'first_name' in data and 'name' not in data:
+            data['name'] = data['first_name']
+
+        if 'phone' in data and 'phone_number' not in data:
+            data['phone_number'] = data['phone']
+
+        # Pre-process 'position' if it's a list or an ID
+        if 'position' in data:
+            pos_val = data.get('position')
+            from api.models import Rank
+            rank_obj = None
+
+            # Handle list input (try each item until a valid Rank is found)
+            if isinstance(pos_val, list):
+                for item in pos_val:
+                    if isinstance(item, int) or (isinstance(item, str) and str(item).isdigit()):
+                        data['position_id'] = int(item)
+                        rank_obj = Rank.objects.filter(id=int(item)).first()
+                    elif isinstance(item, str):
+                        rank_obj = Rank.objects.filter(name__iexact=item).first()
+                    if rank_obj:
+                        break
+                
+                if rank_obj:
+                    data['position'] = rank_obj.name
+                    data['position_id'] = rank_obj.id
+                elif len(pos_val) > 0:
+                    # Fallback: find the first string that isn't just a number (the label)
+                    label = None
+                    for item in pos_val:
+                        if isinstance(item, str) and not str(item).isdigit():
+                            label = item
+                            break
+                    data['position'] = label if label else str(pos_val[0])
+            
+            else:
+                # Handle single ID or Name input
+                if isinstance(pos_val, int) or (isinstance(pos_val, str) and str(pos_val).isdigit()):
+                    data['position_id'] = int(pos_val)
+                    rank_obj = Rank.objects.filter(id=int(pos_val)).first()
+                elif isinstance(pos_val, str):
+                    rank_obj = Rank.objects.filter(name__iexact=pos_val).first()
+                
+                if rank_obj:
+                    data['position'] = rank_obj.name
+                    data['position_id'] = rank_obj.id
+                else:
+                    data['position'] = str(pos_val)
+
         # Auto-fill company and position if job_position is provided
         if 'job_position' in data and data['job_position']:
             try:

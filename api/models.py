@@ -313,7 +313,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
         ('Other', 'Other'),
     ]
     application_for_position = models.CharField(
-        max_length=100, choices=APPLICATION_POSITION_CHOICES,
+        max_length=100, 
         blank=True, null=True, help_text="Application for position"
     )
     other_position = models.CharField(max_length=255, blank=True, null=True, help_text="Other position if not in the list")
@@ -831,10 +831,14 @@ class Document(models.Model):
     phone_number = models.CharField(max_length=50, help_text="Phone number", null=True, blank=True)
     position = models.CharField(
         max_length=100,
-        choices=POSITION_CHOICES,
         help_text="Position/Rank",
         null=True, 
         blank=True
+    )
+    position_id = models.IntegerField(
+        null=True, 
+        blank=True,
+        help_text="Position ID from frontend or Rank table"
     )
 
     STATUS_CHOICES = [
