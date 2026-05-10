@@ -1789,10 +1789,14 @@ def get_positions(request):
     """
     ranks = Rank.objects.all().order_by('name')
     if ranks.exists():
-        positions = [
-            {"value": r.id, "label": r.name, "code": r.code}
-            for r in ranks
-        ]
+        seen_names = set()
+        positions = []
+        for r in ranks:
+            # Strip whitespace to handle hidden duplicates
+            name_key = r.name.strip() if r.name else ""
+            if name_key and name_key not in seen_names:
+                positions.append({"value": r.id, "label": r.name, "code": r.code})
+                seen_names.add(name_key)
     else:
         # Fallback to hardcoded choices if Rank table is empty
         positions = [
