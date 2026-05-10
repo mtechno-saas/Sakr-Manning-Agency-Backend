@@ -101,9 +101,9 @@ export const config = {
     FINANCE_EXPORT: "/finance/finance-records/export/",
 
     // ===== CONTRACTS =====
-    CONTRACTS: "/api/contracts/",
-    CONTRACT_DETAIL: (id) => `/api/contracts/${id}/`,
-    CONTRACT_STATS: "/api/contracts/stats/",
+    CONTRACTS: "/contracts/",
+    CONTRACT_DETAIL: (id) => `/contracts/${id}/`,
+    CONTRACT_STATS: "/contracts/stats/",
 
     // ===== CV SUBMISSIONS / PIPELINE (Section 4) =====
     CV_SUBMISSIONS: "/cv-submissions/",
@@ -112,10 +112,10 @@ export const config = {
     CV_SUBMISSION_UPDATE_STATUS: (id) => `/cv-submissions/${id}/update-status/`,
 
     // ===== CV DOCUMENTS (Section 2) =====
-    DOCUMENTS: "/api/documents/",
-    DOCUMENT_DETAIL: (id) => `/api/documents/${id}/`,
-    DOCUMENT_SET_STATUS: (id) => `/api/documents/${id}/set_status/`,
-    DOCUMENT_DOWNLOAD: (id) => `/api/documents/${id}/download/`,
+    DOCUMENTS: "/documents/",
+    DOCUMENT_DETAIL: (id) => `/documents/${id}/`,
+    DOCUMENT_SET_STATUS: (id) => `/documents/${id}/set_status/`,
+    DOCUMENT_DOWNLOAD: (id) => `/documents/${id}/download/`,
 
     // ===== AI CHAT =====
     AI_CHAT: "/ai-agents/chat/",
