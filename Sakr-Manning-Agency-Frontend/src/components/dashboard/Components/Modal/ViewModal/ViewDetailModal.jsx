@@ -22,6 +22,7 @@ import React from "react";
 import { X, Mail, Phone, MapPin, Calendar, User, Briefcase, Shield, Clock, ExternalLink } from "lucide-react";
 import { BaseModal } from "../BaseModal";
 import Button from "../../Common/Button";
+import { getMediaUrl } from "../../../../../utils/fileHelpers";
 
 // Field value formatters
 const formatters = {
@@ -61,9 +62,10 @@ const formatters = {
     },
     link: (value) => {
         if (!value) return "—";
+        const url = getMediaUrl(value);
         return (
             <a
-                href={value}
+                href={url}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -332,7 +334,7 @@ export const AvatarHeader = ({
         >
             {image ? (
                 <img
-                    src={image}
+                    src={getMediaUrl(image)}
                     alt={name}
                     style={{
                         width: `${Math.round(64 * scale)}px`,

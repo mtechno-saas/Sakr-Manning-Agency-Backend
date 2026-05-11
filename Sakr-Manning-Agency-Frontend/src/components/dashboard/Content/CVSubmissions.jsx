@@ -217,7 +217,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                 date: submission.submitted_date
                     ? new Date(submission.submitted_date).toLocaleDateString("en-GB")
                     : "—",
-                avatar: ASSETS.LOGO,
+                avatar: submission.user?.profile_image || submission.profile_image || ASSETS.LOGO,
                 _original: submission,
             };
         });

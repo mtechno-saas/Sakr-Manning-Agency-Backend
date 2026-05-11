@@ -6,6 +6,7 @@ import { SmallProgressCard } from "../Components/Cards/StatisticsCards";
 import { Video, Phone, Users, Info, Filter, Calendar as LucideCalendar } from "lucide-react";
 import { ASSETS } from "../../../utils/constants";
 import { exportToCSV, exportToJSON } from "../../../utils/exportHelpers";
+import { getMediaUrl } from "../../../utils/fileHelpers";
 
 import {
   generateAllPageStyles,
@@ -213,7 +214,7 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
       interviewer_email: interview.interviewer_email || "",
       location: interview.location || "",
 
-      avatar: interview.candidate?.profile_image || ASSETS.LOGO,
+      avatar: getMediaUrl(interview.candidate?.profile_image) || ASSETS.LOGO,
       createdAt: interview.created_at,
       createdBy: interview.created_by,
       // Store original data for editing

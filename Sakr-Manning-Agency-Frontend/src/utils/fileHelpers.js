@@ -1,5 +1,39 @@
 // utils/fileHelpers.js
 // Shared file utility functions used by modals and FileUpload component
+import { config } from "../services/Auth/config";
+
+/**
+ * Resolve a full URL for a media file (image, document, etc.)
+ * Handles both relative paths from backend and already absolute URLs.
+ * 
+ * @param {string} path - The file path or URL from backend
+ * @returns {string|null} The absolute URL or null
+ */
+export function getMediaUrl(path) {
+    if (!path) return null;
+    if (typeof path !== "string") return null;
+    
+    // If it's already an absolute URL or a data/blob URI, return it
+    if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:") || path.startsWith("blob:")) {
+        return path;
+    }
+
+    // If it looks like a local frontend asset (Vite paths), return it as is
+    // This handles imports like ASSETS.LOGO which might resolve to "/assets/..." or "/src/..."
+    if (path.startsWith("/assets/") || path.startsWith("/src/") || path.startsWith("/@fs/") || path.startsWith("/@vite/")) {
+        return path;
+    }
+
+    // Get base URL from config (e.g. "https://api.backend.soon.it/api/")
+    // We want the domain part without "/api/"
+    const baseUrl = (config.API_BASE_URL || "").replace(/\/api\/?$/, "");
+    
+    // Ensure path starts with /
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    
+    return `${baseUrl}${normalizedPath}`;
+}
+
 
 /**
  * Resolve the existing file URL from an item's data.
