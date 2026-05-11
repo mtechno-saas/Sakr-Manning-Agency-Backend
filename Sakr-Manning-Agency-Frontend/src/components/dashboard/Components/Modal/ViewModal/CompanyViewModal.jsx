@@ -192,14 +192,14 @@ export function CompanyViewModal({
                 <FieldItem label="Company Type" value={fmt(company.company_type_name || company.type)} icon={Briefcase} scale={scale} />
                 <FieldItem label="Status" value={fmt(company.status)} scale={scale} />
                 <FieldItem label="Open Positions" value={fmt(company.open_positions)} icon={Users} scale={scale} />
-                <FieldItem label="Hourly Rate" value={fmt(company.hourly_rate)} icon={Hash} scale={scale} />
+                {/* <FieldItem label="Hourly Rate" value={fmt(company.hourly_rate)} icon={Hash} scale={scale} /> */}
             </Section>
 
             {/* Contact Information */}
             <Section title="Contact Information" icon={Phone} scale={scale} columns={2}>
                 <FieldItem label="Email" value={fmt(company.contact_email || company.email)} iconType="email" scale={scale} />
                 <FieldItem label="Website" value={fmt(company.website)} icon={Globe} scale={scale} />
-                <FieldItem label="Company Flag" value={fmt(company.company_flag)} icon={Globe} scale={scale} />
+                <FieldItem label="Company Flag" value={fmt(company.company_flag_name || company.company_flag)} icon={Globe} scale={scale} />
             </Section>
 
             {/* Business Information */}

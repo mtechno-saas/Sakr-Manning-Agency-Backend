@@ -82,13 +82,13 @@ export const COMPANY_FORM_FIELDS = [
     defaultValue: "Active",
   },
   {
-    name: "company_type",
+    name: "company_type_name",
     label: "Company Type",
     type: "select",
     component: "Select",
     required: true,
     placeholder: "Select Type",
-    gridCols: 12,
+    gridCols: 9,
     options: [
       { value: "Shipping Manning Companies", label: "Shipping Manning Companies" },
       { value: "Cargo Manning Companies", label: "Cargo Manning Companies" },
@@ -105,50 +105,33 @@ export const COMPANY_FORM_FIELDS = [
     },
     defaultValue: "",
   },
+  // {
+  //   name: "hourly_rate",
+  //   label: "Hourly Rate",
+  //   type: "number",
+  //   component: "BaseInput",
+  //   required: true,
+  //   placeholder: "0.00",
+  //   gridCols: 4,
+  //   props: {
+  //     step: "0.01",
+  //     min: "0",
+  //   },
+  //   validation: {
+  //     required: "Hourly rate is required",
+  //     min: { value: 0, message: "Hourly rate cannot be negative" },
+  //   },
+  //   defaultValue: "",
+  //   transformOnSave: (value) => parseFloat(value),
+  // },
   {
-    name: "open_positions",
-    label: "Open Positions",
-    type: "number",
-    component: "BaseInput",
-    required: false,
-    placeholder: "0",
-    gridCols: 4,
-    props: {
-      min: "0",
-    },
-    validation: {
-      min: { value: 0, message: "Cannot be negative" },
-    },
-    defaultValue: 0,
-    transformOnSave: (value) => parseInt(value, 10),
-  },
-  {
-    name: "hourly_rate",
-    label: "Hourly Rate",
-    type: "number",
-    component: "BaseInput",
-    required: true,
-    placeholder: "0.00",
-    gridCols: 4,
-    props: {
-      step: "0.01",
-      min: "0",
-    },
-    validation: {
-      required: "Hourly rate is required",
-      min: { value: 0, message: "Hourly rate cannot be negative" },
-    },
-    defaultValue: "",
-    transformOnSave: (value) => parseFloat(value),
-  },
-  {
-    name: "company_flag",
+    name: "company_flag_name",
     label: "Country Flag",
     type: "select",
     component: "Select",
     required: false,
     placeholder: "Select country",
-    gridCols: 4,
+    gridCols: 3,
     options: [
       "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia",
       "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
@@ -188,7 +171,7 @@ export const COMPANY_FORM_FIELDS = [
     component: "BaseInput",
     required: true,
     placeholder: "info@company.com",
-    gridCols: 6,
+    gridCols: 5,
     validation: {
       required: "Email is required",
       pattern: {
@@ -205,7 +188,7 @@ export const COMPANY_FORM_FIELDS = [
     component: "BaseInput",
     required: false,
     placeholder: "https://www.company.com",
-    gridCols: 6,
+    gridCols: 5,
     validation: {
       pattern: {
         value: /^(https?:\/\/)?[\w.-]+\.[a-z]{2,}(\/.*)*/i,
@@ -213,6 +196,23 @@ export const COMPANY_FORM_FIELDS = [
       },
     },
     defaultValue: "",
+  },
+  {
+    name: "open_positions",
+    label: "Open Positions",
+    type: "number",
+    component: "BaseInput",
+    required: false,
+    placeholder: "0",
+    gridCols: 2,
+    props: {
+      min: "0",
+    },
+    validation: {
+      min: { value: 0, message: "Cannot be negative" },
+    },
+    defaultValue: 0,
+    transformOnSave: (value) => parseInt(value, 10),
   },
 ];
 

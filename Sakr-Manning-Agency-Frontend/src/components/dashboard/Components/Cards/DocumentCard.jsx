@@ -74,7 +74,10 @@ const DocumentCard = ({ document, scale = 1, onView, onDownload, onEdit, onDelet
   // Get user name
   const userName = document.user || "Unknown User";
   // Get ship name / Role
-  const shipName = document.ship || "Navigation Officer";
+  const shipName = document.ship || "Unknown Ship";
+  const companyName = document.company || "Unknown Company";
+  const positionName = document.position || "Unknown Role";
+
 
   // Calculate duration
   const duration =
@@ -176,7 +179,9 @@ const DocumentCard = ({ document, scale = 1, onView, onDownload, onEdit, onDelet
         }}
       >
         <div style={textPrimary}>{userName}</div>
+        <div style={textSecondary}>{companyName}</div>
         <div style={textSecondary}>{shipName}</div>
+        {positionName !== "Unknown Role" && <div style={textSecondary}>{positionName}</div>}
         {duration && <div style={textDuration}>Duration: {duration}</div>}
       </div>
 
