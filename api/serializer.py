@@ -1216,6 +1216,10 @@ class ContractSerializer(serializers.ModelSerializer):
             contract.job_position.quantity = max(0, contract.job_position.quantity - 1)
             contract.job_position.save(update_fields=['quantity'])
 
+        # Add user to ship's crew
+        if contract.ship and contract.user:
+            contract.ship.crew.add(contract.user)
+
         # Apply Seafarer Application updates to the linked user
         if seafarer_data and contract.user:
             from .seafarer_application_serializers import SeafarerApplicationSerializer
@@ -1256,7 +1260,17 @@ class ContractSerializer(serializers.ModelSerializer):
             )
         # --------------------------
 
+        old_ship = instance.ship
+        old_user = instance.user
+
         contract = super().update(instance, validated_data)
+
+        # Sync crew list if ship or user changed
+        if contract.ship != old_ship or contract.user != old_user:
+            if old_ship and old_user:
+                old_ship.crew.remove(old_user)
+            if contract.ship and contract.user:
+                contract.ship.crew.add(contract.user)
 
         # Apply Seafarer Application updates to the linked user
         if seafarer_data and contract.user:
