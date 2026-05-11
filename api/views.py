@@ -49,7 +49,11 @@ from .serializer import (
     CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer,
     UserLanguageSerializer, PersonalDocumentSerializer, LanguageProficiencySerializer
 )
-from .filters import UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, CompanyFilter
+from .filters import (
+    UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, 
+    CompanyFilter, ContractFilter, FlightBookingFilter, VisaApplicationFilter,
+    AuditFilter, IncidentReportFilter, ShipFilter
+)
 from .permissions import (
     IsAdmin, IsHRManager, IsRecruiter, IsEmployee,
     IsHROrReadOnly, IsOwnerOrHR, UserPermission,
@@ -681,6 +685,7 @@ class ContractViewSet(viewsets.ModelViewSet):
     """
     queryset = Contract.objects.select_related('user', 'ship', 'company', 'rank').all()
     permission_classes = [IsAuthenticated, ContractPermission]
+    filterset_class = ContractFilter
 
     def get_serializer_class(self):
         if self.action == 'list':

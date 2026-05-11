@@ -166,3 +166,20 @@ This document outlines all the available query parameters (filters) you can appe
 | `incident_type` | `string` | `iexact` | Exact match on incident type |
 | `severity` | `string` | `iexact` | Exact match on severity level |
 | `is_closed` | `boolean` | `exact` | `true` or `false` |
+
+---
+
+## 10. Contracts (`/api/contracts/`)
+
+| Query Parameter | Type | Match Type | Description |
+|---|---|---|---|
+| `user` | `int` | `exact` | Filter by Seafarer (User) ID |
+| `ship` | `int` | `exact` | Filter by Ship ID |
+| `company` | `int` | `exact` | Filter by Company ID |
+| `rank` | `int` | `exact` | Filter by Rank ID |
+| `status` | `string` | `iexact` | Exact match on status (e.g., "Active", "Signed") |
+| `sign_on_from` | `date` | `>=` | Sign-on date is greater than or equal to |
+| `sign_on_to` | `date` | `<=` | Sign-on date is less than or equal to |
+| `sign_off_from` | `date` | `>=` | Sign-off date is greater than or equal to |
+| `sign_off_to` | `date` | `<=` | Sign-off date is less than or equal to |
+| `applicant_name` | `string` | `icontains` | Partial match on the seafarer's first name |

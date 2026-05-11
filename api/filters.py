@@ -273,3 +273,22 @@ class ShipFilter(django_filters.FilterSet):
     class Meta:
         model = Ship
         fields = ["name", "imo_number", "company", "status", "flag", "ship_type"]
+
+
+class ContractFilter(django_filters.FilterSet):
+    user = django_filters.NumberFilter(field_name="user__id")
+    ship = django_filters.NumberFilter(field_name="ship__id")
+    company = django_filters.NumberFilter(field_name="company__id")
+    rank = django_filters.NumberFilter(field_name="rank__id")
+    status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
+    
+    sign_on_from = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="gte")
+    sign_on_to = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="lte")
+    sign_off_from = django_filters.DateFilter(field_name="sign_off_date", lookup_expr="gte")
+    sign_off_to = django_filters.DateFilter(field_name="sign_off_date", lookup_expr="lte")
+    
+    applicant_name = django_filters.CharFilter(field_name="user__first_name", lookup_expr="icontains")
+
+    class Meta:
+        model = Contract
+        fields = ["user", "ship", "company", "rank", "status"]
