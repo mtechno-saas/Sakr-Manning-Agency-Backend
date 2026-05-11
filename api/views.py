@@ -750,6 +750,24 @@ class ContractViewSet(viewsets.ModelViewSet):
             ).count(),
         })
 
+    @action(detail=False, methods=['get'], url_path='status')
+    def status(self, request):
+        """Get contract counts by status"""
+        if request.user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            contracts = Contract.objects.all()
+        else:
+            contracts = Contract.objects.filter(user=request.user)
+        
+        return Response({
+            'active': contracts.filter(status='Active').count(),
+            'completed': contracts.filter(status='Completed').count(),
+            'pending': contracts.filter(status='Pending').count(),
+            'signed': contracts.filter(status='Signed').count(),
+            'pending_signature': contracts.filter(status='Pending Signature').count(),
+            'draft': contracts.filter(status='Draft').count(),
+            'cancelled': contracts.filter(status='Cancelled').count(),
+        })
+
 
 class CompanyViewSet(viewsets.ModelViewSet):
     """
