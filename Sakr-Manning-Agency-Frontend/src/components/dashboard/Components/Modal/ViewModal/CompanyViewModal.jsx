@@ -189,7 +189,7 @@ export function CompanyViewModal({
             {/* Basic Information */}
             <Section title="Company Information" icon={Building} scale={scale} columns={2}>
                 <FieldItem label="Company Name" value={fmt(company.company_name || company.name)} scale={scale} />
-                <FieldItem label="Company Type" value={fmt(company.company_type)} icon={Briefcase} scale={scale} />
+                <FieldItem label="Company Type" value={fmt(company.company_type_name || company.type)} icon={Briefcase} scale={scale} />
                 <FieldItem label="Status" value={fmt(company.status)} scale={scale} />
                 <FieldItem label="Open Positions" value={fmt(company.open_positions)} icon={Users} scale={scale} />
                 <FieldItem label="Hourly Rate" value={fmt(company.hourly_rate)} icon={Hash} scale={scale} />
