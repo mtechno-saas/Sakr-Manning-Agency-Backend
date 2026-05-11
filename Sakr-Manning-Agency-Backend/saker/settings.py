@@ -171,7 +171,7 @@ REST_FRAMEWORK = {
     ],
         # Add pagination configuration
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 25,  # Adjust based on your needs
+    'PAGE_SIZE': 50,  # Adjust based on your needs
 }
 # --- Add this new configuration block for Simple JWT ---
 SIMPLE_JWT = {
