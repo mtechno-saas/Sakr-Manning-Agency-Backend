@@ -117,6 +117,8 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
       userId: contract.user,
       user: contract.user_name,
       ship: contract.ship_name,
+      company: contract.company_name,
+      position: contract.rank_name || contract.position_name || contract.position_name,
       signOffDate: contract.sign_off_date,
       signOnDate: contract.sign_on_date,
       daysToExpiry: contract.daysToExpiry,
@@ -153,13 +155,13 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   }, [filters, fetchContracts]);
 
   const handleResetFilters = useCallback(() => {
-    const emptyFilters = { 
-        user_name: "", 
-        ship_name: "", 
-        status: "", 
-        expiry_status: "",
-        start_date_from: "",
-        start_date_to: ""
+    const emptyFilters = {
+      user_name: "",
+      ship_name: "",
+      status: "",
+      expiry_status: "",
+      start_date_from: "",
+      start_date_to: ""
     };
     setFilters(emptyFilters);
     setActiveFilters(emptyFilters);
@@ -220,18 +222,18 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
       ],
     },
     {
-        key: "company",
-        label: "Company",
-        type: "select",
-        placeholder: "All Companies",
-        options: (referenceData?.companies || []).map(c => ({ value: c.value, label: c.label }))
+      key: "company",
+      label: "Company",
+      type: "select",
+      placeholder: "All Companies",
+      options: (referenceData?.companies || []).map(c => ({ value: c.value, label: c.label }))
     },
     {
-        key: "user",
-        label: "User (Seafarer)",
-        type: "select",
-        placeholder: "All Seafarers",
-        options: allUsers.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` }))
+      key: "user",
+      label: "User (Seafarer)",
+      type: "select",
+      placeholder: "All Seafarers",
+      options: allUsers.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` }))
     },
     {
       key: "expiry_status",
@@ -246,14 +248,14 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
       ],
     },
     {
-        key: "start_date_from",
-        label: "Start Date From",
-        type: "date",
+      key: "start_date_from",
+      label: "Start Date From",
+      type: "date",
     },
     {
-        key: "start_date_to",
-        label: "Start Date To",
-        type: "date",
+      key: "start_date_to",
+      label: "Start Date To",
+      type: "date",
     },
   ];
 

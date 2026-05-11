@@ -832,13 +832,13 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         sortable: true,
         render: (value) => value,
       },
-      {
-        key: "hourRate",
-        title: "Rate/Hr",
-        width: 100,
-        sortable: true,
-        render: (value) => `$${value}`,
-      },
+      // {
+      //   key: "hourRate",
+      //   title: "Rate/Hr",
+      //   width: 100,
+      //   sortable: true,
+      //   render: (value) => `$${value}`,
+      // },
       {
         key: "website",
         title: "Website",

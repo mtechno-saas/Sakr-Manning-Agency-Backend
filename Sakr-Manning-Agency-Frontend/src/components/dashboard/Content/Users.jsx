@@ -98,7 +98,8 @@ export function UserManagement({ scale = 1, isMobile }) {
     // console.log("the backend user data : ", backendUsers);
     return backendUsers.map((user) => ({
       id: user.id,
-      name: `${user.first_name.split(" ")[0] || ""} ${user.middle_name.split(" ")[0] || ""}`.trim(),
+      // name: `${user.first_name.split(" ")[0] || ""} ${user.middle_name.split(" ")[0] || ""}`.trim(),
+      name: user, first_name,
       email: user.email,
       role: user.role,
       status:
@@ -409,7 +410,7 @@ export function UserManagement({ scale = 1, isMobile }) {
       {
         key: "name",
         title: "User Name",
-        width: 300,
+        width: 360,
         showAvatar: true,
         sortable: true,
         render: (value, row) => (
@@ -448,6 +449,7 @@ export function UserManagement({ scale = 1, isMobile }) {
             "HR Manager": "#35C2FD",
             Recruiter: "#54D14D",
             Employee: "#FFC107",
+            Craw: "#FFC107",
           };
           return (
             <span
@@ -461,13 +463,13 @@ export function UserManagement({ scale = 1, isMobile }) {
           );
         },
       },
-      {
-        key: "lastLogin",
-        title: "Last Login",
-        width: 100,
-        sortable: true,
-        render: (value) => value,
-      },
+      // {
+      //   key: "lastLogin",
+      //   title: "Last Login",
+      //   width: 100,
+      //   sortable: true,
+      //   render: (value) => value,
+      // },
       {
         key: "status",
         title: "status",
@@ -595,158 +597,6 @@ export function UserManagement({ scale = 1, isMobile }) {
               loading={usersLoading}
             />
           </div>
-          {/* TODO: */}
-          <div
-            style={{
-              backgroundColor: COLORS.white,
-              borderRadius: `${Math.round(22 * scale)}px`,
-              padding: `${Math.round(24 * scale)}px`,
-              boxShadow: TOKENS.shadow.sm,
-              flex: isMobile ? "1 1 100%" : "0 0 auto",
-              minWidth: `${Math.round(300 * scale)}px`,
-            }}
-          >
-            <h3
-              style={{
-                fontSize: `${Math.round(18 * scale)}px`,
-                fontWeight: 600,
-                color: COLORS.darkText,
-                margin: `0 0 ${Math.round(16 * scale)}px 0`,
-                fontFamily: "Poppins, sans-serif",
-              }}
-            >
-              User Summary
-            </h3>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: `${Math.round(12 * scale)}px`,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "8px 0",
-                }}
-              >
-                <div
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "50%",
-                    backgroundColor: "#4299e1",
-                    flexShrink: 0,
-                  }}
-                />
-                <span
-                  style={{
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "16px",
-                    color: COLORS.darkText,
-                  }}
-                >
-                  Total Users
-                </span>
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "16px",
-                    color: COLORS.darkText,
-                  }}
-                >
-                  {statistics?.total_users || userData.length}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "8px 0",
-                }}
-              >
-                <div
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "50%",
-                    backgroundColor: "#54D14D",
-                    flexShrink: 0,
-                  }}
-                />
-                <span
-                  style={{
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "16px",
-                    color: COLORS.darkText,
-                  }}
-                >
-                  Active Users
-                </span>
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "16px",
-                    color: COLORS.darkText,
-                  }}
-                >
-                  {statistics?.active_users ||
-                    userData.filter((u) => u.status === "Active").length}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "8px 0",
-                }}
-              >
-                <div
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "50%",
-                    backgroundColor: "#35C2FD",
-                    flexShrink: 0,
-                  }}
-                />
-                <span
-                  style={{
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "16px",
-                    color: COLORS.darkText,
-                  }}
-                >
-                  Online Now
-                </span>
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    fontFamily: "Poppins, sans-serif",
-                    fontWeight: 500,
-                    fontSize: "16px",
-                    color: COLORS.darkText,
-                  }}
-                >
-                  {onlineUsersCount}
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -785,18 +635,18 @@ export function UserManagement({ scale = 1, isMobile }) {
               </svg>
             </Button>
             <Button
-                variant="icon"
-                onClick={handleRefresh}
-                ariaLabel="Press to refresh the table"
-                title="Press to refresh the table"
-                scale={scale}
-                style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
+              variant="icon"
+              onClick={handleRefresh}
+              ariaLabel="Press to refresh the table"
+              title="Press to refresh the table"
+              scale={scale}
+              style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
             >
-                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                  <path d="M21 3v5h-5" />
-                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                  <path d="M8 16H3v5" />
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                <path d="M8 16H3v5" />
               </svg>
             </Button>
             {canCreate && (
