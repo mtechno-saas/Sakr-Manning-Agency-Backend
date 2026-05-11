@@ -100,7 +100,7 @@ export function UserManagement({ scale = 1, isMobile }) {
     return backendUsers.map((user) => ({
       id: user.id,
       // name: `${user.first_name.split(" ")[0] || ""} ${user.middle_name.split(" ")[0] || ""}`.trim(),
-      name: user.first_name,
+      name: user.first_name + " " + user.middle_name,
       email: user.email,
       role: user.role,
       status:
