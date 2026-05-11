@@ -39,7 +39,7 @@ export function ShipViewModal({
     const toggleOrder = (id) =>
         setExpandedOrders(prev => ({ ...prev, [id]: !prev[id] }));
 
-    const jobOrders = Array.isArray(ship.job_orders) ? ship.job_orders : [];
+    const jobOrders = Array.isArray(ship.job_orders || ship.jobOrders) ? ship.job_orders || ship.jobOrders : [];
 
     // Build actions array
     const actions = [];

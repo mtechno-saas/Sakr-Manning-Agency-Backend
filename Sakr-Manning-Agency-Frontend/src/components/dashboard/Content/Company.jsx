@@ -240,6 +240,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         associatedWithCompany: associatedCompany?.company_name || "N/A",
         shipCrew: ship.crew || [],
         jobOrdersCount: ship.jobs_order_count || 0,
+        jobOrders: ship.job_orders,
         crewCount: Array.isArray(ship.crew) ? ship.crew.length : 0,
         imoNumber: ship.imo_number || "N/A",
         status: ship.status || "N/A",
