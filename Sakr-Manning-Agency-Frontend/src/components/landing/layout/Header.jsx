@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LayoutDashboard } from "lucide-react";
 import { ASSETS } from "../../../utils/constants";
+import { getMediaUrl } from "../../../utils/fileHelpers";
 
 const Header = ({ onNavigate, onOpenAuth, user, onLogout, currentPage }) => {
   const navigate = useNavigate();
@@ -84,7 +85,7 @@ const Header = ({ onNavigate, onOpenAuth, user, onLogout, currentPage }) => {
               <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-[#0065AF] text-white font-bold">
                 {user?.profile_image ? (
                   <img
-                    src={user?.profile_image}
+                    src={getMediaUrl(user.profile_image)}
                     alt="Profile"
                     className="w-full h-full object-cover rounded-full"
                   />

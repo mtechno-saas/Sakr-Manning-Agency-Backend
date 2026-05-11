@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { Download, User, Edit, Trash2, MoreVertical, Users, Briefcase } from "lucide-react";
 import { COLORS, TOKENS, extractLeadingNumber, isISODateString } from "../../Constants";
 import LoadingScreen from "../Common/LoadingScreen";
+import { getMediaUrl } from "../../../../utils/fileHelpers";
 
 // ... (Icons: EditIcon, DeleteIcon, UserIcon, DownloadIcon - keep existing)
 const EditIcon = ({ size = 18 }) => (
@@ -424,7 +425,7 @@ export function RefinedDataTable({
                         >
                           {row.avatar ? (
                             <img
-                              src={row.avatar}
+                              src={getMediaUrl(row.avatar)}
                               alt={row.name || ""}
                               style={{
                                 width: `${avatarSize}px`,

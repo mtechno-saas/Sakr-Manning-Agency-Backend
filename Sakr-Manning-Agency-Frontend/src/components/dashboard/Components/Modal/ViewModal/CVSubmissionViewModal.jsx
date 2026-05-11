@@ -153,6 +153,7 @@ export function CVSubmissionViewModal({
         >
             {/* ── Candidate header ─────────────────────────────────────────── */}
             <AvatarHeader
+                image={submission.user?.profile_image || submission.profile_image}
                 name={fullName}
                 subtitle={`Applying for ${fmt(submission.position_name, "Unspecified Position")}`}
                 status={submission.status || "Pending"}

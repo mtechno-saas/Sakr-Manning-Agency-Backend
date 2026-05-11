@@ -18,6 +18,7 @@ import {
     ViewDetailModal,
     Section,
     FieldItem,
+    AvatarHeader,
     StatusBadge,
 } from "./ViewDetailModal";
 
@@ -69,61 +70,13 @@ export function CVViewModal({
             scale={scale}
             size="lg"
         >
-            {/* ── Header ──────────────────────────────────────────────────────── */}
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: `${Math.round(16 * scale)}px`,
-                    backgroundColor: "#F9FAFB",
-                    borderRadius: `${Math.round(12 * scale)}px`,
-                    marginBottom: `${Math.round(24 * scale)}px`,
-                }}
-            >
-                <div style={{ display: "flex", alignItems: "center", gap: `${Math.round(16 * scale)}px` }}>
-                    {/* Avatar circle */}
-                    <div
-                        style={{
-                            width: `${Math.round(56 * scale)}px`,
-                            height: `${Math.round(56 * scale)}px`,
-                            borderRadius: "50%",
-                            background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "white",
-                            fontSize: `${Math.round(22 * scale)}px`,
-                            fontWeight: 700,
-                            flexShrink: 0,
-                        }}
-                    >
-                        {applicantName.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                        <h3
-                            style={{
-                                fontSize: `${Math.round(18 * scale)}px`,
-                                fontWeight: 600,
-                                color: "#111827",
-                                margin: 0,
-                            }}
-                        >
-                            {applicantName}
-                        </h3>
-                        <p
-                            style={{
-                                fontSize: `${Math.round(14 * scale)}px`,
-                                color: "#6B7280",
-                                margin: `${Math.round(4 * scale)}px 0 0 0`,
-                            }}
-                        >
-                            {position}
-                        </p>
-                    </div>
-                </div>
-                <StatusBadge status={status} scale={scale} />
-            </div>
+            <AvatarHeader
+                image={doc.profile_image}
+                name={applicantName}
+                subtitle={position}
+                status={status}
+                scale={scale}
+            />
 
             {/* ── Contact Information ─────────────────────────────────────────── */}
             <Section title="Contact Information" icon={User} scale={scale} columns={2}>

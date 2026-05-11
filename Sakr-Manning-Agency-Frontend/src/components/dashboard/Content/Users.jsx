@@ -6,6 +6,7 @@ import { StackedProgressLegendCard } from "../Components/Cards/StatisticsCards";
 import { RefinedDataTable } from "../Components/Data/RefinedDataTable";
 import { ASSETS } from "../../../utils/constants";
 import { exportToCSV, exportToJSON } from "../../../utils/exportHelpers";
+import { getMediaUrl } from "../../../utils/fileHelpers";
 
 import { COLORS, TOKENS } from "../Constants";
 import {
@@ -99,7 +100,7 @@ export function UserManagement({ scale = 1, isMobile }) {
     return backendUsers.map((user) => ({
       id: user.id,
       // name: `${user.first_name.split(" ")[0] || ""} ${user.middle_name.split(" ")[0] || ""}`.trim(),
-      name: user, first_name,
+      name: user.first_name,
       email: user.email,
       role: user.role,
       status:
@@ -107,7 +108,7 @@ export function UserManagement({ scale = 1, isMobile }) {
           ? "Active"
           : "Inactive",
       // status: user.user_status,
-      avatar: user.profile_image || ASSETS.LOGO,
+      avatar: getMediaUrl(user.profile_image) || ASSETS.LOGO,
 
       lastLogin: formatLastLogin(user.last_login),
       isOnline: isUserOnline(user.last_login),
