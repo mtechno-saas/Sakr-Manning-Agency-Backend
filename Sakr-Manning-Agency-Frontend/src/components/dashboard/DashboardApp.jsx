@@ -1,3 +1,4 @@
+// DashboardApp.jsx - Main Dashboard Entry Point
 //////////////////////////////
 
 // DashboardApp.jsx - UPDATED - Removed Mock Data, Simplified Props
@@ -32,14 +33,14 @@ const DashboardAppContent = ({ onLogout, user }) => {
     typeof window !== "undefined" ? window.innerWidth : BASE_WIDTH
   );
   const [scale, setScale] = useState(1);
-  
+
   // Get loading states from context
-  const { 
-    loadingCompanies, 
-    loadingUsers, 
-    loadingRanks, 
-    loadingFlags, 
-    loadingVesselTypes, 
+  const {
+    loadingCompanies,
+    loadingUsers,
+    loadingRanks,
+    loadingFlags,
+    loadingVesselTypes,
     loadingCertificates,
     companies,
     users,
@@ -48,9 +49,9 @@ const DashboardAppContent = ({ onLogout, user }) => {
 
   // Determine if we are in the initial loading phase
   // We consider it initial loading if critical data hasn't arrived yet
-  const isInitialLoading = (loadingCompanies && (companies?.length ?? 0) === 0) || 
-                          (loadingUsers && (users?.length ?? 0) === 0) || 
-                          (loadingRanks && (ranks?.length ?? 0) === 0);
+  const isInitialLoading = (loadingCompanies && (companies?.length ?? 0) === 0) ||
+    (loadingUsers && (users?.length ?? 0) === 0) ||
+    (loadingRanks && (ranks?.length ?? 0) === 0);
 
   const userData = user;
 
@@ -139,56 +140,56 @@ const DashboardAppContent = ({ onLogout, user }) => {
 
   return (
     <SearchProvider currentPage={currentPage}>
-          <div
-            style={{
-              display: "flex",
-              minHeight: "100vh",
-              backgroundColor: COLORS.background,
-              fontFamily: "Inter, sans-serif",
-            }}
-          >
-            {isDesktop && (
-              <Sidebar
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-                scale={scale}
-              />
-            )}
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          backgroundColor: COLORS.background,
+          fontFamily: "Inter, sans-serif",
+        }}
+      >
+        {isDesktop && (
+          <Sidebar
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            scale={scale}
+          />
+        )}
 
-            {isMobile && (
-              <MobileSidebar
-                isOpen={mobileMenuOpen}
-                onClose={() => setMobileMenuOpen(false)}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-                scale={scale}
-              />
-            )}
+        {isMobile && (
+          <MobileSidebar
+            isOpen={mobileMenuOpen}
+            onClose={() => setMobileMenuOpen(false)}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            scale={scale}
+          />
+        )}
 
-            <div
-              style={{
-                marginLeft: isDesktop ? `${Math.round(280 * scale)}px` : 0,
-                width: isDesktop
-                  ? `calc(100% - ${Math.round(280 * scale)}px)`
-                  : "100%",
-                display: "flex",
-                flexDirection: "column",
-                minHeight: "100vh",
-              }}
-            >
-              <Header
-                pageTitle={pageData[currentPage]}
-                onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                isMobile={isMobile}
-                scale={scale}
-                onLogout={onLogout}
-                onSearchSubmit={handleSearchSubmit}
-                user={userData}
-              />
+        <div
+          style={{
+            marginLeft: isDesktop ? `${Math.round(280 * scale)}px` : 0,
+            width: isDesktop
+              ? `calc(100% - ${Math.round(280 * scale)}px)`
+              : "100%",
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "100vh",
+          }}
+        >
+          <Header
+            pageTitle={pageData[currentPage]}
+            onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            isMobile={isMobile}
+            scale={scale}
+            onLogout={onLogout}
+            onSearchSubmit={handleSearchSubmit}
+            user={userData}
+          />
 
-              {renderCurrentPage()}
-              <ChatWidget scale={1} isFloating={true} />
-              {/* <img
+          {renderCurrentPage()}
+          {/* <ChatWidget scale={1} isFloating={true} /> */}
+          {/* <img
               src={ASSETS.CHATBOT}
               alt="ChatBot"
               className={`fixed cursor-pointer z-[1000]
@@ -201,9 +202,9 @@ const DashboardAppContent = ({ onLogout, user }) => {
                     : "w-[50px] h-[50px] bottom-[30px] right-[30px]"
                 }`}
             /> */}
-            </div>
-            <NotificationCenter scale={scale} position="bottom-left" />
-          </div>
+        </div>
+        <NotificationCenter scale={scale} position="bottom-left" />
+      </div>
     </SearchProvider>
   );
 };
