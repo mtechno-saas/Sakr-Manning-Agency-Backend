@@ -33,6 +33,15 @@ This document outlines all the available query parameters (filters) you can appe
 | `signed_on_to` | `date` | `<=` | Contract sign-on date range end |
 | `signed_off_from` | `date` | `>=` | Contract sign-off date range start |
 | `signed_off_to` | `date` | `<=` | Contract sign-off date range end |
+| `company_type` | `string` | `icontains` | Filter by Company Type name (via contracts) |
+| `ship_type` | `string` | `icontains` | Filter by Ship Type name (via contracts) |
+| `passport_no` | `string` | `icontains` | Search by Passport Number |
+| `passport_expiry_from` / `to` | `date` | `range` | Passport expiry date range |
+| `seaman_book_no` | `string` | `icontains` | Search by Seaman Book Number |
+| `seaman_book_expiry_from` / `to` | `date` | `range` | Seaman Book expiry date range |
+| `medical_no` | `string` | `icontains` | Search by Medical/Health Certificate Number |
+| `medical_expiry_from` / `to` | `date` | `range` | Medical certificate expiry date range |
+| `course_name` | `string` | `icontains` | Filter by Marine Course name |
 
 ---
 

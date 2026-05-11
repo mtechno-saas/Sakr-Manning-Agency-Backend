@@ -115,6 +115,28 @@ class UsersFilter(django_filters.FilterSet):
     signed_off_from = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="gte")
     signed_off_to = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="lte")
 
+    # Company and Ship Types
+    company_type = django_filters.CharFilter(field_name="contracts__company__company_type__name", lookup_expr="icontains")
+    ship_type = django_filters.CharFilter(field_name="contracts__ship__ship_type__name", lookup_expr="icontains")
+    
+    # Passport Details
+    passport_no = django_filters.CharFilter(field_name="passport_no", lookup_expr="icontains")
+    passport_expiry_from = django_filters.DateFilter(field_name="passport_expiry_date", lookup_expr="gte")
+    passport_expiry_to = django_filters.DateFilter(field_name="passport_expiry_date", lookup_expr="lte")
+    
+    # Seaman Book Details
+    seaman_book_no = django_filters.CharFilter(field_name="seaman_book_no", lookup_expr="icontains")
+    seaman_book_expiry_from = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="gte")
+    seaman_book_expiry_to = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="lte")
+    
+    # Medical Details
+    medical_no = django_filters.CharFilter(field_name="health_number", lookup_expr="icontains")
+    medical_expiry_from = django_filters.DateFilter(field_name="health_expiry_date", lookup_expr="gte")
+    medical_expiry_to = django_filters.DateFilter(field_name="health_expiry_date", lookup_expr="lte")
+    
+    # Marine Courses
+    course_name = django_filters.CharFilter(field_name="courses__course_name", lookup_expr="icontains")
+
     # Filter by position (Rank name or Application position)
     position = django_filters.CharFilter(method='filter_by_position')
     
