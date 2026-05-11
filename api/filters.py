@@ -67,7 +67,8 @@
 
 
 import django_filters
-from .models import Users, Company, Interview, CVSubmission
+from django.db.models import Q
+from .models import Users, Company, Interview, CVSubmission, Contract
 from finance.models import FinanceRecord
 from companies.models import JobOrder
 from logistics.models import FlightBooking, VisaApplication, JoiningInstruction
@@ -82,14 +83,54 @@ class UsersFilter(django_filters.FilterSet):
     user_status = django_filters.CharFilter(field_name="user_status", lookup_expr="iexact")
     nationality = django_filters.CharFilter(field_name="nationality", lookup_expr="icontains")
     nearest_port = django_filters.CharFilter(field_name="Nearest_Port", lookup_expr="icontains")
+    
+    # Position filters
     rank_name = django_filters.CharFilter(field_name="codes__name", lookup_expr="icontains")
     assigned_code = django_filters.CharFilter(field_name="user_ranks__assigned_code", lookup_expr="icontains")
+    
     role = django_filters.CharFilter(field_name="role", lookup_expr="iexact")
     is_blacklisted = django_filters.BooleanFilter(field_name="is_blacklisted")
+    
+    # New requested filters
+    # Filter by Company (ID or Name)
+    company = django_filters.NumberFilter(field_name="contracts__company__id")
+    company_name = django_filters.CharFilter(field_name="contracts__company__company_name", lookup_expr="icontains")
+    
+    # Filter by Ship (ID or Name)
+    ship = django_filters.NumberFilter(field_name="contracts__ship__id")
+    ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
+    
+    # Filter by Job Position Name (linked to JobOrderPosition/Rank)
+    job_position_name = django_filters.CharFilter(field_name="contracts__job_position__rank__name", lookup_expr="icontains")
+    
+    # Filter by Language
+    language = django_filters.CharFilter(field_name="languages__language", lookup_expr="icontains")
+    
+    # Filter by Contract Status (Signed, Draft, Cancelled, etc.)
+    contract_status = django_filters.AllValuesMultipleFilter(field_name="contracts__status")
+    
+    # Filter by Signed On/Off dates
+    signed_on_from = django_filters.DateFilter(field_name="contracts__sign_on_date", lookup_expr="gte")
+    signed_on_to = django_filters.DateFilter(field_name="contracts__sign_on_date", lookup_expr="lte")
+    signed_off_from = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="gte")
+    signed_off_to = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="lte")
+
+    # Filter by position (Rank name or Application position)
+    position = django_filters.CharFilter(method='filter_by_position')
+    
+    def filter_by_position(self, queryset, name, value):
+        return queryset.filter(
+            Q(codes__name__icontains=value) | 
+            Q(application_for_position__icontains=value)
+        ).distinct()
 
     class Meta:
         model = Users
-        fields = ["name", "age", "marital_status", "user_status", "nationality", "nearest_port", "role", "is_blacklisted"]
+        fields = [
+            "name", "age", "marital_status", "user_status", "nationality", 
+            "nearest_port", "role", "is_blacklisted", "company", "ship",
+            "language", "contract_status", "position"
+        ]
 
 
 class CompanyFilter(django_filters.FilterSet):
