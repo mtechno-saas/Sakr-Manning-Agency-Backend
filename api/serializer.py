@@ -1070,6 +1070,74 @@ class ContractSerializer(serializers.ModelSerializer):
             'ship': {'required': False},
         }
 
+    def validate(self, data):
+        """
+        Check for logical date discrepancies.
+        """
+        sign_on = data.get('sign_on_date')
+        sign_off = data.get('sign_off_date')
+
+        if sign_on and sign_off and sign_off < sign_on:
+            raise serializers.ValidationError({
+                "sign_off_date": "Sign-off date cannot be before the sign-on date."
+            })
+            
+        return data
+
+    def validate_overlap(self, user, sign_on_date, sign_off_date, job_position=None, instance_id=None):
+        """
+        Ensures the seafarer doesn't have another Active/Signed/Pending contract 
+        during the same time period.
+        """
+        if not user or not sign_on_date:
+            return
+
+        from datetime import timedelta
+        from rest_framework.exceptions import ValidationError
+        
+        new_start = sign_on_date
+        new_end = sign_off_date
+        
+        if not new_end and job_position:
+            duration_months = job_position.contract_duration_months or 6
+            new_end = new_start + timedelta(days=30 * duration_months)
+        
+        # Find existing active/pending contracts for this user
+        existing_contracts = Contract.objects.filter(
+            user=user, 
+            status__in=['Pending Signature', 'Signed', 'Active']
+        )
+        if instance_id:
+            existing_contracts = existing_contracts.exclude(id=instance_id)
+            
+        for ec in existing_contracts:
+            ec_start = ec.sign_on_date
+            ec_end = ec.sign_off_date
+            
+            # If existing contract has no sign_off_date, estimate it for the check
+            if not ec_end:
+                if ec.job_position:
+                    ec_duration = ec.job_position.contract_duration_months or 6
+                    ec_end = ec_start + timedelta(days=30 * ec_duration)
+                else:
+                    ec_end = ec_start + timedelta(days=180) # Default 6 months
+            
+            # Overlap check logic
+            is_overlap = False
+            if new_end:
+                # If we have both start and end for new contract
+                if new_start <= ec_end and new_end >= ec_start:
+                    is_overlap = True
+            else:
+                # If we only have start for new contract, check if it falls within existing contract
+                if ec_start <= new_start <= ec_end:
+                    is_overlap = True
+
+            if is_overlap:
+                raise ValidationError({
+                    'error': f"Applicant {user.first_name} is already assigned to a ship during this period (From {ec_start} to {ec_end}). Overlapping Contract ID: {ec.id}"
+                })
+
     def create(self, validated_data):
         # Extract Seafarer Application fields
         seafarer_fields = [
@@ -1133,36 +1201,12 @@ class ContractSerializer(serializers.ModelSerializer):
                 raise ValidationError({'error': f'CV Submission with id {cv_sub_id} not found.'})
         
         # --- Overlap Validation ---
-        user = validated_data.get('user')
-        job_position = validated_data.get('job_position')
-
-        if user and job_position and job_position.job_order:
-            from datetime import timedelta
-            from rest_framework.exceptions import ValidationError
-            
-            new_start = job_position.job_order.target_joining_date
-            duration_months = job_position.contract_duration_months or 6
-            new_end = new_start + timedelta(days=30 * duration_months)
-            
-            # Find existing active contracts for this user that are linked to a job position
-            # We assume Draft and Cancelled status contracts do not block new assignments.
-            existing_contracts = Contract.objects.filter(
-                user=user, 
-                job_position__isnull=False,
-                status__in=['Pending Signature', 'Signed', 'Active']
-            )
-            
-            for ec in existing_contracts:
-                if ec.job_position.job_order:
-                    ec_start = ec.job_position.job_order.target_joining_date
-                    ec_duration = ec.job_position.contract_duration_months or 6
-                    ec_end = ec_start + timedelta(days=30 * ec_duration)
-                    
-                    # Check for date overlap (inclusive)
-                    if new_start <= ec_end and new_end >= ec_start:
-                        raise ValidationError({
-                            'error': f"Applicant {user.first_name} is already assigned to a ship during this period (From {ec_start} to {ec_end}). Overlapping Job Order: {ec.job_position.job_order.reference_number}"
-                        })
+        self.validate_overlap(
+            user=validated_data.get('user'),
+            sign_on_date=validated_data.get('sign_on_date'),
+            sign_off_date=validated_data.get('sign_off_date'),
+            job_position=validated_data.get('job_position')
+        )
         # --------------------------
         
         contract = super().create(validated_data)
@@ -1199,6 +1243,18 @@ class ContractSerializer(serializers.ModelSerializer):
                 seafarer_data[f] = validated_data.pop(f)
 
         validated_data.pop('applicant_name', None)
+
+        # --- Overlap Validation ---
+        # Only validate if dates or user are changing
+        if any(f in validated_data for f in ['sign_on_date', 'sign_off_date', 'user']):
+            self.validate_overlap(
+                user=validated_data.get('user', instance.user),
+                sign_on_date=validated_data.get('sign_on_date', instance.sign_on_date),
+                sign_off_date=validated_data.get('sign_off_date', instance.sign_off_date),
+                job_position=validated_data.get('job_position', instance.job_position),
+                instance_id=instance.id
+            )
+        # --------------------------
 
         contract = super().update(instance, validated_data)
 
