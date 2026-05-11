@@ -36,9 +36,12 @@ This document outlines all the available query parameters (filters) you can appe
 | `company_type` | `string` | `icontains` | Filter by Company Type name (via contracts) |
 | `ship_type` | `string` | `icontains` | Filter by Ship Type name (via contracts) |
 | `passport_no` | `string` | `icontains` | Search by Passport Number |
+| `passport_type` | `string` | `icontains` | Filter by Passport type (e.g., "Official", "Diplomatic") |
 | `passport_expiry_from` / `to` | `date` | `range` | Passport expiry date range |
 | `seaman_book_no` | `string` | `icontains` | Search by Seaman Book Number |
+| `seaman_book_type` | `string` | `icontains` | Filter by Seaman Book type (e.g., "Panama", "Bahamas") |
 | `seaman_book_expiry_from` / `to` | `date` | `range` | Seaman Book expiry date range |
+| `document_type` | `string` | `icontains` | General search across all personal document types |
 | `medical_no` | `string` | `icontains` | Search by Medical/Health Certificate Number |
 | `medical_expiry_from` / `to` | `date` | `range` | Medical certificate expiry date range |
 | `course_name` | `string` | `icontains` | Filter by Marine Course name |

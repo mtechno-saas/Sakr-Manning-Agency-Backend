@@ -137,6 +137,11 @@ class UsersFilter(django_filters.FilterSet):
     # Marine Courses
     course_name = django_filters.CharFilter(field_name="courses__course_name", lookup_expr="icontains")
 
+    # Document Types (Personal Documents)
+    passport_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    seaman_book_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    document_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+
     # Filter by position (Rank name or Application position)
     position = django_filters.CharFilter(method='filter_by_position')
     
