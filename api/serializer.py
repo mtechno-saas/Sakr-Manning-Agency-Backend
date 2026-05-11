@@ -1215,6 +1215,11 @@ class ContractSerializer(serializers.ModelSerializer):
         if contract.job_position:
             contract.job_position.quantity = max(0, contract.job_position.quantity - 1)
             contract.job_position.save(update_fields=['quantity'])
+            
+            # Also decrease the company's overall open_positions
+            if contract.company:
+                contract.company.open_positions = max(0, contract.company.open_positions - 1)
+                contract.company.save(update_fields=['open_positions'])
 
         # Add user to ship's crew
         if contract.ship and contract.user:

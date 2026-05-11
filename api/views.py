@@ -703,6 +703,11 @@ class ContractViewSet(viewsets.ModelViewSet):
             instance.job_position.quantity += 1
             instance.job_position.save(update_fields=['quantity'])
             
+            # Restore company's open_positions
+            if instance.company:
+                instance.company.open_positions += 1
+                instance.company.save(update_fields=['open_positions'])
+            
         # If the applicant was assigned to the ship's crew for this contract, remove them
         if instance.ship and instance.user:
             instance.ship.crew.remove(instance.user)
