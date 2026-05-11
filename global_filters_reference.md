@@ -21,6 +21,18 @@ This document outlines all the available query parameters (filters) you can appe
 | `assigned_code` | `string` | `icontains` | Partial match on UserRank assigned code |
 | `role` | `string` | `iexact` | Filter by user role (e.g., "Employee", "Admin") |
 | `is_blacklisted` | `boolean` | `exact` | `true` or `false` |
+| `company` | `int` | `exact` | Filter by Company ID (linked via contracts) |
+| `company_name` | `string` | `icontains` | Partial match on Company Name |
+| `ship` | `int` | `exact` | Filter by Ship ID (linked via contracts) |
+| `ship_name` | `string` | `icontains` | Partial match on Ship Name |
+| `job_position_name` | `string` | `icontains` | Partial match on Job Position name in contracts |
+| `position` | `string` | `icontains` | Search by Rank name OR Application Position |
+| `language` | `string` | `icontains` | Partial match on Language (e.g., "English") |
+| `contract_status` | `list` | `multiple` | Filter by contract status (Supports multiple e.g. `?contract_status=Signed&contract_status=Draft`) |
+| `signed_on_from` | `date` | `>=` | Contract sign-on date range start |
+| `signed_on_to` | `date` | `<=` | Contract sign-on date range end |
+| `signed_off_from` | `date` | `>=` | Contract sign-off date range start |
+| `signed_off_to` | `date` | `<=` | Contract sign-off date range end |
 
 ---
 
