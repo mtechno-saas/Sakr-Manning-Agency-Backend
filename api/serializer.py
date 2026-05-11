@@ -166,6 +166,8 @@ class SeaServiceSerializer(serializers.ModelSerializer):
 
 
 class UserMeSerializer(serializers.ModelSerializer):
+    cv_status = serializers.SerializerMethodField()
+
     class Meta:
         model = Users
         fields = [
@@ -175,7 +177,26 @@ class UserMeSerializer(serializers.ModelSerializer):
             "middle_name",
             "profile_image",
             "role",
+            "cv_status",
         ]
+
+    def get_cv_status(self, obj):
+        """
+        Logic:
+        - active, not registered yet (no docs) = true
+        - pending, black list = false
+        """
+        from api.models import Document
+        docs = Document.objects.filter(user=obj)
+        
+        if not docs.exists():
+            return True
+            
+        # Check for blacklist or pending across all user documents
+        if docs.filter(status__in=['Blacklist', 'Pending']).exists():
+            return False
+            
+        return True
 
 
 # =====================
