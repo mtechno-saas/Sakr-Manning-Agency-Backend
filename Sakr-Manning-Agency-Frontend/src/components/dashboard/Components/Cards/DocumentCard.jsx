@@ -181,7 +181,7 @@ const DocumentCard = ({ document, scale = 1, onView, onDownload, onEdit, onDelet
         <div style={textPrimary}>{userName}</div>
         <div style={textSecondary}>{companyName}</div>
         <div style={textSecondary}>{shipName}</div>
-        {positionName !== "Unknown Role" && <div style={textSecondary}>{positionName}</div>}
+        <div style={textSecondary}>{positionName}</div>
         {duration && <div style={textDuration}>Duration: {duration}</div>}
       </div>
 

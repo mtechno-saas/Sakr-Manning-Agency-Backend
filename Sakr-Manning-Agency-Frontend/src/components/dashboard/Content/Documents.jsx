@@ -118,7 +118,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
       user: contract.user_name,
       ship: contract.ship_name,
       company: contract.company_name,
-      position: contract.position_name || contract.position,
+      position: contract.rank_name || contract.position_name || contract.position_name,
       signOffDate: contract.sign_off_date,
       signOnDate: contract.sign_on_date,
       daysToExpiry: contract.daysToExpiry,

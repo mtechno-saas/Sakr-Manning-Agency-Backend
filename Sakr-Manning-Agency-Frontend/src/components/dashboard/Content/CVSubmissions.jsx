@@ -200,7 +200,8 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
 
             return {
                 id: submission.id,
-                name: `${submission.user_name.split(" ")[0]} ${submission.user_name.split(" ")[1]}` || "—",
+                // name: `${submission.user_name.split(" ")[0]} ${submission.user_name.split(" ")[1]}` || "—",
+                name: submission.user_name || "-",
                 generatedId: submission.generated_id || "—",
                 company: submission.company_name || companyObj?.company_name || (submission.company ? `ID: ${submission.company}` : "—"),
                 position: submission.position_name || rankObj?.rank_name || rankObj?.name || (submission.position ? `ID: ${submission.position}` : "—"),
@@ -246,7 +247,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         {
             key: "name",
             title: "Name",
-            width: 300,
+            width: 360,
             showAvatar: true,
             sortable: true,
             render: (val) => val,
