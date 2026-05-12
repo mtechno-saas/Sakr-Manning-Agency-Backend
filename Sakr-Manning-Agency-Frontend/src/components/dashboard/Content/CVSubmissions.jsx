@@ -12,6 +12,7 @@ import {
     getPageTitleStyles,
     getRowBetweenStyles,
 } from "../Styles/cssClasses";
+import Pagination from "../../common/Pagination";
 
 import Button from "../Components/Common/Button";
 import EnhancedFilterModel from "../Components/Common/EnhancedFilterModel";
@@ -88,8 +89,20 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
     // ── Filter states ─────────────────────────────────────────────────────────
     const [showFilterModal, setShowFilterModal] = useState(false);
     // Keys match BE params: position (int rank ID), status (iexact), date range
-    const [filters, setFilters] = useState({ status: "", position: "", submitted_date_from: "", submitted_date_to: "" });
-    const [activeFilters, setActiveFilters] = useState({ status: "", position: "", submitted_date_from: "", submitted_date_to: "" });
+    const [filters, setFilters] = useState({
+        user: "",
+        status: "",
+        position: "",
+        submitted_date_from: "",
+        submitted_date_to: ""
+    });
+    const [activeFilters, setActiveFilters] = useState({
+        user: "",
+        status: "",
+        position: "",
+        submitted_date_from: "",
+        submitted_date_to: ""
+    });
     const [savedPresets, setSavedPresets] = useState([]);
 
     // ── Data fetch ────────────────────────────────────────────────────────────
@@ -99,9 +112,22 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         fetchRanks();
     }, [fetchSubmissions, fetchCompanies, fetchRanks]);
 
+    // ── Filter handlers ───────────────────────────────────────────────────────
+    const buildBackendFilters = useCallback((vals) => {
+        const backend = {};
+        if (vals.user) {
+            backend.user = vals.user.trim();
+        }
+        if (vals.status) backend.status = vals.status;
+        if (vals.position) backend.position = vals.position;
+        if (vals.submitted_date_from) backend.submitted_date_from = vals.submitted_date_from;
+        if (vals.submitted_date_to) backend.submitted_date_to = vals.submitted_date_to;
+        return backend;
+    }, []);
+
     const handleRefresh = useCallback(() => {
-        fetchSubmissions({ ...activeFilters });
-    }, [fetchSubmissions, activeFilters]);
+        fetchSubmissions({ ...buildBackendFilters(activeFilters), page: pagination?.currentPage || 1 });
+    }, [fetchSubmissions, activeFilters, buildBackendFilters, pagination.currentPage]);
 
     useEffect(() => {
         const onGenerateContract = (e) => {
@@ -191,7 +217,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
 
     // ── Data transform (per field reference) ──────────────────────────────────
     const userData = useMemo(() => {
-        return backendSubmissions.map((submission) => {
+        return backendSubmissions.map((submission, index) => {
             const state = mapStatusToState(submission.status);
 
             // Lookup names from reference lists
@@ -199,6 +225,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
             const rankObj = ranks.find(r => r.id === submission.position);
 
             return {
+                index: (pagination.currentPage - 1) * (pagination.pageSize || 50) + index + 1,
                 id: submission.id,
                 // name: `${submission.user_name.split(" ")[0]} ${submission.user_name.split(" ")[1]}` || "—",
                 name: submission.user_name || "-",
@@ -221,7 +248,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                 _original: submission,
             };
         });
-    }, [backendSubmissions, companies, ranks]);
+    }, [backendSubmissions, companies, ranks, pagination.currentPage, pagination.pageSize]);
 
     // ── Statistics (full pipeline) ────────────────────────────────────────────
     const statisticsData = useMemo(() => {
@@ -244,6 +271,13 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
 
     // ── Table columns (matching "In List" fields) ─────────────────────────────
     const columns = useMemo(() => [
+        {
+            key: "index",
+            title: "#",
+            width: 60,
+            sortable: false,
+            render: (val) => val,
+        },
         {
             key: "name",
             title: "Name",
@@ -337,15 +371,16 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         },
     ], [canEdit, canDelete, handleView, handleEdit, handleDelete, handleStatusChange]);
 
-    // ── Filter handlers ───────────────────────────────────────────────────────
+
+
     const handleApplyFilters = useCallback(() => {
         setActiveFilters({ ...filters });
         setShowFilterModal(false);
-        fetchSubmissions({ ...filters, page: 1 });
-    }, [filters, fetchSubmissions]);
+        fetchSubmissions({ ...buildBackendFilters(filters), page: 1 });
+    }, [filters, buildBackendFilters, fetchSubmissions]);
 
     const handleResetFilters = useCallback(() => {
-        const empty = { status: "", position: "", submitted_date_from: "", submitted_date_to: "" };
+        const empty = { user: "", status: "", position: "", submitted_date_from: "", submitted_date_to: "" };
         setFilters(empty);
         setActiveFilters(empty);
         setShowFilterModal(false);
@@ -356,8 +391,8 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
     const handleApplyPreset = useCallback((preset) => {
         setFilters(preset);
         setActiveFilters(preset);
-        fetchSubmissions({ ...preset, page: 1 });
-    }, [fetchSubmissions]);
+        fetchSubmissions({ ...buildBackendFilters(preset), page: 1 });
+    }, [fetchSubmissions, buildBackendFilters]);
 
     const handleSavePreset = useCallback((name, vals) => setSavedPresets((p) => [...p, { name, filters: vals }]), []);
     const handleDeletePreset = useCallback((name) => setSavedPresets((p) => p.filter((x) => x.name !== name)), []);
@@ -373,6 +408,12 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
 
     // ── Filter field config (all keys match BE query params) ──────────────────
     const filterFields = [
+        {
+            key: "user",
+            label: "Seafarer ID",
+            type: "text",
+            placeholder: "Filter by Seafarer (User) ID",
+        },
         {
             key: "status",
             label: "Application Status",
@@ -435,14 +476,14 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                 </h1>
 
                 {/* Saved Filter Presets */}
-                <SavedFilters
+                {/* <SavedFilters
                     scale={scale}
                     savedPresets={savedPresets}
                     currentFilters={activeFilters}
                     onApplyPreset={handleApplyPreset}
                     onSavePreset={handleSavePreset}
                     onDeletePreset={handleDeletePreset}
-                />
+                /> */}
 
                 {/* Action toolbar */}
                 <div
@@ -455,7 +496,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                     }}
                 >
                     {/* Filter icon */}
-                    <Button
+                    {/* <Button
                         variant="icon"
                         onClick={() => setShowFilterModal(true)}
                         ariaLabel="Filter applicants"
@@ -466,7 +507,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                         <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
                             <path d="M3 6h18M6 12h12M9 18h6" stroke="#1E1E1E" strokeWidth="1.5" strokeLinecap="round" />
                         </svg>
-                    </Button>
+                    </Button> */}
 
                     {/* Refresh */}
                     <Button
@@ -515,15 +556,25 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                     columns={columns}
                     rowKey="id"
                     scale={scale}
-                    pageSize={pagination.pageSize || 25}
+                    pageSize={pagination.pageSize || 50}
                     loading={loading}
-                    initialPage={pagination.currentPage}
-                    onPageChange={(p) => fetchSubmissions({ page: p, ...activeFilters })}
-                    totalRecords={pagination.count}
+                    initialPage={1}
                     actions={["User", canEdit && "Edit", canDelete && "Delete"].filter(Boolean)}
                     onRowClick={handleView}
                     styleOverrides={{ columnGap: 9 }}
                 />
+
+                {/* Server-side Pagination */}
+                <div style={{ marginTop: "20px" }}>
+                    <Pagination
+                        page={pagination.currentPage}
+                        pageSize={pagination.pageSize || 50}
+                        total={pagination.count}
+                        onChange={(p) => fetchSubmissions({ ...buildBackendFilters(activeFilters), page: p })}
+                        scale={scale}
+                        showInfo={true}
+                    />
+                </div>
             </div>
 
             {/* ── Footer CTA — AI upload + manual (Admin only) ─────────────── */}
@@ -640,7 +691,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
             )}
 
             {/* Enhanced Filter Modal */}
-            <EnhancedFilterModel
+            {/* <EnhancedFilterModel
                 isOpen={showFilterModal}
                 onClose={() => setShowFilterModal(false)}
                 title="Filter CV Submissions"
@@ -650,7 +701,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                 onApply={handleApplyFilters}
                 onReset={handleResetFilters}
                 scale={scale}
-            />
+            /> */}
 
             <ConfirmDialog
                 isOpen={showDeleteConfirm}

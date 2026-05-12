@@ -3,7 +3,6 @@
 
 import React from "react";
 import { STYLE_TOKENS, getScaledValue } from "../../Styles/globalStyles";
-import MultiSelectFilter from "./MultiSelectFilter";
 import { Select } from "../inputs/Select";
 
 /**
@@ -145,13 +144,16 @@ const FormField = React.forwardRef(
 
         case "multi-select":
           return (
-            <MultiSelectFilter
+            <Select
+              name={name}
               label=""
               options={options}
-              selectedValues={Array.isArray(value) ? value : []}
-              onChange={handleMultiSelectChange}
-              scale={scale}
+              value={Array.isArray(value) ? value : []}
+              onChange={(val) => onChange(name, val)}
               placeholder={placeholder || "Select options..."}
+              isMulti={true}
+              variant="dashboard"
+              searchable={true}
             />
           );
 

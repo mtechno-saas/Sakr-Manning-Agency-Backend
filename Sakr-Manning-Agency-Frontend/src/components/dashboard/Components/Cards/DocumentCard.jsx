@@ -8,7 +8,7 @@ import {
 } from "../../Constants";
 
 import { ASSETS } from "../../../../utils/constants";
-const DocumentCard = ({ document, scale = 1, onView, onDownload, onEdit, onDelete }) => {
+const DocumentCard = ({ document, index, scale = 1, onView, onDownload, onEdit, onDelete }) => {
   const borderRadius = Math.round(22 * scale);
   const padding = Math.round(16 * scale);
   const avatarSize = Math.round(64 * scale);
@@ -156,6 +156,23 @@ const DocumentCard = ({ document, scale = 1, onView, onDownload, onEdit, onDelet
         }}
         title={`Status: ${statusConfig.label}`}
       />
+
+      {/* Index */}
+      {index && (
+        <div
+          style={{
+            fontSize: `${Math.round(14 * scale)}px`,
+            fontWeight: 600,
+            color: "#9CA3AF",
+            width: `${Math.round(24 * scale)}px`,
+            flexShrink: 0,
+            textAlign: "center",
+            marginRight: `${Math.round(12 * scale)}px`
+          }}
+        >
+          {index}
+        </div>
+      )}
 
       {/* 2. Avatar */}
       <div

@@ -31,7 +31,7 @@ export const companiesApi = {
       if (filters.name) params.append("name", getVal(filters.name));
       if (filters.company_type) params.append("company_type", getVal(filters.company_type));
       if (filters.status) params.append("status", getVal(filters.status));
-      
+
       // Fallback for older search key
       if (filters.search && !filters.name) params.append("name", getVal(filters.search));
 
@@ -105,7 +105,7 @@ export const companiesApi = {
    */
   updateCompany: async (companyId, companyData) => {
     try {
-      const response = await api.patch(`/companies/${companyId}/`, companyData);
+      const response = await api.put(`/companies/${companyId}/`, companyData);
       return response.data;
     } catch (error) {
       console.error(`Failed to update company ${companyId}:`, error);

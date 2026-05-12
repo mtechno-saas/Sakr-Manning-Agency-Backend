@@ -18,9 +18,10 @@ export const useCompanies = () => {
     next: null,
     previous: null,
     currentPage: 1,
+    pageSize: 50,
   });
 
-  const { notify } = useNotification();
+const { notify } = useNotification();
   const { canEdit, canDelete, canCreate } = usePermissions();
   const { fetchCompanies: refreshGlobalCompanies } = useDashboardData();
 

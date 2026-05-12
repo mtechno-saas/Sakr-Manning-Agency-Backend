@@ -20,6 +20,7 @@ export const useDocuments = () => {
     next: null,
     previous: null,
     currentPage: 1,
+    pageSize: 50,
   });
 
   const { notify } = useNotification();

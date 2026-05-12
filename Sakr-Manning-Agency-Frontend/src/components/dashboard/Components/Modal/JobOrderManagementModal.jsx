@@ -21,30 +21,29 @@ const JobOrderManagementModal = ({
     company,
     scale = 1
 }) => {
-    const { 
-        jobOrders, 
-        loading, 
-        fetchJobOrders, 
-        createJobOrder, 
+    const {
+        jobOrders,
+        loading,
+        fetchJobOrders,
+        createJobOrder,
         updateJobOrder,
         deleteJobOrder,
         addPositionToOrder,
         removePosition,
         canCreate,
-        canDelete 
+        canDelete
     } = useJobOrders();
-    
     const { notify } = useNotification();
     const { referenceOptions, shipsByCompany, fetchShipsByCompany, loadingShips } = useDashboardData();
     const companyShips = useMemo(() => {
         if (!company?.id) return [];
         return shipsByCompany[company.id] || [];
     }, [shipsByCompany, company?.id]);
-    
+
     // UI State
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
-    
+
     // Form States
     const [orderFormData, setOrderFormData] = useState(getDefaultValues(JOB_ORDER_FORM_FIELDS));
     const [posFormData, setPosFormData] = useState(getDefaultValues(JOB_POSITION_FORM_FIELDS));
@@ -69,7 +68,7 @@ const JobOrderManagementModal = ({
         if (!Array.isArray(jobOrders)) return [];
         if (!searchTerm) return jobOrders;
         const lower = searchTerm.toLowerCase();
-        return jobOrders.filter(o => 
+        return jobOrders.filter(o =>
             o.reference_number.toLowerCase().includes(lower) ||
             (o.ship_name || "").toLowerCase().includes(lower)
         );
@@ -142,11 +141,11 @@ const JobOrderManagementModal = ({
 
     const handleUpdateStatus = async (newStatus) => {
         if (!selectedOrder) return;
-        
+
         // Optimistically update local state for faster UI
         const previousOrder = { ...selectedOrder };
         setSelectedOrder(prev => ({ ...prev, status: newStatus }));
-        
+
         const result = await updateJobOrder(selectedOrder.id, { status: newStatus });
         if (!result.success) {
             // Revert if failed
@@ -174,9 +173,9 @@ const JobOrderManagementModal = ({
             return <Select {...commonProps} key={field.name} options={referenceOptions.ranks} />;
         }
         if (field.name === "ship") {
-            const shipOptions = companyShips.map(s => ({ 
-                value: s.id, 
-                label: s.ship_name || s.name 
+            const shipOptions = companyShips.map(s => ({
+                value: s.id,
+                label: s.ship_name || s.name
             }));
             return <Select {...commonProps} key={field.name} options={shipOptions} isLoading={loadingShips} />;
         }
@@ -197,7 +196,7 @@ const JobOrderManagementModal = ({
 
     return (
         <div style={{ ...modalStyles.overlay, zIndex: 1100 }} onClick={onClose}>
-            <div 
+            <div
                 style={{
                     ...modalStyles.panel,
                     maxWidth: `${Math.round(1000 * scale)}px`,
@@ -207,7 +206,7 @@ const JobOrderManagementModal = ({
                     maxHeight: "90vh",
                     padding: 0,
                     overflow: "hidden"
-                }} 
+                }}
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -218,7 +217,7 @@ const JobOrderManagementModal = ({
                         </div>
                         <div>
                             <h2 style={{ ...titleStyles, marginBottom: 0, fontSize: "20px" }}>Job Order Management</h2>
-                            <p style={{ fontSize: "14px", color: "#6B7280", margin: "2px 0 0 0" }}>{company?.company_name}</p>
+                            <p style={{ fontSize: "14px", color: "#6B7280", margin: "2px 0 0 0" }}>{company?.name}</p>
                         </div>
                     </div>
                     <button onClick={onClose} style={{ border: "none", background: "#F3F4F6", cursor: "pointer", color: "#6B7280", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -232,16 +231,16 @@ const JobOrderManagementModal = ({
                         <div style={{ padding: "16px", borderBottom: "1px solid #E5E7EB" }}>
                             <div style={{ position: "relative" }}>
                                 <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search orders..." 
+                                <input
+                                    type="text"
+                                    placeholder="Search orders..."
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
                                     style={{ width: "100%", padding: "8px 8px 8px 36px", borderRadius: "8px", border: "1px solid #E5E7EB", fontSize: "13px" }}
                                 />
                             </div>
                         </div>
-                        
+
                         <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
                             {loading ? (
                                 <div style={{ textAlign: "center", padding: "40px", color: "#6B7280" }}>
@@ -256,7 +255,7 @@ const JobOrderManagementModal = ({
                             ) : (
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     {filteredOrders.map(order => (
-                                        <div 
+                                        <div
                                             key={order.id}
                                             onClick={() => setSelectedOrder(order)}
                                             style={{
@@ -318,7 +317,7 @@ const JobOrderManagementModal = ({
                                         <div>
                                             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                                                 <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0 }}>Positions for {selectedOrder.reference_number}</h3>
-                                                <select 
+                                                <select
                                                     value={selectedOrder.status || "Pending"}
                                                     onChange={(e) => handleUpdateStatus(e.target.value)}
                                                     style={{ fontSize: "12px", padding: "2px 8px", borderRadius: "6px", border: "1px solid #E5E7EB", backgroundColor: "#fff", cursor: "pointer", color: "#0369A1", fontWeight: 600, outline: "none" }}
@@ -367,7 +366,7 @@ const JobOrderManagementModal = ({
                                                 <div key={pos.id} style={{ padding: "14px", border: "1px solid #F1F5F9", borderRadius: "10px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                                                     <div style={{ flex: 1 }}>
                                                         <div style={{ fontWeight: 600, fontSize: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-                                                            {pos.rank_name} 
+                                                            {pos.rank_name}
                                                             <span style={{ fontWeight: 400, color: "#0369A1", backgroundColor: "#E0F2FE", padding: "1px 6px", borderRadius: "4px", fontSize: "11px" }}>x{pos.quantity}</span>
                                                         </div>
                                                         <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px", display: "flex", gap: "12px" }}>

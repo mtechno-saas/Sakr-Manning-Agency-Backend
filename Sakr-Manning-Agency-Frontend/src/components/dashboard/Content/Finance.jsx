@@ -155,7 +155,8 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
 
   // Transform backend records to match UI format
   const records = useMemo(() => {
-    return backendRecords.map((record) => ({
+    return backendRecords.map((record, index) => ({
+      index: (pagination.currentPage - 1) * (pagination.pageSize || 50) + index + 1,
       id: record.id,
       userId: record.user,
       user: userMap[record.user] || `User #${record.user}`, // fallback
@@ -171,7 +172,55 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
       updatedAt: record.updated_at,
       _original: record
     }));
-  }, [backendRecords, userMap, companyMap]);
+  }, [backendRecords, userMap, companyMap, pagination.currentPage, pagination.pageSize]);
+
+  const columns = useMemo(() => [
+    {
+      key: "index",
+      title: "#",
+      width: 60,
+      render: (v) => v,
+    },
+    {
+      key: "user",
+      title: "User",
+      width: 200,
+      render: (v) => v,
+    },
+    {
+      key: "company",
+      title: "Company",
+      width: 200,
+      render: (v) => v,
+    },
+    {
+      key: "startDate",
+      title: "Start Date",
+      width: 120,
+      render: (v) => v,
+    },
+    {
+      key: "endDate",
+      title: "End Date",
+      width: 120,
+      render: (v) => v || "-",
+    },
+    {
+      key: "totalMoney",
+      title: "Total",
+      width: 120,
+      render: (v) => `$${v}`,
+    },
+    {
+      key: "actions",
+      title: "Actions",
+      width: 150,
+      isActions: true,
+      onView: handleViewRecord,
+      onEdit: (canEdit || canManageFinance) ? handleEdit : undefined,
+      onDelete: (canDelete || canManageFinance) ? handleDeleteClick : undefined,
+    }
+  ], [canEdit, canDelete, canManageFinance, handleViewRecord, handleEdit, handleDeleteClick]);
 
   // ============================================
   // FILTER HANDLERS
@@ -452,18 +501,8 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
             title="Filter records"
             style={{ width: 30, height: 30, borderRadius: 8, minHeight: 30 }}
           >
-            <svg
-              width={16}
-              height={16}
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M3 6h18M6 12h12M9 18h6"
-                stroke="#1E1E1E"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <path d="M3 6h18M6 12h12M9 18h6" stroke="#1E1E1E" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </Button> */}
           <Button
@@ -571,106 +610,19 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
           </span>
         </div>
 
-        <div className="records-list">
-          {detailsLoading || recordsLoading ? (
-            <div className="empty-state">
-              <LoadingScreen scale={scale} message="Loading finance records..." subMessage="Fetching transaction history and financial statements" />
-            </div>
-          ) : records.length > 0 ? (
-            <>
-              {/* Header Row */}
-              <div
-                className="record-item"
-                style={{
-                  background: "#F5F5F5",
-                  fontWeight: 600,
-                  color: "#666",
-                  textTransform: "uppercase",
-                  fontSize: `${Math.round(13 * scale)}px`,
-                }}
-              >
-                <div>User</div>
-                <div>Company</div>
-                <div>Start Date</div>
-                <div>End Date</div>
-                <div>Total</div>
-                <div>Actions</div>
-              </div>
-
-              {/* Data Rows */}
-              {records.map((record) => (
-                <div key={record.id} className="record-item">
-                  <div className="record-cell">{record.user}</div>
-                  <div className="record-cell">{record.company}</div>
-                  <div className="record-cell">{record.startDate}</div>
-                  <div className="record-cell">
-                    {record.endDate || "-"}
-                  </div>
-                  <div
-                    className="record-cell"
-                    style={{ fontWeight: 600, color: COLORS.primary }}
-                  >
-                    ${record.totalMoney}
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: `${Math.round(8 * scale)}px`,
-                    }}
-                  >
-                    <Button
-                      variant="outline"
-                      scale={scale}
-                      onClick={() => handleViewRecord(record)}
-                      style={{
-                        padding: `${Math.round(4 * scale)}px ${Math.round(12 * scale)}px`,
-                        fontSize: `${Math.round(13 * scale)}px`,
-                        minWidth: "auto",
-                      }}
-                    >
-                      View
-                    </Button>
-
-                    {(canEdit || canManageFinance) && (
-                      <Button
-                        variant="outline"
-                        scale={scale}
-                        onClick={() => handleEdit(record)}
-                        style={{
-                          padding: `${Math.round(4 * scale)}px ${Math.round(12 * scale)}px`,
-                          fontSize: `${Math.round(13 * scale)}px`,
-                          minWidth: "auto",
-                        }}
-                      >
-                        Edit
-                      </Button>
-                    )}
-                    {(canDelete || canManageFinance) && (
-                      <Button
-                        variant="danger"
-                        scale={scale}
-                        onClick={() => handleDeleteClick(record.id)}
-                        style={{
-                          padding: `${Math.round(4 * scale)}px ${Math.round(12 * scale)}px`,
-                          fontSize: `${Math.round(13 * scale)}px`,
-                          minWidth: "auto",
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </>
-          ) : (
-            <div className="empty-state">
-              <div style={{ fontSize: `${Math.round(48 * scale)}px`, marginBottom: "16px" }}>📊</div>
-              <p style={{ margin: 0, fontSize: `${Math.round(16 * scale)}px` }}>
-                No finance records found.
-              </p>
-            </div>
-          )}
+        <div style={{ padding: "0 24px" }}>
+          <RefinedDataTable
+            data={records}
+            columns={columns}
+            rowKey="id"
+            scale={scale}
+            pageSize={pagination.pageSize || 50}
+            loading={recordsLoading || detailsLoading}
+            initialPage={1}
+            actions={["View", (canEdit || canManageFinance) && "Edit", (canDelete || canManageFinance) && "Delete"].filter(Boolean)}
+            onRowClick={handleViewRecord}
+            styleOverrides={{ columnGap: 9 }}
+          />
         </div>
 
         {/* Pagination */}
@@ -678,7 +630,7 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
           <div style={{ padding: `${Math.round(20 * scale)}px` }}>
             <Pagination
               page={pagination?.currentPage || 1}
-              pageSize={pagination?.pageSize || 25}
+              pageSize={pagination?.pageSize || 50}
               total={pagination?.count || 0}
               onChange={handlePageChange}
               scale={scale}
@@ -716,19 +668,17 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
       />
 
       {/* Filter Modal */}
-      {/* {showFilterModal && (
-        <EnhancedFilterModel
-          isOpen={showFilterModal}
-          onClose={() => setShowFilterModal(false)}
-          values={filters}
-          onValuesChange={setFilters}
-          onApply={handleApplyFilters}
-          onReset={handleResetFilters}
-          fields={filterFields}
-          scale={scale}
-          title="Filter Finance Records"
-        />
-      )} */}
+      {/* <EnhancedFilterModel
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        values={filters}
+        onValuesChange={setFilters}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        fields={filterFields}
+        scale={scale}
+        title="Filter Finance Records"
+      /> */}
 
       {/* Delete Confirmation */}
       {showDeleteConfirm && (

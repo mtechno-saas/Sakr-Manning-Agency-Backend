@@ -42,11 +42,11 @@ export const Sidebar = ({ currentPage, onPageChange, scale }) => {
       label: "Users",
       icon: ASSETS.DASHBOARD_Sidebar_ICONS[5] || "👥",
     },
-    {
-      id: "finance",
-      label: "Finance",
-      icon: ASSETS.DASHBOARD_Sidebar_ICONS[6] || "💰",
-    },
+    // {
+    //   id: "finance",
+    //   label: "Finance",
+    //   icon: ASSETS.DASHBOARD_Sidebar_ICONS[6] || "💰",
+    // },
     {
       id: "AI",
       label: "AI Assistant",
@@ -73,109 +73,109 @@ export const Sidebar = ({ currentPage, onPageChange, scale }) => {
       <aside
         className="hide-sidebar-scrollbar"
         style={{
-        width: `${sidebarWidth}px`,
-        backgroundColor: COLORS.primary,
-        height: "100vh",
-        position: "fixed",
-        left: 0,
-        top: 0,
-        fontFamily: "Inter, sans-serif",
-        display: "flex",
-        flexDirection: "column",
-        padding: `${padding}px`,
-        gap: `${gap}px`,
-        overflowY: "auto",
-        msOverflowStyle: "none",
-        scrollbarWidth: "none",
-        zIndex: 50,
-      }}
-    >
-      <div>
-        <div
-          style={{
-            width: `${logoSize}px`,
-            height: `${logoSize}px`,
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            borderRadius: `${logoRadius}px`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: COLORS.white,
-            fontSize: `${Math.round(22 * scale)}px`,
-            fontWeight: "700",
-            marginBottom: `${Math.round(16 * scale)}px`,
-            flexShrink: 0,
-          }}
-        >
-          <img src={ASSETS.LOGO} alt="Sidebar-Logo" />
-        </div>
-        <p
-          style={{
-            fontFamily: "Poppins, sans-serif",
-            fontWeight: "600",
-            fontSize: `${Math.round(14 * scale)}px`,
-            lineHeight: `${Math.round(20 * scale)}px`,
-            color: COLORS.white,
-            margin: 0,
-            wordBreak: "break-word",
-          }}
-        >
-          SAKR MANNING AGENCY
-        </p>
-      </div>
-
-      <nav
-        style={{
+          width: `${sidebarWidth}px`,
+          backgroundColor: COLORS.primary,
+          height: "100vh",
+          position: "fixed",
+          left: 0,
+          top: 0,
+          fontFamily: "Inter, sans-serif",
           display: "flex",
           flexDirection: "column",
-          gap: `${Math.round(12 * scale)}px`,
+          padding: `${padding}px`,
+          gap: `${gap}px`,
+          overflowY: "auto",
+          msOverflowStyle: "none",
+          scrollbarWidth: "none",
+          zIndex: 50,
         }}
       >
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onPageChange(item.id)}
+        <div>
+          <div
             style={{
-              padding: `${Math.round(12 * scale)}px`,
-              borderRadius: `${borderRadius}px`,
-              border: "none",
-              backgroundColor:
-                currentPage === item.id ? COLORS.primaryLight : "transparent",
-              color: COLORS.white,
-              fontSize: `${fontSize}px`,
-              fontWeight: "600",
-              fontFamily: "Poppins, sans-serif",
-              textAlign: "left",
-              cursor: "pointer",
+              width: `${logoSize}px`,
+              height: `${logoSize}px`,
+              backgroundColor: "rgba(255, 255, 255, 0.2)",
+              borderRadius: `${logoRadius}px`,
               display: "flex",
               alignItems: "center",
-              gap: `${Math.round(16 * scale)}px`,
-              transition: "all 0.3s ease",
-              width: "100%",
-              height: `${menuItemHeight}px`,
-            }}
-            onMouseEnter={(e) => {
-              if (currentPage !== item.id) {
-                e.currentTarget.style.backgroundColor =
-                  "rgba(255, 255, 255, 0.1)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (currentPage !== item.id) {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }
+              justifyContent: "center",
+              color: COLORS.white,
+              fontSize: `${Math.round(22 * scale)}px`,
+              fontWeight: "700",
+              marginBottom: `${Math.round(16 * scale)}px`,
+              flexShrink: 0,
             }}
           >
-            <span
-              style={{ fontSize: `${Math.round(20 * scale)}px`, flexShrink: 0 }}
+            <img src={ASSETS.LOGO} alt="Sidebar-Logo" />
+          </div>
+          <p
+            style={{
+              fontFamily: "Poppins, sans-serif",
+              fontWeight: "600",
+              fontSize: `${Math.round(14 * scale)}px`,
+              lineHeight: `${Math.round(20 * scale)}px`,
+              color: COLORS.white,
+              margin: 0,
+              wordBreak: "break-word",
+            }}
+          >
+            SAKR MANNING AGENCY
+          </p>
+        </div>
+
+        <nav
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: `${Math.round(12 * scale)}px`,
+          }}
+        >
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => onPageChange(item.id)}
+              style={{
+                padding: `${Math.round(12 * scale)}px`,
+                borderRadius: `${borderRadius}px`,
+                border: "none",
+                backgroundColor:
+                  currentPage === item.id ? COLORS.primaryLight : "transparent",
+                color: COLORS.white,
+                fontSize: `${fontSize}px`,
+                fontWeight: "600",
+                fontFamily: "Poppins, sans-serif",
+                textAlign: "left",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: `${Math.round(16 * scale)}px`,
+                transition: "all 0.3s ease",
+                width: "100%",
+                height: `${menuItemHeight}px`,
+              }}
+              onMouseEnter={(e) => {
+                if (currentPage !== item.id) {
+                  e.currentTarget.style.backgroundColor =
+                    "rgba(255, 255, 255, 0.1)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentPage !== item.id) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
             >
-              <img src={item.icon} />
-            </span>
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </nav>
-    </aside>
+              <span
+                style={{ fontSize: `${Math.round(20 * scale)}px`, flexShrink: 0 }}
+              >
+                <img src={item.icon} />
+              </span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
     </>
   );
 };
@@ -223,11 +223,11 @@ export const MobileSidebar = ({
       label: "Users",
       icon: ASSETS.DASHBOARD_Sidebar_ICONS[5] || "👥",
     },
-    {
-      id: "finance",
-      label: "Finance",
-      icon: ASSETS.DASHBOARD_Sidebar_ICONS[6] || "💰",
-    },
+    // {
+    //   id: "finance",
+    //   label: "Finance",
+    //   icon: ASSETS.DASHBOARD_Sidebar_ICONS[6] || "💰",
+    // },
     {
       id: "AI",
       label: "AI Assistant",

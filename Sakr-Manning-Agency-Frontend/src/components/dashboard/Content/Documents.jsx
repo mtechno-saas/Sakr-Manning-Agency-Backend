@@ -112,7 +112,8 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   const [viewLoading, setViewLoading] = useState(false);
 
   const contracts = useMemo(() => {
-    return backendContracts.map((contract) => ({
+    return backendContracts.map((contract, index) => ({
+      index: (pagination.currentPage - 1) * (pagination.pageSize || 50) + index + 1,
       id: contract.id,
       userId: contract.user,
       user: contract.user_name,
@@ -491,7 +492,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
             alignItems: "center"
           }}
         >
-          <Button
+          {/* <Button
             variant="icon"
             scale={scale}
             onClick={() => setShowFilterModal(true)}
@@ -512,7 +513,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
                 strokeLinecap="round"
               />
             </svg>
-          </Button>
+          </Button> */}
           <Button
             variant="icon"
             onClick={handleRefresh}
@@ -580,6 +581,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
               <DocumentCard // Use contracts instead of filteredDocuments
                 key={contract.id}
                 document={contract}
+                index={contract.index}
                 scale={scale}
                 onView={() => handleView(contract)}
                 onEdit={() => handleEdit(contract)}
@@ -644,7 +646,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
         <div style={{ marginTop: `${Math.round(20 * scale)}px` }}>
           <Pagination
             page={pagination?.currentPage || 1}
-            pageSize={25}
+            pageSize={pagination?.pageSize || 50}
             total={pagination?.count || 0}
             onChange={handlePageChange}
             scale={scale}
@@ -666,19 +668,18 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
         />
       )}
 
-      {showFilterModal && (
-        <EnhancedFilterModel
-          isOpen={showFilterModal}
-          onClose={() => setShowFilterModal(false)}
-          values={filters}
-          onValuesChange={setFilters}
-          onApply={handleApplyFilters}
-          onReset={handleResetFilters}
-          fields={filterFields}
-          scale={scale}
-          title="Filter Contracts"
-        />
-      )}
+      {/* Filter Modal */}
+      {/* <EnhancedFilterModel
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        values={filters}
+        onValuesChange={setFilters}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        fields={filterFields}
+        scale={scale}
+        title="Filter Contracts"
+      /> */}
 
       {/* Contract View Loading Overlay */}
       {viewLoading && (
