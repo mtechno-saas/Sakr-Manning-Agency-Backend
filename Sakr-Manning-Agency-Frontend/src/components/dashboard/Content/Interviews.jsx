@@ -629,79 +629,79 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
           <div style={{ backgroundColor: "#FFFFFF", borderRadius: `${Math.round(22 * scale)}px`, padding: `${Math.round(60 * scale)}px`, textAlign: "center" }}>
             <LoadingScreen scale={scale} message="Loading interviews..." subMessage="Fetching upcoming candidate meetings and evaluations" />
           </div>
-        ) : interviews.length > 0 ? (
-          interviews.map((interview) => (
-            <div
-              key={interview.id}
-              style={{
-                backgroundColor: "#FFFFFF",
-                borderRadius: `${Math.round(22 * scale)}px`,
-                padding: `${Math.round(12 * scale)}px`,
-                boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.04)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: `${Math.round(47 * scale)}px`,
-              }}
-            >
-              {/* Left Section */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: `${Math.round(66 * scale)}px`,
-                  flex: 1,
-                  paddingTop: `${Math.round(4 * scale)}px`
-                }}
-              >
-                {/* Date & Time */}
+                ) : interviews.length > 0 ? (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(2, 1fr)`,
+              gap: `${Math.round(20 * scale)}px`,
+            }}
+          >
+            {interviews.map((interview) => (
                 <div
+                  key={interview.id}
                   style={{
+                    backgroundColor: "#FFFFFF",
+                    borderRadius: `${Math.round(16 * scale)}px`,
+                    padding: `${Math.round(12 * scale)}px`,
+                    boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.04)",
                     display: "flex",
-                    alignItems: "flex-start",
-                    gap: `${Math.round(8 * scale)}px`,
-                    minWidth: `${Math.round(154 * scale)}px`,
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: `${Math.round(12 * scale)}px`,
+                    position: "relative", // Added for absolute positioning of index
                   }}
                 >
+                  {/* Absolute Index */}
                   <div
                     style={{
-                      fontSize: `${Math.round(14 * scale)}px`,
+                      position: "absolute",
+                      top: `${Math.round(8 * scale)}px`,
+                      left: `${Math.round(12 * scale)}px`,
+                      fontSize: `${Math.round(12 * scale)}px`,
                       fontWeight: 600,
                       color: "#9CA3AF",
-                      width: `${Math.round(24 * scale)}px`,
-                      flexShrink: 0,
-                      textAlign: "center",
-                      marginTop: `${Math.round(8 * scale)}px`
                     }}
                   >
-                    {interview.index}
+                    #{interview.index}
                   </div>
-                  <img
-                    src={interview.avatar}
-                    alt={interview.candidateName}
+
+                  {/* Left Section: Interview Details (Adjusted padding to avoid index) */}
+                  <div
                     style={{
-                      width: `${Math.round(30 * scale)}px`,
-                      height: `${Math.round(30 * scale)}px`,
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      flexShrink: 0,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: `${Math.round(4 * scale)}px`,
+                      minWidth: `${Math.round(140 * scale)}px`,
+                      paddingTop: `${Math.round(14 * scale)}px`, // Space for index
                     }}
-                  />
-                  <div>
+                  >
+                    
+                    {interview.interviewer_name && (
+                      <div
+                        style={{
+                          fontSize: `${Math.round(13 * scale)}px`,
+                          fontWeight: 600,
+                          color: "#1F2937",
+                        }}
+                      >
+                        Interviewer: {interview.interviewer_name}
+                      </div>
+                    )}
+
                     <div
                       style={{
-                        fontSize: `${Math.round(18 * scale)}px`,
+                        fontSize: `${Math.round(15 * scale)}px`,
                         fontWeight: 600,
                         color: "#1F2937",
                         fontFamily: "Inter, sans-serif",
-                        marginBottom: `${Math.round(2 * scale)}px`
                       }}
                     >
                       {formatInterviewDate(interview.date)}
                     </div>
                     <div
                       style={{
-                        fontSize: `${Math.round(16 * scale)}px`,
+                        fontSize: `${Math.round(13 * scale)}px`,
                         fontWeight: 500,
                         color: "#6B7280",
                         fontFamily: "Inter, sans-serif",
@@ -709,153 +709,176 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
                     >
                       {interview.time}
                     </div>
-                  </div>
-                </div>
 
-                {/* Candidate Info */}
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: `${Math.round(8 * scale)}px`,
-                  }}
-                >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: `${Math.round(4 * scale)}px`,
+                        backgroundColor: "#F3F4F6",
+                        padding: `${Math.round(4 * scale)}px ${Math.round(8 * scale)}px`,
+                        borderRadius: `${Math.round(8 * scale)}px`,
+                        width: "fit-content"
+                      }}
+                    >
+                      {getInterviewTypeIcon(interview.type)}
+                      <span
+                        style={{
+                          fontSize: `${Math.round(12 * scale)}px`,
+                          fontWeight: 500,
+                          color: "#374151",
+                        }}
+                      >
+                        {getInterviewTypeLabel(interview.type)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Middle Section: Candidate Details */}
                   <div
                     style={{
-                      fontSize: `${Math.round(20 * scale)}px`,
-                      fontWeight: 500,
-                      color: "#000000",
-                      fontFamily: "Poppins, sans-serif",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: `${Math.round(4 * scale)}px`,
+                      flex: 1,
                     }}
                   >
-                    {interview.candidateName}
+                    <div
+                      style={{
+                        fontSize: `${Math.round(16 * scale)}px`,
+                        fontWeight: 600,
+                        color: "#000000",
+                        fontFamily: "Poppins, sans-serif",
+                      }}
+                    >
+                      {interview.candidateName}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: `${Math.round(12 * scale)}px`,
+                        fontWeight: 400,
+                        color: "#6B7280",
+                        fontFamily: "Inter, sans-serif",
+                        wordBreak: "break-all"
+                      }}
+                    >
+                      {interview.candidateEmail}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: `${Math.round(14 * scale)}px`,
+                        fontWeight: 500,
+                        color: "#374151",
+                        fontFamily: "Poppins, sans-serif",
+                      }}
+                    >
+                      {interview.position}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: `${Math.round(14 * scale)}px`,
+                        fontWeight: 500,
+                        color: "#4986D0",
+                        fontFamily: "Poppins, sans-serif",
+                      }}
+                    >
+                      {interview.company}
+                    </div>
                   </div>
+
+                  {/* Right Section: Status & Actions */}
                   <div
                     style={{
-                      fontSize: `${Math.round(20 * scale)}px`,
-                      fontWeight: 500,
-                      color: "#000000",
-                      fontFamily: "Poppins, sans-serif",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-end",
+                      gap: `${Math.round(8 * scale)}px`,
+                      minWidth: `${Math.round(100 * scale)}px`,
                     }}
                   >
-                    {interview.position}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: `${Math.round(20 * scale)}px`,
-                      fontWeight: 500,
-                      color: "#4986D0",
-                      fontFamily: "Poppins, sans-serif",
-                    }}
-                  >
-                    {interview.company}
+                    {/* Status at Top */}
+                    <Button
+                      variant="primary"
+                      scale={scale}
+                      onClick={() => {
+                        if (interview.status === "pending") {
+                          handleStatusChange(interview.id, "confirm");
+                        }
+                      }}
+                      style={{
+                        backgroundColor: getStatusColor(interview.status),
+                        width: "100%",
+                        height: `${Math.round(32 * scale)}px`,
+                        fontSize: `${Math.round(11 * scale)}px`,
+                        padding: "0 8px"
+                      }}
+                    >
+                      {getStatusLabel(interview.status)}
+                    </Button>
+
+                    {/* Actions Grouped below Status */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: `${Math.round(4 * scale)}px`,
+                        width: "100%",
+                      }}
+                    >
+                      <Button
+                        variant="primary"
+                        scale={scale}
+                        onClick={() => handleViewInterview(interview)}
+                        style={{
+                          backgroundColor: "#3B82F6",
+                          width: "100%",
+                          height: `${Math.round(28 * scale)}px`,
+                          fontSize: `${Math.round(11 * scale)}px`,
+                          padding: "0 8px"
+                        }}
+                      >
+                        View
+                      </Button>
+
+                      {(canEdit || canScheduleInterviews) && (
+                        <Button
+                          variant="primary"
+                          scale={scale}
+                          onClick={() => {
+                            setSelectedInterview(interview._original || interview);
+                            setShowEditModal(true);
+                          }}
+                          style={{
+                            width: "100%",
+                            height: `${Math.round(28 * scale)}px`,
+                            fontSize: `${Math.round(11 * scale)}px`,
+                            padding: "0 8px"
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      )}
+
+                      {(canDelete || canScheduleInterviews) && (
+                        <Button
+                          variant="danger"
+                          scale={scale}
+                          onClick={() => handleDeleteClick(interview)}
+                          style={{
+                            width: "100%",
+                            height: `${Math.round(28 * scale)}px`,
+                            fontSize: `${Math.round(11 * scale)}px`,
+                            padding: "0 8px"
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-
-                {/* Interview Type */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    alignSelf: "center",
-                    gap: `${Math.round(4 * scale)}px`,
-                    backgroundColor: "#F3F4F6",
-                    padding: `${Math.round(6 * scale)}px ${Math.round(10 * scale)}px`,
-                    borderRadius: `${Math.round(12 * scale)}px`,
-                    minWidth: "fit-content",
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  {getInterviewTypeIcon(interview.type)}
-                  <span
-                    style={{
-                      fontSize: `${Math.round(16 * scale)}px`,
-                      fontWeight: 500,
-                      color: "#374151",
-                      fontFamily: "Inter, sans-serif",
-                    }}
-                  >
-                    {getInterviewTypeLabel(interview.type)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Right Section: Status & Actions */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: `${Math.round(11 * scale)}px`,
-                }}
-              >
-                {/* Status Button */}
-                <Button
-                  variant="primary"
-                  scale={scale}
-                  onClick={() => {
-                    if (interview.status === "pending") {
-                      handleStatusChange(interview.id, "confirm");
-                    }
-                  }}
-                  style={{
-                    backgroundColor: getStatusColor(interview.status),
-                    width: `${Math.round(150 * scale)}px`,
-                    height: `${Math.round(45 * scale)}px`,
-                  }}
-                >
-                  {getStatusLabel(interview.status)}
-                </Button>
-
-                {/* View Button */}
-                <Button
-                  variant="primary"
-                  scale={scale}
-                  onClick={() => handleViewInterview(interview)}
-                  style={{
-                    backgroundColor: "#3B82F6",
-                    width: `${Math.round(80 * scale)}px`,
-                    height: `${Math.round(45 * scale)}px`,
-                  }}
-                >
-                  View
-                </Button>
-
-                {/* Edit Button */}
-                {(canEdit || canScheduleInterviews) && (
-                  <Button
-                    variant="primary"
-                    scale={scale}
-                    onClick={() => {
-                      setSelectedInterview(interview._original || interview);
-                      setShowEditModal(true);
-                    }}
-                    style={{
-                      width: `${Math.round(80 * scale)}px`,
-                      height: `${Math.round(45 * scale)}px`,
-                    }}
-                  >
-                    Edit
-                  </Button>
-                )}
-
-                {/* Delete Button */}
-                {(canDelete || canScheduleInterviews) && (
-                  <Button
-                    variant="danger"
-                    scale={scale}
-                    onClick={() => handleDeleteClick(interview)}
-                    style={{
-                      width: `${Math.round(80 * scale)}px`,
-                      height: `${Math.round(45 * scale)}px`,
-                    }}
-                  >
-                    Delete
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))
+            ))}
+          </div>
         ) : (
           <div
             style={{
