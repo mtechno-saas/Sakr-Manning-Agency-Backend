@@ -141,6 +141,10 @@ class UsersFilter(django_filters.FilterSet):
     passport_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
     seaman_book_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
     document_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    
+    # New Document Filters (Quick Applier/General Documents)
+    document_status = django_filters.CharFilter(field_name="documents__status", lookup_expr="iexact")
+    document_title = django_filters.CharFilter(field_name="documents__title", lookup_expr="icontains")
 
     # Filter by position (Rank name or Application position)
     position = django_filters.CharFilter(method='filter_by_position')
@@ -156,7 +160,7 @@ class UsersFilter(django_filters.FilterSet):
         fields = [
             "name", "age", "marital_status", "user_status", "nationality", 
             "nearest_port", "role", "is_blacklisted", "company", "ship",
-            "language", "contract_status", "position"
+            "language", "contract_status", "position", "document_status", "document_title"
         ]
 
 

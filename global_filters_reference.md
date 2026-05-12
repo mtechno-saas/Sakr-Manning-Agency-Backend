@@ -55,6 +55,8 @@ This document outlines all the available query parameters (filters) you can appe
 | `medical_no` | `string` | `icontains` | Search by Medical/Health Certificate Number |
 | `medical_expiry_from` / `to` | `date` | `range` | Medical certificate expiry date range |
 | `course_name` | `string` | `icontains` | Filter by Marine Course name |
+| `document_status` | `string` | `iexact` | Filter by Document status (Pending, Active, Blacklist) |
+| `document_title` | `string` | `icontains` | Search by Document title |
 
 ---
 
