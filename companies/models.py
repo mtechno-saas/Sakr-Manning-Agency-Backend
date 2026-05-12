@@ -19,6 +19,8 @@ class Company(models.Model):
     open_positions = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
     contact_email = models.EmailField()
+    contact_phone = models.CharField(max_length=50, blank=True, null=True)
+    owner = models.CharField(max_length=255, blank=True, null=True)
     website = models.URLField(max_length=255, blank=True, null=True, help_text="Company website URL")
     company_flag = models.ForeignKey(
         Flag,

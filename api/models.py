@@ -531,6 +531,8 @@ class Company(models.Model):
     contact_person = models.CharField(max_length=255, blank=True, null=True)
     contact_person_email = models.EmailField(blank=True, null=True)
     contact_person_phone = models.CharField(max_length=50, blank=True, null=True)
+    contact_phone = models.CharField(max_length=50, blank=True, null=True)
+    owner = models.CharField(max_length=255, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     open_positions = models.IntegerField(default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Active')
