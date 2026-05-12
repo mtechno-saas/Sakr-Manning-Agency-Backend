@@ -14,6 +14,7 @@ from .views import (
     FinanceRecordViewSet,
     CVSubmissionViewSet,
     DeclarationViewSet,
+    GlobalSearchView,
     get_all_users,
     create_user,
     get_filter_users,
@@ -52,7 +53,7 @@ router.register(r'interviews', InterviewViewSet, basename="interview")
 router.register(r'finance-records', FinanceRecordViewSet, basename="financerecord")
 router.register(r'cv-submissions', CVSubmissionViewSet, basename="cvsubmission")
 router.register(r'declarations', DeclarationViewSet, basename="declaration")
-router.register(r'documents', DocumentViewSet, basename="document")
+router.register(r'cvs', DocumentViewSet, basename="document")
 router.register(r'my-languages', LanguageProficiencyViewSet, basename='my-languages')
 router.register(r'user-languages', UserLanguageViewSet, basename="userlanguage")
 router.register(r'personal-documents', PersonalDocumentViewSet, basename="personaldocument")
@@ -60,6 +61,7 @@ router.register(r'next-of-kin', NextOfKinViewSet, basename="nextofkin")
 router.register(r'seafarer-application', SeafarerApplicationViewSet, basename="seafarer-application")
 urlpatterns = [
     path('', include(router.urls)),
+    path('global-search/', GlobalSearchView.as_view(), name='global-search'),
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('auth/google/', GoogleAuthView.as_view(), name='google-auth'),

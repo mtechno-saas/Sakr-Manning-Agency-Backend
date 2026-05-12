@@ -2084,3 +2084,76 @@ class NextOfKinViewSet(viewsets.ModelViewSet):
         instance.delete()
 
 
+class GlobalSearchView(APIView):
+    """
+    Unified search endpoint to query across multiple sections:
+    Users, Ships, Companies, CV Submissions, and Contracts.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        if not query or len(query) < 2:
+            return Response({
+                'users': [],
+                'ships': [],
+                'companies': [],
+                'cvs': [],
+                'contracts': []
+            })
+
+        results = {}
+
+        # 1. Search Users (Seafarers)
+        users = Users.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(middle_name__icontains=query) |
+            Q(email__icontains=query) |
+            Q(phone_number__icontains=query) |
+            Q(nationality__icontains=query)
+        ).distinct()[:10]
+        # Using a simplified representation for global search results
+        results['users'] = [{
+            'id': u.id,
+            'name': f"{u.first_name} {u.middle_name}".strip(),
+            'email': u.email,
+            'phone': u.phone_number,
+            'role': u.role
+        } for u in users]
+
+        # 2. Search Ships
+        from ships.models import Ship
+        from ships.serializers import ShipSerializer
+        ships = Ship.objects.filter(
+            Q(ship_name__icontains=query) |
+            Q(imo_number__icontains=query)
+        ).distinct()[:10]
+        results['ships'] = ShipSerializer(ships, many=True).data
+
+        # 3. Search Companies
+        from companies.models import Company as MainCompany
+        companies = MainCompany.objects.filter(
+            Q(company_name__icontains=query) |
+            Q(contact_email__icontains=query)
+        ).distinct()[:10]
+        results['companies'] = CompanyListSerializer(companies, many=True).data
+
+        # 4. Search CV Submissions
+        cvs = CVSubmission.objects.filter(
+            Q(user__first_name__icontains=query) |
+            Q(user__middle_name__icontains=query) |
+            Q(notes__icontains=query)
+        ).distinct()[:10]
+        results['cvs'] = CVSubmissionListSerializer(cvs, many=True).data
+
+        # 5. Search Contracts
+        contracts = Contract.objects.filter(
+            Q(user__first_name__icontains=query) |
+            Q(status__icontains=query)
+        ).distinct()[:10]
+        results['contracts'] = ContractListSerializer(contracts, many=True).data
+
+        return Response(results)
+
+
+
