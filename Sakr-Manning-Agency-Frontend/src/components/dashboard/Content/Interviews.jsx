@@ -189,7 +189,8 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
 
   // Transform backend interviews to match UI format
   const interviews = useMemo(() => {
-    return backendInterviews.map((interview) => ({
+    return backendInterviews.map((interview, index) => ({
+      index: (pagination.currentPage - 1) * (pagination.pageSize || 50) + index + 1,
       id: interview.id,
       candidateId: interview.candidate,
       candidateName: `${interview?.candidate_name.split(" ")[0]} ${interview?.candidate_name.split(" ")[1] || ""}` || "Unknown Candidate",
@@ -334,15 +335,12 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
 
   const handleResetFilters = useCallback(() => {
     const emptyFilters = {
-      search: "",
       candidate: "",
       status: "",
       company: "",
-      position: "",
       scheduled_date: "",
       scheduled_date_from: "",
       scheduled_date_to: "",
-      interview_type: "",
     };
     setFilters(emptyFilters);
     setActiveFilters(emptyFilters);
@@ -499,7 +497,7 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
         </h1>
 
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          <Button
+          {/* <Button
             variant="icon"
             onClick={() => setShowFilterModal(true)}
             ariaLabel="Filter interviews"
@@ -510,7 +508,7 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
             <svg width={16} height={16} viewBox="0 0 24 24" fill="none">
               <path d="M3 6h18M6 12h12M9 18h6" stroke="#1E1E1E" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-          </Button>
+          </Button> */}
           <Button
               variant="icon"
               onClick={handleRefresh}
@@ -530,14 +528,14 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
         </div>
       </div>
 
-      <SavedFilters
+      {/* <SavedFilters
         scale={scale}
         savedPresets={savedPresets}
         currentFilters={activeFilters}
         onApplyPreset={handleApplyPreset}
         onSavePreset={handleSavePreset}
         onDeletePreset={handleDeletePreset}
-      />
+      /> */}
 
       {/* Statistics Cards Row */}
       <div
@@ -665,6 +663,19 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
                     minWidth: `${Math.round(154 * scale)}px`,
                   }}
                 >
+                  <div
+                    style={{
+                      fontSize: `${Math.round(14 * scale)}px`,
+                      fontWeight: 600,
+                      color: "#9CA3AF",
+                      width: `${Math.round(24 * scale)}px`,
+                      flexShrink: 0,
+                      textAlign: "center",
+                      marginTop: `${Math.round(8 * scale)}px`
+                    }}
+                  >
+                    {interview.index}
+                  </div>
                   <img
                     src={interview.avatar}
                     alt={interview.candidateName}
@@ -891,7 +902,7 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
           <div style={{ marginTop: `${Math.round(20 * scale)}px` }}>
             <Pagination
               page={pagination?.currentPage || 1}
-              pageSize={pagination?.pageSize || 25} // or 25 fixed
+              pageSize={pagination?.pageSize || 50} // or 25 fixed
               total={pagination?.count || 0}
               onChange={handlePageChange}
               scale={scale}
@@ -901,19 +912,17 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
         )}
       </div>
 
-      {showFilterModal && (
-        <EnhancedFilterModel
-          isOpen={showFilterModal}
-          onClose={() => setShowFilterModal(false)}
-          values={filters}
-          onValuesChange={setFilters}
-          onApply={handleApplyFilters}
-          onReset={handleResetFilters}
-          fields={filterFields}
-          scale={scale}
-          title="Filter Interviews"
-        />
-      )}
+      {/* <EnhancedFilterModel
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        values={filters}
+        onValuesChange={setFilters}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        fields={filterFields}
+        scale={scale}
+        title="Filter Interviews"
+      /> */}
 
       {showAddModal && (
         <InterviewFormModal

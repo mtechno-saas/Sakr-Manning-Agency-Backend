@@ -20,7 +20,7 @@ export const useUsers = () => {
     next: null,
     previous: null,
     currentPage: 1,
-    pageSize: 25,
+    pageSize: 50,
     totalPages: 1,
   });
 
@@ -37,8 +37,8 @@ export const useUsers = () => {
       setLoading(true);
       setError(null);
 
-      // Default to 25 records per page
-      const pageSize = filters.page_size || 25;
+      // Default to 50 records per page
+      const pageSize = filters.page_size || 50;
 
       try {
         const response = await usersApi.getUsers({

@@ -97,7 +97,8 @@ export function UserManagement({ scale = 1, isMobile }) {
   // Transform backend users to match UI format
   const userData = useMemo(() => {
     // console.log("the backend user data : ", backendUsers);
-    return backendUsers.map((user) => ({
+    return backendUsers.map((user, index) => ({
+      index: (pagination.currentPage - 1) * (pagination.pageSize || 50) + index + 1,
       id: user.id,
       // name: `${user.first_name.split(" ")[0] || ""} ${user.middle_name.split(" ")[0] || ""}`.trim(),
       name: user.first_name + " " + user.middle_name,
@@ -230,7 +231,6 @@ export function UserManagement({ scale = 1, isMobile }) {
     user_status: "",
     role: "",
     nationality: "",
-    status: "",
     marital_status: "",
     nearest_port: "",
     is_blacklisted: false,
@@ -240,7 +240,6 @@ export function UserManagement({ scale = 1, isMobile }) {
     user_status: "",
     role: "",
     nationality: "",
-    status: "",
     marital_status: "",
     nearest_port: "",
     is_blacklisted: false,
@@ -273,7 +272,7 @@ export function UserManagement({ scale = 1, isMobile }) {
   }, [filters, fetchUsers]);
 
   const handleResetFilters = useCallback(() => {
-    const emptyFilters = { name: "", user_status: "", role: "", nationality: "", status: "", marital_status: "", nearest_port: "", is_blacklisted: false };
+    const emptyFilters = { name: "", user_status: "", role: "", nationality: "", marital_status: "", nearest_port: "", is_blacklisted: false };
     setFilters(emptyFilters);
     setActiveFilters(emptyFilters);
     setShowFilterModal(false);
@@ -409,6 +408,13 @@ export function UserManagement({ scale = 1, isMobile }) {
   const userColumns = useMemo(
     () => [
       {
+        key: "index",
+        title: "#",
+        width: 60,
+        sortable: false,
+        render: (val) => val,
+      },
+      {
         key: "name",
         title: "User Name",
         width: 360,
@@ -519,10 +525,10 @@ export function UserManagement({ scale = 1, isMobile }) {
       type: "select",
       placeholder: "All Roles",
       options: [
-        { value: "ADMIN", label: "Admin" },
-        { value: "MANAGER", label: "HR Manager" },
-        { value: "RECRUITER", label: "Recruiter" },
-        { value: "EMPLOYEE", label: "Employee" },
+        { value: "Admin", label: "Admin" },
+        { value: "HR Manager", label: "HR Manager" },
+        { value: "Recruiter", label: "Recruiter" },
+        { value: "Employee", label: "Employee" },
       ],
     },
     {
@@ -530,18 +536,6 @@ export function UserManagement({ scale = 1, isMobile }) {
       label: "Nationality",
       type: "text",
       placeholder: "Filter by nationality (partial match)...",
-    },
-    {
-      key: "status",
-      label: "Account Status",
-      type: "select",
-      placeholder: "All Statuses",
-      options: [
-        { value: "Active", label: "Active" },
-        { value: "Inactive", label: "Inactive" },
-        { value: "Suspended", label: "Suspended" },
-        { value: "Pending", label: "Pending" },
-      ],
     },
     {
       key: "marital_status",
@@ -678,7 +672,7 @@ export function UserManagement({ scale = 1, isMobile }) {
           columns={userColumns}
           rowKey="id"
           scale={scale}
-          pageSize={pagination.pageSize || 25}
+          pageSize={pagination.pageSize || 50}
           initialPage={1}
           actions={
             canEdit && canDelete
@@ -691,6 +685,16 @@ export function UserManagement({ scale = 1, isMobile }) {
           styleOverrides={{ columnGap: 18 }}
           loading={usersLoading}
         />
+        <div style={{ marginTop: "20px" }}>
+          <Pagination
+            page={pagination.currentPage}
+            pageSize={pagination.pageSize || 50}
+            total={pagination.count}
+            onChange={handlePageChange}
+            scale={scale}
+            showInfo={true}
+          />
+        </div>
 
         {/* User View Modal */}
         <UserViewModal

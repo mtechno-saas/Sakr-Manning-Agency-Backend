@@ -160,14 +160,14 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     imo_number: "",
     company: "",
     status: "",
-    vessel_type: "",
+    ship_type: "",
   });
   const [activeShipFilters, setActiveShipFilters] = useState({
     name: "",
     imo_number: "",
     company: "",
     status: "",
-    vessel_type: "",
+    ship_type: "",
   });
 
   // ✅ NEW: Saved filter presets for both companies and ships
@@ -193,7 +193,8 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
 
   // Transform backend companies to match UI format
   const companyData = useMemo(() => {
-    return backendCompanies.map((company) => ({
+    return backendCompanies.map((company, index) => ({
+      index: (companyPagination.currentPage - 1) * (companyPagination.pageSize || 50) + index + 1,
       id: company.id,
       name: company.company_name,
       companyFlag: company.company_flag_name || "No Flag",
@@ -209,15 +210,8 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     }));
   }, [backendCompanies]);
 
-  // Transform backend ships to match UI format
   const shipData = useMemo(() => {
-    // console.log("the ships Company ID : ", backendShips[0]?.company);
-    // console.log(
-    //   "the maaped company : ",
-    //   backendCompanies[backendShips[0]?.company]
-    // );
-    // console.log("the ship data beore mapping : ", backendShips);
-    return backendShips.map((ship) => {
+    return backendShips.map((ship, index) => {
       // console.log("the flags data : ", flags);
       // console.log("the vessel types : ", vesselTypes);
       const associatedCompany = backendCompanies.find(
@@ -232,6 +226,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       );
       // console.log("", associatedCompany);
       const shipIns = {
+        index: (shipPagination.currentPage - 1) * (shipPagination.pageSize || 50) + index + 1,
         id: ship.id,
         name: ship.ship_name,
         typeId: ship.ship_type || "N/A",
@@ -257,7 +252,8 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       };
       return shipIns;
     });
-  }, [backendCompanies, backendShips, flags, vesselTypes]);
+  }, [backendCompanies, backendShips, flags, vesselTypes, shipPagination.currentPage, shipPagination.pageSize]);
+
 
   // ============================================
   // COMPANY CRUD HANDLERS
@@ -700,7 +696,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       imo_number: "",
       company: "",
       status: "",
-      vessel_type: "",
+      ship_type: "",
     };
     setShipFilters(emptyFilters);
     setActiveShipFilters(emptyFilters);
@@ -804,6 +800,13 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   const companyColumns = useMemo(
     () => [
       {
+        key: "index",
+        title: "#",
+        width: 60,
+        sortable: false,
+        render: (val) => val,
+      },
+      {
         key: "name",
         title: "Company Name",
         width: 360,
@@ -906,6 +909,13 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
 
   const shipColumns = useMemo(
     () => [
+      {
+        key: "index",
+        title: "#",
+        width: 100, // Increased for more space between index and name
+        sortable: false,
+        render: (val) => val,
+      },
       {
         key: "name",
         title: "Ship Name",
@@ -1122,7 +1132,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       ],
     },
     {
-      key: "vessel_type",
+      key: "ship_type",
       label: "Ship Type",
       type: "select",
       placeholder: "All Types",
@@ -1239,14 +1249,14 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
           </h2>
 
           {/* ✅ NEW: Saved Filters */}
-          <SavedFilters
+          {/* <SavedFilters
             scale={scale}
             savedPresets={savedCompanyPresets}
             currentFilters={activeCompanyFilters}
             onApplyPreset={handleApplyCompanyPreset}
             onSavePreset={handleSaveCompanyPreset}
             onDeletePreset={handleDeleteCompanyPreset}
-          />
+          /> */}
 
           <div
             style={{
@@ -1256,7 +1266,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
               alignItems: "center"
             }}
           >
-            <Button
+            {/* <Button
               variant="icon"
               onClick={() => setShowCompanyFilterModal(true)}
               ariaLabel="Filter companies"
@@ -1277,7 +1287,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
                   strokeLinecap="round"
                 />
               </svg>
-            </Button>
+            </Button> */}
             <Button
               variant="icon"
               onClick={handleRefreshCompanies}
@@ -1323,7 +1333,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
           columns={companyColumns}
           rowKey="id"
           scale={scale}
-          pageSize={25}
+          pageSize={companyPagination.pageSize || 50}
           initialPage={1}
           hidePagination={true} // Hide internal pagination, use backend pagination below
           actions={
@@ -1341,14 +1351,14 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         />
 
         {/* Company Pagination */}
-        {/* <Pagination
+        <Pagination
           page={companyPagination.currentPage}
-          pageSize={25} // Default page size
+          pageSize={companyPagination.pageSize || 50} // Default page size
           total={companyPagination.count}
           onChange={handleCompanyPageChange}
           scale={scale}
           showInfo={true}
-        /> */}
+        />
       </section>
 
       {/* Ships Section */}
@@ -1364,14 +1374,14 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
           </h2>
 
           {/* ✅ NEW: Saved Filters */}
-          <SavedFilters
+          {/* <SavedFilters
             scale={scale}
             savedPresets={savedShipPresets}
             currentFilters={activeShipFilters}
             onApplyPreset={handleApplyShipPreset}
             onSavePreset={handleSaveShipPreset}
             onDeletePreset={handleDeleteShipPreset}
-          />
+          /> */}
 
           <div
             style={{
@@ -1382,7 +1392,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
               alignItems: "center"
             }}
           >
-            <Button
+            {/* <Button
               variant="icon"
               onClick={() => setShowShipFilterModal(true)}
               ariaLabel="Filter ships"
@@ -1403,7 +1413,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
                   strokeLinecap="round"
                 />
               </svg>
-            </Button>
+            </Button> */}
             <Button
               variant="icon"
               onClick={handleRefreshShips}
@@ -1444,7 +1454,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
           columns={shipColumns}
           rowKey="id"
           scale={scale}
-          pageSize={25}
+          pageSize={shipPagination.pageSize || 50}
           hidePagination={true}
           initialPage={1}
           expandable={true}
@@ -1504,14 +1514,14 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
           loading={shipsLoading}
         />
         {/* Ship Pagination */}
-        {/* <Pagination
+        <Pagination
           page={shipPagination.currentPage || 1}
-          pageSize={25}
+          pageSize={shipPagination.pageSize || 50}
           total={shipPagination.count || 0}
           onChange={handleShipPageChange}
           scale={scale}
           showInfo={true}
-        /> */}
+        />
       </section>
 
       {/* ── Job Orders Section ─────────────────────────────────────────── */}
@@ -1635,7 +1645,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       </section> */}
 
       {/* ✅ MODALS - Companies */}
-      <EnhancedFilterModel
+      {/* <EnhancedFilterModel
         isOpen={showCompanyFilterModal}
         onClose={() => setShowCompanyFilterModal(false)}
         title="Filter Companies"
@@ -1645,7 +1655,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         onApply={handleApplyCompanyFilters}
         onReset={handleResetCompanyFilters}
         scale={scale}
-      />
+      /> */}
 
       {showCompanyModal && (
         <CompanyFormModal
@@ -1657,7 +1667,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       )}
 
       {/* ✅ MODALS - Ships */}
-      <EnhancedFilterModel
+      {/* <EnhancedFilterModel
         isOpen={showShipFilterModal}
         onClose={() => setShowShipFilterModal(false)}
         title="Filter Ships"
@@ -1667,7 +1677,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         onApply={handleApplyShipFilters}
         onReset={handleResetShipFilters}
         scale={scale}
-      />
+      /> */}
 
       {showShipModal && (
         <ShipFormModal

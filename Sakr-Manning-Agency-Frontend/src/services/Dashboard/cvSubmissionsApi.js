@@ -30,14 +30,22 @@ export const cvSubmissionsApi = {
 
     /**
      * Get all Documents (Section 2)
-     * @param {Object} filters - { page, search, status }
+     * @param {Object} filters - { page, name, email, status }
+     * name  → icontains match on submitter's name
+     * email → icontains match on submitter's email
+     * status → iexact match ("Pending", "Active", "Blacklist")
      */
     getDocuments: async (filters = {}) => {
         try {
             const params = new URLSearchParams();
-            if (filters.page) params.append("page", filters.page);
-            if (filters.search) params.append("search", filters.search);
+            if (filters.page)   params.append("page",   filters.page);
+            if (filters.name)   params.append("name",   filters.name);
+            if (filters.email)  params.append("email",  filters.email);
             if (filters.status) params.append("status", filters.status);
+            // Legacy fallback: if caller still passes generic `search`
+            if (filters.search && !filters.name && !filters.email) {
+                params.append("search", filters.search);
+            }
 
             const queryString = params.toString();
             const endpoint = queryString
@@ -125,12 +133,12 @@ export const cvSubmissionsApi = {
     getSubmissions: async (filters = {}) => {
         try {
             const params = new URLSearchParams();
-            if (filters.page) params.append("page", filters.page);
+            if (filters.page)   params.append("page",   filters.page);
             if (filters.status) params.append("status", filters.status);
-            if (filters.user) params.append("user", filters.user);
+            if (filters.user)   params.append("user",   filters.user);
             if (filters.position) params.append("position", filters.position);
             if (filters.submitted_date_from) params.append("submitted_date_from", filters.submitted_date_from);
-            if (filters.submitted_date_to) params.append("submitted_date_to", filters.submitted_date_to);
+            if (filters.submitted_date_to)   params.append("submitted_date_to",   filters.submitted_date_to);
 
             const queryString = params.toString();
             const endpoint = queryString

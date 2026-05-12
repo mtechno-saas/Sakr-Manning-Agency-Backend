@@ -56,34 +56,46 @@ export function CVManagement({ scale = 1, isMobile = false }) {
   // Filter state
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
-    search: "",
+    nameOrEmail: "",
     status: "",
   });
   const [activeFilters, setActiveFilters] = useState({
-    search: "",
+    nameOrEmail: "",
     status: "",
   });
 
-  const hasActiveFilters = activeFilters.search || activeFilters.status;
+  const hasActiveFilters = activeFilters.nameOrEmail || activeFilters.status;
 
   // Load documents on mount
   useEffect(() => {
     fetchDocuments({ page: 1 });
   }, []);
 
+  const buildBackendFilters = useCallback((vals) => {
+    const backend = {};
+    if (vals.nameOrEmail) {
+      if (vals.nameOrEmail.includes("@")) {
+        backend.email = vals.nameOrEmail.trim();
+      } else {
+        backend.name = vals.nameOrEmail.trim();
+      }
+    }
+    if (vals.status) backend.status = vals.status;
+    return backend;
+  }, []);
   // Handle page change (server-side pagination)
   const handlePageChange = useCallback(
     (newPage) => {
-      if (!hasActiveFilters) {
-        fetchDocuments({ page: newPage });
-      }
+      const backendFilters = buildBackendFilters(activeFilters);
+      fetchDocuments({ ...backendFilters, page: newPage });
     },
-    [fetchDocuments, hasActiveFilters]
+    [fetchDocuments, activeFilters, buildBackendFilters]
   );
 
   // ── Transform API response into table rows ──
   const cvData = useMemo(() => {
-    return documents.map((doc) => ({
+    return documents.map((doc, index) => ({
+      index: (pagination.currentPage - 1) * pagination.pageSize + index + 1,
       id: doc.id,
       name: doc.name || "—",
       generated_id: doc.generated_id || "—",
@@ -99,7 +111,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
       // keep raw for downloads / actions
       _raw: doc,
     }));
-  }, [documents]);
+  }, [documents, pagination.currentPage, pagination.pageSize]);
 
   // ── Statistics ──
   const statisticsData = useMemo(() => {
@@ -234,6 +246,13 @@ export function CVManagement({ scale = 1, isMobile = false }) {
   const columns = useMemo(
     () => [
       {
+        key: "index",
+        title: "#",
+        width: 60,
+        sortable: false,
+        render: (val) => val,
+      },
+      {
         key: "name",
         title: "Name",
         width: 360,
@@ -351,19 +370,15 @@ export function CVManagement({ scale = 1, isMobile = false }) {
   );
 
   // ── Filter handlers ──
+
   const handleApplyFilters = useCallback(() => {
     setActiveFilters({ ...filters });
     setShowFilterModal(false);
-
-    const backendFilters = {};
-    if (filters.search) backendFilters.search = filters.search;
-    if (filters.status) backendFilters.status = filters.status;
-
-    fetchDocuments({ ...backendFilters, page: 1 });
-  }, [filters, fetchDocuments]);
+    fetchDocuments({ ...buildBackendFilters(filters), page: 1 });
+  }, [filters, fetchDocuments, buildBackendFilters]);
 
   const handleResetFilters = useCallback(() => {
-    const emptyFilters = { search: "", status: "" };
+    const emptyFilters = { nameOrEmail: "", status: "" };
     setFilters(emptyFilters);
     setActiveFilters(emptyFilters);
     setShowFilterModal(false);
@@ -372,10 +387,10 @@ export function CVManagement({ scale = 1, isMobile = false }) {
 
   const filterFields = [
     {
-      key: "search",
-      label: "Search",
+      key: "nameOrEmail",
+      label: "Name or Email",
       type: "text",
-      placeholder: "Search by name, email…",
+      placeholder: "Search by name or email…",
     },
     {
       key: "status",
@@ -417,12 +432,9 @@ export function CVManagement({ scale = 1, isMobile = false }) {
     (preset) => {
       setFilters(preset);
       setActiveFilters(preset);
-      const backendFilters = {};
-      if (preset.search) backendFilters.search = preset.search;
-      if (preset.status) backendFilters.status = preset.status;
-      fetchDocuments(backendFilters);
+      fetchDocuments({ ...buildBackendFilters(preset), page: 1 });
     },
-    [fetchDocuments]
+    [fetchDocuments, buildBackendFilters]
   );
 
   const handleSavePreset = useCallback((name, filterValues) => {
@@ -463,17 +475,17 @@ export function CVManagement({ scale = 1, isMobile = false }) {
           Manage and review submitted CVs
         </h1>
 
-        <SavedFilters
+        {/* <SavedFilters
           scale={scale}
           savedPresets={savedPresets}
           currentFilters={activeFilters}
           onApplyPreset={handleApplyPreset}
           onSavePreset={handleSavePreset}
           onDeletePreset={handleDeletePreset}
-        />
+        /> */}
 
         <div style={{ display: "flex", gap: `${Math.round(8 * scale)}px`, alignItems: "center" }}>
-          <Button
+          {/* <Button
             variant="icon"
             onClick={() => setShowFilterModal(true)}
             ariaLabel="Filter CVs"
@@ -494,7 +506,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
                 strokeLinecap="round"
               />
             </svg>
-          </Button>
+          </Button> */}
           <Button
             variant="icon"
             onClick={handleRefresh}
@@ -555,16 +567,14 @@ export function CVManagement({ scale = 1, isMobile = false }) {
         />
 
         {/* Server-side Pagination */}
-        {/* {!hasActiveFilters && (
-          <Pagination
-            page={pagination.currentPage}
-            pageSize={pagination.pageSize}
-            total={pagination.count}
-            onChange={handlePageChange}
-            scale={scale}
-            showInfo={true}
-          />
-        )} */}
+        <Pagination
+          page={pagination.currentPage}
+          pageSize={pagination.pageSize}
+          total={pagination.count}
+          onChange={handlePageChange}
+          scale={scale}
+          showInfo={true}
+        />
       </div>
 
 
@@ -593,7 +603,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
       )}
 
       {/* Filter Modal */}
-      <EnhancedFilterModel
+      {/* <EnhancedFilterModel
         isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
         title="Filter CVs"
@@ -603,7 +613,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
         onApply={handleApplyFilters}
         onReset={handleResetFilters}
         scale={scale}
-      />
+      /> */}
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}

@@ -527,7 +527,7 @@ export function RefinedDataTable({
                                 const spaceBelow = window.innerHeight - rect.bottom;
                                 const menuHeight = 220; // approximate max height
                                 const openUp = spaceBelow < menuHeight;
-                                
+
                                 setMenuPosition({
                                   top: openUp ? rect.top : rect.bottom,
                                   left: rect.left,
@@ -801,7 +801,7 @@ export function RefinedDataTable({
       </div>
 
       {/* Pagination */}
-      <div
+      {/* <div
         style={{
           marginTop: Math.round(12 * scale),
           display: "flex",
@@ -867,7 +867,7 @@ export function RefinedDataTable({
         >
           Next
         </button>
-      </div>
+      </div> */}
     </>
   );
 }

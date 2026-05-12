@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { BASE_WIDTH, COLORS, getScale } from "./Constants";
 import { Header } from "./Header";
 import { Sidebar, MobileSidebar } from "./Sidebar";
+import globalSearchApi from "../../services/Dashboard/globalSearchApi";
 
 import { OverviewPage } from "./Content/Overview";
 import { CVManagement } from "./Content/CV";
@@ -32,6 +33,11 @@ const DashboardAppContent = ({ onLogout, user }) => {
     typeof window !== "undefined" ? window.innerWidth : BASE_WIDTH
   );
   const [scale, setScale] = useState(1);
+
+  // Global search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [backendSearchResults, setBackendSearchResults] = useState({});
+  const [searchLoading, setSearchLoading] = useState(false);
 
   // Get loading states from context
   const {
@@ -81,8 +87,20 @@ const DashboardAppContent = ({ onLogout, user }) => {
     cvSubmissions: "CV Submissions",
   };
 
-  const handleSearchSubmit = useCallback((query) => {
+  const handleSearchSubmit = useCallback(async (query) => {
+    setSearchQuery(query);
     setCurrentPage("search");
+    if (!query || query.trim().length < 2) return;
+    setSearchLoading(true);
+    try {
+      const results = await globalSearchApi.search(query);
+      setBackendSearchResults(results);
+    } catch (err) {
+      console.error("Global search error:", err);
+      setBackendSearchResults({});
+    } finally {
+      setSearchLoading(false);
+    }
   }, []);
 
   const handleNavigateFromSearch = useCallback((page, itemId) => {
@@ -125,6 +143,9 @@ const DashboardAppContent = ({ onLogout, user }) => {
         return (
           <SearchResults
             {...commonProps}
+            searchQuery={searchQuery}
+            backendResults={backendSearchResults}
+            loading={searchLoading}
             onNavigate={handleNavigateFromSearch}
           />
         );
