@@ -61,16 +61,27 @@ export function Select({
     error,
     trigger,
   } = useFormField(name);
-  
+
   const currentValue = inForm ? formValue : value;
-  
+
   const setVal = (v) => {
     if (isMulti) {
+      // If v is an array, it's a direct reset or set (e.g. from Clear selection)
+      if (Array.isArray(v)) {
+        if (inForm) {
+          setValue(name, v, { shouldValidate: true, shouldDirty: true });
+          trigger?.(name);
+        } else {
+          onChange?.(v);
+        }
+        return;
+      }
+
       const currentArray = Array.isArray(currentValue) ? currentValue : [];
       const newArray = currentArray.includes(v)
         ? currentArray.filter(item => item !== v)
         : [...currentArray, v];
-      
+
       if (inForm) {
         setValue(name, newArray, { shouldValidate: true, shouldDirty: true });
         trigger?.(name);
@@ -199,7 +210,7 @@ export function Select({
       }
       return `${currentValue.length} items selected`;
     }
-    
+
     const opt = options.find((o) => getValue(o) === currentValue);
     return opt ? getLabel(opt) : (typeof currentValue === 'string' ? currentValue : "");
   }, [currentValue, options, isMulti]);

@@ -37,15 +37,13 @@ export const useUsers = () => {
       setLoading(true);
       setError(null);
 
-      // Default to 50 records per page
-      const pageSize = filters.page_size || 50;
-
       try {
         const response = await usersApi.getUsers({
           ...filters,
-          page_size: pageSize,
         });
 
+        // Use a default page size of 50 for pagination calculations if not provided by BE
+        const pageSize = 50; 
         const count = response.count || 0;
         const totalPages = Math.max(1, Math.ceil(count / pageSize));
 

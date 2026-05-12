@@ -17,6 +17,7 @@ import {
 } from "../Styles/cssClasses";
 import Button from "../Components/Common/Button";
 import EnhancedFilterModel from "../Components/Common/EnhancedFilterModel";
+import SavedFilters from "../Components/Common/SavedFilters";
 import ConfirmDialog from "../Components/Common/ConfirmDialog";
 
 import UserFormModal from "../Components/Modal/UserFormModal";
@@ -225,25 +226,19 @@ export function UserManagement({ scale = 1, isMobile }) {
   }, [userData]);
 
   // ✅ Table filters — keys match BE query params directly
+  const [activeFilters, setActiveFilters] = useState({});
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [filters, setFilters] = useState({
-    name: "",
-    user_status: "",
-    role: "",
-    nationality: "",
-    marital_status: "",
-    nearest_port: "",
-    is_blacklisted: false,
-  });
-  const [activeFilters, setActiveFilters] = useState({
-    name: "",
-    user_status: "",
-    role: "",
-    nationality: "",
-    marital_status: "",
-    nearest_port: "",
-    is_blacklisted: false,
-  });
+
+  const buildBackendFilters = useCallback((uiFilters) => {
+    const backend = {};
+    if (!uiFilters) return backend;
+    Object.entries(uiFilters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "" && value !== false) {
+        backend[key] = value;
+      }
+    });
+    return backend;
+  }, []);
 
   // Check if any filters are active
   const hasActiveFilters = Object.entries(activeFilters).some(([, v]) => v !== "" && v !== false);
@@ -251,32 +246,21 @@ export function UserManagement({ scale = 1, isMobile }) {
   // Handle page change for server-side pagination
   const handlePageChange = useCallback(
     (newPage) => {
-      // Filter keys match BE params directly — strip empty values
-      const backendFilters = Object.fromEntries(
-        Object.entries(activeFilters).filter(([, v]) => v !== "" && v !== false)
-      );
-      fetchUsers({ ...backendFilters, page: newPage });
+      fetchUsers({ ...buildBackendFilters(activeFilters), page: newPage });
     },
-    [fetchUsers, activeFilters]
+    [fetchUsers, activeFilters, buildBackendFilters]
   );
 
   // Backend filter handlers
   const handleApplyFilters = useCallback(() => {
-    setActiveFilters({ ...filters });
     setShowFilterModal(false);
-    // Keys match BE params directly — strip empty values before sending
-    const backendFilters = Object.fromEntries(
-      Object.entries(filters).filter(([, v]) => v !== "" && v !== false)
-    );
-    fetchUsers({ ...backendFilters, page: 1 });
-  }, [filters, fetchUsers]);
+    fetchUsers({ ...buildBackendFilters(activeFilters), page: 1 });
+  }, [activeFilters, fetchUsers, buildBackendFilters]);
 
   const handleResetFilters = useCallback(() => {
-    const emptyFilters = { name: "", user_status: "", role: "", nationality: "", marital_status: "", nearest_port: "", is_blacklisted: false };
-    setFilters(emptyFilters);
-    setActiveFilters(emptyFilters);
-    setShowFilterModal(false);
+    setActiveFilters({});
     fetchUsers({ page: 1 });
+    setShowFilterModal(false);
   }, [fetchUsers]);
 
   const stats = useMemo(() => {
@@ -501,64 +485,114 @@ export function UserManagement({ scale = 1, isMobile }) {
     [canEdit, canDelete, handleDeleteUser, handleEditUser, handleManageRanks]
   );
 
-  const filterFields = [
+  const filterSections = [
     {
-      key: "name",
-      label: "Search by Name",
-      type: "text",
-      placeholder: "Search by first name (partial match)...",
-    },
-    {
-      key: "user_status",
-      label: "User Status",
-      type: "select",
-      placeholder: "All Statuses",
-      options: [
-        { value: "ON_SITE", label: "On Site" },
-        { value: "VACATION", label: "Vacation" },
-        { value: "MEDICAL VACATION", label: "Medical Vacation" },
+      title: "Personal Information",
+      fields: [
+        { key: "name", label: "First Name", type: "text", colSpan: 12 },
+        { key: "age", label: "Age", type: "number", colSpan: 4 },
+        {
+          key: "marital_status",
+          label: "Marital Status",
+          type: "multi-select",
+          colSpan: 4,
+          options: [
+            { value: "SINGLE", label: "Single" },
+            { value: "MARRIED", label: "Married" },
+            { value: "DIVORCED", label: "Divorced" },
+            { value: "WIDOWED", label: "Widowed" },
+          ],
+        },
+        {
+          key: "user_status",
+          label: "User Status",
+          type: "multi-select",
+          colSpan: 4,
+          options: [
+            { value: "ON_SITE", label: "On Site" },
+            { value: "VACATION", label: "Vacation" },
+            { value: "MEDICAL VACATION", label: "Medical Vacation" },
+          ],
+        },
+        { key: "nationality", label: "Nationality", type: "text", colSpan: 4 },
+        { key: "nearest_port", label: "Nearest Port", type: "text", colSpan: 4 },
+        { key: "language", label: "Language", type: "text", colSpan: 4 },
       ],
     },
     {
-      key: "role",
-      label: "Role",
-      type: "select",
-      placeholder: "All Roles",
-      options: [
-        { value: "Admin", label: "Admin" },
-        { value: "HR Manager", label: "HR Manager" },
-        { value: "Recruiter", label: "Recruiter" },
-        { value: "Employee", label: "Employee" },
+      title: "Professional Details",
+      fields: [
+        { key: "rank_name", label: "Rank Name", type: "text" },
+        { key: "assigned_code", label: "Assigned Code", type: "text" },
+        {
+          key: "role",
+          label: "User Role",
+          type: "multi-select",
+          options: [
+            { value: "Employee", label: "Employee" },
+            { value: "Admin", label: "Admin" },
+            { value: "Recruiter", label: "Recruiter" },
+            { value: "HR Manager", label: "HR Manager" },
+          ],
+        },
+        { key: "position", label: "General Position", type: "text" },
+        { key: "course_name", label: "Marine Course", type: "text" },
       ],
     },
     {
-      key: "nationality",
-      label: "Nationality",
-      type: "text",
-      placeholder: "Filter by nationality (partial match)...",
-    },
-    {
-      key: "marital_status",
-      label: "Marital Status",
-      type: "select",
-      placeholder: "All Statuses",
-      options: [
-        { value: "SINGLE", label: "Single" },
-        { value: "MARRIED", label: "Married" },
+      title: "Assignment & Vessels",
+      fields: [
+        { key: "company_name", label: "Company Name", type: "text" },
+        { key: "ship_name", label: "Ship Name", type: "text" },
+        { key: "company_type", label: "Company Type", type: "text" },
+        { key: "ship_type", label: "Ship Type", type: "text" },
+        { key: "job_position_name", label: "Job Position", type: "text" },
       ],
     },
     {
-      key: "nearest_port",
-      label: "Nearest Port",
-      type: "text",
-      placeholder: "Filter by nearest port (partial match)...",
-      fullWidth: true,
+      title: "Contract Details",
+      fields: [
+        {
+          key: "contract_status",
+          label: "Contract Status",
+          type: "multi-select",
+          colSpan: 12,
+          options: [
+            { value: "Draft", label: "Draft" },
+            { value: "Signed", label: "Signed" },
+            { value: "Active", label: "Active" },
+            { value: "Completed", label: "Completed" },
+            { value: "Terminated", label: "Terminated" },
+          ],
+        },
+        { key: "signed_on_from", label: "Signed On From", type: "date", colSpan: 6 },
+        { key: "signed_on_to", label: "Signed On To", type: "date", colSpan: 6 },
+        { key: "signed_off_from", label: "Signed Off From", type: "date", colSpan: 6 },
+        { key: "signed_off_to", label: "Signed Off To", type: "date", colSpan: 6 },
+      ],
     },
     {
-      key: "is_blacklisted",
-      label: "Blacklisted Only",
-      type: "checkbox",
-      fullWidth: true,
+      title: "Documentation",
+      fields: [
+        { key: "passport_no", label: "Passport No", type: "text", colSpan: 6 },
+        { key: "passport_type", label: "Passport Type", type: "text", colSpan: 6 },
+        { key: "passport_expiry_from", label: "Passport Expiry From", type: "date", colSpan: 6 },
+        { key: "passport_expiry_to", label: "Passport Expiry To", type: "date", colSpan: 6 },
+        { key: "seaman_book_no", label: "Seaman Book No", type: "text", colSpan: 6 },
+        { key: "seaman_book_type", label: "Seaman Book Type", type: "text", colSpan: 6 },
+        { key: "seaman_book_expiry_from", label: "Seaman Book Expiry From", type: "date", colSpan: 6 },
+        { key: "seaman_book_expiry_to", label: "Seaman Book Expiry To", type: "date", colSpan: 6 },
+        { key: "medical_no", label: "Medical No", type: "text", colSpan: 6 },
+        { key: "document_type", label: "General Document Type", type: "text", colSpan: 6 },
+        { key: "medical_expiry_from", label: "Medical Expiry From", type: "date", colSpan: 6 },
+        { key: "medical_expiry_to", label: "Medical Expiry To", type: "date", colSpan: 6 },
+      ],
+    },
+    {
+      title: "Status",
+      fields: [
+        { key: "is_blacklisted", label: "Blacklisted Only", type: "checkbox" },
+      ],
     },
   ];
   const headerHeight = Math.round(101 * scale);
@@ -606,6 +640,19 @@ export function UserManagement({ scale = 1, isMobile }) {
           >
             User Management
           </h2>
+
+          <SavedFilters
+            scale={scale}
+            savedPresets={[]}
+            currentFilters={activeFilters}
+            onApplyPreset={(filters) => {
+              setActiveFilters(filters);
+              fetchUsers({ ...buildBackendFilters(filters), page: 1 });
+            }}
+            onSavePreset={() => {}}
+            onDeletePreset={() => {}}
+          />
+
           <div style={{ display: "flex", gap: `${Math.round(8 * scale)}px`, alignItems: "center" }}>
             <Button
               variant="icon"
@@ -696,7 +743,6 @@ export function UserManagement({ scale = 1, isMobile }) {
           />
         </div>
 
-        {/* User View Modal */}
         <UserViewModal
           isOpen={showViewModal}
           onClose={() => setShowViewModal(false)}
@@ -728,19 +774,17 @@ export function UserManagement({ scale = 1, isMobile }) {
       )}
 
       {/* Filter Modal */}
-      {showFilterModal && (
-        <EnhancedFilterModel
-          isOpen={showFilterModal}
-          onClose={() => setShowFilterModal(false)}
-          title="Filter Users"
-          fields={filterFields}
-          values={filters}
-          onValuesChange={setFilters}
-          onApply={handleApplyFilters}
-          onReset={handleResetFilters}
-          scale={scale}
-        />
-      )}
+      <EnhancedFilterModel
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        values={activeFilters}
+        onValuesChange={setActiveFilters}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        sections={filterSections}
+        scale={scale}
+        title="Filter Users"
+      />
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}

@@ -490,54 +490,60 @@ export const usersApi = {
    */
   getUsers: async (filters = {}) => {
     try {
-      // Determine if we have actual filters (not just pagination)
-      const hasFilters = filters.search || filters.role || filters.nationality ||
-        filters.user_status || filters.marital_status ||
-        filters.email || filters.first_name || filters.status ||
-        filters.is_blacklisted !== undefined;
+      // Keys that are NOT filters (used for pagination/control)
+      const nonFilterKeys = ["page", "page_size", "ordering"];
+      
+      // Determine if we have actual filters
+      const hasFilters = Object.keys(filters).some(key => 
+        !nonFilterKeys.includes(key) && 
+        filters[key] !== undefined && 
+        filters[key] !== null && 
+        filters[key] !== "" && 
+        filters[key] !== false
+      );
 
       const params = new URLSearchParams();
 
-      // Add filter params (for both endpoints)
-      // Array handling: if a filter is an array (from multi-select), we use the first value or join if BE supported. 
-      // Since BE uses iexact, we extract the first string if it's an array to avoid comma-joined invalid strings.
-      const getVal = (v) => Array.isArray(v) ? v[0] : v;
+      // Mapping for specific keys if they differ between UI and BE
+      const keyMap = {
+        name: "name",
+        search: "name",
+        first_name: "name",
+      };
 
-      if (filters.search) params.append("name", getVal(filters.search));
-      if (filters.name) params.append("name", getVal(filters.name));
-      if (filters.role) params.append("role", getVal(filters.role));
-      if (filters.nationality) params.append("nationality", getVal(filters.nationality));
-      if (filters.user_status) params.append("user_status", getVal(filters.user_status));
-      if (filters.marital_status) params.append("marital_status", getVal(filters.marital_status));
-      if (filters.nearest_port) params.append("nearest_port", getVal(filters.nearest_port));
-      if (filters.rank_name) params.append("rank_name", getVal(filters.rank_name));
-      if (filters.company) params.append("company", getVal(filters.company));
-      if (filters.email) params.append("email", getVal(filters.email));
-      if (filters.first_name) params.append("name", getVal(filters.first_name));
-      if (filters.status) params.append("status", getVal(filters.status));
-      if (filters.is_blacklisted !== undefined && filters.is_blacklisted !== "") params.append("is_blacklisted", filters.is_blacklisted);
+      // Helper to handle value extraction (especially for arrays)
+      const appendParam = (key, value) => {
+        if (value === undefined || value === null || value === "" || value === false) return;
+        
+        const beKey = keyMap[key] || key;
+        
+        if (Array.isArray(value)) {
+          // Some BE endpoints expect multiple params with same key
+          value.forEach(v => params.append(beKey, v));
+        } else {
+          params.append(beKey, value);
+        }
+      };
 
-      // Only add pagination params for /users/users/ endpoint (not for /filter/)
-      // /filter/ returns ALL filtered data, we paginate on frontend
-      if (!hasFilters) {
-        if (filters.page) params.append("page", filters.page);
-        if (filters.page_size) params.append("page_size", filters.page_size);
-      }
+      // Append all filters
+      Object.entries(filters).forEach(([key, value]) => {
+        if (!nonFilterKeys.includes(key)) {
+          appendParam(key, value);
+        }
+      });
+
+      // Add pagination params
+      if (filters.page) params.append("page", filters.page);
 
       const queryString = params.toString();
-
-      // Use /api/filter/ endpoint when filters are present (returns all filtered data)
-      // Fall back to /users/users/ for basic pagination (when no filters)
-      const baseEndpoint = hasFilters ? "/filter/" : "/users/users/";
+      // Always use the standard users list endpoint as requested
+      const baseEndpoint = "/users/users/";
       const endpoint = queryString ? `${baseEndpoint}?${queryString}` : baseEndpoint;
 
       const response = await api.get(endpoint);
 
-      // Handle different response formats:
-      // 1. /users/users/ returns { results: [], count, next, previous }
-      // 2. /filter/ returns { users: [] }
+      // Standardize the response parsing
       if (response.data.results) {
-        // Standard paginated response
         return {
           users: response.data.results,
           count: response.data.count,
@@ -546,20 +552,13 @@ export const usersApi = {
         };
       }
 
-      if (response.data.users) {
-        // Filter endpoint response format
-        return {
-          users: response.data.users,
-          count: response.data.users.length,
-          next: null,
-          previous: null,
-        };
-      }
-
-      // Non-paginated array response fallback
+      // Fallback for non-paginated or alternative formats
+      const users = response.data.users || (Array.isArray(response.data) ? response.data : []);
       return {
-        users: Array.isArray(response.data) ? response.data : [],
-        count: Array.isArray(response.data) ? response.data.length : 0,
+        users: users,
+        count: response.data.count || users.length,
+        next: response.data.next || null,
+        previous: response.data.previous || null,
       };
     } catch (error) {
       console.error("Failed to fetch users:", error);
