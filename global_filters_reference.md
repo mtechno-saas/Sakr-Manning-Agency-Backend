@@ -1,4 +1,14 @@
-# Global API Filters Reference
+# Global Unified Search (`/api/global-search/`)
+
+Use this endpoint to search across all platform sections (Users, Ships, Companies, CVs, and Contracts) using a single query.
+
+| Query Parameter | Type | Match Type | Description |
+|---|---|---|---|
+| `q` | `string` | `icontains` | Search term (Min 2 chars). Searches Name, Email, Phone, IMO, Status, etc. |
+
+---
+
+# Module-Specific Filters
 
 This document outlines all the available query parameters (filters) you can append to the URL for `GET` requests across the different sections of the backend. 
 
