@@ -693,6 +693,26 @@ class ContractViewSet(viewsets.ModelViewSet):
         return ContractSerializer
 
     def get_queryset(self):
+        # Automatically transition expired contracts to 'Draft' status
+        today = timezone.now().date()
+        
+        # Performance Guard: Only run the update query once per day
+        last_update_date = cache.get('last_contract_expiry_check')
+        
+        if last_update_date != today:
+            # Find all contracts that have passed their sign-off date but are still in active states
+            expired_contracts = Contract.objects.filter(
+                sign_off_date__lt=today,
+                status__in=['Active', 'Signed', 'Pending Signature', 'Pending']
+            )
+            
+            # Bulk update to Draft
+            if expired_contracts.exists():
+                expired_contracts.update(status='Draft')
+            
+            # Cache the check for 24 hours
+            cache.set('last_contract_expiry_check', today, 86400)
+
         user = self.request.user
         if user.role in ['Admin', 'HR Manager', 'Recruiter']:
             return Contract.objects.select_related('user', 'ship', 'company', 'rank').all()
