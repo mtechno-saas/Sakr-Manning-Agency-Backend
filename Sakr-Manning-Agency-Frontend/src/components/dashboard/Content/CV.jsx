@@ -151,6 +151,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
   const handleStatusChange = useCallback(async (id, newStatus) => {
     const result = await setDocumentStatus(id, newStatus);
     if (result.success) {
+      notify.success(`Status updated to ${newStatus}`);
       // Reload is handled by hook's state update or manual refresh if needed
       fetchDocuments({ page: pagination.currentPage, ...activeFilters });
     }
@@ -174,6 +175,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
       const doc = row._raw || documents.find((d) => d.id === row.id);
       if (doc?.file) {
         await downloadDocument(doc.id, doc.file.split("/").pop());
+        notify.success("CV downloaded successfully!");
       } else {
         notify.error("No file available for download");
       }
@@ -236,6 +238,7 @@ export function CVManagement({ scale = 1, isMobile = false }) {
     if (!cvToDelete) return;
     const result = await deleteDocument(cvToDelete);
     if (result.success) {
+      notify.success("CV deleted successfully");
       setShowDeleteConfirm(false);
       setCvToDelete(null);
       fetchDocuments({ page: pagination.currentPage, ...activeFilters });

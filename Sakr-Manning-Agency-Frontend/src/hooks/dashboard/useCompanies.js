@@ -94,8 +94,6 @@ const { notify } = useNotification();
 
         // Refresh global context cache
         await refreshGlobalCompanies(true);
-
-        notify.success("Company created successfully");
         return { success: true, data: newCompany };
       } catch (err) {
         const errorMessage = err.message || "Failed to create company";
@@ -134,8 +132,6 @@ const { notify } = useNotification();
 
         // Refresh global context cache
         await refreshGlobalCompanies(true);
-
-        notify.success("Company updated successfully");
         return { success: true, data: updatedCompany };
       } catch (err) {
         const errorMessage = err.message || "Failed to update company";
@@ -170,8 +166,6 @@ const { notify } = useNotification();
 
         // Refresh global context cache
         await refreshGlobalCompanies(true);
-
-        notify.success("Company deleted successfully");
         return { success: true };
       } catch (err) {
         const errorMessage = err.message || "Failed to delete company";

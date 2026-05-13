@@ -187,6 +187,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
         if (!submissionToDelete) return;
         const result = await deleteSubmission(submissionToDelete);
         if (result.success) {
+            notify.success("Application deleted successfully");
             setShowDeleteConfirm(false);
             setSubmissionToDelete(null);
             handleRefresh();
@@ -196,6 +197,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
     const handleStatusChange = useCallback(async (id, newStatus) => {
         const result = await updateStatus(id, newStatus);
         if (result.success) {
+            notify.success(`Status updated to ${newStatus}`);
             handleRefresh();
         }
     }, [updateStatus, handleRefresh]);
@@ -684,7 +686,6 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                     onClose={() => setShowGenerateContractModal(false)}
                     onSuccess={() => {
                         setShowGenerateContractModal(false);
-                        notify.success("Contract successfully generated!");
                     }}
                     scale={scale}
                 />

@@ -91,7 +91,6 @@ export const useFinance = () => {
         setRecords((prev) => [newRecord, ...prev]);
         setPagination((prev) => ({ ...prev, count: prev.count + 1 }));
 
-        notify.success("Finance record created successfully");
         return { success: true, data: newRecord };
       } catch (err) {
         const errorMessage = err.message || "Failed to create finance record";
@@ -128,7 +127,6 @@ export const useFinance = () => {
           )
         );
 
-        notify.success("Finance record updated successfully");
         return { success: true, data: updatedRecord };
       } catch (err) {
         const errorMessage = err.message || "Failed to update finance record";
@@ -159,7 +157,6 @@ export const useFinance = () => {
         setRecords((prev) => prev.filter((record) => record.id !== recordId));
         setPagination((prev) => ({ ...prev, count: prev.count - 1 }));
 
-        notify.success("Finance record deleted successfully");
         return { success: true };
       } catch (err) {
         const errorMessage = err.message || "Failed to delete finance record";
@@ -240,7 +237,6 @@ export const useFinance = () => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
 
-        notify.success("Finance records exported successfully");
         return { success: true };
       } catch (err) {
         const errorMessage = err.message || "Failed to export finance records";

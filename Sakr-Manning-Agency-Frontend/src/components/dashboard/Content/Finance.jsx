@@ -351,6 +351,7 @@ export function FinanceRecords({ scale = 1, isMobile = false }) {
     if (!recordToDelete) return;
     const result = await deleteRecord(recordToDelete);
     if (result.success) {
+      notify.success("Finance record deleted successfully");
       setShowDeleteConfirm(false);
       setRecordToDelete(null);
       await loadStatistics();
