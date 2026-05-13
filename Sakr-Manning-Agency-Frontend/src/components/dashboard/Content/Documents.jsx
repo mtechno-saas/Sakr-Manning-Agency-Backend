@@ -433,6 +433,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
     const result = await deleteContract(contractToDelete.id);
 
     if (result.success) {
+      notify.success("Contract deleted successfully");
       setShowDeleteConfirm(false);
       setContractToDelete(null);
     }

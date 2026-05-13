@@ -109,8 +109,6 @@ export const useUsers = () => {
 
         // Refresh global context cache
         await refreshGlobalUsers(true);
-
-        notify.success("User created successfully");
         return { success: true, data: newUser };
       } catch (err) {
         const errorMessage = err.message || "Failed to create user";
@@ -145,8 +143,6 @@ export const useUsers = () => {
 
         // Refresh global context cache
         await refreshGlobalUsers(true);
-
-        notify.success("User updated successfully");
         return { success: true, data: updatedUser };
       } catch (err) {
         const errorMessage = err.message || "Failed to update user";
@@ -180,8 +176,6 @@ export const useUsers = () => {
 
         // Refresh global context cache
         await refreshGlobalUsers(true);
-
-        notify.success("User deleted successfully");
         return { success: true };
       } catch (err) {
         const errorMessage = err.message || "Failed to delete user";

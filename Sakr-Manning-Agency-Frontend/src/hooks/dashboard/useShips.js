@@ -94,8 +94,6 @@ export const useShips = () => {
 
         // Refresh global context cache
         await refreshGlobalShips(true);
-
-        notify.success("Ship created successfully");
         return { success: true, data: newShip };
       } catch (err) {
         const errorMessage = err.message || "Failed to create ship";
@@ -129,8 +127,6 @@ export const useShips = () => {
 
         // Refresh global context cache
         await refreshGlobalShips(true);
-
-        notify.success("Ship updated successfully");
         return { success: true, data: updatedShip };
       } catch (err) {
         const errorMessage = err.message || "Failed to update ship";
@@ -163,8 +159,6 @@ export const useShips = () => {
 
         // Refresh global context cache
         await refreshGlobalShips(true);
-
-        notify.success("Ship deleted successfully");
         return { success: true };
       } catch (err) {
         const errorMessage = err.message || "Failed to delete ship";
@@ -189,7 +183,6 @@ export const useShips = () => {
 
       try {
         await shipsApi.assignUserToShip(shipId, userId);
-        notify.success("User assigned to ship successfully");
         return { success: true };
       } catch (err) {
         const errorMessage = err.message || "Failed to assign user";
@@ -212,7 +205,6 @@ export const useShips = () => {
 
       try {
         await shipsApi.unassignUserFromShip(shipId, userId);
-        notify.success("User removed from ship successfully");
         return { success: true };
       } catch (err) {
         const errorMessage = err.message || "Failed to remove user";

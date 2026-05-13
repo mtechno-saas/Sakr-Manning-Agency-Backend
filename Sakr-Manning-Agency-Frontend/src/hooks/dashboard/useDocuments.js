@@ -189,7 +189,6 @@ export const useDocuments = () => {
         setPagination((prev) => ({ ...prev, count: prev.count + 1 }));
 
         await fetchContractStats();
-        notify.success("Contract created successfully");
         return { success: true, data: enrichedContract };
       } catch (err) {
         const errorMessage = err.message || "Failed to create contract";
@@ -242,7 +241,6 @@ export const useDocuments = () => {
         );
 
         await fetchContractStats();
-        notify.success("Contract updated successfully");
         return { success: true, data: enrichedContract };
       } catch (err) {
         const errorMessage = err.message || "Failed to update contract";
@@ -276,7 +274,6 @@ export const useDocuments = () => {
         setPagination((prev) => ({ ...prev, count: prev.count - 1 }));
 
         await fetchContractStats();
-        notify.success("Contract deleted successfully");
         return { success: true };
       } catch (err) {
         const errorMessage = err.message || "Failed to delete contract";

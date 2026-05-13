@@ -61,7 +61,6 @@ export const useJobOrders = () => {
         try {
             const newOrder = await jobOrdersApi.createJobOrder(data);
             setJobOrders(prev => [newOrder, ...prev]);
-            notify.success("Job order created");
             return { success: true, data: newOrder };
         } catch (err) {
             notify.error(err.message || "Failed to create job order");
@@ -80,7 +79,6 @@ export const useJobOrders = () => {
         try {
             const updatedOrder = await jobOrdersApi.updateJobOrder(id, data);
             setJobOrders(prev => prev.map(o => o.id === id ? { ...o, ...updatedOrder } : o));
-            notify.success("Job order updated");
             return { success: true, data: updatedOrder };
         } catch (err) {
             notify.error(err.message || "Failed to update job order");
@@ -95,7 +93,6 @@ export const useJobOrders = () => {
         try {
             await jobOrdersApi.deleteJobOrder(id);
             setJobOrders(prev => prev.filter(o => o.id !== id));
-            notify.success("Job order deleted");
             return { success: true };
         } catch (err) {
             notify.error(err.message || "Failed to delete job order");
@@ -114,7 +111,6 @@ export const useJobOrders = () => {
                 ? { ...o, positions: [...(o.positions || []), newPos] }
                 : o
             ));
-            notify.success("Position added");
             return { success: true, data: newPos };
         } catch (err) {
             notify.error(err.message || "Failed to add position");
@@ -130,7 +126,6 @@ export const useJobOrders = () => {
                 ? { ...o, positions: (o.positions || []).filter(p => p.id !== posId) }
                 : o
             ));
-            notify.success("Position removed");
             return { success: true };
         } catch (err) {
             notify.error(err.message || "Failed to remove position");

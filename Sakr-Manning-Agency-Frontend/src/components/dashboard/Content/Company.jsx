@@ -607,6 +607,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
     }
 
     if (result && result.success) {
+      notify.success(`${deleteType.charAt(0).toUpperCase() + deleteType.slice(1).replace("_", " ")} deleted successfully`);
       setShowDeleteConfirm(false);
       setItemToDelete(null);
       setDeleteType(null);

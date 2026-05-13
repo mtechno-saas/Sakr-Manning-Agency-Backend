@@ -39,8 +39,6 @@ export const useRanks = () => {
 
       // Refresh global context cache
       await refreshGlobalRanks(true);
-
-      notify.success("Rank created successfully");
       return { success: true, data: created };
     } catch (err) {
       const msg = err.message || "Failed to create rank";
@@ -59,8 +57,6 @@ export const useRanks = () => {
 
       // Refresh global context cache
       await refreshGlobalRanks(true);
-
-      notify.success("Rank updated successfully");
       return { success: true, data: updated };
     } catch (err) {
       const msg = err.message || "Failed to update rank";
@@ -79,8 +75,6 @@ export const useRanks = () => {
 
       // Refresh global context cache
       await refreshGlobalRanks(true);
-
-      notify.success("Rank deleted successfully");
       return { success: true };
     } catch (err) {
       const msg = err.message || "Failed to delete rank";

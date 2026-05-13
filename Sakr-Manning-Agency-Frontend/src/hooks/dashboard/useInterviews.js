@@ -91,7 +91,6 @@ export const useInterviews = () => {
         setInterviews((prev) => [newInterview, ...prev]);
         setPagination((prev) => ({ ...prev, count: prev.count + 1 }));
 
-        notify.success("Interview scheduled successfully!");
         return { success: true, data: newInterview };
       } catch (err) {
         const errorMessage = err.message || "Failed to schedule interview";
@@ -128,7 +127,6 @@ export const useInterviews = () => {
           )
         );
 
-        notify.success("Interview updated successfully!");
         return { success: true, data: updatedInterview };
       } catch (err) {
         const errorMessage = err.message || "Failed to update interview";
@@ -161,7 +159,6 @@ export const useInterviews = () => {
         );
         setPagination((prev) => ({ ...prev, count: prev.count - 1 }));
 
-        notify.success("Interview deleted successfully!");
         return { success: true };
       } catch (err) {
         const errorMessage = err.message || "Failed to delete interview";

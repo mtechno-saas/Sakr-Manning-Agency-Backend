@@ -325,6 +325,7 @@ export function UserManagement({ scale = 1, isMobile }) {
     if (!userToDelete) return;
     const result = await deleteUser(userToDelete);
     if (result.success) {
+      notify.success("User deleted successfully");
       setShowDeleteConfirm(false);
       setUserToDelete(null);
       await loadStatistics();

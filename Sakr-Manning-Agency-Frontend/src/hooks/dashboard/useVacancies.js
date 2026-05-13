@@ -97,7 +97,6 @@ export const useVacancies = () => {
         setVacancies((prev) => [newVacancy, ...prev]);
         setPagination((prev) => ({ ...prev, count: prev.count + 1 }));
 
-        notify.success("Vacancy created successfully");
         return { success: true, data: newVacancy };
       } catch (err) {
         const msg = err.message || "Failed to create vacancy";
@@ -131,7 +130,6 @@ export const useVacancies = () => {
           prev.map((v) => (v.id === vacancyId ? updated : v))
         );
 
-        notify.success("Vacancy updated successfully");
         return { success: true, data: updated };
       } catch (err) {
         const msg = err.message || "Failed to update vacancy";
@@ -164,7 +162,6 @@ export const useVacancies = () => {
         setVacancies((prev) => prev.filter((v) => v.id !== vacancyId));
         setPagination((prev) => ({ ...prev, count: prev.count - 1 }));
 
-        notify.success("Vacancy deleted successfully");
         return { success: true };
       } catch (err) {
         const msg = err.message || "Failed to delete vacancy";

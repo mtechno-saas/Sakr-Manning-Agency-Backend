@@ -425,6 +425,7 @@ export function InterviewManagement({ scale = 1, isMobile = false }) {
 
     const result = await deleteInterview(interviewToDelete);
     if (result.success) {
+      notify.success("Interview deleted successfully!");
       setShowDeleteConfirm(false);
       setInterviewToDelete(null);
       await loadStatistics();
