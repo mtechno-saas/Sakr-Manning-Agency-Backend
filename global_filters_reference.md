@@ -24,12 +24,12 @@ This document outlines all the available query parameters (filters) you can appe
 | `name` | `string` | `icontains` | Searches the user's `first_name` |
 | `age` | `int` | `exact` | Exact age match |
 | `marital_status` | `string` | `iexact` | e.g., "SINGLE", "MARRIED" |
-| `user_status` | `string` | `iexact` | e.g., "ON_SITE", "VACATION", "MEDICAL VACATION" |
-| `nationality` | `string` | `icontains` | Partial match on nationality |
+| `user_status` | `list` | `multiple` | Filter by user status (e.g., `?user_status=ON_SITE&user_status=VACATION`) |
+| `nationality` | `list` | `multiple` | Filter by nationality (e.g., `?nationality=Egypt&nationality=Syria`) |
 | `nearest_port` | `string` | `icontains` | Partial match on Nearest Port |
 | `rank_name` | `string` | `icontains` | Partial match on any assigned Rank name |
 | `assigned_code` | `string` | `icontains` | Partial match on UserRank assigned code |
-| `role` | `string` | `iexact` | Filter by user role (e.g., "Employee", "Admin") |
+| `role` | `list` | `multiple` | Filter by user role (e.g., `?role=Employee&role=Admin`) |
 | `is_blacklisted` | `boolean` | `exact` | `true` or `false` |
 | `company` | `int` | `exact` | Filter by Company ID (linked via contracts) |
 | `company_name` | `string` | `icontains` | Partial match on Company Name |
@@ -65,8 +65,8 @@ This document outlines all the available query parameters (filters) you can appe
 | Query Parameter | Type | Match Type | Description |
 |---|---|---|---|
 | `name` | `string` | `icontains` | Partial match on company name |
-| `company_type` | `string` | `iexact` | Exact match on company type |
-| `status` | `string` | `iexact` | Exact match on status (e.g., "Active", "Inactive") |
+| `company_type` | `list` | `multiple` | Filter by company type (e.g., `?company_type=Agency&company_type=Owner`) |
+| `status` | `list` | `multiple` | Exact match on status (e.g., `?status=Active&status=Inactive`) |
 
 ---
 
@@ -77,7 +77,7 @@ This document outlines all the available query parameters (filters) you can appe
 | `name` | `string` | `icontains` | Partial match on ship name |
 | `imo_number` | `string` | `icontains` | Partial match on IMO number |
 | `company` | `int` | `exact` | Filter ships by Company ID |
-| `status` | `string` | `iexact` | Exact match on ship status (e.g., "Active") |
+| `status` | `list` | `multiple` | Exact match on ship status (e.g., `?status=Active`) |
 | `flag` | `string` | `icontains` | Partial match on Flag name |
 | `ship_type` | `string` | `icontains` | Partial match on Ship Type name |
 
@@ -89,7 +89,7 @@ This document outlines all the available query parameters (filters) you can appe
 |---|---|---|---|
 | `company` | `int` | `exact` | Filter by Company ID |
 | `ship` | `int` | `exact` | Filter by Ship ID |
-| `status` | `string` | `iexact` | Exact match on status (e.g., "Open", "Pending") |
+| `status` | `list` | `multiple` | Exact match on status (e.g., `?status=Open&status=Pending`) |
 | `reference_number` | `string` | `icontains` | Partial match on Job Order reference number |
 | `request_date_from` | `date` | `>=` | Request date is greater than or equal to |
 | `request_date_to` | `date` | `<=` | Request date is less than or equal to |
@@ -189,7 +189,7 @@ This document outlines all the available query parameters (filters) you can appe
 | `ship` | `int` | `exact` | Filter by Ship ID |
 | `company` | `int` | `exact` | Filter by Company ID |
 | `rank` | `int` | `exact` | Filter by Rank ID |
-| `status` | `string` | `iexact` | Exact match on status (e.g., "Active", "Signed") |
+| `status` | `list` | `multiple` | Filter by contract status (e.g., `?status=Active&status=Signed`) |
 | `sign_on_from` | `date` | `>=` | Sign-on date is greater than or equal to |
 | `sign_on_to` | `date` | `<=` | Sign-on date is less than or equal to |
 | `sign_off_from` | `date` | `>=` | Sign-off date is greater than or equal to |

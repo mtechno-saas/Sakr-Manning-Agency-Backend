@@ -80,15 +80,15 @@ class UsersFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="first_name", lookup_expr="icontains")
     age = django_filters.NumberFilter(field_name="age", lookup_expr="exact")
     marital_status = django_filters.CharFilter(field_name="marital_status", lookup_expr="iexact")
-    user_status = django_filters.CharFilter(field_name="user_status", lookup_expr="iexact")
-    nationality = django_filters.CharFilter(field_name="nationality", lookup_expr="icontains")
+    user_status = django_filters.AllValuesMultipleFilter(field_name="user_status")
+    nationality = django_filters.AllValuesMultipleFilter(field_name="nationality")
     nearest_port = django_filters.CharFilter(field_name="Nearest_Port", lookup_expr="icontains")
     
     # Position filters
     rank_name = django_filters.CharFilter(field_name="codes__name", lookup_expr="icontains")
     assigned_code = django_filters.CharFilter(field_name="user_ranks__assigned_code", lookup_expr="icontains")
     
-    role = django_filters.CharFilter(field_name="role", lookup_expr="iexact")
+    role = django_filters.AllValuesMultipleFilter(field_name="role")
     is_blacklisted = django_filters.BooleanFilter(field_name="is_blacklisted")
     
     # New requested filters
@@ -166,8 +166,8 @@ class UsersFilter(django_filters.FilterSet):
 
 class CompanyFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
-    company_type = django_filters.CharFilter(field_name="company_type", lookup_expr="iexact")
-    status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
+    company_type = django_filters.AllValuesMultipleFilter(field_name="company_type")
+    status = django_filters.AllValuesMultipleFilter(field_name="status")
 
     class Meta:
         model = Company
@@ -215,7 +215,7 @@ class CVSubmissionFilter(django_filters.FilterSet):
 class JobOrderFilter(django_filters.FilterSet):
     company = django_filters.NumberFilter(field_name="company__id")
     ship = django_filters.NumberFilter(field_name="ship__id")
-    status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
+    status = django_filters.AllValuesMultipleFilter(field_name="status")
     reference_number = django_filters.CharFilter(field_name="reference_number", lookup_expr="icontains")
     request_date_from = django_filters.DateFilter(field_name="request_date", lookup_expr="gte")
     request_date_to = django_filters.DateFilter(field_name="request_date", lookup_expr="lte")
@@ -270,7 +270,7 @@ class ShipFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="ship_name", lookup_expr="icontains")
     imo_number = django_filters.CharFilter(field_name="imo_number", lookup_expr="icontains")
     company = django_filters.NumberFilter(field_name="company__id")
-    status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
+    status = django_filters.AllValuesMultipleFilter(field_name="status")
     flag = django_filters.CharFilter(field_name="flag__name", lookup_expr="icontains")
     ship_type = django_filters.CharFilter(field_name="ship_type__name", lookup_expr="icontains")
 
@@ -284,7 +284,7 @@ class ContractFilter(django_filters.FilterSet):
     ship = django_filters.NumberFilter(field_name="ship__id")
     company = django_filters.NumberFilter(field_name="company__id")
     rank = django_filters.NumberFilter(field_name="rank__id")
-    status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
+    status = django_filters.AllValuesMultipleFilter(field_name="status")
     
     sign_on_from = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="gte")
     sign_on_to = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="lte")
