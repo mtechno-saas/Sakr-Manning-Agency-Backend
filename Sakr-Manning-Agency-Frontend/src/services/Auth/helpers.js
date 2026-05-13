@@ -109,6 +109,7 @@ export const formatUserData = (userData) => {
     lastName: userData.last_name || "",
     name: userData.first_name || userData.name,
     role: userData.role || "",
+    cv_status: userData.cv_status || false,
     // Add other fields as needed
   };
 };
