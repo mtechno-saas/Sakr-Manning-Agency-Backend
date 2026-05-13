@@ -48,6 +48,8 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
     getLocalStats,
     pagination,
     canManageContracts,
+    backendStats,
+    fetchContractStats,
   } = useDocuments();
 
   const referenceData = useReferenceDataContext();
@@ -61,17 +63,35 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   // Fetch contracts on mount
   useEffect(() => {
     fetchContracts();
+    fetchContractStats();
     // console.log("the contracts  : ", contracts);
   }, []);
 
   // Calculate statistics matching UI design
   // const stats = useMemo(() => getLocalStats(), [getLocalStats]);
   const stats = useMemo(() => {
-    const data = getLocalStats();
-    // {active, cancelled, critical, draft, expired, notice, pending, signed, warning, total}
-    // console.log("the data : ", data);
-    return data;
-  }, [getLocalStats]);
+    if (backendStats) {
+      return {
+        signed: backendStats.signed_contracts || 0,
+        pending: backendStats.pending_signature || 0,
+        draft: backendStats.drafts || 0,
+        critical: backendStats.critical || 0,
+        warning: backendStats.warning || 0,
+        notice: backendStats.notice || 0,
+        active: getLocalStats().active || 0,
+        total: (backendStats.signed_contracts || 0) +
+          (backendStats.pending_signature || 0) +
+          (backendStats.drafts || 0) +
+          (backendStats.critical || 0) +
+          (backendStats.warning || 0) +
+          (backendStats.notice || 0) +
+          (getLocalStats().active || 0),
+        expired: 0,
+        cancelled: 0
+      };
+    }
+    return getLocalStats();
+  }, [backendStats, getLocalStats]);
 
   // ✅ Local state for filters
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -137,7 +157,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   const activeContracts = useMemo(
     () =>
       contracts.filter((c) =>
-        ["Signed", "Pending Signature", "Draft"].includes(c.status)
+        ["Signed", "Pending Signature", "Draft", "Active"].includes(c.status)
       ),
     [contracts]
   );
@@ -218,6 +238,7 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
         { value: "Signed", label: "Signed" },
         { value: "Pending Signature", label: "Pending Signature" },
         { value: "Draft", label: "Draft" },
+        { value: "Active", label: "Active" },
         { value: "Expired", label: "Expired" },
         { value: "Cancelled", label: "Cancelled" },
       ],
@@ -264,7 +285,8 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
 
   const handleRefresh = useCallback(() => {
     fetchContracts({ ...activeFilters, page: pagination?.currentPage || 1 });
-  }, [fetchContracts, activeFilters, pagination]);
+    fetchContractStats();
+  }, [fetchContracts, fetchContractStats, activeFilters, pagination]);
 
   // Statistics for progress card - MATCHING UI DESIGN EXACTLY
   const documentSegments = useMemo(() => {
@@ -299,6 +321,11 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
         key: "notice",
         color: "#E5E7EB",
         pct: (stats.notice / total) * 100,
+      },
+      {
+        key: "active",
+        color: "#BAE6FD",
+        pct: (stats.active / total) * 100,
       },
     ];
   }, [stats]);
@@ -340,6 +367,12 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
         color: "#E5E7EB",
         label: "Notice (≤60 days)",
         remaining: `${stats.notice}`,
+      },
+      {
+        key: "active",
+        color: "#BAE6FD",
+        label: "Active (>60 days)",
+        remaining: `${stats.active}`,
       },
     ];
   }, [stats]);

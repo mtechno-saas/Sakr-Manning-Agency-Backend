@@ -71,12 +71,12 @@ export const useDocuments = () => {
       return {
         success: false,
         data: {
-          total_contracts: 0,
           signed_contracts: 0,
           pending_signature: 0,
-          expired_contracts: 0,
-          active_contracts: 0,
-          draft_contracts: 0,
+          drafts: 0,
+          critical: 0,
+          warning: 1,
+          notice: 0,
         },
       };
     }
@@ -108,6 +108,7 @@ export const useDocuments = () => {
       else if (status === "Draft") stats.draft++;
       else if (status === "Expired") stats.expired++;
       else if (status === "Cancelled") stats.cancelled++;
+      else if (status === "Active") stats.active++;
 
       // Count by expiry category (for signed contracts only)
       if (status === "Signed" && contract.expiryCategory) {
@@ -187,6 +188,7 @@ export const useDocuments = () => {
         setContracts((prev) => [enrichedContract, ...prev]);
         setPagination((prev) => ({ ...prev, count: prev.count + 1 }));
 
+        await fetchContractStats();
         notify.success("Contract created successfully");
         return { success: true, data: enrichedContract };
       } catch (err) {
@@ -239,6 +241,7 @@ export const useDocuments = () => {
           )
         );
 
+        await fetchContractStats();
         notify.success("Contract updated successfully");
         return { success: true, data: enrichedContract };
       } catch (err) {
@@ -272,6 +275,7 @@ export const useDocuments = () => {
         );
         setPagination((prev) => ({ ...prev, count: prev.count - 1 }));
 
+        await fetchContractStats();
         notify.success("Contract deleted successfully");
         return { success: true };
       } catch (err) {
@@ -373,6 +377,8 @@ export const useDocuments = () => {
 
     // Stats
     getLocalStats,
+    backendStats,
+    fetchContractStats,
   };
 };
 
