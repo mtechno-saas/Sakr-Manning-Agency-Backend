@@ -21,6 +21,7 @@ import ChatWidget from "./Components/AI/ChatWidget";
 
 import { ASSETS } from "../../utils/constants";
 import { SearchProvider } from "./context/SearchContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import { DashboardDataProvider, useDashboardData } from "./context/DashboardDataContext";
 import NotificationCenter from "./Components/Common/NotificationCenter";
 import LoadingScreen from "./Components/Common/LoadingScreen";
@@ -230,9 +231,11 @@ const DashboardAppContent = ({ onLogout, user }) => {
 
 const DashboardApp = (props) => {
   return (
-    <DashboardDataProvider>
-      <DashboardAppContent {...props} />
-    </DashboardDataProvider>
+    <NotificationProvider>
+      <DashboardDataProvider>
+        <DashboardAppContent {...props} />
+      </DashboardDataProvider>
+    </NotificationProvider>
   );
 };
 

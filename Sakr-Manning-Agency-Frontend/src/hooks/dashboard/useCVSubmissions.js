@@ -97,6 +97,7 @@ export const useCVSubmissions = () => {
     setLoading(true);
     try {
       const response = await cvSubmissionsApi.createSubmission(data);
+      notify.success("Application created successfully");
       await fetchSubmissions({ page: 1 });
       return { success: true, data: response };
     } catch (err) {
@@ -118,6 +119,7 @@ export const useCVSubmissions = () => {
     try {
       const result = await cvSubmissionsApi.updateSubmission(id, data);
       setSubmissions(prev => prev.map(s => s.id === id ? { ...s, ...result } : s));
+      notify.success("Application updated successfully");
       return { success: true, data: result };
     } catch (err) {
       notify.error(err.message || "Failed to update application");
@@ -136,6 +138,7 @@ export const useCVSubmissions = () => {
       await cvSubmissionsApi.deleteSubmission(id);
       setSubmissions(prev => prev.filter(s => s.id !== id));
       setPagination(prev => ({ ...prev, count: Math.max(0, prev.count - 1) }));
+      notify.success("Application removed successfully");
       return { success: true };
     } catch (err) {
       notify.error(err.message || "Failed to delete application");

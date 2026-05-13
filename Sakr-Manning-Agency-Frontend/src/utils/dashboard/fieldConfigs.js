@@ -82,7 +82,7 @@ export const COMPANY_FORM_FIELDS = [
     defaultValue: "Active",
   },
   {
-    name: "company_type",
+    name: "company_type_name",
     label: "Company Type",
     type: "select",
     component: "Select",
@@ -125,7 +125,7 @@ export const COMPANY_FORM_FIELDS = [
   //   transformOnSave: (value) => parseFloat(value),
   // },
   {
-    name: "company_flag",
+    name: "company_flag_name",
     label: "Country Flag",
     type: "select",
     component: "Select",
