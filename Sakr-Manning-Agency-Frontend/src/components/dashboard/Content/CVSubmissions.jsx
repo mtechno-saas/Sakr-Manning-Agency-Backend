@@ -684,7 +684,6 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                     onClose={() => setShowGenerateContractModal(false)}
                     onSuccess={() => {
                         setShowGenerateContractModal(false);
-                        notify.success("Contract successfully generated!");
                     }}
                     scale={scale}
                 />
