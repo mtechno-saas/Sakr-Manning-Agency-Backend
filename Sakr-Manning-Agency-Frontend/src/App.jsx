@@ -46,10 +46,10 @@ const AuthPages = () => {
       if (tokenStorage.isStoredAdmin()) {
         navigate("/dashboard", { replace: true });
       } else {
-        navigate("/quick-apply", { replace: true });
+        navigate(storedUser.cv_status ? "/" : "/quick-apply", { replace: true });
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [currentAuthStep, setCurrentAuthStep] = useState(AUTH_STEPS.LOGIN);
@@ -84,7 +84,7 @@ const AuthPages = () => {
       if (isAdminRole(result.user.role)) {
         navigate("/dashboard");
       } else {
-        navigate(intendedPath || "/quick-apply");
+        navigate(intendedPath || (result.user.cv_status ? "/" : "/quick-apply"));
       }
       setIntendedPath(null);
     }
@@ -101,7 +101,7 @@ const AuthPages = () => {
         setCurrentAuthStep(AUTH_STEPS.VERIFICATION);
       } else {
         // No verification needed — user is already logged in
-        navigate(intendedPath || "/quick-apply");
+        navigate(intendedPath || (result.user?.cv_status ? "/" : "/quick-apply"));
         setPendingUserData(null);
         setIntendedPath(null);
       }
@@ -114,7 +114,9 @@ const AuthPages = () => {
     const result = await verifyCode(code, pendingUserData.email);
 
     if (result.success) {
-      navigate(intendedPath || "/quick-apply");
+      // Fetch user to get cv_status if not available
+      const user = tokenStorage.getUser();
+      navigate(intendedPath || (user?.cv_status ? "/" : "/quick-apply"));
       setPendingUserData(null);
       setIntendedPath(null);
     }
@@ -337,57 +339,53 @@ const FormPage = () => {
   );
 };
 
-import { AuthProvider } from "./context/AuthContext";
-
 // Main App Component
 const App = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="min-h-screen">
-          <Routes>
-            {/* Landing Page - Base Route */}
-            <Route path="/" element={<Landing />} />
+    <BrowserRouter>
+      <div className="min-h-screen">
+        <Routes>
+          {/* Landing Page - Base Route */}
+          <Route path="/" element={<Landing />} />
 
-            {/* Authentication Route — AuthPages itself handles redirect if already logged in */}
-            <Route path="/auth" element={<AuthPages />} />
+          {/* Authentication Route — AuthPages itself handles redirect if already logged in */}
+          <Route path="/auth" element={<AuthPages />} />
 
-            {/* Dashboard Route (Admin only) */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+          {/* Dashboard Route (Admin only) */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Form Route (Protected - any authenticated user) */}
-            <Route
-              path="/form"
-              element={
-                <ProtectedRoute>
-                  <FormPage />
-                </ProtectedRoute>
-              }
-            />
+          {/* Form Route (Protected - any authenticated user) */}
+          <Route
+            path="/form"
+            element={
+              <ProtectedRoute>
+                <FormPage />
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Quick Apply Route */}
-            <Route
-              path="/quick-apply"
-              element={
-                <ProtectedRoute>
-                  <QuickApply />
-                </ProtectedRoute>
-              }
-            />
+          {/* Quick Apply Route */}
+          <Route
+            path="/quick-apply"
+            element={
+              <ProtectedRoute>
+                <QuickApply />
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Catch all - redirect to landing */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
+          {/* Catch all - redirect to landing */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 };
 

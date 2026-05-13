@@ -33,7 +33,11 @@ const LandingPage = ({ user, onLogout, onOpenAuth }) => {
     switch (currentPage) {
       case "home":
         return (
-          <HomePage onNavigate={handleNavigation} onOpenForm={handleOpenForm} />
+          <HomePage
+            user={user}
+            onNavigate={handleNavigation}
+            onOpenForm={handleOpenForm}
+          />
         );
       case "about":
         return <AboutPage />;
@@ -43,7 +47,11 @@ const LandingPage = ({ user, onLogout, onOpenAuth }) => {
         return <ContactPage />;
       default:
         return (
-          <HomePage onNavigate={handleNavigation} onOpenForm={handleOpenForm} />
+          <HomePage
+            user={user}
+            onNavigate={handleNavigation}
+            onOpenForm={handleOpenForm}
+          />
         );
     }
   };

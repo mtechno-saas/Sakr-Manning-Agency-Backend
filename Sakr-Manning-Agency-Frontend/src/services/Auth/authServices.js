@@ -59,16 +59,27 @@ export const authService = {
       let user = null;
       if (userId) {
         try {
-          const userResponse = await api.get(
-            config.ENDPOINTS.USER_DETAIL(userId)
-          );
-          user = formatUserData(userResponse.data);
+          const [userResponse, meResponse] = await Promise.all([
+            api.get(config.ENDPOINTS.USER_DETAIL(userId)),
+            api.get(config.ENDPOINTS.USER_ME)
+          ]);
+          
+          user = formatUserData({
+            ...userResponse.data,
+            ...meResponse.data
+          });
           tokenStorage.setUser(user);
         } catch (error) {
           console.warn("Could not fetch user profile:", error);
-          // Create minimal user object from token
-          user = { id: userId, email: credentials.email };
-          tokenStorage.setUser(user);
+          // Try fetching just me as fallback
+          try {
+            const meResponse = await api.get(config.ENDPOINTS.USER_ME);
+            user = formatUserData(meResponse.data);
+            tokenStorage.setUser(user);
+          } catch (meError) {
+            user = { id: userId, email: credentials.email };
+            tokenStorage.setUser(user);
+          }
         }
       }
 
@@ -125,10 +136,15 @@ export const authService = {
       let user = tokenStorage.getUser();
       if (user?.id) {
         // Refresh user data from API
-        const response = await api.get(config.ENDPOINTS.USER_DETAIL(user.id));
-        const role = await api.get(config.ENDPOINTS.USER_ME);
-        user.role = role;
-        user = formatUserData(response.data);
+        const [userResponse, meResponse] = await Promise.all([
+          api.get(config.ENDPOINTS.USER_DETAIL(user.id)),
+          api.get(config.ENDPOINTS.USER_ME)
+        ]);
+
+        user = formatUserData({
+          ...userResponse.data,
+          ...meResponse.data
+        });
         tokenStorage.setUser(user);
         return user;
       }
@@ -144,8 +160,15 @@ export const authService = {
         throw new Error("Invalid token");
       }
 
-      const response = await api.get(config.ENDPOINTS.USER_DETAIL(userId));
-      user = formatUserData(response.data);
+      const [userResponse, meResponse] = await Promise.all([
+        api.get(config.ENDPOINTS.USER_DETAIL(userId)),
+        api.get(config.ENDPOINTS.USER_ME)
+      ]);
+
+      user = formatUserData({
+        ...userResponse.data,
+        ...meResponse.data
+      });
       tokenStorage.setUser(user);
 
       return user;
@@ -390,16 +413,27 @@ export const authService = {
 
       if (userId) {
         try {
-          const userResponse = await api.get(
-            config.ENDPOINTS.USER_DETAIL(userId)
-          );
-          user = formatUserData(userResponse.data);
+          const [userResponse, meResponse] = await Promise.all([
+            api.get(config.ENDPOINTS.USER_DETAIL(userId)),
+            api.get(config.ENDPOINTS.USER_ME)
+          ]);
+          
+          user = formatUserData({
+            ...userResponse.data,
+            ...meResponse.data
+          });
           tokenStorage.setUser(user);
         } catch (error) {
           console.warn("Could not fetch user profile:", error);
-          // Create minimal user object
-          user = { id: userId };
-          tokenStorage.setUser(user);
+          // Try fetching just me as fallback
+          try {
+            const meResponse = await api.get(config.ENDPOINTS.USER_ME);
+            user = formatUserData(meResponse.data);
+            tokenStorage.setUser(user);
+          } catch (meError) {
+            user = { id: userId };
+            tokenStorage.setUser(user);
+          }
         }
       }
 
