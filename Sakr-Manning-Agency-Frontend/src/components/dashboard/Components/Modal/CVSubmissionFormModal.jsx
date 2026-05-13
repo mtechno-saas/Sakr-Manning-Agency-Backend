@@ -43,7 +43,7 @@ const CVSubmissionFormModal = ({ submission = null, onClose, onSave, scale = 1 }
     const loadData = async () => {
       try {
         const [usersRes, companiesRes, positionsRes] = await Promise.all([
-          usersApi.getUsers({ role: "employee", page_size: 1000 }),
+          usersApi.getUsers({ role: "Employee", page_size: 1000 }),
           companiesApi.getCompanies({ page_size: 1000 }),
           usersApi.getPositions(),  // GET /api/positions/ → [{ value, label }]
         ]);
@@ -67,7 +67,7 @@ const CVSubmissionFormModal = ({ submission = null, onClose, onSave, scale = 1 }
   // Enrich field config with dynamic data
   const enrichedFieldConfig = useMemo(() => {
     return CV_SUBMISSION_FORM_FIELDS.map((field) => {
-       if (field.name === "user") {
+      if (field.name === "user") {
         const options = seafarers.map((u) => ({
           value: u.id,
           label: `${u.first_name} ${u.middle_name || ""} ${u.last_name || ""} (${u.email})`,
