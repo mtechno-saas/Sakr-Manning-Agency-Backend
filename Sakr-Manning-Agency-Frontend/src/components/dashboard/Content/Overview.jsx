@@ -39,7 +39,7 @@ const formatTimestamp = (dateString) => {
 export const OverviewPage = ({ scale, isMobile, onNavigate }) => {
   // ── Navigation helpers ──────────────────────────────────────────────────
   const activityPageMap = {
-    "New registration": "management",
+    "New registration": "users",
     "Interview scheduled": "interviews",
     "Company registered": "management",
     "Contract generated": "documents",
@@ -265,14 +265,14 @@ export const OverviewPage = ({ scale, isMobile, onNavigate }) => {
   // ── Status badge counts ────────────────────────────────────────────────
   const statusBadges = useMemo(() => {
     // ── Pending = interviews with pending/scheduled status ──────────────────
-    const pending = 
-      interviewStats?.pending ?? 
-      interviewStats?.scheduled ?? 
+    const pending =
+      interviewStats?.pending ??
+      interviewStats?.scheduled ??
       interviews?.filter((i) => ["Scheduled", "Rescheduled", "Pending"].includes(i.status)).length;
 
     // ── Interview = total interviews count ──────────────────────────────────
-    const interviewCount = 
-      interviewStats?.total_interviews ?? 
+    const interviewCount =
+      interviewStats?.total_interviews ??
       interviews?.length;
 
     // ── Accepted = CV Documents with ACTIVE status (Section 2) ──────────────
@@ -285,11 +285,11 @@ export const OverviewPage = ({ scale, isMobile, onNavigate }) => {
       (d) => d.status?.toLowerCase() === "blacklist"
     ).length;
 
-    return { 
-        pending, 
-        interview: interviewCount, 
-        accepted: acceptedCount, 
-        rejected: rejectedCount 
+    return {
+      pending,
+      interview: interviewCount,
+      accepted: acceptedCount,
+      rejected: rejectedCount
     };
   }, [interviews, cvDocuments, interviewStats]);
 
@@ -531,12 +531,12 @@ export const OverviewPage = ({ scale, isMobile, onNavigate }) => {
               icon={ASSETS.DASHBOARD_STATUS_ICONS?.[2] || "⏳"}
               scale={scale}
             />
-            <StatusBadge
+            {/* <StatusBadge
               status="interview"
               count={statusBadges.interview?.toString()}
               icon={ASSETS.DASHBOARD_STATUS_ICONS?.[3] || "👤"}
               scale={scale}
-            />
+            /> */}
             <StatusBadge
               status="accepted"
               count={statusBadges.accepted?.toString()}

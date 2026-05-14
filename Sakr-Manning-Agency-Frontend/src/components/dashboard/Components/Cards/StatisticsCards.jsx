@@ -35,6 +35,10 @@ function polarToCartesian(cx, cy, r, angleDeg) {
 }
 
 function describeArc(cx, cy, r, startAngle, endAngle) {
+  // If the angle is practically 360 degrees, draw a full circle
+  if (Math.abs(endAngle - startAngle) >= 359.99) {
+    return `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy + r} A ${r} ${r} 0 1 1 ${cx} ${cy - r} Z`;
+  }
   // returns an SVG path string for arc from startAngle to endAngle (degrees)
   const start = polarToCartesian(cx, cy, r, endAngle);
   const end = polarToCartesian(cx, cy, r, startAngle);
@@ -159,8 +163,8 @@ export function StatisticsCard({
   const statsRowStyle = {
     display: "flex",
     flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "flex-start",
+    justifyContent: "space-around",
+    alignItems: "center",
     gap: Math.round(24 * scale),
     width: "100%",
     boxSizing: "border-box",
