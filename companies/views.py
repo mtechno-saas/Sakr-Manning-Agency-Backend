@@ -44,7 +44,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
             filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
         )
         
-        total_open_positions = sum(1 for p in all_positions if p.quantity > p.filled_slots)
+        total_open_positions = sum(max(0, p.quantity - p.filled_slots) for p in all_positions)
         
         companies_with_positions = Company.objects.filter(
             job_orders__status__in=['Open', 'Active', 'Pending', 'In Progress'],

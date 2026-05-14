@@ -88,12 +88,10 @@ class CompanySerializer(serializers.ModelSerializer):
         return value
 
     def get_open_positions(self, obj):
-        # Calculate remaining open positions by subtracting filled slots (contracts)
+        # Calculate remaining open slots by subtracting filled contracts from quantity
         from .models import JobOrderPosition
         from django.db.models import Count, Q
         
-        # We count how many positions still have available slots
-        # A position is open if quantity > number of active/signed contracts
         positions = JobOrderPosition.objects.filter(
             job_order__company=obj,
             job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
@@ -101,14 +99,13 @@ class CompanySerializer(serializers.ModelSerializer):
             filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
         )
         
-        open_count = 0
+        total_remaining = 0
         for pos in positions:
-            if pos.quantity > pos.filled_slots:
-                open_count += 1
-        return open_count
+            total_remaining += max(0, pos.quantity - pos.filled_slots)
+        return total_remaining
 
     def get_open_position_names(self, obj):
-        # Return unique ranks for positions that still have available slots
+        # Return unique ranks and the total remaining slots for each
         from .models import JobOrderPosition
         from django.db.models import Count, Q
         
@@ -119,16 +116,21 @@ class CompanySerializer(serializers.ModelSerializer):
             filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
         )
         
-        ranks = []
-        seen_rank_ids = set()
+        rank_data = {}
         for pos in positions:
-            if pos.rank and pos.quantity > pos.filled_slots and pos.rank.id not in seen_rank_ids:
-                ranks.append({
-                    "id": pos.rank.id,
-                    "name": pos.rank.name
-                })
-                seen_rank_ids.add(pos.rank.id)
-        return ranks
+            if pos.rank:
+                remaining = max(0, pos.quantity - pos.filled_slots)
+                if remaining > 0:
+                    rank_id = pos.rank.id
+                    if rank_id not in rank_data:
+                        rank_data[rank_id] = {
+                            "id": rank_id,
+                            "name": pos.rank.name,
+                            "count": remaining
+                        }
+                    else:
+                        rank_data[rank_id]["count"] += remaining
+        return list(rank_data.values())
 
     def get_ships(self, obj):
         ships = obj.ships.all()
