@@ -37,12 +37,14 @@ class CompanyViewSet(viewsets.ModelViewSet):
         type_counts = {item['company_type']: item['count'] for item in by_type}
         
         # Open positions stats
-        total_open_positions = Company.objects.aggregate(
-            total=Sum('open_positions')
-        )['total'] or 0
-        companies_with_positions = Company.objects.filter(
-            open_positions__gt=0
+        total_open_positions = JobOrderPosition.objects.filter(
+            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
         ).count()
+        
+        companies_with_positions = Company.objects.filter(
+            job_orders__status__in=['Open', 'Active', 'Pending', 'In Progress'],
+            job_orders__positions__isnull=False
+        ).distinct().count()
         
         # Recently added companies (last 5)
         recent_companies = Company.objects.order_by('-created_at')[:5].values(

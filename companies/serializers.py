@@ -6,6 +6,8 @@ class CompanySerializer(serializers.ModelSerializer):
     company_type_name = serializers.CharField(source='company_type.name', read_only=True)
     company_flag_name = serializers.CharField(source='company_flag.name', read_only=True)
 
+    open_positions = serializers.SerializerMethodField()
+
     class Meta:
         model = Company
         fields = '__all__'
@@ -83,6 +85,14 @@ class CompanySerializer(serializers.ModelSerializer):
                 f"Website must end with one of the allowed domains: {', '.join(allowed_suffixes)}"
             )
         return value
+
+    def get_open_positions(self, obj):
+        # Calculate the total number of position entries across all non-cancelled job orders
+        from .models import JobOrderPosition
+        return JobOrderPosition.objects.filter(
+            job_order__company=obj,
+            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
+        ).count()
 
     def get_ships(self, obj):
         ships = obj.ships.all()
