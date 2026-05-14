@@ -88,25 +88,41 @@ class CompanySerializer(serializers.ModelSerializer):
         return value
 
     def get_open_positions(self, obj):
-        # Calculate the total number of position entries across all non-cancelled job orders
+        # Calculate remaining open positions by subtracting filled slots (contracts)
         from .models import JobOrderPosition
-        return JobOrderPosition.objects.filter(
-            job_order__company=obj,
-            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
-        ).count()
-
-    def get_open_position_names(self, obj):
-        # Return unique ranks required in open/active job orders
-        from .models import JobOrderPosition
+        from django.db.models import Count, Q
+        
+        # We count how many positions still have available slots
+        # A position is open if quantity > number of active/signed contracts
         positions = JobOrderPosition.objects.filter(
             job_order__company=obj,
             job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
-        ).select_related('rank').distinct()
+        ).annotate(
+            filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
+        )
+        
+        open_count = 0
+        for pos in positions:
+            if pos.quantity > pos.filled_slots:
+                open_count += 1
+        return open_count
+
+    def get_open_position_names(self, obj):
+        # Return unique ranks for positions that still have available slots
+        from .models import JobOrderPosition
+        from django.db.models import Count, Q
+        
+        positions = JobOrderPosition.objects.filter(
+            job_order__company=obj,
+            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
+        ).select_related('rank').annotate(
+            filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
+        )
         
         ranks = []
         seen_rank_ids = set()
         for pos in positions:
-            if pos.rank and pos.rank.id not in seen_rank_ids:
+            if pos.rank and pos.quantity > pos.filled_slots and pos.rank.id not in seen_rank_ids:
                 ranks.append({
                     "id": pos.rank.id,
                     "name": pos.rank.name
