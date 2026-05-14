@@ -7,6 +7,7 @@ class CompanySerializer(serializers.ModelSerializer):
     company_flag_name = serializers.CharField(source='company_flag.name', read_only=True)
 
     open_positions = serializers.SerializerMethodField()
+    open_position_names = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
@@ -93,6 +94,25 @@ class CompanySerializer(serializers.ModelSerializer):
             job_order__company=obj,
             job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
         ).count()
+
+    def get_open_position_names(self, obj):
+        # Return unique ranks required in open/active job orders
+        from .models import JobOrderPosition
+        positions = JobOrderPosition.objects.filter(
+            job_order__company=obj,
+            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
+        ).select_related('rank').distinct()
+        
+        ranks = []
+        seen_rank_ids = set()
+        for pos in positions:
+            if pos.rank and pos.rank.id not in seen_rank_ids:
+                ranks.append({
+                    "id": pos.rank.id,
+                    "name": pos.rank.name
+                })
+                seen_rank_ids.add(pos.rank.id)
+        return ranks
 
     def get_ships(self, obj):
         ships = obj.ships.all()
