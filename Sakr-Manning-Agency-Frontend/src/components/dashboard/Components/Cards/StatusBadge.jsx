@@ -11,13 +11,13 @@ export const StatusBadge = ({ status, count, icon, scale }) => {
   };
 
   const statusLabels = {
-    pending: "Pending",
-    interview: "Interview",
-    accepted: "Accepted",
-    rejected: "Rejected",
+    pending: "Interview Scheduled",
+    interview: "Total Interviews",
+    accepted: "Accepted CVs",
+    rejected: "Rejected CVs",
   };
 
-  const width = Math.round(131 * scale);
+  const width = Math.round(190 * scale);
   const height = Math.round(93 * scale);
   const padding = Math.round(12 * scale);
   const fontSize = Math.round(16 * scale);

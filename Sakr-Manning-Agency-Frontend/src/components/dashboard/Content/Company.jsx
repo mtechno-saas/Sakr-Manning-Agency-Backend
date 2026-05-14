@@ -818,7 +818,7 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
       {
         key: "companyFlag",
         title: "Country",
-        width: 100,
+        width: 150,
         sortable: true,
         render: (value) => value || "—",
       },
