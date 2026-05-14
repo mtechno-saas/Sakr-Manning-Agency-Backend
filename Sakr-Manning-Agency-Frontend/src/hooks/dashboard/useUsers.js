@@ -43,7 +43,7 @@ export const useUsers = () => {
         });
 
         // Use a default page size of 50 for pagination calculations if not provided by BE
-        const pageSize = 50; 
+        const pageSize = 50;
         const count = response.count || 0;
         const totalPages = Math.max(1, Math.ceil(count / pageSize));
 
