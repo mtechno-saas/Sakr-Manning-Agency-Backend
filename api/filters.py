@@ -76,35 +76,43 @@ from compliance.models import Audit, IncidentReport
 from ships.models import Ship
 
 
+class CharInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
+    pass
+
+
+class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
+    pass
+
+
 class UsersFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name="first_name", lookup_expr="icontains")
-    age = django_filters.NumberFilter(field_name="age", lookup_expr="exact")
-    marital_status = django_filters.CharFilter(field_name="marital_status", lookup_expr="iexact")
+    name = CharInFilter(field_name="first_name", lookup_expr="in")
+    age = NumberInFilter(field_name="age", lookup_expr="in")
+    marital_status = django_filters.AllValuesMultipleFilter(field_name="marital_status")
     user_status = django_filters.AllValuesMultipleFilter(field_name="user_status")
     nationality = django_filters.AllValuesMultipleFilter(field_name="nationality")
-    nearest_port = django_filters.CharFilter(field_name="Nearest_Port", lookup_expr="icontains")
+    nearest_port = CharInFilter(field_name="Nearest_Port", lookup_expr="in")
     
     # Position filters
-    rank_name = django_filters.CharFilter(field_name="codes__name", lookup_expr="icontains")
-    assigned_code = django_filters.CharFilter(field_name="user_ranks__assigned_code", lookup_expr="icontains")
+    rank_name = CharInFilter(field_name="codes__name", lookup_expr="in")
+    assigned_code = CharInFilter(field_name="user_ranks__assigned_code", lookup_expr="in")
     
     role = django_filters.AllValuesMultipleFilter(field_name="role")
     is_blacklisted = django_filters.BooleanFilter(field_name="is_blacklisted")
     
     # New requested filters
     # Filter by Company (ID or Name)
-    company = django_filters.NumberFilter(field_name="contracts__company__id")
-    company_name = django_filters.CharFilter(field_name="contracts__company__company_name", lookup_expr="icontains")
+    company = NumberInFilter(field_name="contracts__company__id", lookup_expr="in")
+    company_name = CharInFilter(field_name="contracts__company__company_name", lookup_expr="in")
     
     # Filter by Ship (ID or Name)
-    ship = django_filters.NumberFilter(field_name="contracts__ship__id")
-    ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
+    ship = NumberInFilter(field_name="contracts__ship__id", lookup_expr="in")
+    ship_name = CharInFilter(field_name="contracts__ship__ship_name", lookup_expr="in")
     
     # Filter by Job Position Name (linked to JobOrderPosition/Rank)
-    job_position_name = django_filters.CharFilter(field_name="contracts__job_position__rank__name", lookup_expr="icontains")
+    job_position_name = CharInFilter(field_name="contracts__job_position__rank__name", lookup_expr="in")
     
     # Filter by Language
-    language = django_filters.CharFilter(field_name="languages__language", lookup_expr="icontains")
+    language = CharInFilter(field_name="languages__language", lookup_expr="in")
     
     # Filter by Contract Status (Signed, Draft, Cancelled, etc.)
     contract_status = django_filters.AllValuesMultipleFilter(field_name="contracts__status")
@@ -116,43 +124,45 @@ class UsersFilter(django_filters.FilterSet):
     signed_off_to = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="lte")
 
     # Company and Ship Types
-    company_type = django_filters.CharFilter(field_name="contracts__company__company_type__name", lookup_expr="icontains")
-    ship_type = django_filters.CharFilter(field_name="contracts__ship__ship_type__name", lookup_expr="icontains")
+    company_type = django_filters.AllValuesMultipleFilter(field_name="contracts__company__company_type__name")
+    ship_type = django_filters.AllValuesMultipleFilter(field_name="contracts__ship__ship_type__name")
     
     # Passport Details
-    passport_no = django_filters.CharFilter(field_name="passport_no", lookup_expr="icontains")
+    passport_no = CharInFilter(field_name="passport_no", lookup_expr="in")
     passport_expiry_from = django_filters.DateFilter(field_name="passport_expiry_date", lookup_expr="gte")
     passport_expiry_to = django_filters.DateFilter(field_name="passport_expiry_date", lookup_expr="lte")
     
     # Seaman Book Details
-    seaman_book_no = django_filters.CharFilter(field_name="seaman_book_no", lookup_expr="icontains")
+    seaman_book_no = CharInFilter(field_name="seaman_book_no", lookup_expr="in")
     seaman_book_expiry_from = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="gte")
     seaman_book_expiry_to = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="lte")
     
     # Medical Details
-    medical_no = django_filters.CharFilter(field_name="health_number", lookup_expr="icontains")
+    medical_no = CharInFilter(field_name="health_number", lookup_expr="in")
     medical_expiry_from = django_filters.DateFilter(field_name="health_expiry_date", lookup_expr="gte")
     medical_expiry_to = django_filters.DateFilter(field_name="health_expiry_date", lookup_expr="lte")
     
     # Marine Courses
-    course_name = django_filters.CharFilter(field_name="courses__course_name", lookup_expr="icontains")
+    course_name = CharInFilter(field_name="courses__course_name", lookup_expr="in")
 
     # Document Types (Personal Documents)
-    passport_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
-    seaman_book_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
-    document_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    passport_type = django_filters.AllValuesMultipleFilter(field_name="personal_documents__document_type")
+    seaman_book_type = django_filters.AllValuesMultipleFilter(field_name="personal_documents__document_type")
+    document_type = django_filters.AllValuesMultipleFilter(field_name="personal_documents__document_type")
     
     # New Document Filters (Quick Applier/General Documents)
-    document_status = django_filters.CharFilter(field_name="documents__status", lookup_expr="iexact")
-    document_title = django_filters.CharFilter(field_name="documents__title", lookup_expr="icontains")
+    document_status = django_filters.AllValuesMultipleFilter(field_name="documents__status")
+    document_title = CharInFilter(field_name="documents__title", lookup_expr="in")
 
     # Filter by position (Rank name or Application position)
-    position = django_filters.CharFilter(method='filter_by_position')
+    position = django_filters.AllValuesMultipleFilter(method='filter_by_position')
     
     def filter_by_position(self, queryset, name, value):
+        if not value:
+            return queryset
         return queryset.filter(
-            Q(codes__name__icontains=value) | 
-            Q(application_for_position__icontains=value)
+            Q(codes__name__in=value) | 
+            Q(application_for_position__in=value)
         ).distinct()
 
     class Meta:
