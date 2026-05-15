@@ -1313,7 +1313,7 @@ import os
 
 class DocumentUploadSerializer(serializers.Serializer):
     """Validate file uploads."""
-    file = serializers.FileField()
+    file = serializers.FileField(required=False, allow_null=True)
     
     def validate_file(self, value):
         """Validate file type and size."""

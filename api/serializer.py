@@ -1814,6 +1814,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class DocumentSerializer(serializers.ModelSerializer):
     title = serializers.CharField(required=False)
+    file = serializers.FileField(required=False, allow_null=True)
     generated_id = serializers.SerializerMethodField()
     company_name = serializers.CharField(source='company.company_name', read_only=True)
     job_position_details = serializers.SerializerMethodField()
