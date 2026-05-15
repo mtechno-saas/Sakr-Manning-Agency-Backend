@@ -1,253 +1,136 @@
-# Contracts API — Full Endpoint Reference
+# 📜 Contracts — API Reference
 
-**Base URL:** `/api/contracts/`
-
-**Authentication:** Bearer JWT token required on all endpoints.
-
-The contracts endpoint integrates directly with CV Submissions and Job Order Positions, allowing you to instantly generate a contract pre-filled with the employee's details and the salary from the job position they applied for.
+The Contracts section manages the legal and operational deployment of seafarers. It handles contract creation, digital signing, and the coordination of the seafarer's tour of duty.
 
 ---
 
-### Permissions
+## 1. Description
+This section represents the final step in the hiring process (Step 6). It transforms a successful CV Submission into a formal employment agreement. The API ensures that seafarers are not double-booked, tracks their sign-on/sign-off dates, and manages the associated financial terms and vessel assignments.
 
-| Role | Access Level |
-|---|---|
-| Admin / HR Manager | Full CRUD (Create, Read, Update, Delete) |
-| Recruiter | Read-only |
-| Employee | Can only read their own contracts |
+**Key Features:**
+- **Automated Generation:** Create contracts directly from CV Submissions with auto-populated client and vessel data.
+- **Overlap Validation:** Built-in logic prevents scheduling a seafarer for overlapping periods on different ships.
+- **Tour Management:** Tracks `sign_on_date` and `sign_off_date` to manage the crew's operational status.
+- **Digital Records:** Stores signed contract files and timestamps for compliance.
+- **Integration:** Directly linked to the Seafarer Application (Step 6) to gather final logistics data (Next of Kin, Medical history, etc.).
 
 ---
 
-### `POST /api/contracts/` — Generate Contract (from CV Submission)
+## 2. Endpoints Summary
 
-Allows you to instantly generate an employment contract by pointing to an approved CV Submission. It auto-fills the user, company, rank, and salary details based on the exact Job Position they applied for.
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/contracts/` | List all contracts (supports date filtering) |
+| `POST` | `/api/contracts/` | Create a new contract (manually or from CV) |
+| `GET` | `/api/contracts/{id}/` | Full contract detail (includes ship/user details) |
+| `PATCH` | `/api/contracts/{id}/` | Update dates, salary, or status |
+| `DELETE` | `/api/contracts/{id}/` | Cancel/Delete a contract |
+| `GET` | `/api/contracts/stats/` | KPIs (Active contracts, sign-ons this month) |
+| `POST` | `/api/contracts/{id}/generate_pdf/` | Generate the official PDF contract document |
 
-**Data Model Inputs:**
-| Field | Source / Type | Required? | Description |
-|---|---|---|---|
-| `cv_submission` | `int` | **Yes** | The ID of the CV Submission. Auto-fills `user`, `company`, `rank`, and `job_position`. |
-| `applicant_name` | `string` | Optional | The full name of the targeted applicant. If provided, the backend **validates** it matches the name on the CV. Returns an error if it doesn't match. |
-| `ship_name` | `string` | Optional | The name of the Ship they are joining (alternatively, you can pass `ship` as an int ID). If omitted, contract is created without a ship. |
-| `sign_on_date` | `date` | **Yes** | Date they board the ship (Format: YYYY-MM-DD). |
-| `salary` | `decimal` | Optional | **Auto-fills** with `salary_max` from the Job Order Position if not provided. |
-| `currency` | `string` | Optional | **Auto-fills** from the Job Order Position, otherwise defaults to `USD`. |
-| `sign_off_date` | `date` | Optional | Scheduled disembarkation date. |
-| `repatriation_terms` | `string` | Optional | Notes on flight/travel coverage. |
-| `leave_pay_terms` | `string` | Optional | Notes on paid leave. |
-| `status` | `string` | Optional | Defaults to `Draft` (Active, Completed, Pending, Signed, Pending Signature, Draft, Cancelled). |
+---
 
-**Request:**
+## 3. Endpoint Details
+
+### 3.1 Contract Detail (`GET /api/contracts/{id}/`)
+**Description:** Returns the complete contract record, including technical ship details and the seafarer's full application profile.
+- **Response Body:**
 ```json
 {
-  "cv_submission": 45,
-  "applicant_name": "Ahmed Hassan",
-  "ship_name": "Ocean Voyager",
-  "sign_on_date": "2026-06-01",
-  "repatriation_terms": "Company covers return flight to home country",
-  "leave_pay_terms": "30 days paid leave per contract cycle",
-  "status": "Draft"
-}
-```
-> *Note: We did not send `salary` or `currency` — the backend will grab those directly from the job position they applied for!*
-
-> ⚠️ **`applicant_name` Validation:** If provided, the backend checks that the name matches the user on CV #45. If it doesn't match, you get: `{"applicant_name": "Name 'Ahmed Hassan' does not match the applicant on CV #45 ('Mohamed Ali'). Please verify you have the right CV."}`
-
-**Success Response (201 Created):**
-```json
-{
-  "id": 12,
-  "user": 7,
-  "user_name": "Mohamed Ahmed",
-  "user_email": "mohamed.ahmed@email.com",
-  "generated_id": "492817364051",
-  
-  "ship": 3,
-  "ship_name": "MV Ocean Star",
-  "ship_details": {
-    "id": 3,
-    "ship_name": "MV Ocean Star",
-    "imo_number": "1234567",
-    "ship_type": "Container",
-    "flag": "Panama",
-    "status": "Active"
-  },
-  "company": 2,
+  "id": 150,
+  "user_name": "Mohamed Ali Hassan",
+  "generated_id": "202405150012",
   "company_name": "Sakr Shipping",
-  "company_details": {
-    "id": 2,
-    "company_name": "Sakr Shipping",
-    "company_type": "Ship Owner",
-    "country": "Egypt",
-    "contact_person": "John Doe",
-    "contact_email": "john@sakr.com",
-    "status": "Active"
-  },
-  
-  "rank": 7,
-  "rank_name": "2nd. Officer",
-  "assigned_code": "DO-3.002",
-  
-  "job_position": 4,
-  "job_position_details": {
-    "id": 4,
-    "quantity": 2,
-    "salary_min": "2500.00",
-    "salary_max": "3500.00",
-    "currency": "USD",
-    "contract_duration_months": 6,
-    "remarks": "Must have tanker experience"
-  },
-  
+  "ship_name": "Sakr Voyager",
+  "rank_name": "Chief Officer",
   "sign_on_date": "2026-06-01",
-  "sign_off_date": null,
-  "salary": "3500.00",
-  "currency": "USD",
-  "status": "Draft",
-  
-  "signed_file": null,
-  "signed_at": null,
-  "created_at": "2026-05-01T11:45:00Z",
-  "updated_at": "2026-05-01T11:45:00Z",
-
+  "sign_off_date": "2026-10-01",
+  "salary": "4500.00",
+  "status": "Signed",
+  "ship_details": {
+    "id": 22,
+    "ship_name": "Sakr Voyager",
+    "imo_number": "9988776",
+    "ship_type": "Tanker",
+    "flag": "Egypt"
+  },
+  "user_documents": {
+    "passport": { "passport_no": "A1234567", "expiry_date": "2030-01-14", "file_url": "/media/passports/a123.pdf" },
+    "seaman_book": { "seaman_book_no": "SB-9988", "expiry_date": "2028-05-20", "file_url": "/media/sb/sb99.pdf" }
+  },
   "certificates": [
-    {
-      "id": 1,
-      "code": "GMDSS",
-      "name": "G.M.D.S.S"
-    }
+    { "id": 1, "name": "Basic Safety Training", "expiry_date": "2029-12-31" }
   ],
   "coded_rank": [
-    {
-      "assigned_code": "DO-3.002",
-      "rank_code": "DO-3.000",
-      "rank_name": "2nd. Officer"
-    }
+    { "assigned_code": "DO-2.001", "rank_name": "Chief Officer" }
   ],
-  "user_documents": {
-    "passport": {
-      "passport_no": "A12345678",
-      "issue_date": "2022-01-15",
-      "expiry_date": "2032-01-14",
-      "issued_by": "Egypt",
-      "place_of_issue": "Cairo",
-      "file_url": "http://api.backend.soon.it/media/documents/passports/passport_123.pdf"
-    },
-    "seaman_book": {
-      "seaman_book_no": "SB9876543",
-      "issue_date": "2023-05-10",
-      "expiry_date": "2028-05-09",
-      "issued_by": "Maritime Authority",
-      "place_of_issue": "Alexandria",
-      "file_url": "http://api.backend.soon.it/media/documents/seaman/sb_123.pdf"
-    },
-    "other_seaman_book": {
-      "seaman_book_no": null,
-      "issue_date": null,
-      "expiry_date": null,
-      "issued_by": "",
-      "place_of_issue": "",
-      "file_url": null
-    },
-    "coc": {
-      "certificate_name": "Officer in Charge of Navigational Watch",
-      "certificate_number": "COC-456",
-      "issue_date": "2021-08-20",
-      "expiry_date": "2026-08-19",
-      "issued_by": "EAMS",
-      "issued_at": "Alexandria"
-    },
-    "goc": {
-      "certificate_number": "GOC-789",
-      "issue_date": "2022-11-05",
-      "expiry_date": "2027-11-04",
-      "issued_by": "EAMS",
-      "issued_at": "Alexandria"
-    },
-    "health_certificate": {
-      "flag_state": "Panama",
-      "number": "MED-111",
-      "issue_date": "2025-01-10",
-      "expiry_date": "2027-01-09",
-      "issued_by": "Approved Clinic",
-      "issued_at": "Cairo",
-      "international_medical_number": "INT-222",
-      "international_medical_issue_date": "2025-01-15",
-      "international_medical_expiry_date": "2027-01-14"
-    },
-    "licenses": [
-      {
-        "id": 1,
-        "document_name": "Panama License",
-        "document_number": "PAN-333",
-        "country_of_issue": "Panama",
-        "issue_date": "2024-03-01",
-        "expiration_date": "2029-02-28",
-        "file_url": "http://api.backend.soon.it/media/documents/licenses/panama_lic.pdf"
-      }
-    ]
+  "seafarer_application": {
+    "personal_details": { "nationality": "Egyptian", "birth_date": "1990-01-01", "blood_type": "O+" },
+    "next_of_kin": { "full_name": "Fatima Ali", "relationship": "Wife", "phone": "+20100...", "email": "f@example.com" },
+    "professional_qualification": { "coc_number": "COC-8877", "expiry_date": "2030-05-15" }
   }
 }
 ```
 
----
+### 3.2 Create Contract (`POST /api/contracts/`)
+**Description:** There are two ways to create a contract: manually or by linking a successful CV Submission.
+- **Request Body (From CV Submission):**
+| Field | Type | Description |
+|---|---|---|
+| `cv_submission`| Integer | ID of the successful submission (Auto-fills user/ship/rank) |
+| `sign_on_date` | Date | Expected embarkation date (`YYYY-MM-DD`) |
+| `sign_off_date`| Date | Expected disembarkation date |
+| `salary` | Decimal | Final agreed salary |
 
-### `PATCH /api/contracts/{id}/` — Edit a Contract
-
-Use this to update fields (e.g. changing status to "Signed", adjusting salary, or assigning a `ship` / `ship_name`). All fields are optional.
-
-**Request:**
+**Example Request:**
 ```json
 {
-  "salary": "4000.00",
-  "status": "Pending Signature",
-  "sign_off_date": "2026-12-15"
+  "cv_submission": 88,
+  "sign_on_date": "2026-06-01",
+  "sign_off_date": "2026-10-01",
+  "salary": "4500.00",
+  "currency": "USD"
 }
 ```
 
-**Response (200):** Full contract object with updated fields.
-
----
-
-### `GET /api/contracts/` — List all Contracts
-Returns a paginated list of all contracts. Employee sees only their own contracts.
-
----
-
-### `GET /api/contracts/{id}/` — Get Contract Details
-Returns the same rich response as the `POST` endpoint, containing all user documentation.
-
----
-
-### `GET /api/contracts/stats/` — Contract Statistics
-Returns statistics for dashboard (Signed, Pending Signature, Drafts, expiring soon).
-
-**Response (200):**
+### 3.2 Update Status & Files (`PATCH /api/contracts/{id}/`)
+**Description:** Used to update the status to `Signed` or `Completed` and attach the signed document.
+- **Example Request:**
 ```json
 {
-  "signed_contracts": 12,
-  "pending_signature": 5,
-  "drafts": 3,
-  "critical": 2,
-  "warning": 4,
-  "notice": 6
+  "status": "Signed",
+  "signed_at": "2026-05-15T18:35:00Z",
+  "signed_file": "BASE64_OR_MULTIPART_FILE"
 }
 ```
 
 ---
 
-### `DELETE /api/contracts/{id}/` — Delete a Contract
+## 4. Data Modeling
 
-**Response:** `204 No Content`
+### Contract Model
+| Field | Type | Description |
+|---|---|---|
+| `id` | Integer | Unique identifier |
+| `user` | FK | The Seafarer |
+| `ship` | FK | Assigned Vessel |
+| `company` | FK | Client Company |
+| `rank` | FK | Contracted Position |
+| `sign_on_date` | Date | Embarkation |
+| `sign_off_date`| Date | Disembarkation |
+| `salary` | Decimal | Monthly rate |
+| `status` | Choice | `Pending`, `Signed`, `Active`, `Completed`, `Cancelled` |
+| `signed_file` | File | The legally signed PDF |
 
 ---
 
-## Quick Reference — All Endpoints
+## 5. Permissions
 
-| Method | Endpoint | Role | Purpose |
-|---|---|---|---|
-| `GET` | `/api/contracts/` | Admin/HR | List all contracts |
-| `POST` | `/api/contracts/` | Admin/HR | Generate/create contract |
-| `GET` | `/api/contracts/{id}/` | Admin/HR | Contract detail |
-| `PATCH` | `/api/contracts/{id}/` | Admin/HR | Update a contract |
-| `DELETE` | `/api/contracts/{id}/` | Admin/HR | Delete a contract |
-| `GET` | `/api/contracts/stats/` | Admin/HR | Dashboard statistics |
+- **Admin / HR Manager:** Full control over contract creation and financial terms.
+- **Recruiter:** Can initiate contracts from successful submissions.
+- **Employee (Seafarer):** Can view and download their current and past contracts.
+
+---
+
+> [!WARNING]
+> The API will return a `400 Bad Request` if you attempt to create a contract for a seafarer whose `sign_on_date` overlaps with an existing `Active` or `Signed` contract.

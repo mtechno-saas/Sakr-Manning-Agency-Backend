@@ -1515,7 +1515,8 @@ def convert_text_to_json(extracted_text: str) -> dict:
     
     # Use a larger model for better extraction
     # Change from llama3.2:1b to llama3.2:3b or llama3:8b if available
-    llm = OllamaLLM(model="llama3.2:1b", temperature=0)
+    # Use GLM-OCR for visual document processing, with increased context window
+    llm = OllamaLLM(model="glm-ocr:latest", temperature=0, num_ctx=16384)
     
     # Increase context window - process more text
     max_chars = 8000  # Increased from 3000

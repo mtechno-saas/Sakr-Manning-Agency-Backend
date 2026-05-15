@@ -1,315 +1,162 @@
-# CV Submissions API — Full Endpoint Reference
+# 📤 CV Submissions — API Reference
 
-**Base URL:** `/api/cv-submissions/`
-
-**Authentication:** Bearer JWT token required on all endpoints.
-
-The CV Submissions endpoint manages candidate job applications. It natively integrates with Seafarer Profiles and automatically synchronizes data from the CV to the candidate's Seafarer Profile, as well as tracking their assigned `ship`, `company`, and `job_position`.
+The CV Submissions section is the most data-rich module in the recruitment pipeline. It tracks the full evaluation and submission process of a seafarer to a specific client company for a target position.
 
 ---
 
-### Permissions
+## 1. Description
+This section serves as a centralized hub for candidate evaluation. It combines the submission details (cover letter, availability, rating) with the candidate's full professional profile. It allows administrators to update the seafarer's name, email, ranks, certificates, and documents directly from the evaluation interface.
 
-| Role | Access Level |
-|---|---|
-| Admin / HR Manager | Full CRUD (Create, Read, Update, Delete) |
-| Recruiter | View and update status |
-| Employee | Can only read/create their own CVs |
+**Key Features:**
+- **Evaluation Pipeline:** Track status from `Pending` through `Interviewed` to `Hired`.
+- **Profile Synchronization:** Updating user info here (like salary or rank) automatically propagates to the main seafarer profile.
+- **Document Hub:** Access and manage all travel documents and licenses within the submission context.
+- **Coded Ranks:** Manage unique agency codes for assigned ranks (e.g., `DO-2.001`).
 
 ---
 
-### `GET /api/cv-submissions/` — List CV Submissions
-Returns a list of CV Submissions. For Admin/HR Manager/Recruiter, returns all. For Employee, returns only their own. Uses a lightweight representation to improve performance.
+## 2. Endpoints Summary
 
-**Response Example:**
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/cv-submissions/` | List all submissions (lightweight) |
+| `POST` | `/api/cv-submissions/` | Create a new submission |
+| `GET` | `/api/cv-submissions/{id}/` | Full detail of one submission (includes docs/certs) |
+| `PATCH` | `/api/cv-submissions/{id}/` | Update submission + linked user info |
+| `GET` | `/api/cv-submissions/stats/` | Aggregate counts and percentages by status |
+| `PATCH` | `/api/cv-submissions/{id}/update-status/` | Fast status-only update |
+| `GET` | `/api/cv-submissions/{id}/download-document/?type=<type>` | Download linked seafarer documents |
+
+---
+
+## 3. Endpoint Details
+
+### 3.1 List Submissions (`GET /api/cv-submissions/`)
+**Description:** Returns a summarized list of submissions for the dashboard board view.
+- **Response Body:**
 ```json
 [
   {
-    "id": 1,
-    "user": 5,
+    "id": 12,
     "user_name": "Ahmed Hassan",
-    "company": 2,
-    "company_name": "Maersk Line",
-    "position": 3,
+    "company_name": "Sakr Shipping Co.",
     "position_name": "Chief Officer",
     "experience_years": 5,
-    "status": "Pending",
-    "submitted_date": "2026-05-04T12:00:00Z",
-    "generated_id": "123456789012",
-    "salary": "5000",
+    "status": "Under Review",
+    "submitted_date": "2026-04-08T00:00:00Z",
+    "salary": "4200",
     "coded_rank": [
-      {
-        "assigned_code": "CO.1",
-        "rank_code": "CO",
-        "rank_name": "Chief Officer"
-      }
-    ],
-    "rank_code": "CO",
-    "assigned_code": "CO.1",
-    "job_position": 1,
-    "job_position_details": {
-      "id": 1,
-      "job_position_name": "Chief Officer",
-      "quantity": 2,
-      "salary_min": "4500",
-      "salary_max": "5500",
-      "currency": "USD",
-      "contract_duration_months": 6,
-      "remarks": "Urgent"
-    }
+      { "assigned_code": "DO-2.005", "rank_code": "DO-2", "rank_name": "Chief Officer" }
+    ]
   }
 ]
 ```
 
----
+### 3.2 Create Submission (`POST /api/cv-submissions/`)
+**Description:** Initiates a new evaluation for a candidate.
+- **Request Body:**
+| Field | Type | Description |
+|---|---|---|
+| `user` | Integer | ID of the Seafarer (Required) |
+| `job_position`| Integer | ID of the Job Order Position (Optional - Auto-fills company/rank) |
+| `company` | Integer | ID of the target Company (Required if no job_position) |
+| `position` | Mixed | Rank ID or Name (Required if no job_position) |
+| `ship` | Integer | ID of the target Ship (Optional) |
+| `status` | String | Initial status (Default: `Pending`) |
 
-### `GET /api/cv-submissions/{id}/` — Retrieve Full Submission Details
-Returns the complete nested details of a CV Submission, including full seafarer profile data and company/ship information.
-
-**Response Example:**
+**Example Request:**
 ```json
 {
-  "id": 1,
-  "user": 5,
-  "user_name": "Ahmed Hassan",
-  "user_email_display": "ahmed@example.com",
-  "company": 2,
-  "company_name": "Maersk Line",
-  "ship": 1,
-  "ship_name": "Ocean Voyager",
-  "ship_details": {
-    "id": 1,
-    "ship_name": "Ocean Voyager",
-    "imo_number": "1234567",
-    "ship_type": "Container",
-    "flag": "Panama",
-    "status": "Active"
-  },
-  "position": 3,
+  "user": 105,
+  "job_position": 24,
+  "cover_letter": "Strong candidate with 10 years experience on Tankers.",
+  "status": "Under Review"
+}
+```
+
+**Response (201):**
+```json
+{
+  "id": 88,
+  "user": 105,
+  "user_name": "Mohamed Ali",
+  "company": 3,
+  "company_name": "Sakr Shipping",
+  "position": 7,
   "position_name": "Chief Officer",
-  "cv_file": "http://example.com/media/cvs/ahmed_hassan.pdf",
-  "cover_letter": "I have 5 years of experience...",
-  "experience_years": 5,
-  "expected_salary": "5500.00",
-  "availability_date": "2026-06-01",
+  "status": "Under Review",
+  "created_at": "2026-05-15T21:26:00Z"
+}
+```
+
+### 3.3 Full Update (`PATCH /api/cv-submissions/{id}/`)
+**Description:** A powerful endpoint that updates the submission and the linked user profile.
+- **Request Body (Combined Schema):**
+| Field | Context | Description |
+|---|---|---|
+| `status` | Submission | `Pending` / `Under Review` / `Interviewed` / `Approved` etc. |
+| `notes` | Submission | Admin internal notes |
+| `rating` | Submission | 1–5 integer rating |
+| `user_first_name`| User Profile | Updates the seafarer's first name |
+| `salary` | User Profile | Updates the seafarer's base salary |
+| `certificate_ids`| User Profile | Replaces all user STCW certificates |
+| `passport_update`| User Profile | Updates passport details (number, expiry, etc.) |
+| `licenses_update`| User Profile | List of `{id, document_name, ...}` to create/update licenses |
+
+**Example Request:**
+```json
+{
   "status": "Approved",
-  "submitted_date": "2026-05-04T12:00:00Z",
-  "reviewed_by": 1,
-  "reviewed_by_name_display": "Admin User",
-  "reviewed_date": "2026-05-05",
-  "notes": "Good candidate.",
   "rating": 5,
-  "created_at": "2026-05-04T12:00:00Z",
-  "updated_at": "2026-05-05T10:00:00Z",
-  "generated_id": "123456789012",
-  "salary_display": "5500",
-  "coded_rank": [
-    {
-      "assigned_code": "CO.1",
-      "rank_code": "CO",
-      "rank_name": "Chief Officer"
-    }
-  ],
-  "rank_code": "CO",
-  "assigned_code": "CO.1",
-  "certificates": [
-    {
-      "id": 1,
-      "code": "STCW-1",
-      "name": "Basic Safety Training"
-    }
-  ],
-  "user_documents": {
-    "passport": {
-      "passport_no": "A1234567",
-      "issue_date": "2020-01-01",
-      "expiry_date": "2030-01-01",
-      "issued_by": "Egypt",
-      "place_of_issue": "Cairo",
-      "file_url": "http://example.com/media/passports/ahmed.pdf",
-      "download_url": "/api/cv-submissions/1/download-document/?type=passport"
-    },
-    "seaman_book": {
-      "seaman_book_no": "SB123456"
-    },
-    "licenses": []
-  },
-  "job_position": 1,
-  "job_position_details": {
-    "id": 1,
-    "job_position_name": "Chief Officer",
-    "quantity": 2,
-    "salary_min": "4500",
-    "salary_max": "5500",
-    "currency": "USD",
-    "contract_duration_months": 6,
-    "remarks": "Urgent"
-  },
-  "seafarer_application": {
-    "personal_details": {
-      "first_name": "Ahmed",
-      "last_name": "Hassan",
-      "date_of_birth": "1990-01-01"
-    },
-    "education": [],
-    "sea_service_details": [],
-    "next_of_kin": [],
-    "vaccinations": []
-  },
-  "company_details": {
-    "id": 2,
-    "company_name": "Maersk Line",
-    "company_type": "Ship Owner",
-    "country": "Denmark",
-    "contact_person": "John Doe",
-    "contact_email": "john@maersk.com",
-    "status": "Active"
+  "user_first_name": "Ahmed",
+  "salary": "4500",
+  "passport_update": {
+    "passport_no": "A12345678",
+    "expiry_date": "2030-01-14"
   }
 }
 ```
 
----
-
-### `POST /api/cv-submissions/` — Create CV Submission
-* **employee:** Auto-fills `request.user`.
-* **admin/hr:** Can optionally specify `user`.
-
-Modifying the write-only fields directly updates the linked User and their Seafarer application profile seamlessly.
-
-**Request Example (JSON):**
+### 3.4 Dashboard KPIs (`GET /api/cv-submissions/stats/`)
+**Description:** Returns counts and percentages for the recruitment funnel.
+- **Response Body:**
 ```json
 {
-  "user_first_name": "Ahmed",
-  "user_middle_name": "Ali",
-  "user_email": "ahmed@example.com",
-  "company_name_input": "Maersk Line",
-  "position_name_input": "Chief Officer",
-  "job_position": 12,
-  "ship": 3,
-  "experience_years": 5,
-  "expected_salary": "5500.00",
-  "availability_date": "2026-06-01",
-  "salary": "5500",
-  "coded_rank_input": [
-    {
-      "rank_code": "CO",
-      "rank_name": "Chief Officer",
-      "assigned_code": "CO.1"
-    }
-  ],
-  "passport_update": {
-    "passport_no": "A1234567",
-    "issue_date": "2020-01-01",
-    "expiry_date": "2030-01-01",
-    "issued_by": "Egypt",
-    "place_of_issue": "Cairo"
-  },
-  "job_position": 1
-}
-```
-*Note: You can also use `multipart/form-data` to include the `cv_file`.*
-
-**Response Example:**
-*Returns the full nested object just like `GET {id}`.*
-
----
-
-### `PUT /api/cv-submissions/{id}/` — Replace CV Submission
-Overwrites the CV Submission. Requires all mandatory fields.
-
-**Request Example:**
-```json
-{
-  "experience_years": 6,
-  "expected_salary": "6000.00",
-  "availability_date": "2026-07-01",
-  "job_position": 1,
-  "notes": "Updated candidate info."
-}
-```
-
-**Response Example:**
-*Returns the full nested object just like `GET {id}`.*
-
----
-
-### `PATCH /api/cv-submissions/{id}/` — Update CV Submission
-Partially update a CV Submission. You can selectively pass in the writable fields. Modifying these fields directly updates the linked User and their Seafarer application profile seamlessly.
-
-**Request Example:**
-```json
-{
-  "notes": "Candidate called today.",
-  "status": "Interviewed",
-  "licenses_update": [
-    {
-      "document_name": "DP Certificate",
-      "document_number": "DP-123",
-      "country_of_issue": "UK",
-      "issue_date": "2022-01-01",
-      "expiration_date": "2027-01-01"
-    }
-  ]
-}
-```
-
-**Response Example:**
-*Returns the full nested object just like `GET {id}`.*
-
----
-
-### `DELETE /api/cv-submissions/{id}/` — Delete Submission
-Permanently deletes the CV Submission.
-
-**Response:**
-* **Status:** `204 No Content`
-* **Body:** None
-
----
-
-### `PATCH /api/cv-submissions/{id}/update-status/` — Update Status
-Dedicated endpoint for recruiters and admins to update a CV's status.
-Automatically sets `reviewed_by` to the current user and `reviewed_date` to today if status is `Approved` or `Rejected`.
-
-**Request Example:**
-```json
-{
-  "status": "Approved"
-}
-```
-
-**Response Example:**
-*Returns the full nested object just like `GET {id}`.*
-
----
-
-### `GET /api/cv-submissions/{id}/download-document/?type={doc_type}` — Download Document
-Download a specific file attachment directly from the linked user's profile.
-* **Valid `doc_type` values:** `passport`, `seaman_book`, `other_seaman_book`, `marlins`, `ces`.
-
----
-
-### `POST /api/cv-submissions/upload/` — Direct CV Document Upload
-* **Content-Type:** `multipart/form-data`
-* **Body:** `cv_file` (required file), `position` (optional ID), `notes` (optional text).
-Creates a `Pending` CV Submission immediately tied to the logged-in user.
-
----
-
-### `GET /api/cv-submissions/stats/` — Dashboard Statistics
-Returns aggregated counts for dashboard use. Admins see global counts, Employees see only their own.
-
-**Response Example:**
-```json
-{
-  "total": 10,
-  "under_review": 2,
-  "interviewed": 3,
-  "pending": 4,
-  "approved": 1,
-  "under_review_percent": 20,
-  "interviewed_percent": 30,
-  "pending_percent": 40,
+  "total": 450,
+  "under_review": 120,
+  "under_review_percent": 27,
+  "interviewed": 85,
+  "interviewed_percent": 19,
+  "pending": 200,
+  "pending_percent": 44,
+  "approved": 45,
   "approved_percent": 10
 }
 ```
+
+---
+
+## 4. Data Modeling (Evaluation Context)
+
+The `CVSubmission` model acts as a bridge between multiple data domains:
+
+| Domain | Model Source | Purpose in Submission |
+|---|---|---|
+| **Identity** | `Users` | Name, Generated ID, Email |
+| **Logistics** | `CVSubmission` | Availability, Expected Salary, Notes |
+| **Compliance** | `Certificate` | STCW training verification |
+| **Legal** | `PersonalDocument` | Passport and Seaman's Book validity |
+| **Professional** | `UserRank` | Internal agency codes and seniority |
+
+---
+
+## 5. Permissions
+
+- **Admin / HR Manager:** Full management, including data override on user profiles.
+- **Recruiter:** Can view details, update status, add notes, and perform evaluations.
+- **Employee (Seafarer):** Can view their own application status but cannot see internal notes or ratings.
+
+---
+
+> [!IMPORTANT]
+> When downloading documents via `/api/cv-submissions/{id}/download-document/`, use the `type` query parameter: `passport`, `seaman_book`, `marlins`, or `crews`.
