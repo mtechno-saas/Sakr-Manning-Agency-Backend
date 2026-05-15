@@ -1219,8 +1219,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
                         )
                         serializer.save(user=new_user)
                 else:
-                    # Fallback to uploader if no email provided (though rare for applications)
-                    serializer.save(user=self.request.user)
+                    # Fallback to uploader if no email provided
+                    if self.request.user and self.request.user.is_authenticated:
+                        serializer.save(user=self.request.user)
+                    else:
+                        from rest_framework.exceptions import ValidationError
+                        raise ValidationError({"email": "Email is required for unregistered users to process application."})
 
     def _sync_user_data(self, document):
         """Helper to sync Document data to User profile when Active"""
