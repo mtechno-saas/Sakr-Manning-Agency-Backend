@@ -3486,6 +3486,7 @@ class DocumentUploadView(APIView):
     
     Uses serializers for validation and response formatting.
     """
+    authentication_classes = []  # Allow unauthenticated uploads
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser]
     serializer_class = DocumentUploadSerializer
