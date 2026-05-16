@@ -272,6 +272,7 @@ const JobOrderManagementModal = ({
                                                 <span style={{ fontSize: "11px", color: "#0369A1", backgroundColor: "#F0F9FF", padding: "2px 6px", borderRadius: "4px" }}>{order.status}</span>
                                             </div>
                                             <div style={{ fontSize: "12px", color: "#6B7280" }}>{order.ship_name || "No ship assigned"}</div>
+                                            <div style={{ fontSize: "12px", color: "#6B7280" }}>{order.request_date || "-"}</div>
                                             <div style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "6px", display: "flex", justifyContent: "space-between" }}>
                                                 <span>{order.positions?.length || 0} Positions</span>
                                                 <div style={{ display: "flex", gap: "8px" }}>

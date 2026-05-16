@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { LogOut, Pencil } from "lucide-react";
+import { getMediaUrl } from "../../../utils/fileHelpers";
 
 /**
  * Sidebar - Left navigation panel with user profile and step navigation
@@ -27,13 +28,17 @@ export function Sidebar({
     // Sync previewUrl with userProfile.photo when it changes
     useEffect(() => {
         if (userProfile?.photo) {
-            if (typeof userProfile.photo === 'string') {
-                setPreviewUrl(userProfile.photo);
-            } else if (userProfile.photo instanceof File) {
+            if (userProfile.photo instanceof File) {
+                // Newly uploaded file — create a local object URL for preview
                 const objectUrl = URL.createObjectURL(userProfile.photo);
                 setPreviewUrl(objectUrl);
                 return () => URL.revokeObjectURL(objectUrl);
+            } else if (typeof userProfile.photo === 'string' && userProfile.photo.trim() !== '') {
+                // URL from backend (absolute or relative) — resolve via getMediaUrl
+                setPreviewUrl(getMediaUrl(userProfile.photo));
             }
+        } else {
+            setPreviewUrl(null);
         }
     }, [userProfile?.photo]);
 
