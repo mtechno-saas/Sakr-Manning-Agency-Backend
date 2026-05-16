@@ -57,14 +57,6 @@ export const StatCard = ({
           lineHeight: "1",
           flexShrink: 0,
         }}
-        // onError={(e) => {
-        //   e.target.style.display = "none";
-        //   const fallback = document.createElement("div");
-        //   fallback.textContent = "📊";
-        //   fallback.style.fontSize = `${iconSize}px`;
-        //   fallback.style.lineHeight = "1";
-        //   e.target.parentNode.insertBefore(fallback, e.target);
-        // }}
       />
 
       <h3

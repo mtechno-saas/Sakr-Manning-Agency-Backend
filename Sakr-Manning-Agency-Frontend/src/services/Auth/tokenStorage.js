@@ -1,18 +1,3 @@
-// tokenStorage.js
-// ─────────────────────────────────────────────────────────────────────────────
-// SECURITY MODEL
-// ─────────────────────────────────────────────────────────────────────────────
-//  • JWT tokens  → "Secure; SameSite=Strict" cookies (JS-readable, NOT HttpOnly)
-//    Note: True HttpOnly cookies require the backend to set them via Set-Cookie
-//    headers. Since this is a SPA calling a separate API, we use JS cookies which
-//    are still XSS-readable but protected from CSRF (SameSite=Strict).
-//    Risk mitigation: keep access token lifetime short (15–60 min).
-//
-//  • User profile / role → localStorage
-//    The role field is UI-only. Backend enforces permissions via JWT on every
-//    request. A user who edits their localStorage role only fools their own UI.
-// ─────────────────────────────────────────────────────────────────────────────
-
 const TOKEN_KEYS = {
   ACCESS: "maritime_access_token",
   REFRESH: "maritime_refresh_token",

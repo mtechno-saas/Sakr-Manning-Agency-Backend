@@ -9,14 +9,6 @@
  * - Validation rules
  * - Default values
  * - Transform functions
- * 
- * Benefits:
- * - Single source of truth for all form fields
- * - Declarative validation
- * - Easy to add/modify/remove fields
- * - Testable in isolation
- * - Self-documenting
- * 
  * @module fieldConfigs
  * @version 1.0.0
  */

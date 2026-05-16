@@ -1,7 +1,6 @@
-// FIX: Field name alignment between frontend & backend
 export const FIELD_MAPPINGS = {
   interviews: {
-    candidate: "user", // backend uses 'user', frontend uses 'candidate'
+    candidate: "user",
     scheduled_date: "date",
     scheduled_time: "time",
     interview_type: "type",
