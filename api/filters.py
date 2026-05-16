@@ -90,7 +90,7 @@ class UsersFilter(django_filters.FilterSet):
     marital_status = CharInFilter(field_name="marital_status", lookup_expr="in")
     user_status = CharInFilter(field_name="user_status", lookup_expr="in")
     nationality = CharInFilter(field_name="nationality", lookup_expr="in")
-    nearest_port = CharInFilter(field_name="Nearest_Port", lookup_expr="in")
+    nearest_port = django_filters.CharFilter(field_name="Nearest_Port", lookup_expr="icontains")
     
     def filter_by_name(self, queryset, name, value):
         if not value:
@@ -119,8 +119,8 @@ class UsersFilter(django_filters.FilterSet):
         return queryset.filter(query).distinct()
     
     # Position filters
-    rank_name = CharInFilter(field_name="codes__name", lookup_expr="in")
-    assigned_code = CharInFilter(field_name="user_ranks__assigned_code", lookup_expr="in")
+    rank_name = django_filters.CharFilter(field_name="codes__name", lookup_expr="icontains")
+    assigned_code = django_filters.CharFilter(field_name="user_ranks__assigned_code", lookup_expr="icontains")
     
     role = CharInFilter(field_name="role", lookup_expr="in")
     is_blacklisted = django_filters.BooleanFilter(field_name="is_blacklisted")
@@ -128,17 +128,17 @@ class UsersFilter(django_filters.FilterSet):
     # New requested filters
     # Filter by Company (ID or Name)
     company = NumberInFilter(field_name="contracts__company__id", lookup_expr="in")
-    company_name = CharInFilter(field_name="contracts__company__company_name", lookup_expr="in")
+    company_name = django_filters.CharFilter(field_name="contracts__company__company_name", lookup_expr="icontains")
     
     # Filter by Ship (ID or Name)
     ship = NumberInFilter(field_name="contracts__ship__id", lookup_expr="in")
-    ship_name = CharInFilter(field_name="contracts__ship__ship_name", lookup_expr="in")
+    ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
     
     # Filter by Job Position Name (linked to JobOrderPosition/Rank)
-    job_position_name = CharInFilter(field_name="contracts__job_position__rank__name", lookup_expr="in")
+    job_position_name = django_filters.CharFilter(field_name="contracts__job_position__rank__name", lookup_expr="icontains")
     
     # Filter by Language
-    language = CharInFilter(field_name="languages__language", lookup_expr="in")
+    language = django_filters.CharFilter(field_name="languages__language", lookup_expr="icontains")
     
     # Filter by Contract Status (Signed, Draft, Cancelled, etc.)
     contract_status = CharInFilter(field_name="contracts__status", lookup_expr="in")
@@ -150,45 +150,45 @@ class UsersFilter(django_filters.FilterSet):
     signed_off_to = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="lte")
 
     # Company and Ship Types
-    company_type = CharInFilter(field_name="contracts__company__company_type__name", lookup_expr="in")
-    ship_type = CharInFilter(field_name="contracts__ship__ship_type__name", lookup_expr="in")
+    company_type = django_filters.CharFilter(field_name="contracts__company__company_type__name", lookup_expr="icontains")
+    ship_type = django_filters.CharFilter(field_name="contracts__ship__ship_type__name", lookup_expr="icontains")
     
     # Passport Details
-    passport_no = CharInFilter(field_name="passport_no", lookup_expr="in")
+    passport_no = django_filters.CharFilter(field_name="passport_no", lookup_expr="icontains")
     passport_expiry_from = django_filters.DateFilter(field_name="passport_expiry_date", lookup_expr="gte")
     passport_expiry_to = django_filters.DateFilter(field_name="passport_expiry_date", lookup_expr="lte")
     
     # Seaman Book Details
-    seaman_book_no = CharInFilter(field_name="seaman_book_no", lookup_expr="in")
+    seaman_book_no = django_filters.CharFilter(field_name="seaman_book_no", lookup_expr="icontains")
     seaman_book_expiry_from = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="gte")
     seaman_book_expiry_to = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="lte")
     
     # Medical Details
-    medical_no = CharInFilter(field_name="health_number", lookup_expr="in")
+    medical_no = django_filters.CharFilter(field_name="health_number", lookup_expr="icontains")
     medical_expiry_from = django_filters.DateFilter(field_name="health_expiry_date", lookup_expr="gte")
     medical_expiry_to = django_filters.DateFilter(field_name="health_expiry_date", lookup_expr="lte")
     
     # Marine Courses
-    course_name = CharInFilter(field_name="courses__course_name", lookup_expr="in")
+    course_name = django_filters.CharFilter(field_name="courses__course_name", lookup_expr="icontains")
 
     # Document Types (Personal Documents)
-    passport_type = CharInFilter(field_name="personal_documents__document_type", lookup_expr="in")
-    seaman_book_type = CharInFilter(field_name="personal_documents__document_type", lookup_expr="in")
-    document_type = CharInFilter(field_name="personal_documents__document_type", lookup_expr="in")
+    passport_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    seaman_book_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    document_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
     
     # New Document Filters (Quick Applier/General Documents)
     document_status = CharInFilter(field_name="documents__status", lookup_expr="in")
-    document_title = CharInFilter(field_name="documents__title", lookup_expr="in")
+    document_title = django_filters.CharFilter(field_name="documents__title", lookup_expr="icontains")
 
     # Filter by position (Rank name or Application position)
-    position = CharInFilter(method='filter_by_position')
+    position = django_filters.CharFilter(method='filter_by_position')
     
     def filter_by_position(self, queryset, name, value):
         if not value:
             return queryset
         return queryset.filter(
-            Q(codes__name__in=value) | 
-            Q(application_for_position__in=value)
+            Q(codes__name__icontains=value) | 
+            Q(application_for_position__icontains=value)
         ).distinct()
 
     class Meta:
