@@ -28,42 +28,6 @@ import { useState, useMemo } from "react";
  * }
  *
  * @returns {object} Hook state and handlers
- *
- * @example
- * // CV.jsx usage
- * const {
- *   filteredData,
- *   showModal,
- *   setShowModal,
- *   filters,
- *   setFilters,
- *   activeFilters,
- *   handleApplyFilters,
- *   handleResetFilters,
- *   searchQuery,
- *   setSearchQuery
- * } = useTableFilters(cvData, {
- *   searchFields: ['name', 'position'],
- *   selectFilters: [{ key: 'status', type: 'exact' }],
- *   dateFilters: [
- *     { key: 'dateFrom', targetKey: 'submitted', type: 'from' },
- *     { key: 'dateTo', targetKey: 'submitted', type: 'to' }
- *   ]
- * });
- *
- * // Use filtered data in table
- * <RefinedDataTable data={filteredData} ... />
- *
- * // Show modal with filter component
- * <FilterModal
- *   isOpen={showModal}
- *   onClose={() => setShowModal(false)}
- *   values={filters}
- *   onValuesChange={setFilters}
- *   onApply={handleApplyFilters}
- *   onReset={handleResetFilters}
- *   ...
- * />
  */
 const useTableFilters = (rawData = [], filterConfig = {}) => {
   // Modal state

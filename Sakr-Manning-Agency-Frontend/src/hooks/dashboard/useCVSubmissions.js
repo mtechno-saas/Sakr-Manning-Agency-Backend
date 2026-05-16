@@ -32,7 +32,8 @@ export const useCVSubmissions = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await cvSubmissionsApi.getSubmissions(filters);
+        const queryFilters = { page_size: 50, ...filters };
+        const response = await cvSubmissionsApi.getSubmissions(queryFilters);
 
         // Handle paginated or flat response
         if (response.results) {
@@ -41,7 +42,8 @@ export const useCVSubmissions = () => {
             count: response.count || 0,
             next: response.next || null,
             previous: response.previous || null,
-            currentPage: filters.page || 1,
+            currentPage: queryFilters.page || 1,
+            pageSize: queryFilters.page_size || 50,
           });
           return { success: true, data: response.results };
         }

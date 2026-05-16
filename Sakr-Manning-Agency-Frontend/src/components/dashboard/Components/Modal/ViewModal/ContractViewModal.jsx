@@ -279,7 +279,7 @@ export function ContractViewModal({
             {/* Job Position Requirements */}
             {contract.job_position_details && (
                 <Section title="Job Position Requirements" icon={FileText} scale={scale} columns={2}>
-                    <FieldItem label="Vacancy ID" value={`#${contract.job_position_details.id}`} scale={scale} />
+                    <FieldItem label="Vacancy" value={`${contract.job_position_details.job_position_name}`} scale={scale} />
                     <FieldItem label="Expected Duration" value={`${contract.job_position_details.contract_duration_months} months`} scale={scale} />
                     <FieldItem
                         label="Salary Budget"

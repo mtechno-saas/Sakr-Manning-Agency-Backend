@@ -1,10 +1,3 @@
-// utils/formValidation.js
-/**
-
-Validation utilities for form fields
-Provides reusable validation functions
-*/
-
 export const validators = {
     /**
     

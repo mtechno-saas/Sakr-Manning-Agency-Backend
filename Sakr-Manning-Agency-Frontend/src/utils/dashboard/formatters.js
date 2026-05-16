@@ -1,15 +1,3 @@
-
-// utils/formatters.js
-/**
-
-Formatting utility functions
-*/
-
-/**
-
-Format phone number
-@example formatPhone('1234567890') => '+1 (234) 567-890'
-*/
 export function formatPhone(value) {
     if (!value) return '';
 

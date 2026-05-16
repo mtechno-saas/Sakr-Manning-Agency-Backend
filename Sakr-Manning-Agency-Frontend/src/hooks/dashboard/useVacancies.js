@@ -37,14 +37,16 @@ export const useVacancies = () => {
       setError(null);
 
       try {
-        const response = await vacanciesApi.getVacancies(filters);
+        const queryFilters = { page_size: 50, ...filters };
+        const response = await vacanciesApi.getVacancies(queryFilters);
 
         setVacancies(response.vacancies || []);
         setPagination({
           count:       response.count    || 0,
           next:        response.next     || null,
           previous:    response.previous || null,
-          currentPage: filters.page     || 1,
+          currentPage: queryFilters.page || 1,
+          pageSize:    queryFilters.page_size || 50,
         });
 
         return { success: true, data: response.vacancies };

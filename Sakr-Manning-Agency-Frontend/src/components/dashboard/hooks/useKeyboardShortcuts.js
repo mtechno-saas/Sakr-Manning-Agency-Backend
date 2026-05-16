@@ -106,36 +106,3 @@ const useKeyboardShortcuts = (
 };
 
 export default useKeyboardShortcuts;
-
-/*
-import { useEffect } from 'react';
-export function useKeyboardShortcuts(shortcuts, isActive = true) {
-useEffect(() => {
-if (!isActive) return;
-const handleKeyDown = (event) => {
-// Build key combination string
-const modifiers = [];
-if (event.ctrlKey || event.metaKey) modifiers.push('Control');
-if (event.altKey) modifiers.push('Alt');
-if (event.shiftKey) modifiers.push('Shift');
-const key = event.key;
-const combination = modifiers.length > 0
-? ${modifiers.join('+')}+${key}
-: key;
-// Also check lowercase version
-const combinationLower = modifiers.length > 0
-? ${modifiers.join('+')}+${key.toLowerCase()}
-: key.toLowerCase();
-// Execute handler if shortcut matches
-const handler = shortcuts[combination] || shortcuts[combinationLower];
-if (handler) {
-handler(event);
-}
-};
-document.addEventListener('keydown', handleKeyDown);
-return () => {
-document.removeEventListener('keydown', handleKeyDown);
-};
-}, [shortcuts, isActive]);
-}
-*/

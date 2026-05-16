@@ -1,9 +1,3 @@
-// utils/draftUtils.js
-
-/**
- * Removes all Draft fields from form data
- * Ensures no temporary CRUD form data leaks into saves/submissions
- */
 export const cleanDraftFields = (data) => {
     if (!data || typeof data !== "object") return data;
 
