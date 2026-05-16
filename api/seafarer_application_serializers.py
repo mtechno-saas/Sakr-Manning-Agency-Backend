@@ -266,8 +266,8 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                     course_number=c.get('number', ''),
                     issue_date=self._parse_date(c.get('issue_date')),
                     expiry_date=self._parse_date(c.get('expiry_date')),
-                    issued_by=c.get('issued_by_at', '').split('/')[0].strip() if '/' in c.get('issued_by_at', '') else c.get('issued_by_at', ''),
-                    issued_at=c.get('issued_by_at', '').split('/')[1].strip() if '/' in c.get('issued_by_at', '') else ''
+                    issued_by=c.get('issued_by', ''),
+                    issued_at=c.get('issued_at', '')
                 )
 
         # 9. Sea Service
@@ -551,7 +551,8 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                 "number": c.course_number,
                 "issue_date": c.issue_date if c.issue_date else "",
                 "expiry_date": c.expiry_date if c.expiry_date else "",
-                "issued_by_at": f"{c.issued_by} / {c.issued_at}".strip(" / ")
+                "issued_by": c.issued_by or "",
+                "issued_at": c.issued_at or ""
             })
         return result
 
