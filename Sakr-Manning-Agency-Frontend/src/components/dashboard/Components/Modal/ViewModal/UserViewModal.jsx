@@ -374,6 +374,7 @@ export function UserViewModal({
             {/* Professional & Admin */}
             <Section title="Professional & Admin" icon={Briefcase} scale={scale} columns={3}>
                 <FieldItem label="Application Position" value={user.application_for_position} scale={scale} />
+                {user.other_position && <FieldItem label="Other Position" value={user.other_position} scale={scale} />}
                 <FieldItem label="User Status" value={user.user_status} scale={scale} />
                 <FieldItem label="Role" value={user.role} scale={scale} />
                 <FieldItem label="Register Code" value={user.register_code} scale={scale} />
