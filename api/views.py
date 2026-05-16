@@ -1660,37 +1660,56 @@ def assign_rank_by_position(request, user_id):
         return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     # Validate position in request body
-    position_name = request.data.get('position', '').strip()
+    position_input = request.data.get('position', '')
+    if isinstance(position_input, int):
+        position_input = str(position_input)
+    
+    position_name = position_input.strip()
+    
     if not position_name:
         return Response(
             {'error': 'position is required.', 'hint': 'Use GET /api/positions/ to see all valid choices.'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Check position is a valid choice
-    valid_positions = [choice[0] for choice in Document.POSITION_CHOICES]
-    if position_name not in valid_positions:
-        return Response(
-            {
-                'error': f'"{position_name}" is not a valid position.',
-                'valid_positions': valid_positions,
-                'hint': 'Use GET /api/positions/ to get the full list.'
-            },
-            status=status.HTTP_400_BAD_REQUEST
+    # 1. Try to see if it's an existing Rank ID
+    rank = None
+    if position_name.isdigit():
+        rank = Rank.objects.filter(pk=int(position_name)).first()
+        if rank:
+            position_name = rank.name
+
+    # 2. If not found by ID, try finding by exact name in Rank table
+    if not rank:
+        rank = Rank.objects.filter(name__iexact=position_name).first()
+
+    # 3. If still not found, validate against hardcoded choices
+    if not rank:
+        valid_positions = [choice[0] for choice in Document.POSITION_CHOICES]
+        if position_name not in valid_positions:
+            return Response(
+                {
+                    'error': f'"{position_name}" is not a valid position.',
+                    'valid_positions': valid_positions,
+                    'hint': 'Use GET /api/positions/ to get the full list.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    # Map position name → short rank code (only if we didn't find it by ID)
+    created = False
+    if not rank:
+        rank_code = POSITION_CODE_MAP.get(position_name, position_name[:6].upper().replace(' ', '_'))
+
+        # Get or create the Rank object
+        rank, created = Rank.objects.get_or_create(
+            code=rank_code,
+            defaults={'name': position_name}
         )
-
-    # Map position name → short rank code
-    rank_code = POSITION_CODE_MAP.get(position_name, position_name[:6].upper().replace(' ', '_'))
-
-    # Get or create the Rank object
-    rank, created = Rank.objects.get_or_create(
-        code=rank_code,
-        defaults={'name': position_name}
-    )
 
     # Prevent duplicate assignment
     if UserRank.objects.filter(user=user, rank=rank).exists():
-        existing = UserRank.objects.get(user=user, rank=rank)
+        existing = UserRank.objects.filter(user=user, rank=rank).first()
         return Response(
             {
                 'error': f'User already has the rank "{position_name}".',
