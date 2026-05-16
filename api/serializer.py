@@ -813,8 +813,11 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         cv_id = obj.id
 
-        def build_download_url(doc_type):
-            return f"/api/cv-submissions/{cv_id}/download-document/?type={doc_type}"
+        def build_download_url(doc_type, doc_id=None):
+            url = f"/api/cv-submissions/{cv_id}/download-document/?type={doc_type}"
+            if doc_id:
+                url += f"&doc_id={doc_id}"
+            return url
 
         def file_url(field):
             if not field:
@@ -838,6 +841,51 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'download_url': f"/api/licenses/{lic.id}/download/" if lic.document_file else None,
             }
             for lic in licenses_qs
+        ]
+
+        # Sea Services
+        sea_services_qs = user.sea_services.all()
+        sea_services_data = [
+            {
+                'id': ss.id,
+                'vessel_name': ss.vessel_name,
+                'rank': ss.rank,
+                'signed_on': str(ss.signed_on) if ss.signed_on else None,
+                'signed_off': str(ss.signed_off) if ss.signed_off else None,
+                'file_url': file_url(ss.file) if ss.file else None,
+                'download_url': build_download_url('sea_service', ss.id) if ss.file else None,
+            }
+            for ss in sea_services_qs
+        ]
+
+        # Marine Courses
+        from courses.models import Course
+        courses_qs = Course.objects.filter(user=user)
+        courses_data = [
+            {
+                'id': c.id,
+                'course_name': c.course_name,
+                'issue_date': str(c.issue_date) if c.issue_date else None,
+                'expiry_date': str(c.expiry_date) if c.expiry_date else None,
+                'file_url': file_url(c.document) if c.document else None,
+                'download_url': build_download_url('course', c.id) if c.document else None,
+            }
+            for c in courses_qs
+        ]
+
+        # Medical / Vaccinations
+        from vaccinations.models import Vaccination
+        vaccinations_qs = Vaccination.objects.filter(user=user)
+        vaccinations_data = [
+            {
+                'id': v.id,
+                'vaccine_name': v.name,
+                'issue_date': str(v.issue_date) if v.issue_date else None,
+                'expiry_date': str(v.expiry_date) if v.expiry_date else None,
+                'file_url': file_url(v.document) if v.document else None,
+                'download_url': build_download_url('vaccination', v.id) if v.document else None,
+            }
+            for v in vaccinations_qs
         ]
 
         return {
@@ -893,8 +941,11 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'international_medical_number': user.international_medical_number,
                 'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
                 'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
+                'records': vaccinations_data,
             },
             'licenses': licenses_data,
+            'sea_service': sea_services_data,
+            'marine_courses': courses_data,
         }
 
     def get_certificates(self, obj):
@@ -1321,6 +1372,11 @@ class ContractSerializer(serializers.ModelSerializer):
         user = obj.user
         request = self.context.get('request')
 
+        cv_id = obj.id # Note: In ContractSerializer, obj is Contract, so cv_id here refers to Contract ID?
+        # Actually, the download endpoint we added is in CVSubmissionViewSet.
+        # But we could also add it to ContractViewSet if needed.
+        # Or just use the UserViewSet endpoints which are already generic.
+        
         def file_url(field):
             if not field:
                 return None
@@ -1340,8 +1396,54 @@ class ContractSerializer(serializers.ModelSerializer):
                 'issue_date': str(lic.issue_date) if lic.issue_date else None,
                 'expiration_date': str(lic.expiration_date) if lic.expiration_date else None,
                 'file_url': file_url(lic.document_file) if lic.document_file else None,
+                'download_url': f"/api/users/{user.id}/download-license/{lic.id}/" if lic.document_file else None,
             }
             for lic in licenses_qs
+        ]
+
+        # Sea Services
+        sea_services_qs = user.sea_services.all()
+        sea_services_data = [
+            {
+                'id': ss.id,
+                'vessel_name': ss.vessel_name,
+                'rank': ss.rank,
+                'signed_on': str(ss.signed_on) if ss.signed_on else None,
+                'signed_off': str(ss.signed_off) if ss.signed_off else None,
+                'file_url': file_url(ss.file) if ss.file else None,
+                'download_url': f"/api/users/{user.id}/download-sea-service/{ss.id}/" if ss.file else None,
+            }
+            for ss in sea_services_qs
+        ]
+
+        # Marine Courses
+        from courses.models import Course
+        courses_qs = Course.objects.filter(user=user)
+        courses_data = [
+            {
+                'id': c.id,
+                'course_name': c.course_name,
+                'issue_date': str(c.issue_date) if c.issue_date else None,
+                'expiry_date': str(c.expiry_date) if c.expiry_date else None,
+                'file_url': file_url(c.document) if c.document else None,
+                'download_url': f"/api/users/{user.id}/download-course/{c.id}/" if c.document else None,
+            }
+            for c in courses_qs
+        ]
+
+        # Medical / Vaccinations
+        from vaccinations.models import Vaccination
+        vaccinations_qs = Vaccination.objects.filter(user=user)
+        vaccinations_data = [
+            {
+                'id': v.id,
+                'vaccine_name': v.name,
+                'issue_date': str(v.issue_date) if v.issue_date else None,
+                'expiry_date': str(v.expiry_date) if v.expiry_date else None,
+                'file_url': file_url(v.document) if v.document else None,
+                'download_url': f"/api/users/{user.id}/download-vaccination/{v.id}/" if v.document else None,
+            }
+            for v in vaccinations_qs
         ]
 
         return {
@@ -1352,6 +1454,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'issued_by': user.passport_issued_by,
                 'place_of_issue': user.passport_place_of_issue,
                 'file_url': file_url(user.passport_attachment) if user.passport_attachment else None,
+                'download_url': f"/api/users/{user.id}/download-passport/" if user.passport_attachment else None,
             },
             'seaman_book': {
                 'seaman_book_no': user.seaman_book_no,
@@ -1360,6 +1463,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'issued_by': user.seaman_book_issued_by,
                 'place_of_issue': user.seaman_book_place_of_issue,
                 'file_url': file_url(user.seaman_book_attachment) if user.seaman_book_attachment else None,
+                'download_url': f"/api/users/{user.id}/download-seaman-book/" if user.seaman_book_attachment else None,
             },
             'other_seaman_book': {
                 'seaman_book_no': user.other_seaman_book_no,
@@ -1368,6 +1472,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'issued_by': user.other_seaman_book_issued_by,
                 'place_of_issue': user.other_seaman_book_place_of_issue,
                 'file_url': file_url(user.other_seaman_book_attachment) if user.other_seaman_book_attachment else None,
+                'download_url': f"/api/users/{user.id}/download-other-seaman-book/" if user.other_seaman_book_attachment else None,
             },
             'coc': {
                 'certificate_name': user.coc_certificate_name,
@@ -1394,8 +1499,11 @@ class ContractSerializer(serializers.ModelSerializer):
                 'international_medical_number': user.international_medical_number,
                 'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
                 'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
+                'records': vaccinations_data,
             },
             'licenses': licenses_data,
+            'sea_service': sea_services_data,
+            'marine_courses': courses_data,
         }
 
     def get_job_position_details(self, obj):

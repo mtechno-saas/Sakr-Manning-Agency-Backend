@@ -1060,7 +1060,7 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
         """
         Download a file attachment from the user linked to this CV submission.
 
-        GET /api/cv-submissions/{id}/download-document/?type=<doc_type>
+        GET /api/cv-submissions/{id}/download-document/?type=<doc_type>&doc_id=<id>
 
         Supported types:
           passport          → user.passport_attachment
@@ -1068,11 +1068,17 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
           other_seaman_book → user.other_seaman_book_attachment
           marlins           → user.marlins_test_attachment
           ces               → user.ces_test_attachment
+          sea_service       → SeaService.objects.get(id=doc_id)
+          vaccination       → Vaccination.objects.get(id=doc_id)
+          course            → Course.objects.get(id=doc_id)
         """
         cv = self.get_object()
         user = cv.user
+        doc_type = request.query_params.get('type', '').strip()
+        doc_id = request.query_params.get('doc_id')
 
-        FILE_MAP = {
+        # 1. Handle user-level attachments (one-to-one with User)
+        USER_FILE_MAP = {
             'passport':          user.passport_attachment,
             'seaman_book':        user.seaman_book_attachment,
             'other_seaman_book':  user.other_seaman_book_attachment,
@@ -1080,37 +1086,45 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
             'ces':                user.ces_test_attachment,
         }
 
-        doc_type = request.query_params.get('type', '').strip()
-        if not doc_type:
-            return Response(
-                {'error': f'Missing ?type= parameter. Choices: {list(FILE_MAP.keys())}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if doc_type not in FILE_MAP:
-            return Response(
-                {'error': f'Unknown type "{doc_type}". Choices: {list(FILE_MAP.keys())}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if doc_type in USER_FILE_MAP:
+            file_field = USER_FILE_MAP[doc_type]
+            if not file_field:
+                return Response({'error': f'No file uploaded for document type "{doc_type}"'}, status=404)
+            file_path = file_field.path
+        
+        # 2. Handle related model attachments (one-to-many)
+        elif doc_type in ['sea_service', 'vaccination', 'course']:
+            if not doc_id:
+                return Response({'error': f'doc_id is required for type "{doc_type}"'}, status=400)
+            
+            if doc_type == 'sea_service':
+                doc = user.sea_services.filter(id=doc_id).first()
+                file_field = getattr(doc, 'file', None)
+            elif doc_type == 'vaccination':
+                from vaccinations.models import Vaccination
+                doc = Vaccination.objects.filter(id=doc_id, user=user).first()
+                file_field = getattr(doc, 'document', None)
+            elif doc_type == 'course':
+                from courses.models import Course
+                doc = Course.objects.filter(id=doc_id, user=user).first()
+                file_field = getattr(doc, 'document', None)
+            
+            if not doc:
+                return Response({'error': f'Document #{doc_id} of type "{doc_type}" not found for this user'}, status=404)
+            if not file_field:
+                return Response({'error': f'No file attached to this {doc_type} record'}, status=404)
+            
+            file_path = file_field.path
+        
+        else:
+            choices = list(USER_FILE_MAP.keys()) + ['sea_service', 'vaccination', 'course']
+            return Response({'error': f'Unknown or missing type. Choices: {choices}'}, status=400)
 
-        file_field = FILE_MAP[doc_type]
-        if not file_field:
-            return Response(
-                {'error': f'No file uploaded for document type "{doc_type}"'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        file_path = file_field.path
+        # 3. Serve the file
         if not os.path.exists(file_path):
-            return Response(
-                {'error': 'File record exists but the file was not found on the server'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({'error': 'File record exists but the file was not found on the server'}, status=404)
 
-        return FileResponse(
-            open(file_path, 'rb'),
-            as_attachment=True,
-            filename=os.path.basename(file_path)
-        )
+        return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
 
 
 class ReferenceViewSet(viewsets.ModelViewSet):
