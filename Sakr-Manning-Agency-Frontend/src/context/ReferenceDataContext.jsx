@@ -48,7 +48,6 @@ export const ReferenceDataProvider = ({ children, data, isLoading }) => {
 
             positions: (data.positions || []).map((item) => ({
                 key: item.id,
-                // value MUST match what the backend returns for `application_for_position`
                 // which is the position name string — NOT the integer ID.
                 value: typeof item === "string" ? item : (item.name ?? item.label ?? item.title ?? String(item.id ?? "")),
                 label: typeof item === "string" ? item : (item.name ?? item.label ?? item.title),
