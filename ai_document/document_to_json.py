@@ -26,7 +26,7 @@
 # output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
 # # 3. Format instructions (JSON schema instructions)
-# format_instructions = output_parser.get_format_instructions()
+# # format_instructions = output_parser.get_format_instructions()
 
 
 # def repair_json_string(text: str) -> str:
@@ -371,7 +371,7 @@
 # output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
 # # 3. Format instructions (JSON schema instructions)
-# format_instructions = output_parser.get_format_instructions()
+# # format_instructions = output_parser.get_format_instructions()
 
 
 # def repair_json_string(text: str) -> str:
@@ -766,7 +766,7 @@
 # output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
 # # 3. Format instructions (JSON schema instructions)
-# format_instructions = output_parser.get_format_instructions()
+# # format_instructions = output_parser.get_format_instructions()
 
 
 # def repair_json_string(text: str) -> str:
@@ -1156,658 +1156,568 @@ This version includes:
 5. Better error handling
 """
 
+
+
+"""
+Pure Pydantic + Regex CV extraction engine.
+No AI model required — extracts data instantly using pattern matching.
+Output format matches the seafarer_application numbered-section API format.
+"""
+
 import re
-import json
-from langchain.prompts import PromptTemplate
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
-from langchain_ollama import OllamaLLM
+from .schemas import (
+    SeafarerApplication, PersonalDetails, MaritalStatus, Education,
+    MarlineTest, LanguageLevel, ContactDetails, TravelDocument,
+    ProfessionalQualification, NextOfKin, HealthSection, HealthCertificate,
+    Covid19, MarineCourse, SeaServiceSection, ApplicantInfo, ServiceRecord,
+    Reference, Declaration, DeclarationQuestions, DeclarationAnswer,
+    OfficeUseOnly, ResponsiblePerson,
+)
 
 
-# IMPROVED SCHEMA WITH DETAILED DESCRIPTIONS
-response_schemas = [
-    ResponseSchema(
-        name="Personal_Details",
-        description="""Personal details including:
-        - Full_Name (complete name)
-        - Date_Of_Birth (format: DD/MM/YYYY or YYYY-MM-DD)
-        - Place_Of_Birth (city/country)
-        - Nationality
-        - Marital_Status (Single/Married/Divorced)
-        - Height_Cm, Weight_Kg
-        - Overall_Size, Shirt_Size, Trouser_Size, Shoes_Size
-        - Nearest_Port
-        - Expected_Salary
-        - Available_Date
-        - Register_Code"""
-    ),
-    ResponseSchema(
-        name="Education",
-        description="""Education details including:
-        - College_School (name of institution)
-        - Marine_Test (object with: Issued_Date, Result_Percent, Issued_By_Authority, Issued_At)
-        - English_Language (proficiency level)
-        - Other_Languages (array of languages)"""
-    ),
-    ResponseSchema(
-        name="Contact_Details",
-        description="""Contact information including:
-        - Home_Address_City (full address)
-        - Email
-        - Mobile_Tel (phone number with country code)"""
-    ),
-    ResponseSchema(
-        name="Travel_Documents",
-        description="""Array of travel documents. Each document should include:
-        - Type (Passport, Seaman Book, Other Seaman Book)
-        - Document_No (document number)
-        - Register_Code
-        - ISS_Date (issue date)
-        - Exp_Date (expiry date)
-        - ISS_By_Authority (issuing authority)
-        - Place_of_Issue
-        Extract ALL documents found in the CV."""
-    ),
-    ResponseSchema(
-        name="Professional_Qualifications",
-        description="""Array of professional certificates. Each certificate should include:
-        - Certificate_Name (e.g., COC, GOC)
-        - Number (certificate number)
-        - Register_Code
-        - Issue_Date
-        - Expiry_Date
-        - Issued_By (issuing authority)
-        - Issued_At (place of issue)
-        Extract ALL certificates found."""
-    ),
-    ResponseSchema(
-        name="Next_of_Kin_Emergency_Contact",
-        description="""Next of kin/emergency contact including:
-        - Full_Name
-        - Relationship (e.g., SON, WIFE, FATHER)
-        - Address
-        - Address_Country
-        - Tel_No
-        - Mobile
-        - Email"""
-    ),
-    ResponseSchema(
-        name="Health_Certificates_Vaccinations",
-        description="""Array of health certificates and vaccinations. Each should include:
-        - Flag_State (type: International Medical, Yellow Fever, Cholera, etc.)
-        - Number (certificate number)
-        - Register_Code
-        - Issue_Date
-        - Expiry_Date
-        - Issued_By (issuing authority)
-        - Issued_At (place of issue)
-        Extract ALL health certificates and vaccinations."""
-    ),
-    ResponseSchema(
-        name="Covid_19_Vaccination",
-        description="""COVID-19 vaccination details including:
-        - Vaccination_Name (e.g., ASTRAZENECA, PFIZER, MODERNA)
-        - First_Dose (date of first dose)
-        - Second_Dose (date of second dose)
-        - Other_Doses_or_Remarks (booster doses or notes)"""
-    ),
-    ResponseSchema(
-        name="Marine_Courses",
-        description="""Array of marine training courses. Each course should include:
-        - Course_Name (full course name)
-        - Number (certificate number)
-        - Register_Code
-        - Issue_Date
-        - Expiry_Date
-        - Issued_By_At (issuing authority and location)
-        Extract ALL courses found, including STCW courses, safety training, specialized courses."""
-    ),
-    ResponseSchema(
-        name="Sea_Service_Details",
-        description="""Array of sea service records. Each record should include:
-        - Company_Name
-        - Rank (position held)
-        - Vessel_Name
-        - Vessel_Name_IMO_Number
-        - Flag (vessel flag state)
-        - Signed_On (embarkation date)
-        - Signed_Off (disembarkation date)
-        - Period (duration)
-        - Vessel_Type (Passenger, Cargo, Tanker, etc.)
-        - DWT_GRT (deadweight tonnage / gross registered tonnage)
-        - Engine_Type (engine manufacturer and model)
-        - BH_KW (brake horsepower / kilowatts)
-        - Reason_for_Sign_off
-        Extract ALL sea service records in chronological order."""
-    ),
-    ResponseSchema(
-        name="Specialised_Experience",
-        description="Array of any specialized experiences or skills not covered in other sections"
-    ),
-    ResponseSchema(
-        name="References",
-        description="Array of professional references with contact details"
-    ),
-    ResponseSchema(
-        name="Declaration",
-        description="""Declaration section including:
-        - Health_Questions (object with: Disease_likely_to_render_unfit, Accident_rendering_disabled, Psychiatric_treatment, Addicted_to_alcohol_or_drugs)
-        - Consent_Statement
-        - Signature
-        - Date"""
-    ),
-    ResponseSchema(
-        name="Office_Use_Only",
-        description="""Office use section including:
-        - Initial_assessment_of_applicant
-        - Comments
-        - Responsible_person
-        - Name_Signature
-        - Date"""
-    ),
-]
+# ──────────────────────────────────────────────────────────────────────────────
 
-# Create the parser
-output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
+CURRENT_TABLES = []
 
-# Format instructions
-format_instructions = output_parser.get_format_instructions()
-
-
-def normalize_for_serializer(data):
+def _field(text: str, *labels: str, default: str = "") -> str:
     """
-    Keep arrays but also add flattened fields for easy serializer access.
+    Extract the value after the first matching label (case-insensitive).
+    Handles multiple CV text layouts, including complex table rows.
     """
-    if not isinstance(data, dict):
-        return data
+    global CURRENT_TABLES
     
-    normalized = data.copy()
-    
-    # Extract passport and seaman book from Travel_Documents array
-    if 'Travel_Documents' in normalized and isinstance(normalized['Travel_Documents'], list):
-        docs = normalized['Travel_Documents']
+    for label in labels:
+        label_lower = label.lower()
         
-        passport = next((d for d in docs if d.get('Type') == 'Passport'), {})
-        seaman = next((d for d in docs if d.get('Type') == 'Seaman Book'), {})
+        # 0. NATIVE TABLE PARSING (Option C)
+        # Directly scan the 2D arrays extracted from python-docx to avoid flattened text regex issues.
+        for table in CURRENT_TABLES:
+            for r_idx, row in enumerate(table):
+                for c_idx, cell in enumerate(row):
+                    if label_lower in cell.lower():
+                        # Case A: Vertical Table (Key | Value in the same row)
+                        if c_idx + 1 < len(row) and row[c_idx + 1].strip():
+                            val = row[c_idx + 1].strip()
+                            if len(val) > 1 and val.upper() not in [l.upper() for l in labels]: return val
+                        
+                        # Case B: Horizontal Table (Header row, Value row immediately below)
+                        if r_idx + 1 < len(table) and c_idx < len(table[r_idx + 1]):
+                            val = table[r_idx + 1][c_idx].strip()
+                            if val and len(val) > 1 and val.upper() not in [l.upper() for l in labels]: return val
+                            
+        esc = re.escape(label)
         
-        # Add flattened fields (for backward compatibility)
-        normalized['passport_info'] = passport
-        normalized['seaman_book_info'] = seaman
-    
-    # Extract COC and GOC from Professional_Qualifications array
-    if 'Professional_Qualifications' in normalized and isinstance(normalized['Professional_Qualifications'], list):
-        certs = normalized['Professional_Qualifications']
-        
-        coc = next((c for c in certs if 'COC' in c.get('Certificate_Name', '')), {})
-        goc = next((c for c in certs if 'GOC' in c.get('Certificate_Name', '')), {})
-        
-        normalized['coc_info'] = coc
-        normalized['goc_info'] = goc
-    
-    # Extract medical certificates
-    if 'Health_Certificates_Vaccinations' in normalized and isinstance(normalized['Health_Certificates_Vaccinations'], list):
-        certs = normalized['Health_Certificates_Vaccinations']
-        
-        medical = next((c for c in certs if 'Medical' in c.get('Flag_State', '')), {})
-        yellow_fever = next((c for c in certs if 'Yellow Fever' in c.get('Flag_State', '')), {})
-        
-        normalized['medical_certificate_info'] = medical
-        normalized['yellow_fever_info'] = yellow_fever
-    
-    return normalized
+        # 1. Colon/Dash separator (most common in typed CVs)
+        m = re.search(rf"(?<!\w){esc}\s*[:\-]\s*(.+)", text, re.IGNORECASE)
+        if m:
+            val = m.group(1).split("\n")[0].strip()
+            val = re.split(r"[ \t]{2,}", val)[0].strip()
+            if len(val) > 1 and val.upper() not in [l.upper() for l in labels]: return val
 
-
-
-def repair_json_string(text: str) -> str:
-    """Fix common JSON formatting errors from LLM output."""
-    
-    if hasattr(text, 'content'):
-        text = text.content
-    else:
-        text = str(text)
-    
-    # Remove markdown code fences
-    text = re.sub(r"^```json|```$", "", text.strip(), flags=re.MULTILINE)
-    text = re.sub(r"^```|```$", "", text.strip(), flags=re.MULTILINE)
-    
-    # Remove any control characters that cause parsing issues
-    text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)
-    
-    # Fix broken syntax - ensure proper JSON structure
-    # Remove any trailing incomplete parts
-    brace_count = 0
-    last_complete_pos = 0
-    
-    for i, char in enumerate(text):
-        if char == '{':
-            brace_count += 1
-        elif char == '}':
-            brace_count -= 1
-            if brace_count == 0:
-                last_complete_pos = i + 1
-    
-    # Truncate to last complete JSON object
-    if last_complete_pos > 0:
-        text = text[:last_complete_pos]
-    
-    # Fix trailing commas
-    text = re.sub(r',\s*}', '}', text)
-    text = re.sub(r',\s*]', ']', text)
-    
-    # Fix multiple commas
-    text = re.sub(r',\s*,+', ',', text)
-    
-    return text
-
-
-def extract_structured_data_from_text(text: str) -> dict:
-    """
-    Enhanced extraction using regex patterns for structured data.
-    This helps capture data that LLM might miss.
-    """
-    result = {}
-    
-    # Extract passport information
-    passport_match = re.search(r'passport[:\s]+([A-Z0-9]+)', text, re.IGNORECASE)
-    if passport_match:
-        result['passport_number'] = passport_match.group(1)
-    
-    # Extract seaman book
-    seaman_match = re.search(r'seaman[\'s\s]+book[:\s]+([A-Z0-9]+)', text, re.IGNORECASE)
-    if seaman_match:
-        result['seaman_book_number'] = seaman_match.group(1)
-    
-    # Extract dates (various formats)
-    date_patterns = [
-        r'\d{4}-\d{2}-\d{2}',  # YYYY-MM-DD
-        r'\d{2}/\d{2}/\d{4}',  # DD/MM/YYYY
-        r'\d{2}-\d{2}-\d{4}',  # DD-MM-YYYY
-    ]
-    
-    dates = []
-    for pattern in date_patterns:
-        dates.extend(re.findall(pattern, text))
-    result['found_dates'] = dates
-    
-    # Extract email
-    email_match = re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
-    if email_match:
-        result['email'] = email_match.group(0)
-    
-    # Extract phone numbers
-    phone_patterns = [
-        r'\+\d{1,3}[\s-]?\d{3,}[\s-]?\d{3,}',  # International format
-        r'\d{3}[\s-]?\d{3}[\s-]?\d{4}',  # Local format
-    ]
-    
-    phones = []
-    for pattern in phone_patterns:
-        phones.extend(re.findall(pattern, text))
-    result['found_phones'] = phones
-    
-    return result
-
-
-def convert_text_to_json(extracted_text: str) -> dict:
-    """
-    Convert extracted document text into structured JSON using Ollama.
-    Returns a dictionary with all extracted data.
-    """
-    
-    # VALIDATION: Check if this is actually a maritime CV before processing
-    def is_valid_maritime_cv(text: str) -> bool:
-        """
-        Check if the document contains maritime CV indicators.
-        Returns False if the document is NOT a maritime CV.
-        """
-        text_lower = text.lower()
-        
-        # Maritime-specific keywords that should be present in a valid CV
-        maritime_keywords = [
-            'passport', 'seaman', 'coc', 'goc', 'rank', 'vessel', 'ship',
-            'marine', 'maritime', 'stcw', 'certificate', 'sea service',
-            'nationality', 'date of birth', 'personal details', 'marital status',
-            'next of kin', 'emergency contact', 'vaccination', 'health certificate',
-            'fire fighting', 'survival', 'sailor', 'officer', 'engineer',
-            'captain', 'chief', 'deck', 'engine', 'flag state', 'imo',
-            'dwt', 'grt', 'signed on', 'signed off', 'full name', 'port',
-            'cv', 'resume', 'curriculum vitae', 'application form'
-        ]
-        
-        # Count how many maritime keywords are found
-        keyword_count = sum(1 for keyword in maritime_keywords if keyword in text_lower)
-        
-        # Require at least 5 maritime keywords to consider it a valid CV
-        # Also check for minimum text length (a real CV should have substantial content)
-        min_keywords = 5
-        min_length = 200  # At least 200 characters of actual content
-        
-        is_valid = keyword_count >= min_keywords and len(text.strip()) >= min_length
-        
-        print(f"CV Validation: Found {keyword_count} maritime keywords, text length: {len(text.strip())}")
-        print(f"CV Validation Result: {'VALID' if is_valid else 'INVALID - NOT A MARITIME CV'}")
-        
-        return is_valid
-    
-    # Check if document is a valid maritime CV
-    if not is_valid_maritime_cv(extracted_text):
-        print("=" * 80)
-        print("⚠️ DOCUMENT IS NOT A VALID MARITIME CV - RETURNING EMPTY DATA")
-        print("=" * 80)
-        
-        # Return empty structured data without calling LLM
-        return {
-            "Personal_Details": {},
-            "Education": {},
-            "Contact_Details": {},
-            "Travel_Documents": [],
-            "Professional_Qualifications": [],
-            "Next_of_Kin_Emergency_Contact": {},
-            "Health_Certificates_Vaccinations": [],
-            "Covid_19_Vaccination": {},
-            "Marine_Courses": [],
-            "Sea_Service_Details": [],
-            "Specialised_Experience": [],
-            "References": [],
-            "Declaration": {},
-            "Office_Use_Only": {},
-            "validation_error": "Document does not appear to be a maritime CV. No data extracted."
-        }
-    
-    # Use a larger model for better extraction
-    # Change from llama3.2:1b to llama3.2:3b or llama3:8b if available
-    # Use GLM-OCR for visual document processing, with increased context window
-    llm = OllamaLLM(model="glm-ocr:latest", temperature=0, num_ctx=16384)
-    
-    # Increase context window - process more text
-    max_chars = 8000  # Increased from 3000
-    truncated_text = extracted_text[:max_chars] if len(extracted_text) > max_chars else extracted_text
-    
-    # IMPROVED PROMPT WITH DETAILED INSTRUCTIONS AND EXAMPLES
-    prompt = PromptTemplate(
-        template="""You are an expert data extraction specialist for maritime CV/resume documents. 
-Extract ALL information from the CV text and return it as a valid JSON object.
-
-CV TEXT:
-{document}
-
-EXTRACTION INSTRUCTIONS:
-
-1. **Personal_Details**: Extract full name, date of birth, place of birth, nationality, marital status, physical measurements, nearest port, expected salary, available date, register code.
-
-2. **Education**: Extract educational background, marine test results, language skills.
-
-3. **Contact_Details**: Extract home address, email, mobile telephone.
-
-4. **Travel_Documents**: Extract ALL travel documents as an ARRAY. Each document should include:
-   - Type (Passport, Seaman Book, etc.)
-   - Document number
-   - Issue date and expiry date
-   - Issuing authority and place
-   Example: [
-     {{{{"Type": "Passport", "Document_No": "A24348496", "ISS_Date": "2019-08-18", "Exp_Date": "2026-02-17"}}}},
-     {{{{"Type": "Seaman Book", "Document_No": "S00034684", "ISS_Date": "2023-09-14", "Exp_Date": "2028-09-10"}}}}
-   ]
-
-5. **Professional_Qualifications**: Extract ALL certificates (COC, GOC, etc.) as an ARRAY with certificate name, number, dates, issuing authority.
-
-6. **Next_of_Kin_Emergency_Contact**: Extract emergency contact person's full name, relationship, address, phone, email.
-
-7. **Health_Certificates_Vaccinations**: Extract ALL health certificates and vaccinations as an ARRAY:
-   - International Medical Certificate
-   - Yellow Fever
-   - Cholera
-   - Other vaccinations
-   Include certificate numbers, issue/expiry dates, issuing authority.
-
-8. **Covid_19_Vaccination**: Extract COVID vaccine name (ASTRAZENECA, PFIZER, etc.), first dose date, second dose date, booster information.
-
-9. **Marine_Courses**: Extract ALL marine training courses as an ARRAY. Look for:
-   - STCW courses (Personal Survival, Fire Fighting, First Aid, etc.)
-   - Security training (SSO, Security Awareness)
-   - Specialized courses (ECDIS, GMDSS, Radar, ARPA, etc.)
-   - Passenger ship courses
-   - Engineering courses
-   For each course include: Course_Name, Number, Issue_Date, Expiry_Date, Issued_By_At
-
-10. **Sea_Service_Details**: Extract ALL sea service records as an ARRAY. For each vessel assignment include:
-    - Company name
-    - Rank/position
-    - Vessel name and IMO number
-    - Flag state
-    - Sign-on and sign-off dates
-    - Vessel type, DWT/GRT, engine type, BH/KW
-    - Reason for sign-off
-
-11. **Specialised_Experience**: Extract any specialized skills or experiences.
-
-12. **References**: Extract professional references.
-
-13. **Declaration**: Extract health declaration questions, consent statement, signature, date.
-
-14. **Office_Use_Only**: Extract office assessment, comments, responsible person, date.
-
-CRITICAL RULES:
-- Return ONLY valid JSON, no explanations
-- Use double quotes for all strings
-- For arrays, use [] syntax: "Travel_Documents": [{{...}}, {{...}}]
-- If no data found for a field, use empty string "" for strings, empty array [] for arrays, empty object {{{{}}}} for objects
-- Extract dates in the format found in the document
-- Extract ALL instances of multi-item categories (documents, certificates, courses, sea service)
-- Do NOT truncate or summarize - extract complete information
-- If the uploaded CV text is missing, unstructured, incomplete, or does not explicitly like the provided features do not extract any data from the document
-
-IMPORTANT: Extract ACTUAL DATA from the CV text above. DO NOT use placeholder text.
-DO NOT return "[EXTRACT_FROM_CV]" or any placeholder - return the REAL values found in the document.
-If a field is not found in the CV, use an empty string "".
-
-OUTPUT FORMAT (replace with ACTUAL values from the CV):
-{{{{
-  "Personal_Details": {{{{
-    "Full_Name": "<actual name from CV>",
-    "Date_Of_Birth": "<actual date>",
-    "Place_Of_Birth": "<actual place>",
-    "Nationality": "<actual nationality>",
-    "Marital_Status": "<actual status>",
-    "Nearest_Port": "<actual port>",
-    "Register_Code": "<actual code>"
-  }}}},
-  "Contact_Details": {{{{
-    "Home_Address_City": "<actual address>",
-    "Email": "<actual email>",
-    "Mobile_Tel": "<actual phone>"
-  }}}},
-  "Travel_Documents": [
-    {{{{ "Type": "Passport", "Document_No": "<actual number>", "ISS_Date": "<actual date>", "Exp_Date": "<actual date>", "ISS_By_Authority": "<actual authority>" }}}},
-    {{{{ "Type": "Seaman Book", "Document_No": "<actual number>", "ISS_Date": "<actual date>", "Exp_Date": "<actual date>", "ISS_By_Authority": "<actual authority>", "Place_of_Issue": "<actual place>" }}}}
-  ],
-  "Professional_Qualifications": [
-    {{{{ "Certificate_Name": "<actual cert name>", "Number": "<actual number>", "Issue_Date": "<actual date>", "Expiry_Date": "<actual date>", "Issued_By": "<actual authority>", "Issued_At": "<actual place>" }}}}
-  ],
-  "Next_of_Kin_Emergency_Contact": {{{{
-    "Full_Name": "<actual name>",
-    "Relationship": "<actual relationship>",
-    "Mobile": "<actual phone>"
-  }}}},
-  "Health_Certificates_Vaccinations": [
-    {{{{ "Flag_State": "<actual type>", "Number": "<actual number>", "Issue_Date": "<actual date>", "Expiry_Date": "<actual date>", "Issued_By": "<actual authority>" }}}}
-  ],
-  "Covid_19_Vaccination": {{{{
-    "Vaccination_Name": "<actual vaccine name>",
-    "First_Dose": "<actual date>",
-    "Second_Dose": "<actual date>"
-  }}}},
-  "Marine_Courses": [
-    {{{{ "Course_Name": "<actual course name>", "Number": "<actual number>", "Issue_Date": "<actual date>", "Expiry_Date": "<actual date>", "Issued_By_At": "<actual authority>" }}}}
-  ],
-  "Sea_Service_Details": [
-    {{{{ "Company_Name": "<actual company>", "Rank": "<actual rank>", "Vessel_Name": "<actual vessel>", "Flag": "<actual flag>", "Signed_On": "<actual date>", "Signed_Off": "<actual date>", "Vessel_Type": "<actual type>", "Engine_Type": "<actual engine>", "Reason_for_Sign_off": "<actual reason>" }}}}
-  ],
-  "Specialised_Experience": [],
-  "References": [],
-  "Declaration": {{{{}}}},
-  "Office_Use_Only": {{{{}}}},
-  "Education": {{{{}}}}
-}}}}
-
-CRITICAL: Replace all <...> placeholders above with ACTUAL DATA extracted from the CV text. 
-DO NOT include angle brackets < > in your output.
-If information is not found, use empty string "".
-
-Now extract ALL information from the CV text and return the JSON with REAL DATA:
-""",
-        input_variables=["document"],
-    )
-    
-    chain = prompt | llm
-    
-    try:
-        print("=" * 80)
-        print("INVOKING LLM FOR DATA EXTRACTION...")
-        print(f"Text length: {len(truncated_text)} characters")
-        print("=" * 80)
-        
-        raw_result = chain.invoke({"document": truncated_text})
-        
-        print("=" * 80)
-        print("RAW LLM OUTPUT:")
-        print(str(raw_result)[:1000])  # Print first 1000 chars
-        print("..." if len(str(raw_result)) > 1000 else "")
-        print("=" * 80)
-        
-        # Handle the case where raw_result might already be a dict
-        if isinstance(raw_result, dict):
-            print("✅ LLM returned a dictionary directly")
-            result = raw_result
-        else:
-            # Extract JSON from the response
-            try:
-                # Try to find JSON object in the response
-                json_match = re.search(r'\{.*\}', str(raw_result), re.DOTALL)
-                if json_match:
-                    raw_result = json_match.group(0)
-                
-                cleaned = repair_json_string(str(raw_result))
-                print(f"Cleaned JSON length: {len(cleaned)}")
-                
-                result = json.loads(cleaned)
-                print("✅ Successfully parsed JSON")
-                
-                # POST-PROCESSING: Remove any placeholder values that the LLM copied
-                def clean_placeholders(obj):
-                    """Recursively clean placeholder values from the result."""
-                    placeholder_patterns = [
-                        r'^\[EXTRACT_FROM_CV\]$',
-                        r'^\[extract_from_cv\]$',
-                        r'^<actual.*>$',
-                        r'^<.*>$',  # Any angle bracket placeholder
-                        r'^\[.*\]$',  # Any square bracket placeholder (but not arrays)
-                    ]
+        # 2. Table Header Match (Same Line or Next Line)
+        for line_match in re.finditer(rf"^(.*?{esc}.*)$", text, re.MULTILINE | re.IGNORECASE):
+            line = line_match.group(1)
+            idx = line.lower().find(label.lower())
+            
+            after_line_text = text[line_match.end():]
+            m_next = re.match(r"[ \t]*\n([^\n]+)", after_line_text)
+            
+            headers = [(m.group(), m.start()) for m in re.finditer(r"[^\s]+(?: [^\s]+)*", line)]
+            next_line = m_next.group(1) if m_next else ""
+            values = [(m.group(), m.start()) for m in re.finditer(r"[^\s]+(?: [^\s]+)*", next_line)]
+            
+            # Is it a table row with multiple headers and values below?
+            is_table = len(headers) > 1 and len(values) >= 1
+            
+            if is_table:
+                for i, (h_text, h_pos) in enumerate(headers):
+                    if label.lower() in h_text.lower():
+                        # If python-docx flattened this table with pipe symbols, use exact column index matching!
+                        if "|" in line and "|" in next_line:
+                            pipe_headers = [h.strip() for h in line.split("|")]
+                            pipe_values = [v.strip() for v in next_line.split("|")]
+                            col_idx = -1
+                            for c_i, ph in enumerate(pipe_headers):
+                                if label.lower() in ph.lower():
+                                    col_idx = c_i
+                                    break
+                            if col_idx != -1 and col_idx < len(pipe_values):
+                                val = pipe_values[col_idx]
+                                if len(val) > 1 and val.upper() not in [l.upper() for l in labels]: return val
+                                
+                        # Otherwise, fallback to visual spatial alignment (for PDFs)
+                        valid_values = [v for v in values if abs(v[1] - h_pos) <= 20]
+                        if valid_values:
+                            best_val = min(valid_values, key=lambda v: abs(v[1] - h_pos))
+                            val = best_val[0]
+                            if len(val) > 1 and val.upper() not in [l.upper() for l in labels]: return val
+                        break
+            else:
+                # Not a table, try same line separated by large spaces
+                after_label = line[idx + len(label):]
+                m_same = re.match(r"^[ \t]{2,}(.+)", after_label)
+                if m_same:
+                    val = m_same.group(1).strip()
+                    val = re.split(r"[ \t]{2,}", val)[0].strip()
+                    if len(val) > 1 and val.upper() not in [l.upper() for l in labels]: return val
                     
-                    if isinstance(obj, dict):
-                        cleaned = {}
-                        for key, value in obj.items():
-                            cleaned[key] = clean_placeholders(value)
-                        return cleaned
-                    elif isinstance(obj, list):
-                        return [clean_placeholders(item) for item in obj]
-                    elif isinstance(obj, str):
-                        # Check if this is a placeholder value
-                        for pattern in placeholder_patterns:
-                            if re.match(pattern, obj, re.IGNORECASE):
-                                print(f"⚠️ Removing placeholder value: {obj}")
-                                return ""  # Replace with empty string
-                        return obj
-                    else:
-                        return obj
-                
-                result = clean_placeholders(result)
-                print("✅ Cleaned any placeholder values")
-                
-            except Exception as e:
-                print(f"❌ Parsing failed: {e}")
-                print("Attempting regex-based extraction...")
-                
-                # Fallback: Use regex to extract structured data
-                regex_data = extract_structured_data_from_text(truncated_text)
-                print(f"Regex extracted: {regex_data}")
-                
-                # Return minimal structure with regex-extracted data
-                result = {
-                    "Personal_Details": {
-                        "email": regex_data.get('email', '')
-                    },
-                    "Contact_Details": {
-                        "email": regex_data.get('email', ''),
-                        "phones": regex_data.get('found_phones', [])
-                    },
-                    "Travel_Documents": [],
-                    "Professional_Qualifications": [],
-                    "Next_of_Kin_Emergency_Contact": {},
-                    "Health_Certificates_Vaccinations": [],
-                    "Covid_19_Vaccination": {},
-                    "Marine_Courses": [],
-                    "Sea_Service_Details": [],
-                    "Specialised_Experience": [],
-                    "References": [],
-                    "Declaration": {},
-                    "Office_Use_Only": {},
-                    "Education": {},
-                    "error": str(e),
-                    "raw_output": str(raw_result)[:500]
-                }
-    
-    except Exception as e:
-        print(f"❌ LLM invocation failed: {e}")
-        result = {
-            "Personal_Details": {},
-            "Education": {},
-            "Contact_Details": {},
-            "Travel_Documents": [],
-            "Professional_Qualifications": [],
-            "Next_of_Kin_Emergency_Contact": {},
-            "Health_Certificates_Vaccinations": [],
-            "Covid_19_Vaccination": {},
-            "Marine_Courses": [],
-            "Sea_Service_Details": [],
-            "Specialised_Experience": [],
-            "References": [],
-            "Declaration": {},
-            "Office_Use_Only": {},
-            "error": str(e)
-        }
-    
-    # Ensure all expected keys exist with proper structure
-    default_structure = {
-        "Personal_Details": {},
-        "Education": {},
-        "Contact_Details": {},
-        "Travel_Documents": [],  # Array
-        "Professional_Qualifications": [],  # Array
-        "Next_of_Kin_Emergency_Contact": {},
-        "Health_Certificates_Vaccinations": [],  # Array
-        "Covid_19_Vaccination": {},
-        "Marine_Courses": [],  # Array
-        "Sea_Service_Details": [],  # Array
-        "Specialised_Experience": [],  # Array
-        "References": [],  # Array
-        "Declaration": {},
-        "Office_Use_Only": {},
-    }
-    
-    # Merge with defaults to ensure all keys exist
-    for key, default_value in default_structure.items():
-        if key not in result:
-            result[key] = default_value
-        # Convert empty objects to arrays where needed
-        elif isinstance(default_value, list) and isinstance(result[key], dict) and not result[key]:
-            result[key] = []
-    
-    print("=" * 80)
-    print("FINAL STRUCTURED DATA:")
-    print(json.dumps(result, indent=2)[:1000])
-    print("=" * 80)
+                # Next line fallback
+                if next_line:
+                    val = next_line.strip()
+                    val = re.split(r"[ \t]{2,}", val)[0].strip()
+                    if len(val) > 1 and val.upper() not in [l.upper() for l in labels]: return val
 
-    result = normalize_for_serializer(result)
+    return default
+
+
+def _email(text: str) -> str:
+    m = re.search(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}", text)
+    return m.group(0) if m else ""
+
+
+def _phone(text: str) -> str:
+    """Return the first phone number found."""
+    patterns = [
+        r"\+\d{1,3}[\s\-]?\d[\d\s\-]{6,15}",
+        r"\b0\d{9,11}\b",
+    ]
+    for p in patterns:
+        m = re.search(p, text)
+        if m:
+            return m.group(0).strip()
+    return ""
+
+
+def _dates_near(text: str, keyword: str) -> tuple:
+    """Return (iss_date, exp_date) found within 400 chars after keyword."""
+    date_pat = r"(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4}|\d{4}[/\-\.]\d{2}[/\-\.]\d{2})"
+    m = re.search(re.escape(keyword), text, re.IGNORECASE)
+    if not m:
+        return ("", "")
+    window = text[m.start(): m.start() + 400]
+    dates = re.findall(date_pat, window)
+    return (dates[0] if dates else "", dates[1] if len(dates) > 1 else "")
+
+
+def _section(text: str, *headers: str, chars: int = 600) -> str:
+    """Return text from the first matching section header onwards (limited chars)."""
+    for h in headers:
+        m = re.search(re.escape(h), text, re.IGNORECASE)
+        if m:
+            return text[m.start(): m.start() + chars]
+    return ""
+
+
+def _int_or_none(value: str):
+    try:
+        return int(re.sub(r"[^\d]", "", value)) if value else None
+    except Exception:
+        return None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SECTION EXTRACTORS
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _extract_personal(text: str) -> PersonalDetails:
+    # Marital Status: search for labels and then check for single/married keywords in the result
+    ms_raw = _field(text, "Marital Status", "Marital_Status", "Status", "Marital").lower()
+    
+    # Fuzzy check: if the extracted value contains keywords, set the bools
+    is_married = any(kw in ms_raw for kw in ["married", "widow", "divorce"])
+    is_single = any(kw in ms_raw for kw in ["single", "unmarried", "bachelor"])
+    
+    # In some layouts, the [x] is what we look for. 
+    # If the text is "[x] Single [ ] Married", both keywords exist. 
+    # We need to check if [x] is closer to which one.
+    if "[x]" in ms_raw or "[v]" in ms_raw or "✔" in ms_raw:
+        # Very simple heuristic: which one has the marking closest to it
+        m_idx = ms_raw.find("married")
+        s_idx = ms_raw.find("single")
+        x_idx = ms_raw.find("[x]") if "[x]" in ms_raw else ms_raw.find("✔")
+        if x_idx != -1:
+            if m_idx != -1 and abs(x_idx - m_idx) < abs(x_idx - s_idx if s_idx != -1 else 999):
+                is_married = True
+                is_single = False
+            elif s_idx != -1:
+                is_single = True
+                is_married = False
+
+    marital = MaritalStatus(single=is_single, married=is_married)
+    
+    # Height and Weight often have units in the label
+    height_raw = _field(text, "Height", "Height (cm)", "Height_Cm", "HT", "Stature")
+    weight_raw = _field(text, "Weight", "Weight (kg)", "Weight_Kg", "WT")
+    
+    # Name variations
+    fn = _field(text, "Full Name", "Name", "Full_Name", "Surname", "First Name", "Givennames")
+    
+    return PersonalDetails(
+        full_name=fn,
+        date_of_birth=_field(text, "Date of Birth", "DOB", "Date_Of_Birth", "Birth Date", "Born"),
+        marital_status=marital,
+        nationality=_field(text, "Nationality", "Citizenship", "Country of Birth", "Country"),
+        height_cm=_int_or_none(height_raw),
+        weight_kg=_int_or_none(weight_raw),
+        place_of_birth=_field(text, "Place of Birth", "Place_Of_Birth", "Birth Place", "Birthplace", "POB"),
+        overall_size=_field(text, "Overall Size", "Coverall Size", "Overall_Size", "Size"),
+        shirt_size=_field(text, "Shirt Size", "Shirt_Size", "Shirt"),
+        nearest_port=_field(text, "Nearest Port", "Nearest_Port", "Port", "Home Port", "Airport", "Nearest Airport"),
+        trouser_size=_field(text, "Trouser Size", "Trouser_Size", "Trouser", "Pants Size"),
+        shoes_size=_field(text, "Shoes Size", "Shoe Size", "Shoes_Size", "Shoes", "Safety Shoes"),
+    )
+
+
+def _extract_education(text: str) -> Education:
+    sec = _section(text, "Education", "EDUCATION", chars=1000)
+    # Marlins test often has specific sub-headers from the template
+    marlins_issued_by = _field(text, "Marlins Test Issued By", "Marlins Issued By")
+    marlins_date = _field(text, "Marlins Test Date", "Marlins Date")
+    marlins_result = _field(text, "Result %", "Result Percentage", "Marlins Result")
+    marlins_at = _field(text, "Issued At", "Marlins Issued At", "Test Location")
+    
+    # English/German Language sections
+    eng_sec = _section(text, "English Language", "English", chars=200)
+    ger_sec = _section(text, "German Language", "German", chars=200)
+    
+    def get_lang_level(s: str) -> LanguageLevel:
+        s = s.lower()
+        # Look for [x], [X], [✔] or just X near the label
+        return LanguageLevel(
+            fluent="fluent" in s and re.search(r"fluent\s*\[[x✔]\]|\[[x✔]\]\s*fluent|fluent\s*[x✔]", s) is not None,
+            good="good" in s and re.search(r"good\s*\[[x✔]\]|\[[x✔]\]\s*good|good\s*[x✔]", s) is not None,
+            average="average" in s and re.search(r"average\s*\[[x✔]\]|\[[x✔]\]\s*average|average\s*[x✔]", s) is not None,
+            poor="poor" in s and re.search(r"poor\s*\[[x✔]\]|\[[x✔]\]\s*poor|poor\s*[x✔]", s) is not None,
+        )
+
+    return Education(
+        college_school=_field(text, "College / School", "College", "School", "Education"),
+        marline_test=MarlineTest(
+            issued_date=marlins_date,
+            result_percentage=marlins_result,
+            issued_by_authority=marlins_issued_by,
+            issued_at=marlins_at,
+        ),
+        english_language=get_lang_level(eng_sec),
+        german_language=get_lang_level(ger_sec),
+    )
+
+
+def _extract_contact(text: str) -> ContactDetails:
+    return ContactDetails(
+        home_address_city=_field(text, "Home Address", "Address", "Residence"),
+        e_mail=_email(text) or _field(text, "Email", "E-mail"),
+        mobile_tel=_phone(text) or _field(text, "Mobile / Tel", "Mobile", "Tel", "Phone"),
+    )
+
+
+def _extract_travel_docs(text: str) -> list:
+    """Always returns Passport + Seaman Book + Other Seaman Book entries."""
+    sec = _section(text, "Travel Documents", "TRAVEL DOCUMENTS", "4_travel", chars=1000)
+    target = sec or text
+
+    passport_no = _field(target, "Passport No", "Passport Number", "Passport #")
+    p_iss, p_exp = _dates_near(target, "Passport")
+
+    seaman_no = _field(target, "Seaman Book No", "Seaman Book Number", "Seaman's Book No")
+    s_iss, s_exp = _dates_near(target, "Seaman Book")
+
+    return [
+        TravelDocument(
+            type="Passport",
+            document_no=passport_no,
+            iss_date=p_iss or _field(target, "Passport Issue Date"),
+            exp_date=p_exp or _field(target, "Passport Expiry Date"),
+            iss_by_authority=_field(target, "Passport Issued By", "Passport Authority"),
+            place_of_issue=_field(target, "Passport Place of Issue"),
+        ),
+        TravelDocument(
+            type="Seaman Book",
+            document_no=seaman_no,
+            iss_date=s_iss or _field(target, "Seaman Book Issue Date"),
+            exp_date=s_exp or _field(target, "Seaman Book Expiry Date"),
+            iss_by_authority=_field(target, "Seaman Book Issued By"),
+            place_of_issue=_field(target, "Seaman Book Place of Issue"),
+        ),
+        TravelDocument(type="Other Seaman Book"),
+    ]
+
+
+def _extract_qualifications(text: str) -> list:
+    certs = []
+    sec = _section(text, "Professional Qualification", "Certificate of Competency",
+                   "5_professional", chars=1000)
+    target = sec or text
+    for cert_name, label in [("COC (Rank)", "COC"), ("GOC", "GOC")]:
+        iss, exp = _dates_near(target, label)
+        certs.append(ProfessionalQualification(
+            certificate_name=cert_name,
+            number=_field(target, f"{label} No", f"{label} Number"),
+            issue_date=iss,
+            expiry_date=exp,
+            issued_by=_field(target, f"{label} Issued By", "Issued By"),
+            issued_at=_field(target, f"{label} Issued At", "Issued At"),
+        ))
+    return certs
+
+
+def _extract_next_of_kin(text: str) -> NextOfKin:
+    sec = _section(text, "Next of Kin", "Emergency Contact", "6_next", chars=600)
+    target = sec or text
+    return NextOfKin(
+        full_name=_field(target, "Full Name", "Name"),
+        address_country=_field(target, "Address", "Country", "Address Country"),
+        tel_no_mobile=_phone(target),
+        relationship=_field(target, "Relationship", "Relation"),
+        email=_email(target),
+    )
+
+
+def _extract_health(text: str) -> HealthSection:
+    sec = _section(text, "Health Certificate", "Vaccinations", "7_health", chars=1200)
+    target = sec or text
+
+    certs = []
+    for cert_type in ["International Medical", "Yellow Fever", "Cholera"]:
+        m = re.search(re.escape(cert_type), target, re.IGNORECASE)
+        if m:
+            window = target[m.start(): m.start() + 300]
+            iss, exp = _dates_near(window, cert_type[:5])
+            certs.append(HealthCertificate(
+                flag_state=cert_type,
+                number=_field(window, "No", "Number", "#"),
+                issue_date=iss,
+                expiry_date=exp,
+                issued_by=_field(window, "Issued By", "Authority"),
+                issued_at=_field(window, "Issued At"),
+            ))
+
+    covid_sec = _section(text, "Covid", "COVID", "covid-19", chars=400)
+    c_iss, c_2nd = _dates_near(covid_sec or text, "Covid") if covid_sec else ("", "")
+    covid = Covid19(
+        vaccination_name=_field(covid_sec or "", "Vaccine", "Vaccination Name"),
+        first_dose=c_iss,
+        second_dose=c_2nd,
+    )
+
+    return HealthSection(certificates=certs, covid_19=covid)
+
+
+def _extract_marine_courses(text: str) -> list:
+    sec = _section(text, "Marine Courses", "STCW", "8_marine", chars=3000)
+    target = sec or text
+
+    course_keywords = [
+        "Crisis Management and Human Behavior",
+        "Crowd Management",
+        "Proficiency Of Security Awareness",
+        "Security Awareness",
+        "Elementary First Aid",
+        "Fire Prevention and Fire Fighting",
+        "Fire Fighting",
+        "Passenger Safety Cargo Safety and Hull Integrity",
+        "Personal Safety and Social Responsibilities",
+        "Personal Survival Techniques",
+        "Personal Survival",
+        "Survival Craft",
+        "Safety Training for Personal",
+        "Advanced Fire Fighting",
+        "Medical First Aid",
+        "ECDIS", "GMDSS", "Radar", "ARPA",
+        "Ship Security Officer", "SSO",
+        "Basic Safety Training",
+    ]
+
+    courses = []
+    seen = set()
+    for kw in course_keywords:
+        m = re.search(re.escape(kw), target, re.IGNORECASE)
+        if m and kw not in seen:
+            seen.add(kw)
+            window = target[m.start(): m.start() + 350]
+            iss, exp = _dates_near(window, kw[:6])
+            courses.append(MarineCourse(
+                course_name=kw,
+                number=_field(window, "No", "Number", "Cert No", "Cert. No"),
+                issue_date=iss,
+                expiry_date=exp,
+                issued_by_at=_field(window, "Issued By", "Issued At", "Authority"),
+            ))
+    return courses
+
+
+def _extract_sea_service(text: str, applicant_name: str = "") -> SeaServiceSection:
+    sec = _section(text, "Sea Service", "9_complete", "Service Details", chars=3000)
+    target = sec or text
+
+    rank_raw = _field(text, "Rank", "Position", "Applied Position")
+    reg_code = _field(text, "Register Code", "Reg. Code", "Register_Code")
+
+    info = ApplicantInfo(
+        name=applicant_name,
+        rank=rank_raw,
+        register_code=reg_code,
+    )
+
+    records = []
+    rank_keywords = [
+        "Master", "Chief Officer", "Second Officer", "Third Officer",
+        "Chief Engineer", "Second Engineer", "Third Engineer", "Fourth Engineer",
+        "Electrician", "Bosun", "AB", "OS", "Cook", "Steward",
+        "Captain", "Chief Mate", "Cadet", "Carpenter",
+    ]
+    date_pat = r"(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4}|\d{4}[/\-\.]\d{2}[/\-\.]\d{2})"
+    seen_positions = set()
+
+    for rank in rank_keywords:
+        for m in re.finditer(r"\b" + re.escape(rank) + r"\b", target, re.IGNORECASE):
+            window = target[max(0, m.start() - 100): m.start() + 500]
+            dates = re.findall(date_pat, window)
+            if len(dates) >= 2 and m.start() not in seen_positions:
+                seen_positions.add(m.start())
+                records.append(ServiceRecord(
+                    company_name=_field(window, "Company", "Employer"),
+                    rank=rank,
+                    vessel_name_imo_number=_field(window, "Vessel", "Ship", "MV", "MT"),
+                    flag=_field(window, "Flag"),
+                    signed_on=dates[0],
+                    signed_off=dates[1],
+                    vessel_type=_field(window, "Vessel Type", "Ship Type", "Type"),
+                    dwt_grt=_field(window, "DWT/GRT", "DWT", "GRT"),
+                    engine_type=_field(window, "Engine Type", "Engine"),
+                    bh_kw=_field(window, "BH/KW", "BHP", "KW"),
+                    reason_for_sign_off=_field(window, "Reason", "Sign Off Reason"),
+                ))
+
+    return SeaServiceSection(applicant_info=info, service_records=records)
+
+
+def _extract_references(text: str) -> list:
+    sec = _section(text, "References", "10_references", chars=800)
+    target = sec or ""
+    refs = []
+    if target:
+        refs.append(Reference(
+            no="1",
+            company_management_country=_field(target, "Company", "Company/Management"),
+            position=_field(target, "Position"),
+            name=_field(target, "Name"),
+            tel=_phone(target),
+            email=_email(target),
+        ))
+    return refs
+
+
+def _extract_declaration(text: str) -> Declaration:
+    sec = _section(text, "Declaration", "11_declaration", chars=800)
+    target = sec or text
+
+    def yn(label) -> str:
+        v = _field(target, label).upper()
+        return "YES" if "YES" in v else "NO"
+
+    return Declaration(
+        questions=DeclarationQuestions(
+            suffer_disease_unfit_for_sea=DeclarationAnswer(
+                answer=yn("Disease"), details=""
+            ),
+            addicted_to_alcohol_or_drugs=DeclarationAnswer(answer=yn("Alcohol")),
+            suffer_accident_disabled=DeclarationAnswer(answer=yn("Accident")),
+            undergo_psychiatric_treatment=DeclarationAnswer(answer=yn("Psychiatric")),
+        ),
+        consent_statement=_field(target, "Consent", "I hereby declare"),
+        place=_field(target, "Place"),
+        date=_field(target, "Date"),
+        signature=_field(target, "Signature"),
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# MAIN FUNCTION
+# ──────────────────────────────────────────────────────────────────────────────
+
+def convert_text_to_json(extracted_text: str, parsed_tables: list = None) -> dict:
+    """
+    Convert extracted CV text to structured data.
+    First attempts LLM extraction (Option D) if OPENAI_API_KEY is configured.
+    Falls back to native table parsing + regex (Option C).
+    """
+    global CURRENT_TABLES
+    CURRENT_TABLES = parsed_tables or []
+    
+    text = extracted_text or ""
+
+    # Maritime CV validation
+    maritime_keywords = [
+        'passport', 'seaman', 'coc', 'goc', 'rank', 'vessel', 'ship',
+        'marine', 'maritime', 'stcw', 'certificate', 'sea service',
+        'nationality', 'date of birth', 'personal details', 'marital status',
+        'next of kin', 'emergency contact', 'vaccination', 'health certificate',
+        'fire fighting', 'survival', 'sailor', 'officer', 'engineer',
+        'captain', 'chief', 'deck', 'engine', 'flag state', 'imo',
+        'dwt', 'grt', 'signed on', 'signed off', 'full name', 'port',
+    ]
+    text_lower = text.lower()
+    keyword_count = sum(1 for kw in maritime_keywords if kw in text_lower)
+    print(f"CV Validation: Found {keyword_count} maritime keywords, text length: {len(text.strip())}")
+
+    if keyword_count < 5 or len(text.strip()) < 200:
+        print("⚠️ DOCUMENT IS NOT A VALID MARITIME CV - RETURNING EMPTY DATA")
+        return SeafarerApplication().to_numbered_dict()
+
+    # ==========================================
+    # OPTION D: LLM Local Extraction (Highest Accuracy)
+    # ==========================================
+    try:
+        import os
+        USE_LOCAL_LLM = os.environ.get("USE_LOCAL_LLM", "true").lower() == "true"
+        
+        if USE_LOCAL_LLM:
+            print("🧠 Running LLM Extraction via Local Ollama (qwen2.5) (Option D)...")
+            from langchain_ollama import ChatOllama
+            
+            # Using qwen2.5:latest for fast, free, and accurate structured extraction
+            llm = ChatOllama(model="qwen2.5:latest", temperature=0)
+            structured_llm = llm.with_structured_output(SeafarerApplication)
+            
+            prompt = f"Extract all relevant seafarer CV data from the following document.\n\nTEXT:\n{text}\n"
+            if CURRENT_TABLES:
+                prompt += f"\n\nNATIVE TABLES (Use this to match exact columns if text is confusing):\n{CURRENT_TABLES}"
+            
+            result = structured_llm.invoke(prompt)
+            print("✅ LLM Extraction complete.")
+            return result.to_numbered_dict()
+    except Exception as e:
+        print(f"⚠️ Local LLM extraction failed: {e}. Falling back to Native Table Parser (Option C)...")
+
+    # ==========================================
+    # OPTION C: Native Table + Regex Parser Fallback
+    # ==========================================
+    print("⚙️ Extracting data with Pydantic + Regex (Option C)...")
+
+
+    print("✅ Extracting data with Pydantic + Regex (no AI model)...")
+
+    personal = _extract_personal(text)
+    applicant_name = personal.full_name or ""
+
+    app = SeafarerApplication(
+        **{
+            "1_personal_details": personal,
+            "2_education": _extract_education(text),
+            "3_contact_details": _extract_contact(text),
+            "4_travel_documents": _extract_travel_docs(text),
+            "5_professional_qualification_certificate_of_competency": _extract_qualifications(text),
+            "6_next_of_kin_emergency_contact": _extract_next_of_kin(text),
+            "7_health_certificates_and_vaccinations": _extract_health(text),
+            "8_marine_courses": _extract_marine_courses(text),
+            "9_complete_sea_service_details": _extract_sea_service(text, applicant_name),
+            "10_references": _extract_references(text),
+            "11_declaration": _extract_declaration(text),
+            "12_for_office_use_only": OfficeUseOnly(),
+        }
+    )
+
+    result = app.to_numbered_dict()
+    print(f"✅ Extraction complete. Applicant: {applicant_name or 'Unknown'}")
     return result
-    
-    

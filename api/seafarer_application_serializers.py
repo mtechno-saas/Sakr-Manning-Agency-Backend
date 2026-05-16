@@ -206,36 +206,43 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         health = validated_data.get('health_certificates', {})
         if health:
             certs = health.get('certificates', [])
+            # Use delete and recreate pattern to sync with frontend list
+            instance.vaccinations.all().delete()
+            
             for c in certs:
-                f_state = c.get('flag_state', '').lower()
-                v_name = ""
-                if 'international' in f_state:
-                    v_name = "Medical"
+                f_state = c.get('flag_state', '')
+                if not f_state: continue
+                
+                fs_lower = f_state.lower()
+                # Sync to legacy fields on User model if keyword matches
+                if 'international' in fs_lower or 'medical' in fs_lower:
                     instance.international_medical_number = c.get('number', instance.international_medical_number)
                     instance.international_medical_issue_date = self._parse_date(c.get('issue_date'))
                     instance.international_medical_expiry_date = self._parse_date(c.get('expiry_date'))
                     instance.health_issued_by = c.get('issued_by', instance.health_issued_by)
                     instance.health_issued_at = c.get('issued_at', instance.health_issued_at)
-                elif 'yellow fever' in f_state:
-                    v_name = "Yellow Fever"
+                elif 'yellow fever' in fs_lower:
                     instance.yellow_fever_number = c.get('number', instance.yellow_fever_number)
                     instance.yellow_fever_issue_date = self._parse_date(c.get('issue_date'))
                     instance.yellow_fever_expiry_date = self._parse_date(c.get('expiry_date'))
-                elif 'cholera' in f_state:
-                    v_name = "Cholera"
+                elif 'cholera' in fs_lower:
                     instance.cholera_number = c.get('number', instance.cholera_number)
                     instance.cholera_issue_date = self._parse_date(c.get('issue_date'))
                     instance.cholera_expiry_date = self._parse_date(c.get('expiry_date'))
                 
-                # Also sync to Vaccination model for full detail storage (issued_by/at)
-                if v_name:
-                    vacc, _ = Vaccination.objects.get_or_create(user=instance, name=v_name)
-                    vacc.number = c.get('number', vacc.number)
-                    vacc.issue_date = self._parse_date(c.get('issue_date'))
-                    vacc.expiry_date = self._parse_date(c.get('expiry_date'))
-                    vacc.issued_by = c.get('issued_by', vacc.issued_by)
-                    vacc.issued_at = c.get('issued_at', vacc.issued_at)
-                    vacc.save()
+                # Save to Vaccination model
+                Vaccination.objects.create(
+                    user=instance,
+                    name=f_state,
+                    number=c.get('number', ''),
+                    issue_date=self._parse_date(c.get('issue_date')),
+                    expiry_date=self._parse_date(c.get('expiry_date')),
+                    issued_by=c.get('issued_by', ''),
+                    issued_at=c.get('issued_at', ''),
+                    first_date=self._parse_date(c.get('first_dose')),
+                    last_date=self._parse_date(c.get('last_dose')),
+                    remarks=c.get('remarks', '')
+                )
             
             covid = health.get('covid_19', {})
             if covid:
@@ -510,50 +517,23 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         }
 
     def get_health_certificates(self, obj):
-        # Helper to find vaccination details by name
-        def find_vaccine(name_query):
-            v = obj.vaccinations.filter(name__icontains=name_query).first()
-            if v:
-                return {
-                    "number": v.number or "",
-                    "issue_date": v.issue_date or "",
-                    "expiry_date": v.expiry_date or "",
-                    "issued_by": v.issued_by or "",
-                    "issued_at": v.issued_at or ""
-                }
-            return None
-
-        # Build certificates list
-        med = find_vaccine("Medical") or {
-            "number": obj.international_medical_number or "",
-            "issue_date": obj.international_medical_issue_date or "",
-            "expiry_date": obj.international_medical_expiry_date or "",
-            "issued_by": obj.health_issued_by or "",
-            "issued_at": obj.health_issued_at or ""
-        }
-        
-        yf = find_vaccine("Yellow Fever") or {
-            "number": obj.yellow_fever_number or "",
-            "issue_date": obj.yellow_fever_issue_date or "",
-            "expiry_date": obj.yellow_fever_expiry_date or "",
-            "issued_by": "",
-            "issued_at": ""
-        }
-
-        cho = find_vaccine("Cholera") or {
-            "number": obj.cholera_number or "",
-            "issue_date": obj.cholera_issue_date or "",
-            "expiry_date": obj.cholera_expiry_date or "",
-            "issued_by": "",
-            "issued_at": ""
-        }
+        vaccs = obj.vaccinations.all()
+        certs = []
+        for v in vaccs:
+            certs.append({
+                "flag_state": v.name,
+                "number": v.number or "",
+                "issue_date": v.issue_date or "",
+                "expiry_date": v.expiry_date or "",
+                "issued_by": v.issued_by or "",
+                "issued_at": v.issued_at or "",
+                "first_dose": v.first_date or "",
+                "last_dose": v.last_date or "",
+                "remarks": v.remarks or ""
+            })
 
         return {
-            "certificates": [
-                {"flag_state": "International Medical", **med},
-                {"flag_state": "Yellow Fever", **yf},
-                {"flag_state": "Cholera", **cho}
-            ],
+            "certificates": certs,
             "covid_19": {
                 "vaccination_name": obj.covid_vaccine_name or "",
                 "first_dose": obj.covid_first_dose or "",

@@ -3524,7 +3524,8 @@ class DocumentUploadView(APIView):
                     cleaned_text = clean_text(result.get("extracted_text", ""))
 
                     # Step 3: Convert text into structured JSON
-                    structured_json = convert_text_to_json(cleaned_text)
+                    parsed_tables = result.get("tables", [])
+                    structured_json = convert_text_to_json(cleaned_text, parsed_tables=parsed_tables)
 
                     # Ensure structured_json is a dictionary
                     if not isinstance(structured_json, dict):
@@ -3573,28 +3574,78 @@ class DocumentUploadView(APIView):
                         }, status=status.HTTP_400_BAD_REQUEST)
 
                     # Step 4: Save structured data into Applicant model
+                    # Map from numbered seafarer_application format to Applicant model fields
+                    _pd  = structured_json.get("1_personal_details", {})
+                    _edu = structured_json.get("2_education", {})
+                    _cd  = structured_json.get("3_contact_details", {})
+                    _td  = structured_json.get("4_travel_documents", [])
+                    _pq  = structured_json.get("5_professional_qualification_certificate_of_competency", [])
+                    _nok = structured_json.get("6_next_of_kin_emergency_contact", {})
+                    _hcv = structured_json.get("7_health_certificates_and_vaccinations", {})
+                    _mc  = structured_json.get("8_marine_courses", [])
+                    _ss  = structured_json.get("9_complete_sea_service_details", {})
+                    _ref = structured_json.get("10_references", [])
+                    _dec = structured_json.get("11_declaration", {})
+                    _ofc = structured_json.get("12_for_office_use_only", {})
+
+                    # Normalise marital_status: keep dict in seafarer_application,
+                    # but convert to string for Applicant model storage
+                    ms_raw = _pd.get("marital_status", {})
+                    if isinstance(ms_raw, dict):
+                        if ms_raw.get("married"):
+                            marital_str = "Married"
+                        elif ms_raw.get("single"):
+                            marital_str = "Single"
+                        else:
+                            marital_str = ""
+                        # _pd for model storage uses string; structured_json keeps the dict
+                        _pd_for_model = {**_pd, "marital_status": marital_str}
+                    else:
+                        _pd_for_model = _pd
+
+
+                    # Normalise contact_details key (e_mail → Email)
+                    _cd_normalised = {
+                        "Email": _cd.get("e_mail", "") or _cd.get("Email", ""),
+                        "Mobile_Tel": _cd.get("mobile_tel", "") or _cd.get("Mobile_Tel", ""),
+                        "Home_Address_City": _cd.get("home_address_city", "") or _cd.get("Home_Address_City", ""),
+                    }
+
+                    # Normalise travel_documents: ensure Type key is capitalised for _find_document()
+                    _td_normalised = []
+                    for doc in (_td if isinstance(_td, list) else []):
+                        _td_normalised.append({
+                            "Type": doc.get("type", doc.get("Type", "")),
+                            "Document_No": doc.get("document_no", doc.get("Document_No", "")),
+                            "ISS_Date": doc.get("iss_date", doc.get("ISS_Date", "")),
+                            "Exp_Date": doc.get("exp_date", doc.get("Exp_Date", "")),
+                            "ISS_By_Authority": doc.get("iss_by_authority", doc.get("ISS_By_Authority", "")),
+                            "Place_of_Issue": doc.get("place_of_issue", doc.get("Place_of_Issue", "")),
+                        })
+
                     applicant = Applicant.objects.create(
-                        personal_details=structured_json.get("Personal_Details", {}),
-                        education=structured_json.get("Education", {}),
-                        contact_details=structured_json.get("Contact_Details", {}),
-                        travel_documents=structured_json.get("Travel_Documents", {}),
-                        professional_qualifications=structured_json.get("Professional_Qualifications", {}),
-                        next_of_kin_emergency_contact=structured_json.get("Next_of_Kin_Emergency_Contact", {}),
-                        health_certificates_vaccinations=structured_json.get("Health_Certificates_Vaccinations", {}),
-                        covid_19_vaccination=structured_json.get("Covid_19_Vaccination", {}),
-                        marine_courses=structured_json.get("Marine_Courses", {}),
-                        sea_service_details=structured_json.get("Sea_Service_Details", {}),
-                        specialised_experience=structured_json.get("Specialised_Experience", {}),
-                        references=structured_json.get("References", {}),
-                        declaration=structured_json.get("Declaration", {}),
-                        office_use_only=structured_json.get("Office_Use_Only", {}),
-                        physical_measurements=structured_json.get("Physical_Measurements", {}),
-                        language_skills=structured_json.get("Language_Skills", {}),
-                        medical_history=structured_json.get("Medical_History", {}),
-                        assessments=structured_json.get("Assessments", {}),
-                        competency_tests=structured_json.get("Competency_Tests", {}),
-                        applied_position_info=structured_json.get("Applied_Position_Info", {}),
+                        personal_details=_pd_for_model,
+                        education=_edu,
+                        contact_details=_cd_normalised,
+                        travel_documents=_td_normalised,
+                        professional_qualifications=_pq,
+                        next_of_kin_emergency_contact=_nok,
+                        health_certificates_vaccinations=_hcv,
+                        covid_19_vaccination=_hcv.get("covid_19", {}),
+                        marine_courses=_mc,
+                        sea_service_details=_ss.get("service_records", []),
+                        specialised_experience=[],
+                        references=_ref,
+                        declaration=_dec,
+                        office_use_only=_ofc,
+                        physical_measurements={},
+                        language_skills={},
+                        medical_history={},
+                        assessments={},
+                        competency_tests={},
+                        applied_position_info={},
                     )
+
 
                     logger.info(f"Successfully created applicant with ID: {applicant.id}")
 
@@ -3723,20 +3774,61 @@ class DocumentUploadView(APIView):
                     # applicant_serializer already created above
                     
                     return Response({
-                        "success": True,
-                        "message": message,
-                        "applicant_id": applicant.id,
-                        "user_id": user.id if user else None,
-                        "user_email": user.email if user else None,
-                        "file_name": file.name,
-                        "applicant_data": applicant_serializer.data,
-                        "structured_data": structured_json,
-                        "page_count": result.get("page_count"),
-                        "word_count": len(cleaned_text.split()),
-                        "parsing_quality": "low" if "error" in structured_json else "high",
-                        "user_creation_status": "success" if user else "failed",
-                        "user_error": user_error,
+                        "id": applicant.id,
+                        "user": user.id if user else None,
+                        "user_name": _pd_for_model.get("full_name", "") if isinstance(_pd_for_model, dict) else "",
+                        "user_email_display": user.email if user else None,
+                        "company": None,
+                        "company_name": "",
+                        "ship": None,
+                        "ship_details": None,
+                        "position": None,
+                        "position_name": "",
+                        "cv_file": "",
+                        "cover_letter": None,
+                        "experience_years": 0,
+                        "expected_salary": None,
+                        "availability_date": None,
+                        "status": "Pending",
+                        "submitted_date": datetime.now().strftime("%Y-%m-%d"),
+                        "reviewed_by": None,
+                        "reviewed_date": None,
+                        "notes": "Auto-created from AI Extraction",
+                        "rating": None,
+                        "created_at": applicant.created_at.isoformat() if applicant.created_at else None,
+                        "updated_at": applicant.updated_at.isoformat() if applicant.updated_at else None,
+                        "generated_id": str(applicant.id).zfill(12),
+                        "salary_display": "",
+                        "coded_rank": [],
+                        "rank_code": "",
+                        "assigned_code": "",
+                        "certificates": [],
+                        "user_documents": {
+                            "passport": {"passport_no": None, "issue_date": None, "expiry_date": None, "issued_by": None, "place_of_issue": None},
+                            "seaman_book": {"seaman_book_no": None, "issue_date": None, "expiry_date": None, "issued_by": None, "place_of_issue": None},
+                            "other_seaman_book": {"seaman_book_no": None, "issue_date": None, "expiry_date": None, "issued_by": None, "place_of_issue": None},
+                            "coc": {"certificate_name": None, "certificate_number": None, "issue_date": None, "expiry_date": None, "issued_by": None, "issued_at": None},
+                            "goc": {"certificate_number": None, "issue_date": None, "expiry_date": None, "issued_by": None, "issued_at": None},
+                            "health_certificate": {"flag_state": None, "number": None, "issue_date": None, "expiry_date": None, "issued_by": None, "issued_at": None},
+                            "licenses": []
+                        },
+                        "job_position": None,
+                        "job_position_details": None,
+                        "seafarer_application": structured_json,
+                        "company_details": None,
+                        
+                        # Keeping original upload metadata in a separate block just in case
+                        "_upload_meta": {
+                            "success": True,
+                            "message": message,
+                            "parsing_quality": "low" if "error" in structured_json else "high",
+                            "page_count": result.get("page_count"),
+                            "word_count": len(cleaned_text.split()),
+                            "user_creation_status": "success" if user else "failed",
+                            "user_error": user_error,
+                        }
                     }, status=response_status)
+
 
             except DocumentProcessingError as e:
                 try:
