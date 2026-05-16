@@ -34,7 +34,6 @@ export const useInterviews = () => {
 
       try {
         const response = await interviewsApi.getInterviews(filters);
-        // console.log("the interviews response : ", response);
         setInterviews(response.interviews || []);
         setPagination({
           count: response.count || 0,

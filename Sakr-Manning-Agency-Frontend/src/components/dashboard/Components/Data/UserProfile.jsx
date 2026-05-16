@@ -69,7 +69,6 @@ const UserProfile = ({ user, onLogout, scale = 1 }) => {
 
   // Handle settings (placeholder)
   const handleSettings = () => {
-    console.log("Settings clicked");
     setIsOpen(false);
     // TODO: Navigate to settings page
   };
@@ -116,9 +115,8 @@ const UserProfile = ({ user, onLogout, scale = 1 }) => {
             scale
           )}px`,
           backgroundColor: isOpen ? "rgba(0, 101, 175, 0.1)" : "transparent",
-          border: `1px solid ${
-            isOpen ? STYLE_TOKENS.colors.primary : "transparent"
-          }`,
+          border: `1px solid ${isOpen ? STYLE_TOKENS.colors.primary : "transparent"
+            }`,
           borderRadius: `${getScaledValue(24, scale)}px`,
           cursor: "pointer",
           transition: STYLE_TOKENS.transition.normal,

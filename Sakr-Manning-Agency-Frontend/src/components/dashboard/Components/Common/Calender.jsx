@@ -262,7 +262,6 @@ const InterviewCalendar = ({
                   e.currentTarget.style.transform = "translateY(-2px)";
                 }
                 e.currentTarget.children[2].style.opacity = "1";
-                // console.log(e.currentTarget.children[2]);
               }}
               onMouseLeave={(e) => {
                 if (day) {

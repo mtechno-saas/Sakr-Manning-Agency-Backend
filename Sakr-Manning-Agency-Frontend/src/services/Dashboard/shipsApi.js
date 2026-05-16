@@ -37,7 +37,7 @@ export const shipsApi = {
       if (filters.flag) params.append("flag", getVal(filters.flag));
       if (filters.ship_type) params.append("ship_type", getVal(filters.ship_type));
       if (filters.vessel_type) params.append("ship_type", getVal(filters.vessel_type));
-      
+
       // Fallback for older search key
       if (filters.search && !filters.name) params.append("name", getVal(filters.search));
 
@@ -270,7 +270,6 @@ export const coreApi = {
   getFlags: async (params = {}) => {
     try {
       const response = await api.get("/core/flags/", { params });
-      // console.log("from api resp : ", response.data);
       return Array.isArray(response.data)
         ? response.data
         : response.data.results || [];

@@ -2,7 +2,6 @@
 
 // Email validation
 export const validateEmail = (email) => {
-  // console.log("Validating email:", email);
   if (email === "admin") return "";
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -13,7 +12,6 @@ export const validateEmail = (email) => {
 
 // Password validation with strength requirements
 export const validatePassword = (password) => {
-  // console.log("Validating password:", password);
   if (!password) return "Password is required";
   if (password.length < 8) return "Password must be at least 8 characters long";
 
@@ -35,7 +33,6 @@ export const validatePassword = (password) => {
 
 // Name validation
 export const validateName = (name) => {
-  // console.log("Validating name:", name);
   if (!name.trim()) return "Name is required";
   if (name.trim().length < 2) return "Name must be at least 2 characters long";
   if (!/^[a-zA-Z\s]+$/.test(name))

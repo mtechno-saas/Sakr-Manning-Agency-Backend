@@ -377,10 +377,6 @@ function SakrFormInner({ userId, onLogout }) {
     }
   };
 
-  const handleLogout = () => {
-    console.log("Logout clicked");
-  };
-
   if (!isInitialized || isLoadingBackend) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
@@ -425,7 +421,7 @@ function SakrFormInner({ userId, onLogout }) {
                 currentStep={step}
                 goToStep={goToStep}
                 userProfile={userProfile}
-                onLogout={onLogout || handleLogout}
+                onLogout={onLogout}
                 onImageChange={handleImageChange}
               />
 

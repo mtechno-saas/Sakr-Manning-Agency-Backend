@@ -443,11 +443,10 @@ const GoogleGISDemo = () => {
                 </h2>
                 <p className="text-gray-600">{user.email}</p>
                 <span
-                  className={`inline-block px-2 py-1 text-xs rounded-full mt-2 ${
-                    user.emailVerified
+                  className={`inline-block px-2 py-1 text-xs rounded-full mt-2 ${user.emailVerified
                       ? "bg-green-100 text-green-800"
                       : "bg-yellow-100 text-yellow-800"
-                  }`}
+                    }`}
                 >
                   {user.emailVerified ? "✓ Verified" : "⚠ Unverified"}
                 </span>

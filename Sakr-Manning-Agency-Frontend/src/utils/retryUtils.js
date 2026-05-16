@@ -92,10 +92,6 @@ export const retryWithBackoff = async (
             // Don't wait after last attempt
             if (attempt < config.maxAttempts - 1) {
                 const delay = calculateDelay(attempt, config);
-                console.log(
-                    `Retry attempt ${attempt + 1}/${config.maxAttempts} after ${delay}ms`
-                );
-
                 onRetry?.(attempt + 1, error, delay);
                 await sleep(delay);
             }
@@ -123,10 +119,6 @@ export const retryOperation = async (fn, options = {}) => {
 
     try {
         const result = await retryWithBackoff(fn, configType, (attempt, error, delay) => {
-            console.log(
-                `${operationName} failed (attempt ${attempt}). Retrying in ${delay}ms...`,
-                error.message
-            );
             onRetry?.(attempt, error, delay);
         });
 
@@ -175,9 +167,7 @@ class RetryQueue {
 
             try {
                 await item.operation();
-                console.log(`Queued operation ${item.id} succeeded`);
             } catch (error) {
-                console.error(`Queued operation ${item.id} failed:`, error);
                 // Re-queue if error is retryable
                 if (isRetryableError(error, RETRY_CONFIG.save.retryableErrors)) {
                     this.queue.push(item);

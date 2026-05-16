@@ -36,7 +36,7 @@ export function useApplicationStatus() {
                 (doc) => doc.status?.toLowerCase() === "active"
             );
             if (hasActive) {
-                setStatus("active");
+                setStatus("Active");
                 return;
             }
 
@@ -44,12 +44,12 @@ export function useApplicationStatus() {
                 (doc) => doc.status?.toLowerCase() === "blacklist"
             );
             if (allBlacklisted) {
-                setStatus("blacklisted");
+                setStatus("Blacklist");
                 return;
             }
 
             // Mix of Pending / other non-active statuses
-            setStatus("pending");
+            setStatus("Pending");
         } catch (err) {
             console.error("useApplicationStatus error:", err);
             setError(err.message || "Failed to check application status");

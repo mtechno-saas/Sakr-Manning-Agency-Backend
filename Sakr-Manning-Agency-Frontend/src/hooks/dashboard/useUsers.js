@@ -43,7 +43,7 @@ export const useUsers = () => {
         });
 
         // Use a default page size of 50 for pagination calculations if not provided by BE
-        const pageSize = 50; 
+        const pageSize = 50;
         const count = response.count || 0;
         const totalPages = Math.max(1, Math.ceil(count / pageSize));
 
@@ -77,7 +77,6 @@ export const useUsers = () => {
     async (userId) => {
       try {
         const user = await usersApi.getUserById(userId);
-        // console.log("the user backend profile : ", user.data);
         return { success: true, data: user };
       } catch (err) {
         const errorMessage = err.message || "Failed to load user";

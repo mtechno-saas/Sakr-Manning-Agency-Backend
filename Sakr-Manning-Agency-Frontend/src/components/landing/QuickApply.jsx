@@ -248,7 +248,7 @@ const QuickApply = () => {
                         }
                     }
                 `}</style>
-                <div className="quick-apply-container" style={styles.container}>
+            <div className="quick-apply-container" style={{ ...styles.container, backgroundImage: `url(${ASSETS.QUICKBG})` }}>
 
                     <div style={styles.overlay}></div>
                     <div className="quick-apply-left" style={styles.leftContent}>
@@ -367,7 +367,7 @@ const QuickApply = () => {
                 </div> */}
 
                     <h1 style={styles.title}>Quick Apply</h1>
-                    <p style={styles.subtitle}>Enter your details to start with Sakr Mining Agency</p>
+                    <p style={styles.subtitle}>Enter your details to start with Sakr Manning Agency</p>
 
                     {/* Error Message */}
                     {submitError && (

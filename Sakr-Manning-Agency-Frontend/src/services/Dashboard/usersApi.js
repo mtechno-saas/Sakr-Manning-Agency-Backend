@@ -399,12 +399,6 @@ export const usersApi = {
         };
       }
 
-      console.log(
-        "Creating user with:",
-        hasFile ? "FormData" : "JSON",
-        requestData
-      );
-
       const response = await api.post("/users/users/", requestData, config);
       return response.data;
     } catch (error) {
@@ -477,18 +471,12 @@ export const usersApi = {
           },
         };
       }
-
-      console.log("Updating user with:", hasFile ? "FormData" : "JSON");
-      console.log("Request data:", requestData);
-
       // ✅ CRITICAL: Pass data in body (2nd parameter), config in 3rd parameter
       const response = await api.patch(
         `/users/users/${userId}/`,
         requestData,
         config
       );
-
-      console.log("Update response:", response.data);
       return response.data;
     } catch (error) {
       console.error(`Failed to update user ${userId}:`, error);
