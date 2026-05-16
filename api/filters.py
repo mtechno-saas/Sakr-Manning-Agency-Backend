@@ -85,12 +85,38 @@ class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
 
 
 class UsersFilter(django_filters.FilterSet):
-    name = CharInFilter(field_name="first_name", lookup_expr="in")
+    name = django_filters.CharFilter(method='filter_by_name')
     age = NumberInFilter(field_name="age", lookup_expr="in")
     marital_status = CharInFilter(field_name="marital_status", lookup_expr="in")
     user_status = CharInFilter(field_name="user_status", lookup_expr="in")
     nationality = CharInFilter(field_name="nationality", lookup_expr="in")
     nearest_port = CharInFilter(field_name="Nearest_Port", lookup_expr="in")
+    
+    def filter_by_name(self, queryset, name, value):
+        if not value:
+            return queryset
+        
+        # Support both comma-separated multiple searches and space-separated multi-word searches
+        terms = value.split(',')
+        query = Q()
+        
+        for term in terms:
+            term = term.strip()
+            if not term:
+                continue
+            
+            # Simple contains on first_name, middle_name or email
+            term_query = Q(first_name__icontains=term) | Q(middle_name__icontains=term) | Q(email__icontains=term)
+            
+            # If the term has spaces, it might be split across first and middle name
+            parts = term.split()
+            if len(parts) >= 2:
+                # Match if first word is in first_name and last word is in middle_name
+                term_query |= (Q(first_name__icontains=parts[0]) & Q(middle_name__icontains=parts[-1]))
+            
+            query |= term_query
+            
+        return queryset.filter(query).distinct()
     
     # Position filters
     rank_name = CharInFilter(field_name="codes__name", lookup_expr="in")
