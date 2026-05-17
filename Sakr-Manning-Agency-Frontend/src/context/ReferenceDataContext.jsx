@@ -46,12 +46,21 @@ export const ReferenceDataProvider = ({ children, data, isLoading }) => {
                 label: item.name,
             })),
 
-            positions: (data.positions || []).map((item) => ({
-                key: item.id,
-                // which is the position name string — NOT the integer ID.
-                value: typeof item === "string" ? item : (item.name ?? item.label ?? item.title ?? String(item.id ?? "")),
-                label: typeof item === "string" ? item : (item.name ?? item.label ?? item.title),
-            })),
+            positions: (data.positions || []).map((item) => {
+                // /api/positions/ returns { value: <int>, label: <string>, code: <string> }
+                // older endpoints may return { id, name } — handle both
+                if (typeof item === "string") {
+                    return { key: item, value: item, label: item };
+                }
+                const id = item.value ?? item.id;
+                const name = item.label ?? item.name ?? item.title ?? String(id ?? "");
+                return {
+                    key: id,
+                    value: id,   // integer position ID — sent to backend
+                    label: name,
+                    code: item.code ?? "",
+                };
+            }),
         };
     }, [data, isLoading]);
 

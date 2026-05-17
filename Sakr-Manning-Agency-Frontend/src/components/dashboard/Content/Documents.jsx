@@ -64,7 +64,6 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
   useEffect(() => {
     fetchContracts();
     fetchContractStats();
-    // console.log("the contracts  : ", contracts);
   }, []);
 
   // Calculate statistics matching UI design
@@ -169,7 +168,6 @@ export function DocumentManagement({ scale = 1, isMobile = false }) {
 
   // ✅ Filter Handlers
   const handleApplyFilters = useCallback(() => {
-    // console.log("Applying filters:", filters);
     setActiveFilters(filters);
     setShowFilterModal(false);
     fetchContracts({ ...filters, page: 1 });

@@ -114,10 +114,31 @@ export const ranksApi = {
    */
   getRanks: async () => {
     try {
-      const response = await api.get("/ranks/");
-      return Array.isArray(response.data)
-        ? response.data
-        : response.data.results || [];
+      let allRanks = [];
+      let nextUrl = "/ranks/";
+
+      while (nextUrl) {
+        // Handle absolute URLs returned by the backend in the 'next' field
+        const endpoint = nextUrl.startsWith('http') 
+          ? new URL(nextUrl).pathname + new URL(nextUrl).search
+          : nextUrl;
+
+        // Ensure we don't duplicate /api/ if it's already in the path and api instance adds it
+        const finalEndpoint = endpoint.replace('/api/', '/');
+
+        const response = await api.get(finalEndpoint);
+
+        if (Array.isArray(response.data)) {
+          allRanks = [...allRanks, ...response.data];
+          break;
+        } else if (response.data.results) {
+          allRanks = [...allRanks, ...response.data.results];
+          nextUrl = response.data.next;
+        } else {
+          break;
+        }
+      }
+      return allRanks;
     } catch (error) {
       console.error("Failed to fetch ranks:", error);
       throw new Error(handleApiError(error));
@@ -399,12 +420,6 @@ export const usersApi = {
         };
       }
 
-      console.log(
-        "Creating user with:",
-        hasFile ? "FormData" : "JSON",
-        requestData
-      );
-
       const response = await api.post("/users/users/", requestData, config);
       return response.data;
     } catch (error) {
@@ -477,18 +492,12 @@ export const usersApi = {
           },
         };
       }
-
-      console.log("Updating user with:", hasFile ? "FormData" : "JSON");
-      console.log("Request data:", requestData);
-
       // ✅ CRITICAL: Pass data in body (2nd parameter), config in 3rd parameter
       const response = await api.patch(
         `/users/users/${userId}/`,
         requestData,
         config
       );
-
-      console.log("Update response:", response.data);
       return response.data;
     } catch (error) {
       console.error(`Failed to update user ${userId}:`, error);
@@ -674,8 +683,31 @@ export const usersApi = {
    */
   getPositions: async () => {
     try {
-      const response = await api.get("/positions/");
-      return Array.isArray(response.data) ? response.data : response.data.results || [];
+      let allPositions = [];
+      let nextUrl = "/positions/";
+
+      while (nextUrl) {
+        // Handle absolute URLs returned by the backend in the 'next' field
+        const endpoint = nextUrl.startsWith('http') 
+          ? new URL(nextUrl).pathname + new URL(nextUrl).search
+          : nextUrl;
+
+        // Ensure we don't duplicate /api/ if it's already in the path and api instance adds it
+        const finalEndpoint = endpoint.replace('/api/', '/');
+
+        const response = await api.get(finalEndpoint);
+
+        if (Array.isArray(response.data)) {
+          allPositions = [...allPositions, ...response.data];
+          break;
+        } else if (response.data.results) {
+          allPositions = [...allPositions, ...response.data.results];
+          nextUrl = response.data.next;
+        } else {
+          break;
+        }
+      }
+      return allPositions;
     } catch (error) {
       console.error("Failed to fetch positions:", error);
       throw new Error(handleApiError(error));

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { cvSubmissionsApi } from "../services/Dashboard/cvSubmissionsApi";
+import { tokenStorage } from "../services/Auth/tokenStorage";
 
 /**
  * Derives the user's application status from their CV submission documents.
@@ -18,6 +19,14 @@ export function useApplicationStatus() {
     const [error, setError] = useState(null);
 
     const fetchStatus = useCallback(async () => {
+        // If not logged in, return early without calling the backend
+        const token = tokenStorage.getAccessToken();
+        if (!token) {
+            setStatus(null);
+            setIsLoading(false);
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
@@ -36,7 +45,7 @@ export function useApplicationStatus() {
                 (doc) => doc.status?.toLowerCase() === "active"
             );
             if (hasActive) {
-                setStatus("active");
+                setStatus("Active");
                 return;
             }
 
@@ -44,12 +53,12 @@ export function useApplicationStatus() {
                 (doc) => doc.status?.toLowerCase() === "blacklist"
             );
             if (allBlacklisted) {
-                setStatus("blacklisted");
+                setStatus("Blacklist");
                 return;
             }
 
             // Mix of Pending / other non-active statuses
-            setStatus("pending");
+            setStatus("Pending");
         } catch (err) {
             console.error("useApplicationStatus error:", err);
             setError(err.message || "Failed to check application status");

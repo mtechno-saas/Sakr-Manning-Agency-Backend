@@ -374,11 +374,7 @@ const App = () => {
           {/* Quick Apply Route */}
           <Route
             path="/quick-apply"
-            element={
-              <ProtectedRoute>
-                <QuickApply />
-              </ProtectedRoute>
-            }
+            element={<QuickApply />}
           />
 
           {/* Catch all - redirect to landing */}

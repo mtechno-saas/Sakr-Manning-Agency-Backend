@@ -87,15 +87,6 @@ const useTableFilters = (rawData = [], filterConfig = {}) => {
               return String(itemValue).includes(filterValue);
             }
             if (filterConfig.type === "in") {
-              // const filterValues = String(filterValue)
-              //   .split(",")
-              //   .map((v) => v.trim());
-              // console.log("filtered Array: ", filterValues);
-              // console.log("data: ", itemValue);
-              // console.log("filter: ", filterValue);
-              // return filterValues.some(
-              //   (v) => itemValue.includes(v) || v.includes(itemValue)
-              // );
               return filterValue.some(
                 (v) => itemValue.includes(v) || v.includes(itemValue)
               );

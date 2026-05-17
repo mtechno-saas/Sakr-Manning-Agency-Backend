@@ -40,8 +40,8 @@ export function useCrudManager({
           );
         }
       }
-    } catch (e) {
-      console.log(e);
+    } catch {
+      return [];
     }
     return [];
   });
@@ -56,8 +56,8 @@ export function useCrudManager({
       if (typeof form.register === "function") {
         form.register(parentFieldName);
       }
-    } catch (e) {
-      console.log(e);
+    } catch {
+      return;
     }
   }, [form, parentFieldName, registerField]);
 
@@ -69,8 +69,8 @@ export function useCrudManager({
         shouldDirty: true,
         shouldValidate: true,
       });
-    } catch (e) {
-      console.log(e);
+    } catch {
+      return;
     }
   }, [items, form, parentFieldName]);
 

@@ -85,7 +85,6 @@ export const useFinance = () => {
       setLoading(true);
 
       try {
-        console.log("the record to the backend  : ", recordData);
         const newRecord = await financeApi.createFinanceRecord(recordData);
 
         setRecords((prev) => [newRecord, ...prev]);
@@ -176,9 +175,7 @@ export const useFinance = () => {
   const calculateFinance = useCallback(
     async (data) => {
       try {
-        // console.log("the data to calculate : ", data);
         const calculation = await financeApi.calculateFinance(data);
-        // console.log(calculation);
         return { success: true, data: calculation };
       } catch (err) {
         const errorMessage = err.message || "Failed to calculate finance";
@@ -229,9 +226,8 @@ export const useFinance = () => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `finance_records_${
-          new Date().toISOString().split("T")[0]
-        }.csv`;
+        link.download = `finance_records_${new Date().toISOString().split("T")[0]
+          }.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

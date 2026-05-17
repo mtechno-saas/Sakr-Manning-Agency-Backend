@@ -41,7 +41,6 @@ export const aiApi = {
   uploadDocument: async (file) => {
     try {
       const formData = new FormData();
-      // console.log("there are a file : ", file);
       formData.append("file", file);
 
       const response = await aiApiInstance.post("/ai/upload/", formData, {
@@ -49,9 +48,6 @@ export const aiApi = {
           "Content-Type": "multipart/form-data",
         },
       });
-
-      // console.log("the response is : ", response);
-
       return {
         success: true,
         data: response.data,

@@ -118,30 +118,84 @@ function SakrFormInner({ userId, onLogout }) {
     }
   };
 
+  const positionVal = methods.watch(FORM_FIELDS.POSITION.APPLICATION);
+  const positionLabel = useMemo(() => {
+    if (!positionVal) return "No Position Selected";
+    
+    // If it's already an object (e.g. { value, label, code })
+    if (typeof positionVal === "object") {
+      return positionVal.label ?? positionVal.name ?? "No Position Selected";
+    }
+
+    // Try to find the matching option in positions reference data
+    const positionsOpts = referenceData?.positions || [];
+    const matchedOpt = positionsOpts.find(
+      (opt) =>
+        opt.value === positionVal ||
+        String(opt.value) === String(positionVal) ||
+        opt.label?.toLowerCase() === String(positionVal).toLowerCase()
+    );
+    
+    if (matchedOpt) {
+      return matchedOpt.label;
+    }
+
+    return String(positionVal);
+  }, [positionVal, referenceData]);
+
   // Get user profile data for sidebar
   const userProfile = {
     photo: methods.watch(FORM_FIELDS.PERSONAL.PHOTO),
     name: methods.watch(FORM_FIELDS.PERSONAL.FULL_NAME),
-    position: methods.watch(FORM_FIELDS.POSITION.APPLICATION),
+    position: positionLabel,
     availableDate: methods.watch(FORM_FIELDS.POSITION.AVAILABLE_DATE),
     expectedSalary: methods.watch(FORM_FIELDS.POSITION.EXPECTED_SALARY),
     expectedSalaryCurrency: methods.watch(FORM_FIELDS.POSITION.EXPECTED_SALARY_CURRENCY),
     email: methods.watch(FORM_FIELDS.CONTACT.EMAIL),
     registerId: methods.watch(FORM_FIELDS.POSITION.REGISTER_CODE),
     mobile: methods.watch("mobile"),
-  }
+  };
 
   // Initialize form data on mount
   useEffect(() => {
     const initializeForm = async () => {
       try {
-        await loadReferenceData();
+        const refRes = await loadReferenceData();
+        const rawPositions = refRes?.data?.positions || [];
+        const positionsOpts = (rawPositions || []).map((item) => {
+          if (typeof item === "string") {
+            return { key: item, value: item, label: item };
+          }
+          const id = item.value ?? item.id;
+          const name = item.label ?? item.name ?? item.title ?? String(id ?? "");
+          return {
+            key: id,
+            value: id,
+            label: name,
+            code: item.code ?? "",
+          };
+        });
 
         const result = await loadFormData();
 
         if (result?.success && result?.data) {
+          let application_for_position = result.data.application_for_position;
+
+          // Resolve string position choice to its integer ID
+          if (application_for_position && typeof application_for_position === "string") {
+            const matchedOpt = positionsOpts.find(
+              (opt) =>
+                opt.label?.toLowerCase() === application_for_position.toLowerCase() ||
+                opt.value?.toString() === application_for_position
+            );
+            if (matchedOpt) {
+              application_for_position = matchedOpt.value;
+            }
+          }
+
           methods.reset({
             ...result.data,
+            application_for_position,
             documents: result.data.documents || [],
             certificates: result.data.certificates || [],
             health: result.data.health || [],
@@ -300,10 +354,24 @@ function SakrFormInner({ userId, onLogout }) {
       }
 
       if (result.data) {
+        let application_for_position = result.data.application_for_position;
+        if (application_for_position && typeof application_for_position === "string") {
+          const positionsOpts = referenceData?.positions || [];
+          const matchedOpt = positionsOpts.find(
+            (opt) =>
+              opt.label?.toLowerCase() === application_for_position.toLowerCase() ||
+              opt.value?.toString() === application_for_position
+          );
+          if (matchedOpt) {
+            application_for_position = matchedOpt.value;
+          }
+        }
+
         const currentFormData = methods.getValues();
         const mergedData = {
           ...currentFormData,
           ...result.data,
+          application_for_position,
           documents: result.data.documents || currentFormData.documents || [],
           certificates: result.data.certificates || currentFormData.certificates || [],
           health: result.data.health || currentFormData.health || [],
@@ -343,10 +411,24 @@ function SakrFormInner({ userId, onLogout }) {
 
       if (result.success) {
         if (result.data) {
+          let application_for_position = result.data.application_for_position;
+          if (application_for_position && typeof application_for_position === "string") {
+            const positionsOpts = referenceData?.positions || [];
+            const matchedOpt = positionsOpts.find(
+              (opt) =>
+                opt.label?.toLowerCase() === application_for_position.toLowerCase() ||
+                opt.value?.toString() === application_for_position
+            );
+            if (matchedOpt) {
+              application_for_position = matchedOpt.value;
+            }
+          }
+
           const currentFormData = methods.getValues();
           const mergedData = {
             ...currentFormData,
             ...result.data,
+            application_for_position,
             documents: result.data.documents || currentFormData.documents || [],
             certificates: result.data.certificates || currentFormData.certificates || [],
             health: result.data.health || currentFormData.health || [],
@@ -375,10 +457,6 @@ function SakrFormInner({ userId, onLogout }) {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleLogout = () => {
-    console.log("Logout clicked");
   };
 
   if (!isInitialized || isLoadingBackend) {
@@ -425,7 +503,7 @@ function SakrFormInner({ userId, onLogout }) {
                 currentStep={step}
                 goToStep={goToStep}
                 userProfile={userProfile}
-                onLogout={onLogout || handleLogout}
+                onLogout={onLogout}
                 onImageChange={handleImageChange}
               />
 

@@ -40,7 +40,6 @@ export function UserManagement({ scale = 1, isMobile }) {
 
   // Helper: Check if user is online (last login within 1 hour)
   const isUserOnline = (lastLogin) => {
-    // console.log(lastLogin);
     if (!lastLogin) return false;
     const lastLoginDate = new Date(lastLogin);
     const now = new Date();
@@ -50,7 +49,6 @@ export function UserManagement({ scale = 1, isMobile }) {
 
   // Helper: Format last login date
   const formatLastLogin = (lastLogin) => {
-    // console.log(lastLogin);
     if (!lastLogin) return "Never";
     const date = new Date(lastLogin);
     return date.toISOString().split("T")[0]; // YYYY-MM-DD
@@ -89,7 +87,6 @@ export function UserManagement({ scale = 1, isMobile }) {
   // Load statistics
   const loadStatistics = async () => {
     const result = await fetchUserStats();
-    // console.log("the user stats : ", result);
     if (result.success) {
       setStatistics(result.data);
     }
@@ -97,7 +94,6 @@ export function UserManagement({ scale = 1, isMobile }) {
 
   // Transform backend users to match UI format
   const userData = useMemo(() => {
-    // console.log("the backend user data : ", backendUsers);
     return backendUsers.map((user, index) => ({
       index: (pagination.currentPage - 1) * (pagination.pageSize || 50) + index + 1,
       id: user.id,
@@ -650,8 +646,8 @@ export function UserManagement({ scale = 1, isMobile }) {
               setActiveFilters(filters);
               fetchUsers({ ...buildBackendFilters(filters), page: 1 });
             }}
-            onSavePreset={() => {}}
-            onDeletePreset={() => {}}
+            onSavePreset={() => { }}
+            onDeletePreset={() => { }}
           />
 
           <div style={{ display: "flex", gap: `${Math.round(8 * scale)}px`, alignItems: "center" }}>

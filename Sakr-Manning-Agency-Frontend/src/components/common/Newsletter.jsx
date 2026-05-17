@@ -11,7 +11,6 @@ export default function Newsletter() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) return;
 
-    console.log("Subscribed with email:", email);
     setShowSuccess(true);
     setEmail("");
 
@@ -38,11 +37,10 @@ export default function Newsletter() {
           <button
             onClick={handleSubscribe}
             disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
-            className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 rounded-2xl px-4 sm:px-6 py-1.5 sm:py-2 text-white text-sm sm:text-base font-normal transition whitespace-nowrap ${
-              /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+            className={`absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 rounded-2xl px-4 sm:px-6 py-1.5 sm:py-2 text-white text-sm sm:text-base font-normal transition whitespace-nowrap ${/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
                 ? "bg-[#0058A3] hover:bg-[#004B82] cursor-pointer"
                 : "bg-gray-400 cursor-not-allowed"
-            }`}
+              }`}
           >
             Subscribe now
           </button>

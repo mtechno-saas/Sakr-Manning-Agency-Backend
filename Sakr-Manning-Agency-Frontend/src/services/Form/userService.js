@@ -712,7 +712,7 @@ export const userService = {
         vesselTypes: "/core/vessel-types/",
         certificates: "/users/certificates/",
         companies: "/companies/",
-        positions: "/users/positions/",
+        positions: "/positions/",
       };
 
       const results = await Promise.allSettled(
@@ -772,7 +772,7 @@ export const userService = {
         certificates: "/users/certificates/",
         ranks: "/ranks/",
         companies: "/companies/",
-        positions: "/users/positions/",
+        positions: "/positions/",
       };
 
       if (!endpoints[type]) {

@@ -77,7 +77,6 @@ export const useUsers = () => {
     async (userId) => {
       try {
         const user = await usersApi.getUserById(userId);
-        // console.log("the user backend profile : ", user.data);
         return { success: true, data: user };
       } catch (err) {
         const errorMessage = err.message || "Failed to load user";

@@ -4,11 +4,12 @@ import Button from "../../common/Button";
 import Card from "../../common/Card";
 import ImageBlock from "../../common/ImageBlock";
 import { ASSETS } from "../../../utils/constants";
-import InfiniteTicker from "../../common/InfiniteTicker";
 import { motion } from "framer-motion";
 import "../../../styles/globals.css";
 import { useNavigate } from "react-router-dom";
 import { jobOrdersApi } from "../../../services/Dashboard/jobOrdersApi";
+import InfiniteTicker from "../../common/InfiniteTicker";
+
 
 // ── Fallback shown while loading or when the API returns nothing ──────────
 const FALLBACK_JOBS = [
@@ -76,18 +77,24 @@ const HomePage = ({ user, onOpenForm, onNavigate }) => {
         const list = Array.isArray(response) ? response : (response.results || response.job_positions || []);
 
         if (!cancelled && list.length > 0) {
-          const mapped = list.map((p) => ({
-            title: p.rank_name || "Seafarer Position",
-            text: [
-              p.company_name || "Marine Agency",
-              p.trading_area || "",
-              p.contract_duration_months ? `${p.contract_duration_months} Months` : "",
-              p.salary_min && p.salary_max ? `${p.salary_min}-${p.salary_max} ${p.currency || 'USD'}` : ""
-            ]
-              .filter(Boolean)
-              .join(" · ") || "Apply for this rank now",
-          }));
-          setJobs(mapped);
+          // Filter out jobs where rank_name is null, undefined, or empty
+          const validPositions = list.filter(
+            (p) => p && p.rank_name !== null && p.rank_name !== undefined && p.rank_name !== ""
+          );
+
+          if (validPositions.length > 0) {
+            const mapped = validPositions.map((p) => ({
+              title: p.rank_name,
+              salaryMin: p.salary_min,
+              salaryMax: p.salary_max,
+              currency: p.currency || 'USD',
+              duration: p.contract_duration_months,
+              quantity: p.quantity,
+              remarks: p.remarks,
+              id: p.id,
+            }));
+            setJobs(mapped);
+          }
         }
       } catch (err) {
         // Silently fall back to the static list
@@ -382,34 +389,104 @@ const HomePage = ({ user, onOpenForm, onNavigate }) => {
       {/* ── Open Vacancies Section ── */}
       <div
         ref={jobsRef}
-        className="py-8 sm:py-10 md:py-12 w-full px-4 sm:px-6 md:w-5/6 lg:w-2/3 mx-auto"
+        className="py-12 sm:py-16 w-full overflow-hidden"
+        style={{ background: "linear-gradient(180deg, #f8faff 0%, #ffffff 100%)" }}
       >
-        <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-1 text-center leading-tight">
-          Open Vacancies
-        </h3>
+        {/* Section Header */}
+        <div className="text-center mb-8 sm:mb-10 px-4">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            Open Vacancies
+          </h3>
+          {!vacanciesLoading && (
+            <p className="text-sm sm:text-base text-gray-500">
+              {jobs === FALLBACK_JOBS
+                ? "Sample positions — check back soon for live listings"
+                : `${jobs.length} position${jobs.length !== 1 ? "s" : ""} currently available`}
+            </p>
+          )}
+        </div>
 
-        {/* Live badge */}
-        {!vacanciesLoading && (
-          <p className="text-center text-sm text-gray-400 mb-4 sm:mb-6">
-            {jobs === FALLBACK_JOBS
-              ? "Sample positions"
-              : `${jobs.length} position${jobs.length !== 1 ? "s" : ""} currently available`}
-          </p>
-        )}
-
-        {/* Loading skeleton */}
+        {/* Ticker or skeletons */}
         {vacanciesLoading ? (
-          <div className="flex gap-4 overflow-hidden py-4">
-            {[1, 2, 3].map((i) => (
+          <div className="flex gap-4 sm:gap-5 overflow-x-hidden pb-4 px-6">
+            {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="flex-shrink-0 w-[300px] sm:w-[380px] md:w-[510px] h-[140px] sm:h-[180px] md:h-[226px]
-                           rounded-2xl bg-gray-100 animate-pulse"
+                className="flex-shrink-0 w-[260px] sm:w-[300px] h-[180px] rounded-2xl bg-gray-100 animate-pulse"
               />
             ))}
           </div>
         ) : (
-          <InfiniteTicker items={jobs} speed={0.5} />
+          <InfiniteTicker
+            items={jobs}
+            speed={0.6}
+            renderItem={(item, idx) => {
+              const hasSalary = item.salaryMin && item.salaryMax;
+              const formattedSalaryMin = hasSalary
+                ? parseFloat(item.salaryMin).toLocaleString(undefined, { maximumFractionDigits: 0 })
+                : '';
+              const formattedSalaryMax = hasSalary
+                ? parseFloat(item.salaryMax).toLocaleString(undefined, { maximumFractionDigits: 0 })
+                : '';
+
+              return (
+                <div
+                  key={idx}
+                  className="flex-shrink-0 w-[270px] sm:w-[310px] rounded-2xl border border-gray-100 bg-white shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group cursor-default"
+                >
+                  {/* Top accent bar */}
+                  {/* <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, #0065AF, #0096D6)" }} /> */}
+
+                  <div className="p-5 flex flex-col gap-3 h-[210px] justify-between">
+                    <div className="flex flex-col gap-3.5">
+                      {/* Title + Open badge */}
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-normal text-gray-900 text-xs sm:text-sm leading-tight line-clamp-2 flex-1">
+                          {item.title}
+                        </h4>
+                      </div>
+
+                      {/* Detail row (Salary & Duration) */}
+                      <div className="flex items-center justify-between gap-2">
+                        {hasSalary ? (
+                          <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50/50 px-2 py-0.5 rounded border border-emerald-100/50">
+                            💰 {formattedSalaryMin}-{formattedSalaryMax} {item.currency}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-medium text-gray-400">Salary TBD</span>
+                        )}
+                        {item.duration && (
+                          <span className="text-[11px] font-medium text-blue-700 bg-blue-50/50 px-2 py-0.5 rounded border border-blue-100/50">
+                            📅 {item.duration} Mos
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Description / Remarks */}
+                      <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 italic">
+                        {item.remarks || item.text || "Excellent opportunity. Click apply to submit your crew CV."}
+                      </p>
+                    </div>
+
+                    {/* Footer Row */}
+                    <div className="flex items-center justify-between pt-2.5 border-t border-gray-100">
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-5.5 h-5.5 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg, #0065AF22, #0096D622)" }}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0065AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="5" r="3" /><line x1="12" y1="22" x2="12" y2="8" /><path d="M5 12H2a10 10 0 0 0 20 0h-3" />
+                          </svg>
+                        </div>
+                        <span className="text-[10px] text-gray-400">Sakr Manning</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }}
+          />
         )}
       </div>
 

@@ -82,15 +82,17 @@ export const COMPANY_FORM_FIELDS = [
     placeholder: "Select Type",
     gridCols: 9,
     options: [
-      { value: "Shipping Manning Companies", label: "Shipping Manning Companies" },
       { value: "Cargo Manning Companies", label: "Cargo Manning Companies" },
       { value: "Cruise & Hospitality Manning Companies", label: "Cruise & Hospitality Manning Companies" },
-      { value: "Offshore & Oil/Gas Manning Companies", label: "Offshore & Oil/Gas Manning Companies" },
       { value: "Fishing Fleet Manning Companies", label: "Fishing Fleet Manning Companies" },
+      { value: "Full Crew Management Companies", label: "Full Crew Management Companies" },
       { value: "General Crew Manning Companies", label: "General Crew Manning Companies" },
+      { value: "Offshore & Oil/Gas Manning Companies", label: "Offshore & Oil/Gas Manning Companies" },
+      { value: "Ship Owner", label: "Ship Owner" },
+      { value: "Shipping Manning Companies", label: "Shipping Manning Companies" },
       { value: "Specialized Marine Manning Companies", label: "Specialized Marine Manning Companies" },
       { value: "Temporary / Contract Manning Agencies", label: "Temporary / Contract Manning Agencies" },
-      { value: "Full Crew Management Companies", label: "Full Crew Management Companies" },
+      { value: "Other", label: "Other" },
     ],
     validation: {
       required: "Company type is required",
@@ -596,7 +598,7 @@ export const USER_FORM_FIELDS = [
     transformOnLoad: (val, record) => {
       const source = val || record?.ranks || [];
       return Array.isArray(source)
-        ? source.map((i) => (i?.rank_name || i?.name || i?.rank?.name || i))
+        ? source.map((i) => (i?.id || i?.rank?.id || i))
         : [];
     },
   },

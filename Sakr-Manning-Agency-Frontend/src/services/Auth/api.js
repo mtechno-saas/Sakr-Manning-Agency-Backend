@@ -33,13 +33,6 @@ api.interceptors.request.use(
     if (token && !isTokenExpired(token)) {
       cfg.headers.Authorization = `Bearer ${token}`;
     }
-    if (isDev) {
-      console.log(
-        `%c ▶ [${cfg.method?.toUpperCase()}] ${cfg.url}`,
-        "color: #00bcd4; font-weight: bold"
-      );
-      if (cfg.data) console.log("Request Body:", cfg.data);
-    }
     return cfg;
   },
   (error) => Promise.reject(error)
@@ -48,23 +41,9 @@ api.interceptors.request.use(
 // ── Response interceptor — handle 401 + auto token refresh ───────────────────
 api.interceptors.response.use(
   (response) => {
-    if (isDev) {
-      console.log(
-        `%c ✔ [${response.status}] ${response.config.url}`,
-        "color: #4caf50; font-weight: bold"
-      );
-    }
     return response;
   },
   async (error) => {
-    if (isDev) {
-      console.log(
-        `%c ✖ [${error.response?.status ?? "network"}] ${error.config?.url}`,
-        "color: #f44336; font-weight: bold"
-      );
-      if (error.response?.data) console.log("Error Data:", error.response.data);
-    }
-
     const originalRequest = error.config;
 
     // Only handle 401 errors — skip auth endpoints to avoid infinite loops
@@ -79,7 +58,7 @@ api.interceptors.response.use(
       if (originalRequest._retry) {
         // Second failure after refresh — session is dead
         tokenStorage.clearAll();
-        
+
         // Only redirect if not on a public page
         const publicPaths = ["/", "/auth"];
         if (!publicPaths.includes(window.location.pathname)) {
@@ -123,13 +102,13 @@ api.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError, null);
       tokenStorage.clearAll();
-      
+
       // Only redirect to auth if we are not on a public page
       const publicPaths = ["/", "/auth"];
       if (!publicPaths.includes(window.location.pathname)) {
         window.location.href = "/auth";
       }
-      
+
       return Promise.reject(refreshError);
     } finally {
       setTimeout(() => {

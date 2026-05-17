@@ -16,7 +16,6 @@ export const usePermissions = () => {
 
   const permissions = useMemo(() => {
     const userRole = user?.role?.toLowerCase();
-    // console.log("", userRole);
     // const userRole = "admin";
     const isAdmin = userRole === "admin" || userRole === "administrator";
     const isHR =

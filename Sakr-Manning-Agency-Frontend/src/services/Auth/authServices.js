@@ -63,7 +63,7 @@ export const authService = {
             api.get(config.ENDPOINTS.USER_DETAIL(userId)),
             api.get(config.ENDPOINTS.USER_ME)
           ]);
-          
+
           user = formatUserData({
             ...userResponse.data,
             ...meResponse.data
@@ -182,7 +182,6 @@ export const authService = {
       const user = await api.get(config.ENDPOINTS.USER_ME);
       return user.data.role;
     } catch (error) {
-      console.log("an error occurs while getting user role: ", error);
       throw new Error(handleApiError(error));
     }
   },
@@ -234,8 +233,6 @@ export const authService = {
         message: "Logged out successfully",
       };
     } catch (error) {
-      console.log("an error occurs : ", error);
-      // Always clear local storage even if API call fails
       tokenStorage.clearAll();
       return {
         success: true,
@@ -417,7 +414,7 @@ export const authService = {
             api.get(config.ENDPOINTS.USER_DETAIL(userId)),
             api.get(config.ENDPOINTS.USER_ME)
           ]);
-          
+
           user = formatUserData({
             ...userResponse.data,
             ...meResponse.data
