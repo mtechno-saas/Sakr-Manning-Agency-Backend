@@ -104,17 +104,17 @@ export function CVSubmissionViewModal({
     const shipDetails = submission.ship_details || null;
 
     // seafarer_application sections
-    const saPersonal   = sa["1_personal_details"] || null;
-    const saEducation  = sa["2_education"] || null;
-    const saContact    = sa["3_contact_details"] || null;
+    const saPersonal = sa["1_personal_details"] || null;
+    const saEducation = sa["2_education"] || null;
+    const saContact = sa["3_contact_details"] || null;
     const saTravelDocs = sa["4_travel_documents"] || [];
-    const saCerts      = sa["5_professional_qualification_certificate_of_competency"] || [];
-    const saNextOfKin  = sa["6_next_of_kin_emergency_contact"] || null;
-    const saHealth     = sa["7_health_certificates_and_vaccinations"] || null;
-    const saCourses    = sa["8_marine_courses"] || [];
+    const saCerts = sa["5_professional_qualification_certificate_of_competency"] || [];
+    const saNextOfKin = sa["6_next_of_kin_emergency_contact"] || null;
+    const saHealth = sa["7_health_certificates_and_vaccinations"] || null;
+    const saCourses = sa["8_marine_courses"] || [];
     const saSeaService = sa["9_complete_sea_service_details"] || null;
-    const saRefs       = sa["10_references"] || [];
-    const saDecl       = sa["11_declaration"] || null;
+    const saRefs = sa["10_references"] || [];
+    const saDecl = sa["11_declaration"] || null;
 
     // ── Actions ───────────────────────────────────────────────────────────────
     const actions = [];
@@ -162,16 +162,16 @@ export function CVSubmissionViewModal({
 
             {/* ── Core application details ─────────────────────────────────── */}
             <Section title="Application Details" icon={Briefcase} scale={scale} columns={2}>
-                <FieldItem label="Status"          value={submission.status}              icon={CheckCircle2} scale={scale} />
-                <FieldItem label="Submitted"       value={fmtDateTime(submission.submitted_date)} icon={Calendar} scale={scale} />
-                <FieldItem label="Created At"      value={fmtDateTime(submission.created_at)} icon={Calendar} scale={scale} />
-                <FieldItem label="Updated At"      value={fmtDateTime(submission.updated_at)} icon={Calendar} scale={scale} />
-                <FieldItem label="Company"         value={fmt(submission.company_name)}   icon={Building}    scale={scale} />
-                <FieldItem label="Position"        value={fmt(submission.position_name)}  icon={Briefcase}   scale={scale} />
-                <FieldItem label="Rank Code"       value={fmt(submission.rank_code)}      icon={Anchor}      scale={scale} />
-                <FieldItem label="Assigned Code"   value={fmt(submission.assigned_code)}  icon={Hash}        scale={scale} />
-                <FieldItem label="Generated ID"    value={fmt(submission.generated_id)}   icon={Hash}        scale={scale} />
-                <FieldItem label="Experience"      value={submission.experience_years != null ? `${submission.experience_years} yr${submission.experience_years !== 1 ? "s" : ""}` : "—"} icon={Activity} scale={scale} />
+                <FieldItem label="Status" value={submission.status} icon={CheckCircle2} scale={scale} />
+                <FieldItem label="Submitted" value={fmtDateTime(submission.submitted_date)} icon={Calendar} scale={scale} />
+                <FieldItem label="Created At" value={fmtDateTime(submission.created_at)} icon={Calendar} scale={scale} />
+                <FieldItem label="Updated At" value={fmtDateTime(submission.updated_at)} icon={Calendar} scale={scale} />
+                <FieldItem label="Company" value={fmt(submission.company_name)} icon={Building} scale={scale} />
+                <FieldItem label="Position" value={fmt(submission.position_name)} icon={Briefcase} scale={scale} />
+                <FieldItem label="Rank Code" value={fmt(submission.rank_code)} icon={Anchor} scale={scale} />
+                <FieldItem label="Assigned Code" value={fmt(submission.assigned_code)} icon={Hash} scale={scale} />
+                <FieldItem label="Generated ID" value={fmt(submission.generated_id)} icon={Hash} scale={scale} />
+                <FieldItem label="Experience" value={submission.experience_years != null ? `${submission.experience_years} yr${submission.experience_years !== 1 ? "s" : ""}` : "—"} icon={Activity} scale={scale} />
                 {submission.reviewed_by && <FieldItem label="Reviewed By" value={submission.reviewed_by} icon={User} scale={scale} />}
                 {submission.reviewed_date && <FieldItem label="Reviewed Date" value={fmtDateTime(submission.reviewed_date)} icon={Calendar} scale={scale} />}
             </Section>
@@ -179,56 +179,56 @@ export function CVSubmissionViewModal({
             {/* ── Salary & Availability ────────────────────────────────────── */}
             <Section title="Salary & Availability" icon={DollarSign} scale={scale} columns={2}>
                 <FieldItem label="Expected Salary" value={submission.expected_salary ? `$${submission.expected_salary}` : "—"} icon={CreditCard} scale={scale} />
-                <FieldItem label="Salary Display"  value={submission.salary_display ? `$${submission.salary_display}` : "—"} icon={CreditCard} scale={scale} />
+                <FieldItem label="Salary Display" value={submission.salary_display ? `$${submission.salary_display}` : "—"} icon={CreditCard} scale={scale} />
                 <FieldItem label="Availability Date" value={fmtDate(submission.availability_date)} icon={Calendar} scale={scale} />
-                <FieldItem label="Rating"
+                {submission.rating && <FieldItem label="Rating"
                     value={
                         <StarRating value={submission.rating || 0} scale={scale} />
                     }
                     icon={Star}
                     scale={scale}
-                />
+                />}
                 <FieldItem label="Candidate Email" value={fmt(submission.user_email_display)} icon={Mail} scale={scale} />
             </Section>
 
             {/* ── Job Position Details ─────────────────────────────────────── */}
             {jpd && Object.keys(jpd).length > 0 && (
                 <Section title="Job Position Details" icon={Package} scale={scale} columns={2}>
-                    <FieldItem label="Job Position ID" value={fmt(jpd.id)}               icon={Hash}        scale={scale} />
+                    <FieldItem label="Job Position ID" value={fmt(jpd.id)} icon={Hash} scale={scale} />
                     <FieldItem label="Job Position Name" value={fmt(jpd.job_position_name)} icon={Briefcase} scale={scale} />
-                    <FieldItem label="Quantity"         value={fmt(jpd.quantity)}         icon={BarChart2}   scale={scale} />
-                    <FieldItem label="Salary Min"       value={jpd.salary_min ? `${jpd.salary_min} ${jpd.currency || ""}` : "—"} icon={DollarSign} scale={scale} />
-                    <FieldItem label="Salary Max"       value={jpd.salary_max ? `${jpd.salary_max} ${jpd.currency || ""}` : "—"} icon={DollarSign} scale={scale} />
+                    <FieldItem label="Quantity" value={fmt(jpd.quantity)} icon={BarChart2} scale={scale} />
+                    <FieldItem label="Salary Min" value={jpd.salary_min ? `${jpd.salary_min} ${jpd.currency || ""}` : "—"} icon={DollarSign} scale={scale} />
+                    <FieldItem label="Salary Max" value={jpd.salary_max ? `${jpd.salary_max} ${jpd.currency || ""}` : "—"} icon={DollarSign} scale={scale} />
                     <FieldItem label="Contract Duration" value={jpd.contract_duration_months ? `${jpd.contract_duration_months} months` : "—"} icon={Clock} scale={scale} />
-                    <FieldItem label="Remarks"          value={fmt(jpd.remarks)}          icon={StickyNote}  scale={scale} />
+                    <FieldItem label="Remarks" value={fmt(jpd.remarks)} icon={StickyNote} scale={scale} />
                 </Section>
             )}
 
             {/* ── Company Details ──────────────────────────────────────────── */}
             <Section title="Company Details" icon={Building} scale={scale} columns={2}>
-                <FieldItem label="Company Name"    value={fmt(companyDetails?.company_name ?? submission.company_name)} icon={Building}  scale={scale} />
-                <FieldItem label="Company Type"    value={fmt(companyDetails?.company_type)}    icon={Briefcase} scale={scale} />
-                <FieldItem label="Country"         value={fmt(companyDetails?.country)}          icon={Globe}     scale={scale} />
-                <FieldItem label="Contact Person"  value={fmt(companyDetails?.contact_person)}   icon={User}      scale={scale} />
-                <FieldItem label="Contact Email"   value={fmt(companyDetails?.contact_email)}    icon={Mail}      scale={scale} />
-                <FieldItem label="Status"          value={fmt(companyDetails?.status)}           icon={CheckCircle2} scale={scale} />
+                <FieldItem label="Company Name" value={fmt(companyDetails?.company_name ?? submission.company_name)} icon={Building} scale={scale} />
+                <FieldItem label="Company Type" value={fmt(companyDetails?.company_type_name || companyDetails?.company_type)} icon={Briefcase} scale={scale} />
+                <FieldItem label="Country" value={fmt(companyDetails?.company_flag_name || companyDetails?.company_flag)} icon={Globe} scale={scale} />
+                <FieldItem label="Contact Person" value={fmt(companyDetails?.contact_person)} icon={User} scale={scale} />
+                <FieldItem label="Contact Email" value={fmt(companyDetails?.contact_email)} icon={Mail} scale={scale} />
+                <FieldItem label="Status" value={fmt(companyDetails?.status)} icon={CheckCircle2} scale={scale} />
             </Section>
 
             {/* ── Ship Details ─────────────────────────────────────────────── */}
             <Section title="Ship Details" icon={Ship} scale={scale} columns={2}>
-                <FieldItem label="Ship Name"  value={fmt(shipDetails?.ship_name ?? submission.ship_name)} icon={Ship}         scale={scale} />
-                <FieldItem label="IMO Number" value={fmt(shipDetails?.imo_number)}  icon={Hash}         scale={scale} />
-                <FieldItem label="Ship Type"  value={fmt(shipDetails?.ship_type)}   icon={Waves}        scale={scale} />
-                <FieldItem label="Flag"       value={fmt(shipDetails?.flag)}         icon={Globe}        scale={scale} />
-                <FieldItem label="Status"     value={fmt(shipDetails?.status)}       icon={CheckCircle2} scale={scale} />
+                <FieldItem label="Ship Name" value={fmt(shipDetails?.ship_name ?? submission.ship_name)} icon={Ship} scale={scale} />
+                <FieldItem label="IMO Number" value={fmt(shipDetails?.imo_number)} icon={Hash} scale={scale} />
+                <FieldItem label="Ship Type" value={fmt(shipDetails?.ship_type_name || shipDetails?.ship_type)} icon={Waves} scale={scale} />
+                <FieldItem label="Flag" value={fmt(shipDetails?.flag_name || shipDetails?.flag)} icon={Globe} scale={scale} />
+                <FieldItem label="Status" value={fmt(shipDetails?.status)} icon={CheckCircle2} scale={scale} />
             </Section>
 
             {/* ── Position Details ─────────────────────────────────────────── */}
             <Section title="Position Details" icon={Anchor} scale={scale} columns={2}>
-                <FieldItem label="Position Name" value={fmt(submission.position_name)} icon={Briefcase}  scale={scale} />
-                <FieldItem label="Rank Code"     value={fmt(submission.rank_code)}     icon={ShieldCheck} scale={scale} />
-                <FieldItem label="Assigned Code" value={fmt(submission.assigned_code)} icon={Hash}        scale={scale} />
-                <FieldItem label="Experience"    value={submission.experience_years != null ? `${submission.experience_years} yr${submission.experience_years !== 1 ? "s" : ""}` : "—"} icon={Activity} scale={scale} />
+                <FieldItem label="Position Name" value={fmt(submission.position_name)} icon={Briefcase} scale={scale} />
+                <FieldItem label="Rank Code" value={fmt(submission.rank_code)} icon={ShieldCheck} scale={scale} />
+                <FieldItem label="Assigned Code" value={fmt(submission.assigned_code)} icon={Hash} scale={scale} />
+                <FieldItem label="Experience" value={submission.experience_years != null ? `${submission.experience_years} yr${submission.experience_years !== 1 ? "s" : ""}` : "—"} icon={Activity} scale={scale} />
             </Section>
 
             {/* ══════════════════════════════════════════════════════════════ */}
@@ -238,27 +238,27 @@ export function CVSubmissionViewModal({
             {/* 1. Personal Details */}
             {saPersonal && (
                 <Section title="Personal Details" icon={User} scale={scale} columns={2}>
-                    <FieldItem label="Full Name"        value={fmt(saPersonal.full_name)}        icon={User}     scale={scale} />
-                    <FieldItem label="Date of Birth"    value={fmtDate(saPersonal.date_of_birth)} icon={Calendar} scale={scale} />
-                    <FieldItem label="Nationality"      value={fmt(saPersonal.nationality)}       icon={Globe}    scale={scale} />
-                    <FieldItem label="Place of Birth"   value={fmt(saPersonal.place_of_birth)}    icon={MapPin}   scale={scale} />
-                    <FieldItem label="Marital Status"   value={saPersonal.marital_status ? (saPersonal.marital_status.married ? "Married" : saPersonal.marital_status.single ? "Single" : "—") : "—"} icon={Heart} scale={scale} />
-                    <FieldItem label="Nearest Port"     value={fmt(saPersonal.nearest_port)}      icon={Anchor}   scale={scale} />
-                    <FieldItem label="Height (cm)"      value={fmt(saPersonal.height_cm)}         icon={Activity} scale={scale} />
-                    <FieldItem label="Weight (kg)"      value={fmt(saPersonal.weight_kg)}         icon={Activity} scale={scale} />
-                    <FieldItem label="Overall Size"     value={fmt(saPersonal.overall_size)}      icon={Package}  scale={scale} />
-                    <FieldItem label="Shirt Size"       value={fmt(saPersonal.shirt_size)}        icon={Package}  scale={scale} />
-                    <FieldItem label="Trouser Size"     value={fmt(saPersonal.trouser_size)}      icon={Package}  scale={scale} />
-                    <FieldItem label="Shoes Size"       value={fmt(saPersonal.shoes_size)}        icon={Package}  scale={scale} />
+                    <FieldItem label="Full Name" value={fmt(saPersonal.full_name)} icon={User} scale={scale} />
+                    <FieldItem label="Date of Birth" value={fmtDate(saPersonal.date_of_birth)} icon={Calendar} scale={scale} />
+                    <FieldItem label="Nationality" value={fmt(saPersonal.nationality)} icon={Globe} scale={scale} />
+                    <FieldItem label="Place of Birth" value={fmt(saPersonal.place_of_birth)} icon={MapPin} scale={scale} />
+                    <FieldItem label="Marital Status" value={saPersonal.marital_status ? (saPersonal.marital_status.married ? "Married" : saPersonal.marital_status.single ? "Single" : "—") : "—"} icon={Heart} scale={scale} />
+                    <FieldItem label="Nearest Port" value={fmt(saPersonal.nearest_port)} icon={Anchor} scale={scale} />
+                    <FieldItem label="Height (cm)" value={fmt(saPersonal.height_cm)} icon={Activity} scale={scale} />
+                    <FieldItem label="Weight (kg)" value={fmt(saPersonal.weight_kg)} icon={Activity} scale={scale} />
+                    <FieldItem label="Overall Size" value={fmt(saPersonal.overall_size)} icon={Package} scale={scale} />
+                    <FieldItem label="Shirt Size" value={fmt(saPersonal.shirt_size)} icon={Package} scale={scale} />
+                    <FieldItem label="Trouser Size" value={fmt(saPersonal.trouser_size)} icon={Package} scale={scale} />
+                    <FieldItem label="Shoes Size" value={fmt(saPersonal.shoes_size)} icon={Package} scale={scale} />
                 </Section>
             )}
 
             {/* 3. Contact Details */}
             {saContact && (
                 <Section title="Contact Details" icon={Phone} scale={scale} columns={2}>
-                    <FieldItem label="Email"      value={fmt(saContact.e_mail)}             icon={Mail}    scale={scale} />
-                    <FieldItem label="Mobile"     value={fmt(saContact.mobile_tel)}          icon={Phone}   scale={scale} />
-                    <FieldItem label="Home Address" value={fmt(saContact.home_address_city)} icon={MapPin}  scale={scale} />
+                    <FieldItem label="Email" value={fmt(saContact.e_mail)} icon={Mail} scale={scale} />
+                    <FieldItem label="Mobile" value={fmt(saContact.mobile_tel)} icon={Phone} scale={scale} />
+                    <FieldItem label="Home Address" value={fmt(saContact.home_address_city)} icon={MapPin} scale={scale} />
                 </Section>
             )}
 
@@ -268,14 +268,14 @@ export function CVSubmissionViewModal({
                     <FieldItem label="College / School" value={fmt(saEducation.college_school)} icon={GraduationCap} scale={scale} />
                     {saEducation.marline_test && (
                         <>
-                            <FieldItem label="Marline Test Date"   value={fmtDate(saEducation.marline_test.issued_date)}       icon={Calendar} scale={scale} />
-                            <FieldItem label="Marline Result"      value={fmt(saEducation.marline_test.result_percentage) !== "—" ? `${saEducation.marline_test.result_percentage}%` : "—"} icon={BarChart2} scale={scale} />
-                            <FieldItem label="Marline Issued By"   value={fmt(saEducation.marline_test.issued_by_authority)}   icon={Building} scale={scale} />
-                            <FieldItem label="Marline Issued At"   value={fmt(saEducation.marline_test.issued_at)}             icon={MapPin}   scale={scale} />
+                            <FieldItem label="Marline Test Date" value={fmtDate(saEducation.marline_test.issued_date)} icon={Calendar} scale={scale} />
+                            <FieldItem label="Marline Result" value={fmt(saEducation.marline_test.result_percentage) !== "—" ? `${saEducation.marline_test.result_percentage}%` : "—"} icon={BarChart2} scale={scale} />
+                            <FieldItem label="Marline Issued By" value={fmt(saEducation.marline_test.issued_by_authority)} icon={Building} scale={scale} />
+                            <FieldItem label="Marline Issued At" value={fmt(saEducation.marline_test.issued_at)} icon={MapPin} scale={scale} />
                         </>
                     )}
-                    <FieldItem label="English"  value={saEducation.english_language  ? Object.entries(saEducation.english_language).find(([,v])=>v)?.[0]  || "—" : "—"} icon={BookOpen} scale={scale} />
-                    <FieldItem label="German"   value={saEducation.german_language   ? Object.entries(saEducation.german_language).find(([,v])=>v)?.[0]   || "—" : "—"} icon={BookOpen} scale={scale} />
+                    <FieldItem label="English" value={saEducation.english_language ? Object.entries(saEducation.english_language).find(([, v]) => v)?.[0] || "—" : "—"} icon={BookOpen} scale={scale} />
+                    <FieldItem label="German" value={saEducation.german_language ? Object.entries(saEducation.german_language).find(([, v]) => v)?.[0] || "—" : "—"} icon={BookOpen} scale={scale} />
                 </Section>
             )}
 
@@ -284,19 +284,19 @@ export function CVSubmissionViewModal({
                 <Section title="Travel Documents" icon={FileText} scale={scale} columns={1}>
                     {saTravelDocs.map((doc, i) => (
                         <div key={i} style={{
-                            padding: `${Math.round(10*scale)}px ${Math.round(14*scale)}px`,
+                            padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
                             background: "#F9FAFB", border: "1px solid #E5E7EB",
-                            borderRadius: Math.round(8*scale), marginBottom: Math.round(8*scale),
+                            borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
                         }}>
-                            <div style={{ fontSize: Math.round(12*scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6*scale) }}>
-                                {doc.type || `Document ${i+1}`}
+                            <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6 * scale) }}>
+                                {doc.type || `Document ${i + 1}`}
                             </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8*scale) }}>
-                                <FieldItem label="Doc No"        value={fmt(doc.document_no)}        icon={Hash}        scale={scale} />
-                                <FieldItem label="Issue Date"    value={fmtDate(doc.iss_date)}        icon={Calendar}    scale={scale} />
-                                <FieldItem label="Expiry Date"   value={fmtDate(doc.exp_date)}        icon={AlertCircle} scale={scale} />
-                                <FieldItem label="Issued By"     value={fmt(doc.iss_by_authority)}    icon={Building}    scale={scale} />
-                                <FieldItem label="Place of Issue" value={fmt(doc.place_of_issue)}    icon={MapPin}      scale={scale} />
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                <FieldItem label="Doc No" value={fmt(doc.document_no)} icon={Hash} scale={scale} />
+                                <FieldItem label="Issue Date" value={fmtDate(doc.iss_date)} icon={Calendar} scale={scale} />
+                                <FieldItem label="Expiry Date" value={fmtDate(doc.exp_date)} icon={AlertCircle} scale={scale} />
+                                <FieldItem label="Issued By" value={fmt(doc.iss_by_authority)} icon={Building} scale={scale} />
+                                <FieldItem label="Place of Issue" value={fmt(doc.place_of_issue)} icon={MapPin} scale={scale} />
                             </div>
                         </div>
                     ))}
@@ -308,19 +308,19 @@ export function CVSubmissionViewModal({
                 <Section title="Professional Qualifications" icon={Award} scale={scale} columns={1}>
                     {saCerts.map((c, i) => (
                         <div key={i} style={{
-                            padding: `${Math.round(10*scale)}px ${Math.round(14*scale)}px`,
+                            padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
                             background: "#F9FAFB", border: "1px solid #E5E7EB",
-                            borderRadius: Math.round(8*scale), marginBottom: Math.round(8*scale),
+                            borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
                         }}>
-                            <div style={{ fontSize: Math.round(12*scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6*scale) }}>
-                                🎓 {fmt(c.certificate_name, `Certificate ${i+1}`)}
+                            <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6 * scale) }}>
+                                🎓 {fmt(c.certificate_name, `Certificate ${i + 1}`)}
                             </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8*scale) }}>
-                                <FieldItem label="Number"      value={fmt(c.number)}      icon={Hash}        scale={scale} />
-                                <FieldItem label="Issue Date"  value={fmtDate(c.issue_date)}  icon={Calendar}    scale={scale} />
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                <FieldItem label="Number" value={fmt(c.number)} icon={Hash} scale={scale} />
+                                <FieldItem label="Issue Date" value={fmtDate(c.issue_date)} icon={Calendar} scale={scale} />
                                 <FieldItem label="Expiry Date" value={fmtDate(c.expiry_date)} icon={AlertCircle} scale={scale} />
-                                <FieldItem label="Issued By"   value={fmt(c.issued_by)}   icon={Building}    scale={scale} />
-                                <FieldItem label="Issued At"   value={fmt(c.issued_at)}   icon={MapPin}      scale={scale} />
+                                <FieldItem label="Issued By" value={fmt(c.issued_by)} icon={Building} scale={scale} />
+                                <FieldItem label="Issued At" value={fmt(c.issued_at)} icon={MapPin} scale={scale} />
                             </div>
                         </div>
                     ))}
@@ -330,11 +330,11 @@ export function CVSubmissionViewModal({
             {/* 6. Next of Kin */}
             {saNextOfKin && (
                 <Section title="Next of Kin / Emergency Contact" icon={Users} scale={scale} columns={2}>
-                    <FieldItem label="Full Name"     value={fmt(saNextOfKin.full_name)}       icon={User}     scale={scale} />
-                    <FieldItem label="Relationship"  value={fmt(saNextOfKin.relationship)}    icon={Heart}    scale={scale} />
-                    <FieldItem label="Mobile"        value={fmt(saNextOfKin.tel_no_mobile)}   icon={Phone}    scale={scale} />
-                    <FieldItem label="Email"         value={fmt(saNextOfKin.email)}            icon={Mail}     scale={scale} />
-                    <FieldItem label="Country"       value={fmt(saNextOfKin.address_country)} icon={Globe}    scale={scale} />
+                    <FieldItem label="Full Name" value={fmt(saNextOfKin.full_name)} icon={User} scale={scale} />
+                    <FieldItem label="Relationship" value={fmt(saNextOfKin.relationship)} icon={Heart} scale={scale} />
+                    <FieldItem label="Mobile" value={fmt(saNextOfKin.tel_no_mobile)} icon={Phone} scale={scale} />
+                    <FieldItem label="Email" value={fmt(saNextOfKin.email)} icon={Mail} scale={scale} />
+                    <FieldItem label="Country" value={fmt(saNextOfKin.address_country)} icon={Globe} scale={scale} />
                 </Section>
             )}
 
@@ -343,36 +343,36 @@ export function CVSubmissionViewModal({
                 <Section title="Health Certificates & Vaccinations" icon={ShieldCheck} scale={scale} columns={1}>
                     {(saHealth.certificates || []).map((hc, i) => (
                         <div key={i} style={{
-                            padding: `${Math.round(10*scale)}px ${Math.round(14*scale)}px`,
+                            padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
                             background: "#F9FAFB", border: "1px solid #E5E7EB",
-                            borderRadius: Math.round(8*scale), marginBottom: Math.round(8*scale),
+                            borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
                         }}>
-                            <div style={{ fontSize: Math.round(12*scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6*scale) }}>
-                                ⚕️ {fmt(hc.flag_state, `Health Cert ${i+1}`)}
+                            <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6 * scale) }}>
+                                ⚕️ {fmt(hc.flag_state, `Health Cert ${i + 1}`)}
                             </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8*scale) }}>
-                                <FieldItem label="Number"      value={fmt(hc.number)}      icon={Hash}        scale={scale} />
-                                <FieldItem label="Issue Date"  value={fmtDate(hc.issue_date)}  icon={Calendar}    scale={scale} />
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                <FieldItem label="Number" value={fmt(hc.number)} icon={Hash} scale={scale} />
+                                <FieldItem label="Issue Date" value={fmtDate(hc.issue_date)} icon={Calendar} scale={scale} />
                                 <FieldItem label="Expiry Date" value={fmtDate(hc.expiry_date)} icon={AlertCircle} scale={scale} />
-                                <FieldItem label="Issued By"   value={fmt(hc.issued_by)}   icon={Building}    scale={scale} />
-                                <FieldItem label="Issued At"   value={fmt(hc.issued_at)}   icon={MapPin}      scale={scale} />
+                                <FieldItem label="Issued By" value={fmt(hc.issued_by)} icon={Building} scale={scale} />
+                                <FieldItem label="Issued At" value={fmt(hc.issued_at)} icon={MapPin} scale={scale} />
                             </div>
                         </div>
                     ))}
                     {saHealth.covid_19 && (
                         <div style={{
-                            padding: `${Math.round(10*scale)}px ${Math.round(14*scale)}px`,
+                            padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
                             background: "#F0FDF4", border: "1px solid #BBF7D0",
-                            borderRadius: Math.round(8*scale),
+                            borderRadius: Math.round(8 * scale),
                         }}>
-                            <div style={{ fontSize: Math.round(12*scale), fontWeight: 700, color: "#15803D", marginBottom: Math.round(6*scale) }}>
+                            <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#15803D", marginBottom: Math.round(6 * scale) }}>
                                 💉 COVID-19 Vaccination
                             </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8*scale) }}>
-                                <FieldItem label="Vaccine Name"  value={fmt(saHealth.covid_19.vaccination_name)}  icon={ShieldCheck} scale={scale} />
-                                <FieldItem label="1st Dose"      value={fmtDate(saHealth.covid_19.first_dose)}     icon={Calendar}    scale={scale} />
-                                <FieldItem label="2nd Dose"      value={fmtDate(saHealth.covid_19.second_dose)}    icon={Calendar}    scale={scale} />
-                                <FieldItem label="Remarks"       value={fmt(saHealth.covid_19.other_does_or_remarks)} icon={StickyNote} scale={scale} />
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                <FieldItem label="Vaccine Name" value={fmt(saHealth.covid_19.vaccination_name)} icon={ShieldCheck} scale={scale} />
+                                <FieldItem label="1st Dose" value={fmtDate(saHealth.covid_19.first_dose)} icon={Calendar} scale={scale} />
+                                <FieldItem label="2nd Dose" value={fmtDate(saHealth.covid_19.second_dose)} icon={Calendar} scale={scale} />
+                                <FieldItem label="Remarks" value={fmt(saHealth.covid_19.other_does_or_remarks)} icon={StickyNote} scale={scale} />
                             </div>
                         </div>
                     )}
@@ -384,17 +384,17 @@ export function CVSubmissionViewModal({
                 <Section title="Marine Courses" icon={BookOpen} scale={scale} columns={1}>
                     {saCourses.map((c, i) => (
                         <div key={i} style={{
-                            padding: `${Math.round(10*scale)}px ${Math.round(14*scale)}px`,
+                            padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
                             background: "#F9FAFB", border: "1px solid #E5E7EB",
-                            borderRadius: Math.round(8*scale), marginBottom: Math.round(8*scale),
+                            borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
                         }}>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8*scale) }}>
-                                <FieldItem label="Course"      value={fmt(c.course_name ?? c.name ?? c.certificate_name)} icon={BookOpen}    scale={scale} />
-                                <FieldItem label="Number"      value={fmt(c.number)}       icon={Hash}        scale={scale} />
-                                <FieldItem label="Issue Date"  value={fmtDate(c.issue_date)}   icon={Calendar}    scale={scale} />
-                                <FieldItem label="Expiry Date" value={fmtDate(c.expiry_date)}  icon={AlertCircle} scale={scale} />
-                                <FieldItem label="Issued By"   value={fmt(c.issued_by)}    icon={Building}    scale={scale} />
-                                <FieldItem label="Issued At"   value={fmt(c.issued_at)}    icon={MapPin}      scale={scale} />
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                <FieldItem label="Course" value={fmt(c.course_name ?? c.name ?? c.certificate_name)} icon={BookOpen} scale={scale} />
+                                <FieldItem label="Number" value={fmt(c.number)} icon={Hash} scale={scale} />
+                                <FieldItem label="Issue Date" value={fmtDate(c.issue_date)} icon={Calendar} scale={scale} />
+                                <FieldItem label="Expiry Date" value={fmtDate(c.expiry_date)} icon={AlertCircle} scale={scale} />
+                                <FieldItem label="Issued By" value={fmt(c.issued_by)} icon={Building} scale={scale} />
+                                <FieldItem label="Issued At" value={fmt(c.issued_at)} icon={MapPin} scale={scale} />
                             </div>
                         </div>
                     ))}
@@ -406,20 +406,20 @@ export function CVSubmissionViewModal({
                 <Section title="Sea Service Records" icon={Waves} scale={scale} columns={1}>
                     {saSeaService.service_records.map((sr, i) => (
                         <div key={i} style={{
-                            padding: `${Math.round(10*scale)}px ${Math.round(14*scale)}px`,
+                            padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
                             background: "#F9FAFB", border: "1px solid #E5E7EB",
-                            borderRadius: Math.round(8*scale), marginBottom: Math.round(8*scale),
+                            borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
                         }}>
-                            <div style={{ fontSize: Math.round(12*scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6*scale) }}>
+                            <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6 * scale) }}>
                                 🚢 {fmt(sr.company_name)} — {fmt(sr.vessel_name_imo_number)}
                             </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8*scale) }}>
-                                <FieldItem label="Rank"         value={fmt(sr.rank)}         icon={Anchor}      scale={scale} />
-                                <FieldItem label="Signed On"    value={fmtDate(sr.signed_on)}  icon={Calendar}    scale={scale} />
-                                <FieldItem label="Signed Off"   value={fmtDate(sr.signed_off)} icon={Calendar}    scale={scale} />
-                                <FieldItem label="Period"       value={fmt(sr.period)}       icon={Clock}       scale={scale} />
-                                <FieldItem label="Flag"         value={fmt(sr.flag)}         icon={Globe}       scale={scale} />
-                                <FieldItem label="Vessel Type"  value={fmt(sr.vessel_type)}  icon={Ship}        scale={scale} />
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                <FieldItem label="Rank" value={fmt(sr.rank)} icon={Anchor} scale={scale} />
+                                <FieldItem label="Signed On" value={fmtDate(sr.signed_on)} icon={Calendar} scale={scale} />
+                                <FieldItem label="Signed Off" value={fmtDate(sr.signed_off)} icon={Calendar} scale={scale} />
+                                <FieldItem label="Period" value={fmt(sr.period)} icon={Clock} scale={scale} />
+                                <FieldItem label="Flag" value={fmt(sr.flag)} icon={Globe} scale={scale} />
+                                <FieldItem label="Vessel Type" value={fmt(sr.vessel_type)} icon={Ship} scale={scale} />
                             </div>
                         </div>
                     ))}
@@ -431,16 +431,16 @@ export function CVSubmissionViewModal({
                 <Section title="References" icon={Users} scale={scale} columns={1}>
                     {saRefs.map((ref, i) => (
                         <div key={i} style={{
-                            padding: `${Math.round(10*scale)}px ${Math.round(14*scale)}px`,
+                            padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
                             background: "#F9FAFB", border: "1px solid #E5E7EB",
-                            borderRadius: Math.round(8*scale), marginBottom: Math.round(8*scale),
+                            borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
                         }}>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8*scale) }}>
-                                <FieldItem label="Name"     value={fmt(ref.name)}                      icon={User}     scale={scale} />
-                                <FieldItem label="Position" value={fmt(ref.position)}                  icon={Briefcase} scale={scale} />
-                                <FieldItem label="Company"  value={fmt(ref.company_management_country)} icon={Building} scale={scale} />
-                                <FieldItem label="Tel"      value={fmt(ref.tel)}                       icon={Phone}    scale={scale} />
-                                <FieldItem label="Email"    value={fmt(ref.email)}                     icon={Mail}     scale={scale} />
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                <FieldItem label="Name" value={fmt(ref.name)} icon={User} scale={scale} />
+                                <FieldItem label="Position" value={fmt(ref.position)} icon={Briefcase} scale={scale} />
+                                <FieldItem label="Company" value={fmt(ref.company_management_country)} icon={Building} scale={scale} />
+                                <FieldItem label="Tel" value={fmt(ref.tel)} icon={Phone} scale={scale} />
+                                <FieldItem label="Email" value={fmt(ref.email)} icon={Mail} scale={scale} />
                             </div>
                         </div>
                     ))}
