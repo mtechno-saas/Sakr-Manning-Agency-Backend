@@ -1003,8 +1003,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         return {
             'id': company.id,
             'company_name': company.company_name,
-            'company_type': str(company.company_type) if company.company_type else None,
-            'company_flag': str(company.company_flag) if company.company_flag else None,
+            'company_type_name': str(company.company_type) if company.company_type else None,
+            'company_flag_name': str(company.company_flag) if company.company_flag else None,
             'contact_person': getattr(company, 'contact_person', None),
             'contact_email': getattr(company, 'contact_email', None),
             'status': getattr(company, 'status', None),
@@ -1545,8 +1545,8 @@ class ContractSerializer(serializers.ModelSerializer):
         return {
             'id': company.id,
             'company_name': company.company_name,
-            'company_type': str(company.company_type) if company.company_type else None,
-            'company_flag': str(company.company_flag) if company.company_flag else None,
+            'company_type_name': str(company.company_type) if company.company_type else None,
+            'company_flag_name': str(company.company_flag) if company.company_flag else None,
             'contact_person': getattr(company, 'contact_person', None),
             'contact_email': getattr(company, 'contact_email', None),
             'status': getattr(company, 'status', None),
