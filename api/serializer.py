@@ -183,14 +183,14 @@ class UserMeSerializer(serializers.ModelSerializer):
     def get_cv_status(self, obj):
         """
         Logic:
-        - active, not registered yet (no docs) = true
+        - active, not registered yet (no docs) = false
         - pending, black list = false
         """
         from api.models import Document
         docs = Document.objects.filter(user=obj)
         
         if not docs.exists():
-            return True
+            return False
             
         # Check for blacklist or pending across all user documents
         if docs.filter(status__in=['Blacklist', 'Pending']).exists():
