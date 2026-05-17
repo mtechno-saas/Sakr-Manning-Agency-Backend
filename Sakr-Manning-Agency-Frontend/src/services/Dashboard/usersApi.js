@@ -114,10 +114,31 @@ export const ranksApi = {
    */
   getRanks: async () => {
     try {
-      const response = await api.get("/ranks/");
-      return Array.isArray(response.data)
-        ? response.data
-        : response.data.results || [];
+      let allRanks = [];
+      let nextUrl = "/ranks/";
+
+      while (nextUrl) {
+        // Handle absolute URLs returned by the backend in the 'next' field
+        const endpoint = nextUrl.startsWith('http') 
+          ? new URL(nextUrl).pathname + new URL(nextUrl).search
+          : nextUrl;
+
+        // Ensure we don't duplicate /api/ if it's already in the path and api instance adds it
+        const finalEndpoint = endpoint.replace('/api/', '/');
+
+        const response = await api.get(finalEndpoint);
+
+        if (Array.isArray(response.data)) {
+          allRanks = [...allRanks, ...response.data];
+          break;
+        } else if (response.data.results) {
+          allRanks = [...allRanks, ...response.data.results];
+          nextUrl = response.data.next;
+        } else {
+          break;
+        }
+      }
+      return allRanks;
     } catch (error) {
       console.error("Failed to fetch ranks:", error);
       throw new Error(handleApiError(error));
@@ -662,8 +683,31 @@ export const usersApi = {
    */
   getPositions: async () => {
     try {
-      const response = await api.get("/positions/");
-      return Array.isArray(response.data) ? response.data : response.data.results || [];
+      let allPositions = [];
+      let nextUrl = "/positions/";
+
+      while (nextUrl) {
+        // Handle absolute URLs returned by the backend in the 'next' field
+        const endpoint = nextUrl.startsWith('http') 
+          ? new URL(nextUrl).pathname + new URL(nextUrl).search
+          : nextUrl;
+
+        // Ensure we don't duplicate /api/ if it's already in the path and api instance adds it
+        const finalEndpoint = endpoint.replace('/api/', '/');
+
+        const response = await api.get(finalEndpoint);
+
+        if (Array.isArray(response.data)) {
+          allPositions = [...allPositions, ...response.data];
+          break;
+        } else if (response.data.results) {
+          allPositions = [...allPositions, ...response.data.results];
+          nextUrl = response.data.next;
+        } else {
+          break;
+        }
+      }
+      return allPositions;
     } catch (error) {
       console.error("Failed to fetch positions:", error);
       throw new Error(handleApiError(error));

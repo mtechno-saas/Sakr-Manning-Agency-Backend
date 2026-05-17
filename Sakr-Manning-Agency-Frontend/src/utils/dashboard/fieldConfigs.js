@@ -596,7 +596,7 @@ export const USER_FORM_FIELDS = [
     transformOnLoad: (val, record) => {
       const source = val || record?.ranks || [];
       return Array.isArray(source)
-        ? source.map((i) => (i?.rank_name || i?.name || i?.rank?.name || i))
+        ? source.map((i) => (i?.id || i?.rank?.id || i))
         : [];
     },
   },

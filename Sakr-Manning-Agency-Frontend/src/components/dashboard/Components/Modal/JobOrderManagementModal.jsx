@@ -63,6 +63,16 @@ const JobOrderManagementModal = ({
         }
     }, [isOpen, company?.id, fetchJobOrders, fetchShipsByCompany]);
 
+    // Sync selectedOrder when jobOrders updates (e.g. after adding/removing a position)
+    useEffect(() => {
+        if (selectedOrder && jobOrders.length > 0) {
+            const updatedOrder = jobOrders.find(o => o.id === selectedOrder.id);
+            if (updatedOrder) {
+                setSelectedOrder(updatedOrder);
+            }
+        }
+    }, [jobOrders]);
+
     // Filtered list
     const filteredOrders = useMemo(() => {
         if (!Array.isArray(jobOrders)) return [];

@@ -50,8 +50,8 @@ const UserFormModal = ({ user = null, onClose, onSave, scale = 1 }) => {
         return {
           ...field,
           options: ranks.map((pos) => ({
-            value: pos.label ?? pos.name ?? pos.value ?? pos,
-            label: pos.label ?? pos.name ?? pos.value ?? pos,
+            value: pos.value ?? pos.id,
+            label: pos.label ?? pos.name ?? pos.rank_name ?? String(pos),
           })),
         };
       }

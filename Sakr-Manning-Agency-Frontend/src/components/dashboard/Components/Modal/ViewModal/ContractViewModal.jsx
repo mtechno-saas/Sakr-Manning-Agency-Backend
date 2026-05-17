@@ -270,15 +270,9 @@ export function ContractViewModal({
                 <FieldItem label="Status" value={fmt(contract.ship_details?.status)} icon={CheckCircle2} scale={scale} />
             </Section>
 
-            {/* Financial Information */}
-            <Section title="Financial Information" icon={DollarSign} scale={scale} columns={2}>
-                <FieldItem label="Salary" value={contract.salary} format="currency" scale={scale} />
-                <FieldItem label="Currency" value={contract.currency || "USD"} scale={scale} />
-            </Section>
-
             {/* Job Position Requirements */}
             {contract.job_position_details && (
-                <Section title="Job Position Requirements" icon={FileText} scale={scale} columns={2}>
+                <Section title="Job Position Details" icon={FileText} scale={scale} columns={2}>
                     <FieldItem label="Vacancy" value={`${contract.job_position_details.job_position_name}`} scale={scale} />
                     <FieldItem label="Expected Duration" value={`${contract.job_position_details.contract_duration_months} months`} scale={scale} />
                     <FieldItem
@@ -289,6 +283,12 @@ export function ContractViewModal({
                     <FieldItem label="Position Remarks" value={contract.job_position_details.remarks || "—"} scale={scale} />
                 </Section>
             )}
+
+            {/* Financial Information */}
+            <Section title="Financial Information" icon={DollarSign} scale={scale} columns={2}>
+                <FieldItem label="Salary" value={contract.salary} format="currency" scale={scale} />
+                <FieldItem label="Currency" value={contract.currency || "USD"} scale={scale} />
+            </Section>
 
             {/* User Documents Breakdown */}
             {contract.user_documents && (

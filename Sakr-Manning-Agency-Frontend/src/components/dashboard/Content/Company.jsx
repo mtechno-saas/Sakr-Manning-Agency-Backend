@@ -185,7 +185,6 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
   // Load company statistics
   const loadCompanyStats = useCallback(async () => {
     const result = await fetchCompanyStats();
-    // console.log("company stats : ", result);
     if (result.success) {
       setCompanyStats(result.data);
     }
@@ -212,19 +211,15 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
 
   const shipData = useMemo(() => {
     return backendShips.map((ship, index) => {
-      // console.log("the flags data : ", flags);
-      // console.log("the vessel types : ", vesselTypes);
       const associatedCompany = backendCompanies.find(
         (company) => company.id === ship.company
       );
       const associatedFlags = flags.find((flag) => {
-        // console.log("the flag data : ", flag);
         return flag.id === ship.flag;
       });
       const associatedVesselType = vesselTypes.find(
         (vessel) => vessel.id === ship.ship_type
       );
-      // console.log("", associatedCompany);
       const shipIns = {
         index: (shipPagination.currentPage - 1) * (shipPagination.pageSize || 50) + index + 1,
         id: ship.id,
@@ -279,7 +274,6 @@ export function CompanyManagement({ scale = 1, isMobile = false }) {
         return;
       }
       const company = backendCompanies.find((c) => c.id === row.id);
-      // console.log("the editing company is : ", company);
       if (company) {
         setSelectedCompany(company);
         setShowCompanyModal(true);
