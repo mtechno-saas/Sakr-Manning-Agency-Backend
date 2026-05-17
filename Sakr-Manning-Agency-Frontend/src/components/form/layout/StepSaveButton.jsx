@@ -3,10 +3,12 @@ import { useFormContext } from "react-hook-form";
 import { useFormSave } from "../../../context/FormSaveContext";
 import { useToast } from "../../../context/ToastContext";
 import { cleanDraftFields, validateNoDrafts } from "../../../utils/draftUtils";
+import { useReferenceDataContext } from "../../../context/ReferenceDataContext";
 
 export function StepSaveButton() {
     const { saveFormData, isSaving: isGlobalSaving } = useFormSave();
     const { notify } = useToast();
+    const refData = useReferenceDataContext();
     const methods = useFormContext();
     const [isLocalSaving, setIsLocalSaving] = useState(false);
 
@@ -38,10 +40,24 @@ export function StepSaveButton() {
 
                 // Merge returned data with form
                 if (result.data) {
+                    let application_for_position = result.data.application_for_position;
+                    if (application_for_position && typeof application_for_position === "string") {
+                        const positionsOpts = refData?.positions || [];
+                        const matchedOpt = positionsOpts.find(
+                            (opt) =>
+                                opt.label?.toLowerCase() === application_for_position.toLowerCase() ||
+                                opt.value?.toString() === application_for_position
+                        );
+                        if (matchedOpt) {
+                            application_for_position = matchedOpt.value;
+                        }
+                    }
+
                     const currentFormData = methods.getValues();
                     const mergedData = {
                         ...currentFormData,
                         ...result.data,
+                        application_for_position,
                         documents: result.data.documents || currentFormData.documents || [],
                         certificates: result.data.certificates || currentFormData.certificates || [],
                         health: result.data.health || currentFormData.health || [],
