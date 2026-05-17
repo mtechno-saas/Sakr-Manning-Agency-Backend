@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ASSETS } from "../../utils/constants";
 import Button from "../common/Button";
-import { useReferenceData } from "../../hooks/useReferenceData";
 import { useQuickApply } from "../../hooks/dashboard/useQuickApply";
 import { useApplicationStatus } from "../../hooks/useApplicationStatus";
 import { jobOrdersApi } from "../../services/Dashboard/jobOrdersApi";
+import { usersApi } from "../../services/Dashboard/usersApi";
 import { Paperclip } from 'lucide-react';
 import { Select } from "../form/inputs/Select";
 
@@ -132,6 +132,7 @@ const QuickApply = () => {
     const navigate = useNavigate();
     const [vacancies, setVacancies] = React.useState([]);
     const [loadingVacancies, setLoadingVacancies] = React.useState(false);
+    const [positions, setPositions] = React.useState([]);
 
     // Custom hook for quick apply
     const {
@@ -151,13 +152,12 @@ const QuickApply = () => {
         }
     }, [status, statusLoading, navigate]);
 
+    // Fetch open vacancies from /api/companies/job-positions/?status=Open
     useEffect(() => {
         const fetchVacancies = async () => {
             setLoadingVacancies(true);
             try {
-                // Fetch all job positions (vacancies)
                 const response = await jobOrdersApi.getJobPositions({ status: "Open" });
-                // Handle both raw array and paginated response
                 const list = Array.isArray(response) ? response : (response.results || response.job_positions || []);
                 setVacancies(list);
             } catch (error) {
@@ -168,6 +168,20 @@ const QuickApply = () => {
         };
         fetchVacancies();
     }, []);
+
+    // Fetch general position/rank list from /api/positions/ (paginated, all pages)
+    useEffect(() => {
+        const fetchPositions = async () => {
+            try {
+                const list = await usersApi.getPositions();
+                setPositions(list);
+            } catch (error) {
+                console.error("Failed to fetch positions:", error);
+            }
+        };
+        fetchPositions();
+    }, []);
+
     // React Hook Form
     const {
         register,
@@ -180,12 +194,7 @@ const QuickApply = () => {
     // Watch file input to show selected filename
     const cvFile = watch("file");
 
-    // Fetch positions from backend
-    const { positions, loadSpecificType } = useReferenceData({ loadOnMount: false });
-
-    useEffect(() => {
-        loadSpecificType("positions");
-    }, [loadSpecificType]);
+    // positions are now fetched directly via usersApi.getPositions() above
 
     // Handle form submission
     const onSubmit = async (data) => {
@@ -467,11 +476,10 @@ const QuickApply = () => {
                                 searchable={true}
                                 value={watch("position")}
                                 onChange={(val) => setValue("position", val)}
-                                options={(positions || []).map((pos) => {
-                                    const label = pos.name ?? pos.label ?? pos.title ?? String(pos);
-                                    const value = pos.id ?? pos.name ?? pos.title ?? label;
-                                    return { value, label };
-                                })}
+                                options={(positions || []).map((pos) => ({
+                                    value: pos.value ?? pos.id,
+                                    label: pos.label ?? pos.name ?? String(pos),
+                                }))}
                                 variant="light"
                             />
                         </div>

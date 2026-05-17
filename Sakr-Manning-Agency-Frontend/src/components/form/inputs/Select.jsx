@@ -98,7 +98,7 @@ export function Select({
 
   const activeIndex = Math.max(
     0,
-    filtered.findIndex((o) => getValue(o) === currentValue)
+    filtered.findIndex((o) => String(getValue(o)) === String(currentValue))
   );
 
   useEffect(() => {
@@ -142,8 +142,8 @@ export function Select({
   }
 
   const selectedLabel =
-    options.find((o) => getValue(o) === currentValue)?.label ??
-    options.find((o) => getValue(o) === currentValue) ??
+    options.find((o) => String(getValue(o)) === String(currentValue))?.label ??
+    options.find((o) => String(getValue(o)) === String(currentValue)) ??
     "";
 
   return (
@@ -240,7 +240,7 @@ export function Select({
               {filtered.map((opt, i) => {
                 const v = getValue(opt);
                 const lbl = getLabel(opt);
-                const selected = v === currentValue;
+                const selected = String(v) === String(currentValue);
                 return (
                   <div
                     key={v ?? i}

@@ -18,6 +18,14 @@ export function useApplicationStatus() {
     const [error, setError] = useState(null);
 
     const fetchStatus = useCallback(async () => {
+        // If not logged in, return early without calling the backend
+        const token = tokenStorage.getToken();
+        if (!token) {
+            setStatus(null);
+            setIsLoading(false);
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
