@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { cvSubmissionsApi } from "../services/Dashboard/cvSubmissionsApi";
+import { tokenStorage } from "../services/Auth/tokenStorage";
 
 /**
  * Derives the user's application status from their CV submission documents.
@@ -19,7 +20,7 @@ export function useApplicationStatus() {
 
     const fetchStatus = useCallback(async () => {
         // If not logged in, return early without calling the backend
-        const token = tokenStorage.getToken();
+        const token = tokenStorage.getAccessToken();
         if (!token) {
             setStatus(null);
             setIsLoading(false);
