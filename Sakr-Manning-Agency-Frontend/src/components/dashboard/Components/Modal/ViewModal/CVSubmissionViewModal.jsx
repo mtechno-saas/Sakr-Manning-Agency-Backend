@@ -207,8 +207,8 @@ export function CVSubmissionViewModal({
             {/* ── Company Details ──────────────────────────────────────────── */}
             <Section title="Company Details" icon={Building} scale={scale} columns={2}>
                 <FieldItem label="Company Name" value={fmt(companyDetails?.company_name ?? submission.company_name)} icon={Building} scale={scale} />
-                <FieldItem label="Company Type" value={fmt(companyDetails?.company_type)} icon={Briefcase} scale={scale} />
-                <FieldItem label="Country" value={fmt(companyDetails?.country)} icon={Globe} scale={scale} />
+                <FieldItem label="Company Type" value={fmt(companyDetails?.company_type_name || companyDetails?.company_type)} icon={Briefcase} scale={scale} />
+                <FieldItem label="Country" value={fmt(companyDetails?.company_flag_name || companyDetails?.company_flag)} icon={Globe} scale={scale} />
                 <FieldItem label="Contact Person" value={fmt(companyDetails?.contact_person)} icon={User} scale={scale} />
                 <FieldItem label="Contact Email" value={fmt(companyDetails?.contact_email)} icon={Mail} scale={scale} />
                 <FieldItem label="Status" value={fmt(companyDetails?.status)} icon={CheckCircle2} scale={scale} />
@@ -218,8 +218,8 @@ export function CVSubmissionViewModal({
             <Section title="Ship Details" icon={Ship} scale={scale} columns={2}>
                 <FieldItem label="Ship Name" value={fmt(shipDetails?.ship_name ?? submission.ship_name)} icon={Ship} scale={scale} />
                 <FieldItem label="IMO Number" value={fmt(shipDetails?.imo_number)} icon={Hash} scale={scale} />
-                <FieldItem label="Ship Type" value={fmt(shipDetails?.ship_type)} icon={Waves} scale={scale} />
-                <FieldItem label="Flag" value={fmt(shipDetails?.flag)} icon={Globe} scale={scale} />
+                <FieldItem label="Ship Type" value={fmt(shipDetails?.ship_type_name || shipDetails?.ship_type)} icon={Waves} scale={scale} />
+                <FieldItem label="Flag" value={fmt(shipDetails?.flag_name || shipDetails?.flag)} icon={Globe} scale={scale} />
                 <FieldItem label="Status" value={fmt(shipDetails?.status)} icon={CheckCircle2} scale={scale} />
             </Section>
 
