@@ -782,6 +782,24 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             return None
         return value
 
+    def validate_job_position(self, value):
+        if value is not None:
+            if value.quantity <= 0:
+                raise serializers.ValidationError("This Job Order Position has 0 openings. You cannot assign any applicants to it.")
+            
+            # Count existing active/pending contracts for this job position
+            from api.models import Contract
+            qs = Contract.objects.filter(
+                job_position=value,
+                status__in=['Pending', 'Signed', 'Pending Signature', 'Active']
+            )
+            assigned_count = qs.count()
+            if assigned_count >= value.quantity:
+                raise serializers.ValidationError(
+                    f"This Job Order Position is already fully assigned ({assigned_count}/{value.quantity} filled). You cannot assign any more applicants."
+                )
+        return value
+
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()
 
@@ -1134,6 +1152,28 @@ class ContractSerializer(serializers.ModelSerializer):
             })
             
         return data
+
+    def validate_job_position(self, value):
+        if value is not None:
+            if value.quantity <= 0:
+                raise serializers.ValidationError("This Job Order Position has 0 openings. You cannot assign any applicants to it.")
+            
+            # Count existing active/pending contracts for this job position
+            from api.models import Contract
+            exclude_id = self.instance.id if (hasattr(self, 'instance') and self.instance) else None
+            qs = Contract.objects.filter(
+                job_position=value,
+                status__in=['Pending', 'Signed', 'Pending Signature', 'Active']
+            )
+            if exclude_id:
+                qs = qs.exclude(id=exclude_id)
+            
+            assigned_count = qs.count()
+            if assigned_count >= value.quantity:
+                raise serializers.ValidationError(
+                    f"This Job Order Position is already fully assigned ({assigned_count}/{value.quantity} filled). You cannot assign any more applicants."
+                )
+        return value
 
     def validate_overlap(self, user, sign_on_date, sign_off_date, job_position=None, instance_id=None):
         """
