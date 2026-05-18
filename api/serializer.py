@@ -1196,7 +1196,7 @@ class ContractSerializer(serializers.ModelSerializer):
         # Find existing active/pending contracts for this user
         existing_contracts = Contract.objects.filter(
             user=user, 
-            status__in=['Pending Signature', 'Signed', 'Active']
+            status__in=['Pending', 'Pending Signature', 'Signed', 'Active']
         )
         if instance_id:
             existing_contracts = existing_contracts.exclude(id=instance_id)
@@ -1292,12 +1292,14 @@ class ContractSerializer(serializers.ModelSerializer):
                 raise ValidationError({'error': f'CV Submission with id {cv_sub_id} not found.'})
         
         # --- Overlap Validation ---
-        self.validate_overlap(
-            user=validated_data.get('user'),
-            sign_on_date=validated_data.get('sign_on_date'),
-            sign_off_date=validated_data.get('sign_off_date'),
-            job_position=validated_data.get('job_position')
-        )
+        new_status = validated_data.get('status', 'Pending')
+        if new_status in ['Pending', 'Pending Signature', 'Signed', 'Active']:
+            self.validate_overlap(
+                user=validated_data.get('user'),
+                sign_on_date=validated_data.get('sign_on_date'),
+                sign_off_date=validated_data.get('sign_off_date'),
+                job_position=validated_data.get('job_position')
+            )
         # --------------------------
         
         contract = super().create(validated_data)
@@ -1345,15 +1347,17 @@ class ContractSerializer(serializers.ModelSerializer):
         validated_data.pop('applicant_name', None)
 
         # --- Overlap Validation ---
-        # Only validate if dates or user are changing
-        if any(f in validated_data for f in ['sign_on_date', 'sign_off_date', 'user']):
-            self.validate_overlap(
-                user=validated_data.get('user', instance.user),
-                sign_on_date=validated_data.get('sign_on_date', instance.sign_on_date),
-                sign_off_date=validated_data.get('sign_off_date', instance.sign_off_date),
-                job_position=validated_data.get('job_position', instance.job_position),
-                instance_id=instance.id
-            )
+        # Validate if dates, user, or status are changing, AND the status is active/pending
+        new_status = validated_data.get('status', instance.status)
+        if new_status in ['Pending', 'Pending Signature', 'Signed', 'Active']:
+            if any(f in validated_data for f in ['sign_on_date', 'sign_off_date', 'user', 'status']):
+                self.validate_overlap(
+                    user=validated_data.get('user', instance.user),
+                    sign_on_date=validated_data.get('sign_on_date', instance.sign_on_date),
+                    sign_off_date=validated_data.get('sign_off_date', instance.sign_off_date),
+                    job_position=validated_data.get('job_position', instance.job_position),
+                    instance_id=instance.id
+                )
         # --------------------------
 
         old_ship = instance.ship
