@@ -87,10 +87,10 @@ export const NotifyPage = () => {
 
     if (isLoading) {
         return (
-            <LoadingScreen 
-                fullScreen={true} 
-                message="Checking Application State" 
-                subMessage="Directing you to the correct portal" 
+            <LoadingScreen
+                fullScreen={true}
+                message="Checking Application State"
+                subMessage="Directing you to the correct portal"
             />
         );
     }
@@ -110,12 +110,12 @@ export const NotifyPage = () => {
                         </div>
                         <h1 style={styles.title}>Application Under Review</h1>
                         <p style={styles.text}>
-                            Thank you for applying to <strong>Sakr Manning Agency</strong>. 
-                            Your Quick Apply submission has been received and is currently in our queue. 
+                            Thank you for applying to <strong>Sakr Manning Agency</strong>.
+                            Your Quick Apply submission has been received and is currently in our queue.
                             Our team of maritime recruiters is evaluating your profile.
                             <br />
                             <br />
-                            Once approved, you will be authorized to access the full application forms 
+                            Once approved, you will be authorized to access the full application forms
                             and proceed with the onboard onboarding pipeline.
                         </p>
                     </>
@@ -133,8 +133,8 @@ export const NotifyPage = () => {
                         </div>
                         <h1 style={{ ...styles.title, color: "#991b1b" }}>Access Denied</h1>
                         <p style={styles.text}>
-                            Your application cannot be processed at this time. 
-                            Please contact our support crew or primary administration for further 
+                            Your application cannot be processed at this time.
+                            Please contact our support crew or primary administration for further
                             inquiries regarding your registration state.
                         </p>
                     </>
@@ -152,7 +152,7 @@ export const NotifyPage = () => {
                         </div>
                         <h1 style={{ ...styles.title, color: "#166534" }}>Application Approved!</h1>
                         <p style={styles.text}>
-                            Congratulations! Your initial quick apply has been approved by our crew managers. 
+                            Congratulations! Your initial quick apply has been approved by our crew managers.
                             You are now authorized to complete the comprehensive Seafarer profile.
                         </p>
                         <Button
@@ -176,11 +176,11 @@ export const NotifyPage = () => {
         <>
             {/* Header branding */}
             <div className="bg-white shadow-sm z-40 px-6 md:px-16 py-4 flex items-center gap-4 fixed top-0 left-0 right-0" style={styles.header}>
-                <img 
-                    src={ASSETS.LOGO} 
-                    alt="Sakr Logo" 
-                    className="w-10 h-10 object-contain rounded-full cursor-pointer" 
-                    onClick={() => navigate('/')} 
+                <img
+                    src={ASSETS.LOGO}
+                    alt="Sakr Logo"
+                    className="w-10 h-10 object-contain rounded-full cursor-pointer"
+                    onClick={() => navigate('/')}
                 />
                 <h1 className="text-base md:text-lg font-medium text-gray-900 tracking-wide cursor-pointer" onClick={() => navigate('/')}>
                     SAKR MANNING AGENCY
@@ -190,7 +190,7 @@ export const NotifyPage = () => {
             {/* Main content body */}
             <div style={{ ...styles.container, backgroundImage: `url(${ASSETS.QUICKBG})` }}>
                 <div style={styles.overlay}></div>
-                
+
                 <div style={styles.card}>
                     {renderContent()}
 
@@ -208,7 +208,6 @@ export const NotifyPage = () => {
                             fontSize: "15px",
                         }}
                     >
-                        <ArrowLeft size={16} />
                         Back to Landing Page
                     </Button>
                 </div>

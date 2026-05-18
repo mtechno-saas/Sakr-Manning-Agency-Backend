@@ -148,6 +148,7 @@ const QuickApply = () => {
 
     useEffect(() => {
         if (!statusLoading) {
+
             if (status === "Pending" || status === "Blacklist") {
                 navigate("/notify", { replace: true });
             }
