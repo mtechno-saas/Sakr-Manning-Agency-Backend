@@ -6,6 +6,7 @@ import { RefinedDataTable } from "../Components/Data/RefinedDataTable";
 import { StatisticsCard } from "../Components/Cards/StatisticsCards";
 import { ASSETS } from "../../../utils/constants";
 import { exportToExcel, exportToJSON } from "../../../utils/exportHelpers";
+import { getMediaUrl } from "../../../utils/fileHelpers";
 import {
     generateAllPageStyles,
     getMainContainerStyles,
@@ -234,19 +235,38 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
                 generatedId: submission.generated_id || "—",
                 company: submission.company_name || companyObj?.company_name || (submission.company ? `ID: ${submission.company}` : "—"),
                 position: submission.position_name || rankObj?.rank_name || rankObj?.name || (submission.position ? `ID: ${submission.position}` : "—"),
-                codedRank: submission.coded_rank?.length
-                    ? submission.coded_rank.map((r) => r.assigned_code || r.rank_code || "").filter(Boolean).join(", ")
-                    : "—",
+                codedRank: (() => {
+                    if (submission.coded_rank?.length) {
+                        const mappedCodes = submission.coded_rank.map((r) => {
+                            if (r.assigned_code && r.rank_code && r.assigned_code !== r.rank_code) {
+                                return `${r.assigned_code}`;
+                            }
+                            return r.assigned_code || r.rank_code || "";
+                        }).filter(Boolean);
+
+                        if (mappedCodes.length > 2) {
+                            return `${mappedCodes.slice(0, 2).join(" / ")}...`;
+                        }
+                        if (mappedCodes.length > 0) {
+                            return mappedCodes.join(" / ");
+                        }
+                    }
+
+                    if (submission.assigned_code && submission.rank_code && submission.assigned_code !== submission.rank_code) {
+                        return `${submission.assigned_code} `;
+                    }
+                    return submission.assigned_code || submission.rank_code || "—";
+                })(),
                 experience:
                     submission.experience_years !== undefined && submission.experience_years !== null
                         ? `${submission.experience_years} yr${submission.experience_years !== 1 ? "s" : ""}`
                         : "—",
-                salary: submission.salary || "—",
+                salary: submission.salary || submission.salary_display || (submission.expected_salary ? `${submission.expected_salary} USD` : "—"),
                 state,
                 date: submission.submitted_date
                     ? new Date(submission.submitted_date).toLocaleDateString("en-GB")
                     : "—",
-                avatar: submission.user?.profile_image || submission.profile_image || ASSETS.LOGO,
+                avatar: getMediaUrl(submission.user?.profile_image || submission.profile_image) || ASSETS.LOGO,
                 _original: submission,
             };
         });
@@ -307,7 +327,7 @@ export function CVSubmissionsManagement({ scale = 1, isMobile = false }) {
             title: "Position",
             width: 300,
             sortable: true,
-            render: (val) => val.split("/").length > 3 ? `${val.split("/")[0]} / ${val.split("/")[1]} / ${val.split("/")[2]} / ...` : val,
+            render: (val) => (typeof val === "string" && val.split("/").length > 3) ? `${val.split("/")[0]} / ${val.split("/")[1]} / ${val.split("/")[2]} / ...` : (val || "—"),
         },
         {
             key: "codedRank",
