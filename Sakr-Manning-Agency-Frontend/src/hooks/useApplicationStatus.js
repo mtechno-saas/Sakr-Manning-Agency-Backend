@@ -36,12 +36,18 @@ export function useApplicationStatus() {
             // The API may return a paginated response ({ results: [...] }) or a plain array
             const documents = Array.isArray(data) ? data : data?.results ?? [];
 
-            if (documents.length === 0) {
+            // Filter documents to include only those belonging to the logged-in user by ID
+            const user = tokenStorage.getUser();
+            const userDocs = documents.filter((doc) => {
+                const docUserId = doc.user?.id;
+                return String(docUserId) === String(user?.id);
+            });
+            if (userDocs.length === 0) {
                 setStatus("none");
                 return;
             }
 
-            const hasActive = documents.some(
+            const hasActive = userDocs.some(
                 (doc) => doc.status?.toLowerCase() === "active"
             );
             if (hasActive) {
@@ -49,7 +55,7 @@ export function useApplicationStatus() {
                 return;
             }
 
-            const allBlacklisted = documents.every(
+            const allBlacklisted = userDocs.every(
                 (doc) => doc.status?.toLowerCase() === "blacklist"
             );
             if (allBlacklisted) {

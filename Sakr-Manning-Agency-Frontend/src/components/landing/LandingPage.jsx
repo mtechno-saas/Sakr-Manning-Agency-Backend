@@ -21,10 +21,8 @@ const LandingPage = ({ user, onLogout, onOpenAuth }) => {
   // Handle Apply/Online Form button click
   const handleOpenForm = () => {
     if (!user) {
-      // if not logged in → open Auth overlay
       onOpenAuth();
     } else {
-      // if logged in → navigate to form page
       navigate("/form");
     }
   };

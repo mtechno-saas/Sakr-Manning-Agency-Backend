@@ -505,15 +505,13 @@ const HomePage = ({ user, onOpenForm, onNavigate }) => {
 
           {/* CTA Buttons - RESPONSIVE */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-            {(!user || !user?.cv_status) && (
-              <Button
-                onClick={() => navigate("/quick-apply")}
-                variant="primary"
-                className="px-8 sm:px-10 md:px-12 py-3 sm:py-4 md:py-6 w-full sm:w-auto h-10 sm:h-11 md:h-12 font-medium rounded-3xl transition-colors text-sm sm:text-base"
-              >
-                Apply Form
-              </Button>
-            )}
+            <Button
+              onClick={() => navigate("/quick-apply")}
+              variant="primary"
+              className="px-8 sm:px-10 md:px-12 py-3 sm:py-4 md:py-6 w-full sm:w-auto h-10 sm:h-11 md:h-12 font-medium rounded-3xl transition-colors text-sm sm:text-base"
+            >
+              Apply Form
+            </Button>
 
             <Button
               variant="outlined"

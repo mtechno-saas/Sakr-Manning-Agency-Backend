@@ -147,8 +147,10 @@ const QuickApply = () => {
     const { status, isLoading: statusLoading } = useApplicationStatus();
 
     useEffect(() => {
-        if (!statusLoading && (status === "Pending" || status === "Active")) {
-            navigate("/form", { replace: true });
+        if (!statusLoading) {
+            if (status === "Pending" || status === "Blacklist") {
+                navigate("/notify", { replace: true });
+            }
         }
     }, [status, statusLoading, navigate]);
 
@@ -257,7 +259,7 @@ const QuickApply = () => {
                         }
                     }
                 `}</style>
-            <div className="quick-apply-container" style={{ ...styles.container, backgroundImage: `url(${ASSETS.QUICKBG})` }}>
+                <div className="quick-apply-container" style={{ ...styles.container, backgroundImage: `url(${ASSETS.QUICKBG})` }}>
 
                     <div style={styles.overlay}></div>
                     <div className="quick-apply-left" style={styles.leftContent}>
@@ -266,21 +268,21 @@ const QuickApply = () => {
                         </h1>
                     </div>
                     <div className="quick-apply-card" style={styles.card}>
-                    <div style={styles.successCard}>
-                        <div style={{ fontSize: "48px", marginBottom: "20px" }}>🎉</div>
-                        <h2 style={styles.title}>Application Received!</h2>
-                        <p style={{ ...styles.subtitle, fontSize: "16px" }}>
-                            Your application is now <strong>Pending Review</strong>.
-                            <br />
-                            <br />
-                            Our recruiters will review your CV and contact you shortly with next steps.
-                        </p>
-                        <p style={{ fontSize: "12px", color: "#94a3b8", marginTop: "16px" }}>
-                            Redirecting to Home page...
-                        </p>
+                        <div style={styles.successCard}>
+                            <div style={{ fontSize: "48px", marginBottom: "20px" }}>🎉</div>
+                            <h2 style={styles.title}>Application Received!</h2>
+                            <p style={{ ...styles.subtitle, fontSize: "16px" }}>
+                                Your application is now <strong>Pending Review</strong>.
+                                <br />
+                                <br />
+                                Our recruiters will review your CV and contact you shortly with next steps.
+                            </p>
+                            <p style={{ fontSize: "12px", color: "#94a3b8", marginTop: "16px" }}>
+                                Redirecting to Home page...
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
             </>
         );
     }
