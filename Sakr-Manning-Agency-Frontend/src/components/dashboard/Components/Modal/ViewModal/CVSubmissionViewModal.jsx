@@ -102,6 +102,7 @@ export function CVSubmissionViewModal({
     const sa = submission.seafarer_application || {};
     const companyDetails = submission.company_details || null;
     const shipDetails = submission.ship_details || null;
+    const user_documents = submission.user_documents || {};
 
     // seafarer_application sections
     const saPersonal = sa["1_personal_details"] || null;
@@ -172,14 +173,15 @@ export function CVSubmissionViewModal({
                 <FieldItem label="Assigned Code" value={fmt(submission.assigned_code)} icon={Hash} scale={scale} />
                 <FieldItem label="Generated ID" value={fmt(submission.generated_id)} icon={Hash} scale={scale} />
                 <FieldItem label="Experience" value={submission.experience_years != null ? `${submission.experience_years} yr${submission.experience_years !== 1 ? "s" : ""}` : "—"} icon={Activity} scale={scale} />
+                {submission.cv_file && <FieldItem label="CV Document" value={submission.cv_file} format="link" icon={FileText} scale={scale} />}
                 {submission.reviewed_by && <FieldItem label="Reviewed By" value={submission.reviewed_by} icon={User} scale={scale} />}
                 {submission.reviewed_date && <FieldItem label="Reviewed Date" value={fmtDateTime(submission.reviewed_date)} icon={Calendar} scale={scale} />}
             </Section>
 
             {/* ── Salary & Availability ────────────────────────────────────── */}
             <Section title="Salary & Availability" icon={DollarSign} scale={scale} columns={2}>
-                <FieldItem label="Expected Salary" value={submission.expected_salary ? `$${submission.expected_salary}` : "—"} icon={CreditCard} scale={scale} />
-                <FieldItem label="Salary Display" value={submission.salary_display ? `$${submission.salary_display}` : "—"} icon={CreditCard} scale={scale} />
+                <FieldItem label="Expected Salary" value={submission.expected_salary ? (String(submission.expected_salary).includes("USD") || String(submission.expected_salary).includes("$") ? submission.expected_salary : `$${submission.expected_salary}`) : "—"} icon={CreditCard} scale={scale} />
+                <FieldItem label="Salary Display" value={submission.salary_display ? (String(submission.salary_display).includes("USD") || String(submission.salary_display).includes("$") ? submission.salary_display : `$${submission.salary_display}`) : "—"} icon={CreditCard} scale={scale} />
                 <FieldItem label="Availability Date" value={fmtDate(submission.availability_date)} icon={Calendar} scale={scale} />
                 {submission.rating && <FieldItem label="Rating"
                     value={
@@ -297,6 +299,15 @@ export function CVSubmissionViewModal({
                                 <FieldItem label="Expiry Date" value={fmtDate(doc.exp_date)} icon={AlertCircle} scale={scale} />
                                 <FieldItem label="Issued By" value={fmt(doc.iss_by_authority)} icon={Building} scale={scale} />
                                 <FieldItem label="Place of Issue" value={fmt(doc.place_of_issue)} icon={MapPin} scale={scale} />
+                                {(doc.type?.toLowerCase() === "passport" && (user_documents?.passport?.file_url || user_documents?.passport?.download_url)) && (
+                                    <FieldItem label="Attachment" value={user_documents.passport.file_url || user_documents.passport.download_url} format="link" icon={FileText} scale={scale} />
+                                )}
+                                {(doc.type?.toLowerCase() === "seaman book" && (user_documents?.seaman_book?.file_url || user_documents?.seaman_book?.download_url)) && (
+                                    <FieldItem label="Attachment" value={user_documents.seaman_book.file_url || user_documents.seaman_book.download_url} format="link" icon={FileText} scale={scale} />
+                                )}
+                                {(doc.type?.toLowerCase() === "other seaman book" && (user_documents?.other_seaman_book?.file_url || user_documents?.other_seaman_book?.download_url)) && (
+                                    <FieldItem label="Attachment" value={user_documents.other_seaman_book.file_url || user_documents.other_seaman_book.download_url} format="link" icon={FileText} scale={scale} />
+                                )}
                             </div>
                         </div>
                     ))}
@@ -321,6 +332,12 @@ export function CVSubmissionViewModal({
                                 <FieldItem label="Expiry Date" value={fmtDate(c.expiry_date)} icon={AlertCircle} scale={scale} />
                                 <FieldItem label="Issued By" value={fmt(c.issued_by)} icon={Building} scale={scale} />
                                 <FieldItem label="Issued At" value={fmt(c.issued_at)} icon={MapPin} scale={scale} />
+                                {(c.certificate_name?.toLowerCase()?.includes("coc") && (user_documents?.coc?.file_url || user_documents?.coc?.download_url)) && (
+                                    <FieldItem label="Attachment" value={user_documents.coc.file_url || user_documents.coc.download_url} format="link" icon={FileText} scale={scale} />
+                                )}
+                                {(c.certificate_name?.toLowerCase()?.includes("goc") && (user_documents?.goc?.file_url || user_documents?.goc?.download_url)) && (
+                                    <FieldItem label="Attachment" value={user_documents.goc.file_url || user_documents.goc.download_url} format="link" icon={FileText} scale={scale} />
+                                )}
                             </div>
                         </div>
                     ))}
@@ -339,27 +356,54 @@ export function CVSubmissionViewModal({
             )}
 
             {/* 7. Health Certificates & Vaccinations */}
-            {saHealth && (
+            {(saHealth || user_documents.health_certificate) && (
                 <Section title="Health Certificates & Vaccinations" icon={ShieldCheck} scale={scale} columns={1}>
-                    {(saHealth.certificates || []).map((hc, i) => (
-                        <div key={i} style={{
+                    {saHealth && (saHealth.certificates || []).map((hc, i) => {
+                        const hcDoc = (user_documents.health_certificate?.records || []).find(
+                            (r) => r.vaccine_name?.toLowerCase() === hc.flag_state?.toLowerCase()
+                        );
+                        return (
+                            <div key={i} style={{
+                                padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
+                                background: "#F9FAFB", border: "1px solid #E5E7EB",
+                                borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
+                            }}>
+                                <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6 * scale) }}>
+                                    ⚕️ {fmt(hc.flag_state, `Health Cert ${i + 1}`)}
+                                </div>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                    <FieldItem label="Number" value={fmt(hc.number)} icon={Hash} scale={scale} />
+                                    <FieldItem label="Issue Date" value={fmtDate(hc.issue_date)} icon={Calendar} scale={scale} />
+                                    <FieldItem label="Expiry Date" value={fmtDate(hc.expiry_date)} icon={AlertCircle} scale={scale} />
+                                    <FieldItem label="Issued By" value={fmt(hc.issued_by)} icon={Building} scale={scale} />
+                                    <FieldItem label="Issued At" value={fmt(hc.issued_at)} icon={MapPin} scale={scale} />
+                                    {hcDoc && (hcDoc.file_url || hcDoc.download_url) && (
+                                        <FieldItem label="Attachment" value={hcDoc.file_url || hcDoc.download_url} format="link" icon={FileText} scale={scale} />
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {user_documents.health_certificate?.international_medical_number && (
+                        <div style={{
                             padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
-                            background: "#F9FAFB", border: "1px solid #E5E7EB",
+                            background: "#F0F9FF", border: "1px solid #BAE6FD",
                             borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
                         }}>
-                            <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6 * scale) }}>
-                                ⚕️ {fmt(hc.flag_state, `Health Cert ${i + 1}`)}
+                            <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#0369A1", marginBottom: Math.round(6 * scale) }}>
+                                🌐 International Medical Certificate
                             </div>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
-                                <FieldItem label="Number" value={fmt(hc.number)} icon={Hash} scale={scale} />
-                                <FieldItem label="Issue Date" value={fmtDate(hc.issue_date)} icon={Calendar} scale={scale} />
-                                <FieldItem label="Expiry Date" value={fmtDate(hc.expiry_date)} icon={AlertCircle} scale={scale} />
-                                <FieldItem label="Issued By" value={fmt(hc.issued_by)} icon={Building} scale={scale} />
-                                <FieldItem label="Issued At" value={fmt(hc.issued_at)} icon={MapPin} scale={scale} />
+                                <FieldItem label="Number" value={fmt(user_documents.health_certificate.international_medical_number)} icon={Hash} scale={scale} />
+                                <FieldItem label="Issue Date" value={fmtDate(user_documents.health_certificate.international_medical_issue_date)} icon={Calendar} scale={scale} />
+                                <FieldItem label="Expiry Date" value={fmtDate(user_documents.health_certificate.international_medical_expiry_date)} icon={AlertCircle} scale={scale} />
+                                {(user_documents.health_certificate.file_url || user_documents.health_certificate.download_url) && (
+                                    <FieldItem label="Attachment" value={user_documents.health_certificate.file_url || user_documents.health_certificate.download_url} format="link" icon={FileText} scale={scale} />
+                                )}
                             </div>
                         </div>
-                    ))}
-                    {saHealth.covid_19 && (
+                    )}
+                    {saHealth?.covid_19 && (
                         <div style={{
                             padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
                             background: "#F0FDF4", border: "1px solid #BBF7D0",
@@ -382,47 +426,67 @@ export function CVSubmissionViewModal({
             {/* 8. Marine Courses */}
             {saCourses.length > 0 && (
                 <Section title="Marine Courses" icon={BookOpen} scale={scale} columns={1}>
-                    {saCourses.map((c, i) => (
-                        <div key={i} style={{
-                            padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
-                            background: "#F9FAFB", border: "1px solid #E5E7EB",
-                            borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
-                        }}>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
-                                <FieldItem label="Course" value={fmt(c.course_name ?? c.name ?? c.certificate_name)} icon={BookOpen} scale={scale} />
-                                <FieldItem label="Number" value={fmt(c.number)} icon={Hash} scale={scale} />
-                                <FieldItem label="Issue Date" value={fmtDate(c.issue_date)} icon={Calendar} scale={scale} />
-                                <FieldItem label="Expiry Date" value={fmtDate(c.expiry_date)} icon={AlertCircle} scale={scale} />
-                                <FieldItem label="Issued By" value={fmt(c.issued_by)} icon={Building} scale={scale} />
-                                <FieldItem label="Issued At" value={fmt(c.issued_at)} icon={MapPin} scale={scale} />
+                    {saCourses.map((c, i) => {
+                        const courseDoc = (user_documents.marine_courses || []).find(
+                            (dc) => dc.course_name?.toLowerCase() === (c.course_name ?? c.name ?? c.certificate_name)?.toLowerCase()
+                        );
+                        return (
+                            <div key={i} style={{
+                                padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
+                                background: "#F9FAFB", border: "1px solid #E5E7EB",
+                                borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
+                            }}>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                    <FieldItem label="Course" value={fmt(c.course_name ?? c.name ?? c.certificate_name)} icon={BookOpen} scale={scale} />
+                                    <FieldItem label="Number" value={fmt(c.number)} icon={Hash} scale={scale} />
+                                    <FieldItem label="Issue Date" value={fmtDate(c.issue_date)} icon={Calendar} scale={scale} />
+                                    <FieldItem label="Expiry Date" value={fmtDate(c.expiry_date)} icon={AlertCircle} scale={scale} />
+                                    <FieldItem label="Issued By" value={fmt(c.issued_by)} icon={Building} scale={scale} />
+                                    <FieldItem label="Issued At" value={fmt(c.issued_at)} icon={MapPin} scale={scale} />
+                                    {courseDoc && (courseDoc.file_url || courseDoc.download_url) && (
+                                        <FieldItem label="Attachment" value={courseDoc.file_url || courseDoc.download_url} format="link" icon={FileText} scale={scale} />
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </Section>
             )}
 
             {/* 9. Sea Service Records */}
             {saSeaService && saSeaService.service_records && saSeaService.service_records.length > 0 && (
                 <Section title="Sea Service Records" icon={Waves} scale={scale} columns={1}>
-                    {saSeaService.service_records.map((sr, i) => (
-                        <div key={i} style={{
-                            padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
-                            background: "#F9FAFB", border: "1px solid #E5E7EB",
-                            borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
-                        }}>
-                            <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6 * scale) }}>
-                                🚢 {fmt(sr.company_name)} — {fmt(sr.vessel_name_imo_number)}
+                    {saSeaService.service_records.map((sr, i) => {
+                        const ssDoc = (user_documents.sea_service || []).find(
+                            (ds) => {
+                                const vesselMatch = ds.vessel_name && sr.vessel_name_imo_number?.toLowerCase()?.includes(ds.vessel_name?.toLowerCase());
+                                const dateMatch = ds.signed_on === sr.signed_on;
+                                return vesselMatch || dateMatch;
+                            }
+                        );
+                        return (
+                            <div key={i} style={{
+                                padding: `${Math.round(10 * scale)}px ${Math.round(14 * scale)}px`,
+                                background: "#F9FAFB", border: "1px solid #E5E7EB",
+                                borderRadius: Math.round(8 * scale), marginBottom: Math.round(8 * scale),
+                            }}>
+                                <div style={{ fontSize: Math.round(12 * scale), fontWeight: 700, color: "#374151", marginBottom: Math.round(6 * scale) }}>
+                                    🚢 {fmt(sr.company_name)} — {fmt(sr.vessel_name_imo_number)}
+                                </div>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
+                                    <FieldItem label="Rank" value={fmt(sr.rank)} icon={Anchor} scale={scale} />
+                                    <FieldItem label="Signed On" value={fmtDate(sr.signed_on)} icon={Calendar} scale={scale} />
+                                    <FieldItem label="Signed Off" value={fmtDate(sr.signed_off)} icon={Calendar} scale={scale} />
+                                    <FieldItem label="Period" value={fmt(sr.period)} icon={Clock} scale={scale} />
+                                    <FieldItem label="Flag" value={fmt(sr.flag)} icon={Globe} scale={scale} />
+                                    <FieldItem label="Vessel Type" value={fmt(sr.vessel_type)} icon={Ship} scale={scale} />
+                                    {ssDoc && (ssDoc.file_url || ssDoc.download_url) && (
+                                        <FieldItem label="Attachment" value={ssDoc.file_url || ssDoc.download_url} format="link" icon={FileText} scale={scale} />
+                                    )}
+                                </div>
                             </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: Math.round(8 * scale) }}>
-                                <FieldItem label="Rank" value={fmt(sr.rank)} icon={Anchor} scale={scale} />
-                                <FieldItem label="Signed On" value={fmtDate(sr.signed_on)} icon={Calendar} scale={scale} />
-                                <FieldItem label="Signed Off" value={fmtDate(sr.signed_off)} icon={Calendar} scale={scale} />
-                                <FieldItem label="Period" value={fmt(sr.period)} icon={Clock} scale={scale} />
-                                <FieldItem label="Flag" value={fmt(sr.flag)} icon={Globe} scale={scale} />
-                                <FieldItem label="Vessel Type" value={fmt(sr.vessel_type)} icon={Ship} scale={scale} />
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </Section>
             )}
 
