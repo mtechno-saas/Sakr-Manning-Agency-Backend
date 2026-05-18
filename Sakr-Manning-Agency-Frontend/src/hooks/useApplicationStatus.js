@@ -39,9 +39,10 @@ export function useApplicationStatus() {
             // Filter documents to include only those belonging to the logged-in user by ID
             const user = tokenStorage.getUser();
             const userDocs = documents.filter((doc) => {
-                const docUserId = doc.user?.id;
+                const docUserId = doc.user;
                 return String(docUserId) === String(user?.id);
             });
+
             if (userDocs.length === 0) {
                 setStatus("none");
                 return;
