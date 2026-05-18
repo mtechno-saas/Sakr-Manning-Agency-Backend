@@ -18,6 +18,7 @@ import { LoginForm } from "./components/auth/LoginForm";
 import { SignUpForm } from "./components/auth/SignUpForm";
 import { VerificationCode } from "./components/auth/VerificationCode";
 import QuickApply from "./components/landing/QuickApply";
+import NotifyPage from "./components/landing/NotifyPage";
 
 import LandingPage from "./components/landing/LandingPage";
 
@@ -46,7 +47,7 @@ const AuthPages = () => {
       if (tokenStorage.isStoredAdmin()) {
         navigate("/dashboard", { replace: true });
       } else {
-        navigate(storedUser.cv_status ? "/" : "/quick-apply", { replace: true });
+        navigate("/quick-apply", { replace: true });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +85,7 @@ const AuthPages = () => {
       if (isAdminRole(result.user.role)) {
         navigate("/dashboard");
       } else {
-        navigate(intendedPath || (result.user.cv_status ? "/" : "/quick-apply"));
+        navigate(intendedPath || "/quick-apply");
       }
       setIntendedPath(null);
     }
@@ -101,7 +102,7 @@ const AuthPages = () => {
         setCurrentAuthStep(AUTH_STEPS.VERIFICATION);
       } else {
         // No verification needed — user is already logged in
-        navigate(intendedPath || (result.user?.cv_status ? "/" : "/quick-apply"));
+        navigate("/quick-apply");
         setPendingUserData(null);
         setIntendedPath(null);
       }
@@ -114,9 +115,7 @@ const AuthPages = () => {
     const result = await verifyCode(code, pendingUserData.email);
 
     if (result.success) {
-      // Fetch user to get cv_status if not available
-      const user = tokenStorage.getUser();
-      navigate(intendedPath || (user?.cv_status ? "/" : "/quick-apply"));
+      navigate("/quick-apply");
       setPendingUserData(null);
       setIntendedPath(null);
     }
@@ -275,61 +274,13 @@ const Dashboard = () => {
 const FormPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { status, isLoading } = useApplicationStatus();
 
   const handleLogout = async () => {
     await logout();
     navigate("/");
   };
 
-  // Redirect new users (no Quick Apply submission) to /quick-apply
-  useEffect(() => {
-    if (!isLoading && status === "none") {
-      navigate("/quick-apply", { replace: true });
-    }
-  }, [status, isLoading, navigate]);
-
-  // Loading state while checking application status
-  if (isLoading || status === "none") {
-    return <LoadingScreen fullScreen={true} message="Checking Application Status" subMessage="Verifying your credentials and role" />;
-  }
-
-  // Pending review — show informational modal
-  if (status === "Pending") {
-    return (
-      <PendingStatusModal
-        isOpen={true}
-        onGoHome={() => navigate("/")}
-      />
-    );
-  }
-
-  // Blacklisted — access denied
-  if (status === "Blacklist") {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md px-6">
-          <div className="text-5xl mb-4">🚫</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Access Denied
-          </h2>
-          <p className="text-gray-500 mb-6">
-            Your application has been denied. Please contact support for further
-            assistance.
-          </p>
-          <button
-            onClick={() => navigate("/")}
-            className="px-6 py-3 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
-          >
-            Go Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Active — render the full form
-  // for Active status
   return (
     <Suspense
       fallback={<LoadingScreen fullScreen={true} message="Loading Form" subMessage="Preparing the Seafarer application form" />}
@@ -375,6 +326,12 @@ const App = () => {
           <Route
             path="/quick-apply"
             element={<QuickApply />}
+          />
+
+          {/* Notify Route */}
+          <Route
+            path="/notify"
+            element={<NotifyPage />}
           />
 
           {/* Catch all - redirect to landing */}
