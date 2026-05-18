@@ -557,18 +557,51 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         return result
 
     def get_sea_service_details(self, obj):
+        from core.models import Flag, VesselType
+        from api.models import Rank
+
         services = obj.sea_services.all()
         records = []
         for s in services:
+            # Resolve rank_name
+            rank_name = ""
+            if s.rank:
+                if s.rank.isdigit():
+                    rank_obj = Rank.objects.filter(id=int(s.rank)).first()
+                    rank_name = rank_obj.name if rank_obj else s.rank
+                else:
+                    rank_name = s.rank
+
+            # Resolve flag_name
+            flag_name = ""
+            if s.flag:
+                if s.flag.isdigit():
+                    flag_obj = Flag.objects.filter(id=int(s.flag)).first()
+                    flag_name = flag_obj.name if flag_obj else s.flag
+                else:
+                    flag_name = s.flag
+
+            # Resolve vessel_type_name
+            vessel_type_name = ""
+            if s.vessel_type:
+                if s.vessel_type.isdigit():
+                    vt_obj = VesselType.objects.filter(id=int(s.vessel_type)).first()
+                    vessel_type_name = vt_obj.name if vt_obj else s.vessel_type
+                else:
+                    vessel_type_name = s.vessel_type
+
             records.append({
                 "company_name": s.company_name,
                 "rank": s.rank,
+                "rank_name": rank_name,
                 "vessel_name_imo_number": f"{s.vessel_name} / {s.imo_number}".strip(" / "),
                 "flag": s.flag,
+                "flag_name": flag_name,
                 "signed_on": s.signed_on if s.signed_on else "",
                 "signed_off": s.signed_off if s.signed_off else "",
                 "period": s.period,
                 "vessel_type": s.vessel_type,
+                "vessel_type_name": vessel_type_name,
                 "dwt_grt": f"{s.dwt} / {s.grt}".strip(" / "),
                 "engine_type": s.engine_type,
                 "bh_kw": f"{s.bh} / {s.kw}".strip(" / "),
