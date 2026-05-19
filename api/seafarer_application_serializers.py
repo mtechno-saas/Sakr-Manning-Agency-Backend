@@ -71,8 +71,9 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
     def _parse_date(self, date_str):
         if not date_str:
             return None
-        if isinstance(date_str, (datetime, datetime.date)):
-            return date_str
+        from datetime import date
+        if isinstance(date_str, (datetime, date)):
+            return date_str if isinstance(date_str, date) else date_str.date()
         for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%Y'):
             try:
                 return datetime.strptime(str(date_str), fmt).date()
@@ -114,7 +115,14 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
             instance.register_code = header.get('register_code', instance.register_code)
             instance.other_position = header.get('other_position_if_any', instance.other_position)
             instance.register_date = self._parse_date(header.get('register_date'))
-            instance.available_date = self._parse_date(header.get('expected_salary_available_date'))
+            
+            if 'expected_salary' in header:
+                instance.salary = header.get('expected_salary')
+            
+            if 'available_date' in header:
+                instance.available_date = self._parse_date(header.get('available_date'))
+            elif 'expected_salary_available_date' in header:
+                instance.available_date = self._parse_date(header.get('expected_salary_available_date'))
 
         # 2. Education
         edu = validated_data.get('education', {})
@@ -369,7 +377,8 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
             "other_position_if_any": obj.other_position if obj.other_position else "",
             "register_date": obj.register_date if obj.register_date else "",
             "last_update_data": obj.last_updated_date.strftime("%Y-%m-%d %H:%M") if obj.last_updated_date else "",
-            "expected_salary_available_date": obj.available_date if obj.available_date else ""
+            "expected_salary": obj.salary if obj.salary else "",
+            "available_date": obj.available_date if obj.available_date else ""
         }
 
     def get_personal_details(self, obj):

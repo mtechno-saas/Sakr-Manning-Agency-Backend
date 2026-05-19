@@ -221,7 +221,8 @@ Authorization: Bearer <JWT_TOKEN>
             "other_position_if_any": "",
             "register_date": "2026-01-15",
             "last_update_data": "2026-05-04 16:30",
-            "expected_salary_available_date": "2026-06-01"
+            "expected_salary": "5000.00",
+            "available_date": "2026-06-01"
         },
         "1_personal_details": {
             "full_name": "Ahmed Hassan",
