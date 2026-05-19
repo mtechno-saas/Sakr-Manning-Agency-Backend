@@ -346,10 +346,49 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         decl = validated_data.get('declaration', {})
         if decl:
             qs = decl.get('questions', {})
-            instance.disease_history = qs.get('suffer_disease_unfit_for_sea', {}).get('details', '')
-            instance.declaration_place = decl.get('place', instance.declaration_place)
-            instance.declaration_date = self._parse_date(decl.get('date'))
-            # Others can be added similarly
+            suffer_disease = qs.get('suffer_disease_unfit_for_sea', {})
+            addicted = qs.get('addicted_to_alcohol_or_drugs', {})
+            accident = qs.get('suffer_accident_disabled', {})
+            psychiatric = qs.get('undergo_psychiatric_treatment', {})
+
+            disease_ans = suffer_disease.get('answer', 'NO') == 'YES'
+            disease_det = suffer_disease.get('details', '')
+            addicted_ans = addicted.get('answer', 'NO') == 'YES'
+            addicted_det = addicted.get('details', '')
+            accident_ans = accident.get('answer', 'NO') == 'YES'
+            accident_det = accident.get('details', '')
+            psychiatric_ans = psychiatric.get('answer', 'NO') == 'YES'
+            psychiatric_det = psychiatric.get('details', '')
+
+            place = decl.get('place', '')
+            date_val = self._parse_date(decl.get('date'))
+
+            # Update User instance directly
+            instance.disease_history = disease_det if disease_ans else ''
+            instance.addiction_history = addicted_det if addicted_ans else ''
+            instance.accident_history = accident_det if accident_ans else ''
+            instance.psychiatric_treatment_history = psychiatric_det if psychiatric_ans else ''
+            instance.declaration_place = place
+            instance.declaration_date = date_val
+
+            # Also create/update a Declaration model record to ensure database integrity
+            from api.models import Declaration
+            Declaration.objects.update_or_create(
+                user=instance,
+                defaults={
+                    'has_disease': disease_ans,
+                    'disease_details': disease_det,
+                    'has_accident': accident_ans,
+                    'accident_details': accident_det,
+                    'has_psychiatric_treatment': psychiatric_ans,
+                    'psychiatric_treatment_details': psychiatric_det,
+                    'has_addiction': addicted_ans,
+                    'addiction_details': addicted_det,
+                    'consent_given': True,
+                    'declaration_place': place,
+                    'declaration_date': date_val
+                }
+            )
 
         # 12. Office Use
         office = validated_data.get('for_office_use_only', {})
@@ -678,16 +717,50 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         return result
 
     def get_declaration(self, obj):
+        # Fallback fields on User model:
+        disease_ans = True if obj.disease_history else False
+        disease_det = obj.disease_history or ""
+        addicted_ans = True if obj.addiction_history else False
+        addicted_det = obj.addiction_history or ""
+        accident_ans = True if obj.accident_history else False
+        accident_det = obj.accident_history or ""
+        psychiatric_ans = True if obj.psychiatric_treatment_history else False
+        psychiatric_det = obj.psychiatric_treatment_history or ""
+        place = obj.declaration_place or ""
+        date = obj.declaration_date
+
+        # Check if the user has a linked Declaration model record (take the latest one)
+        latest_decl = obj.declarations.order_by('-created_at').first()
+        if latest_decl:
+            disease_ans = latest_decl.has_disease
+            disease_det = latest_decl.disease_details or ""
+            addicted_ans = latest_decl.has_addiction
+            addicted_det = latest_decl.addiction_details or ""
+            accident_ans = latest_decl.has_accident
+            accident_det = latest_decl.accident_details or ""
+            psychiatric_ans = latest_decl.has_psychiatric_treatment
+            psychiatric_det = latest_decl.psychiatric_treatment_details or ""
+            place = latest_decl.declaration_place or ""
+            date = latest_decl.declaration_date
+
+        import datetime
+        date_str = ""
+        if date:
+            if isinstance(date, (datetime.date, datetime.datetime)):
+                date_str = date.strftime('%Y-%m-%d')
+            else:
+                date_str = str(date)
+
         return {
             "questions": {
-                "suffer_disease_unfit_for_sea": {"answer": "YES" if obj.disease_history else "NO", "details": obj.disease_history or ""},
-                "addicted_to_alcohol_or_drugs": {"answer": "YES" if obj.addiction_history else "NO"},
-                "suffer_accident_disabled": {"answer": "YES" if obj.accident_history else "NO"},
-                "undergo_psychiatric_treatment": {"answer": "YES" if obj.psychiatric_treatment_history else "NO"}
+                "suffer_disease_unfit_for_sea": {"answer": "YES" if disease_ans else "NO", "details": disease_det},
+                "addicted_to_alcohol_or_drugs": {"answer": "YES" if addicted_ans else "NO", "details": addicted_det},
+                "suffer_accident_disabled": {"answer": "YES" if accident_ans else "NO", "details": accident_det},
+                "undergo_psychiatric_treatment": {"answer": "YES" if psychiatric_ans else "NO", "details": psychiatric_det}
             },
             "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
-            "place": obj.declaration_place if obj.declaration_place else "",
-            "date": obj.declaration_date if obj.declaration_date else "",
+            "place": place,
+            "date": date_str,
             "signature": ""
         }
 

@@ -1285,3 +1285,24 @@ class Declaration(models.Model):
     
     def __str__(self):
         return f"Declaration by {self.user.email} on {self.declaration_date or 'N/A'}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Sync back to the parent user
+        if self.user:
+            self.user.disease_history = self.disease_details if self.has_disease else ""
+            self.user.accident_history = self.accident_details if self.has_accident else ""
+            self.user.psychiatric_treatment_history = self.psychiatric_treatment_details if self.has_psychiatric_treatment else ""
+            self.user.addiction_history = self.addiction_details if self.has_addiction else ""
+            self.user.declaration_place = self.declaration_place
+            self.user.declaration_date = self.declaration_date
+            self.user.declaration_consent = self.consent_given
+            self.user.save(update_fields=[
+                'disease_history',
+                'accident_history',
+                'psychiatric_treatment_history',
+                'addiction_history',
+                'declaration_place',
+                'declaration_date',
+                'declaration_consent'
+            ])

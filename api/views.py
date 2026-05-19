@@ -1878,12 +1878,16 @@ class DeclarationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        """Filter declarations based on user role"""
+        """Filter declarations based on user role and query params"""
         user = self.request.user
+        queryset = Declaration.objects.select_related('user')
         if user.role in ['Admin', 'HR Manager', 'Recruiter']:
-            return Declaration.objects.select_related('user').all()
+            user_id = self.request.query_params.get('user')
+            if user_id:
+                queryset = queryset.filter(user_id=user_id)
+            return queryset.all()
         # Employee can only see their own declarations
-        return Declaration.objects.filter(user=user)
+        return queryset.filter(user=user)
     
     def perform_create(self, serializer):
         """Set the user when creating a declaration"""

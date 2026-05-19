@@ -71,6 +71,12 @@ urlpatterns = [
     path('filter/', get_filter_users, name='get_filter_users'),
     path('users/<int:pk>/', user_detail, name='user-detail'),
     path('users/<int:user_id>/assign-rank/<int:rank_id>/', assign_rank, name='assign-rank'),
+    # Compatibility routes for frontend (matching /api/users/declarations/ and /api/users/certificates/)
+    path('users/declarations/', DeclarationViewSet.as_view({'get': 'list', 'post': 'create'}), name='user-declarations-list'),
+    path('users/declarations/<int:pk>/', DeclarationViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='user-declarations-detail'),
+    path('users/certificates/', CertificateViewSet.as_view({'get': 'list', 'post': 'create'}), name='user-certificates-list'),
+    path('users/certificates/<int:pk>/', CertificateViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='user-certificates-detail'),
+
     # User-specific certificate and rank endpoints
     path('users/<int:user_id>/certificates/', get_user_certificates, name='user-certificates'),
     path('users/<int:user_id>/ranks/', get_user_ranks, name='user-ranks'),
