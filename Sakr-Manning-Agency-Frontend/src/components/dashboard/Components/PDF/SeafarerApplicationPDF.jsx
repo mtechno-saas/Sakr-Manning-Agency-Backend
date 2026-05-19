@@ -443,13 +443,13 @@ export const SeafarerApplicationPDF = ({ app, contract }) => {
           {seaService.map((sr, i) => (
             <View key={i} style={S.tableRow}>
               <Text style={[S.td, { flex: 2 }]}>{val(sr.company_name)}</Text>
-              <Text style={S.td}>{val(sr.rank)}</Text>
+              <Text style={S.td}>{val(sr.rank_name || sr.rank)}</Text>
               <Text style={S.td}>{val(sr.vessel_name_imo_number)}</Text>
-              <Text style={S.td}>{val(sr.flag)}</Text>
+              <Text style={S.td}>{val(sr.flag_name || sr.flag)}</Text>
               <Text style={S.td}>{fmtDate(sr.signed_on)}</Text>
               <Text style={S.td}>{fmtDate(sr.signed_off)}</Text>
               <Text style={S.td}>{val(sr.period)}</Text>
-              <Text style={S.td}>{val(sr.vessel_type)}</Text>
+              <Text style={S.td}>{val(sr.vessel_type_name || sr.vessel_type)}</Text>
             </View>
           ))}
         </View>
