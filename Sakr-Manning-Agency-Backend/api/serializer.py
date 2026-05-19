@@ -508,12 +508,14 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
+    salary = serializers.CharField(source='user.salary', read_only=True, default=None)
+    available_date = serializers.DateField(source='user.available_date', read_only=True, default=None)
 
     class Meta:
         model = CVSubmission
         fields = [
             'id', 'user', 'user_name', 'position_name', 'company_name',
-            'experience_years', 'status', 'submitted_date'
+            'experience_years', 'status', 'submitted_date', 'salary', 'available_date'
         ]
 
     def get_user_name(self, obj):
@@ -526,6 +528,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
     reviewed_by_name = serializers.CharField(source='reviewed_by.first_name', read_only=True)
+    salary = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True)
+    available_date = serializers.DateField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = CVSubmission
@@ -536,11 +540,48 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'expected_salary', 'availability_date',
             'status', 'submitted_date',
             'reviewed_by', 'reviewed_by_name', 'reviewed_date',
-            'notes', 'rating', 'created_at', 'updated_at'
+            'notes', 'rating', 'created_at', 'updated_at',
+            'salary', 'available_date'
         ]
         extra_kwargs = {
             'user': {'required': False}
         }
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['salary'] = instance.user.salary if instance.user else None
+        ret['available_date'] = instance.user.available_date if instance.user else None
+        return ret
+
+    def create(self, validated_data):
+        salary = validated_data.pop('salary', None)
+        available_date = validated_data.pop('available_date', None)
+        instance = super().create(validated_data)
+        
+        # Propagate to user
+        user = instance.user
+        if user:
+            if salary is not None:
+                user.salary = salary
+            if available_date is not None:
+                user.available_date = available_date
+            user.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        salary = validated_data.pop('salary', None)
+        available_date = validated_data.pop('available_date', None)
+        instance = super().update(instance, validated_data)
+        
+        # Propagate to user
+        user = instance.user
+        if user:
+            if salary is not None:
+                user.salary = salary
+            if available_date is not None:
+                user.available_date = available_date
+            user.save()
+        return instance
 
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()

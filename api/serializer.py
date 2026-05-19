@@ -319,6 +319,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
     # New fields pulled from the linked user profile
     generated_id = serializers.SerializerMethodField()
     salary = serializers.CharField(source='user.salary', read_only=True, default=None)
+    available_date = serializers.DateField(source='user.available_date', read_only=True, default=None)
     coded_rank = serializers.SerializerMethodField()
     
     # Directly expose the rank_code and assigned_code for the specific position
@@ -333,7 +334,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
             'company', 'company_name',      # company FK id AND display name
             'position', 'position_name',    # position FK id AND display name
             'experience_years', 'status', 'submitted_date',
-            'generated_id', 'salary', 'coded_rank',
+            'generated_id', 'salary', 'available_date', 'coded_rank',
             'rank_code', 'assigned_code',
             'job_position', 'job_position_details'
         ]
@@ -463,6 +464,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     availability_date = FlexibleDateField(required=False, allow_null=True)
     submitted_date = FlexibleDateField(required=False, allow_null=True)
     reviewed_date = FlexibleDateField(required=False, allow_null=True)
+    available_date = FlexibleDateField(write_only=True, required=False, allow_null=True)
     
     job_position_details = serializers.SerializerMethodField()
     seafarer_application = serializers.SerializerMethodField()
@@ -481,7 +483,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'status', 'submitted_date',
             'reviewed_by', 'reviewed_by_name', 'reviewed_by_name_display', 'reviewed_date',
             'notes', 'rating', 'created_at', 'updated_at',
-            'generated_id', 'salary', 'salary_display', 'coded_rank', 'coded_rank_input',
+            'generated_id', 'salary', 'salary_display', 'available_date', 'coded_rank', 'coded_rank_input',
             'rank_code', 'assigned_code',
             'assigned_code_updates',
             'certificates', 'certificate_ids',
@@ -498,6 +500,12 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'created_at': {'required': False},
             'updated_at': {'required': False},
         }
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['salary'] = instance.user.salary if instance.user else None
+        ret['available_date'] = instance.user.available_date if instance.user else None
+        return ret
 
     def to_internal_value(self, data):
         # Allow 'position' to be passed as a string (name) or an ID
@@ -545,7 +553,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         custom_fields = [
             'user_first_name', 'user_middle_name', 'user_email', 'company_name_input',
-            'position_name_input', 'reviewed_by_name', 'salary', 'coded_rank_input',
+            'position_name_input', 'reviewed_by_name', 'salary', 'available_date', 'coded_rank_input',
             'assigned_code_updates', 'certificate_ids', 'passport_update',
             'seaman_book_update', 'other_seaman_book_update', 'coc_update',
             'goc_update', 'licenses_update'
@@ -578,6 +586,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         position_name_input = validated_data.pop('position_name_input', None)
         reviewed_by_name = validated_data.pop('reviewed_by_name', None)
         salary = validated_data.pop('salary', None)
+        available_date = validated_data.pop('available_date', None)
         coded_rank_input = validated_data.pop('coded_rank_input', None)
         assigned_code_updates = validated_data.pop('assigned_code_updates', None)
         certificate_ids = validated_data.pop('certificate_ids', None)
@@ -598,7 +607,9 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             user.email = user_email
         if salary is not None:
             user.salary = salary
-        if any(v is not None for v in [user_first_name, user_middle_name, user_email, salary]):
+        if available_date is not None:
+            user.available_date = available_date
+        if any(v is not None for v in [user_first_name, user_middle_name, user_email, salary, available_date]):
             user.save()
 
         # Propagate company name to the Company model
