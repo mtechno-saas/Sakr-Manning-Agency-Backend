@@ -266,6 +266,7 @@ export const SeafarerApplicationPDF = ({ app, contract }) => {
         <SectionTitle>APPLICATION DETAILS</SectionTitle>
         <View style={[S.row, { borderWidth: 0.5, borderColor: "#ccc" }]}>
           <LabelValue label="Position Applied For" value={appHeader.application_for_position_as} flex={2} />
+          <LabelValue label="Assigned Code" value={contract?.assigned_code || '-'} />
           <LabelValue label="Register Code" value={appHeader.register_code} />
           <LabelValue label="Other Position" value={appHeader.other_position_if_any} />
         </View>
