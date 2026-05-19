@@ -24,23 +24,48 @@ export function Sidebar({
 }) {
     const fileInputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    // Track the current object URL so we can revoke it before creating a new one
+    const objectUrlRef = useRef(null);
 
-    // Sync previewUrl with userProfile.photo when it changes
+    // Sync previewUrl with userProfile.photo when it changes (handles backend-loaded string URLs
+    // and form resets that restore a File object from saved data)
     useEffect(() => {
         if (userProfile?.photo) {
             if (userProfile.photo instanceof File) {
-                // Newly uploaded file — create a local object URL for preview
-                const objectUrl = URL.createObjectURL(userProfile.photo);
-                setPreviewUrl(objectUrl);
-                return () => URL.revokeObjectURL(objectUrl);
+                // File set via form reset/hydration — create an object URL for preview
+                const url = URL.createObjectURL(userProfile.photo);
+                if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+                objectUrlRef.current = url;
+                setPreviewUrl(url);
+                return () => {
+                    URL.revokeObjectURL(url);
+                    objectUrlRef.current = null;
+                };
             } else if (typeof userProfile.photo === 'string' && userProfile.photo.trim() !== '') {
                 // URL from backend (absolute or relative) — resolve via getMediaUrl
+                if (objectUrlRef.current) {
+                    URL.revokeObjectURL(objectUrlRef.current);
+                    objectUrlRef.current = null;
+                }
                 setPreviewUrl(getMediaUrl(userProfile.photo));
             }
         } else {
-            setPreviewUrl(null);
+            // Only clear preview if we don't have a freshly-uploaded local URL
+            if (!objectUrlRef.current) {
+                setPreviewUrl(null);
+            }
         }
     }, [userProfile?.photo]);
+
+    // Revoke any object URL when the component unmounts
+    useEffect(() => {
+        return () => {
+            if (objectUrlRef.current) {
+                URL.revokeObjectURL(objectUrlRef.current);
+                objectUrlRef.current = null;
+            }
+        };
+    }, []);
 
     const handleImageClick = () => {
         fileInputRef.current?.click();
@@ -60,7 +85,13 @@ export function Sidebar({
                 return;
             }
 
-            // Notify parent component
+            // Immediately generate and show the preview — no round-trip through form state
+            if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+            const url = URL.createObjectURL(file);
+            objectUrlRef.current = url;
+            setPreviewUrl(url);
+
+            // Notify parent to store the File in form state
             onImageChange?.(file);
         }
     };
