@@ -181,8 +181,8 @@ export function CVSubmissionViewModal({
             {/* ── Salary & Availability ────────────────────────────────────── */}
             <Section title="Salary & Availability" icon={DollarSign} scale={scale} columns={2}>
                 <FieldItem label="Expected Salary" value={submission.expected_salary ? (String(submission.expected_salary).includes("USD") || String(submission.expected_salary).includes("$") ? submission.expected_salary : `$${submission.expected_salary}`) : "—"} icon={CreditCard} scale={scale} />
-                <FieldItem label="Salary Display" value={submission.salary_display ? (String(submission.salary_display).includes("USD") || String(submission.salary_display).includes("$") ? submission.salary_display : `$${submission.salary_display}`) : "—"} icon={CreditCard} scale={scale} />
-                <FieldItem label="Availability Date" value={fmtDate(submission.availability_date)} icon={Calendar} scale={scale} />
+                <FieldItem label="Salary" value={(submission.salary_display || submission.salary) ? (String(submission.salary || submission.salary_display).includes("USD") || String(submission.salary_display).includes("$") ? submission.salary_display : `$${submission.salary_display}`) : "—"} icon={CreditCard} scale={scale} />
+                <FieldItem label="Availability Date" value={fmtDate(submission.available_date || submission.availability_date)} icon={Calendar} scale={scale} />
                 {submission.rating && <FieldItem label="Rating"
                     value={
                         <StarRating value={submission.rating || 0} scale={scale} />
