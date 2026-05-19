@@ -197,29 +197,29 @@ const Checkbox = ({ checked, label }) => (
 // ── Main Document ─────────────────────────────────────────────────────────────
 export const SeafarerApplicationPDF = ({ app, contract }) => {
   // ── Top-level metadata sections ──────────────────────────────────────────
-  const docInfo   = app?.["document_info"]   || {};
+  const docInfo = app?.["document_info"] || {};
   const appHeader = app?.["application_header"] || {};
 
   // ── Form sections ─────────────────────────────────────────────────────────
-  const p1  = app?.["1_personal_details"] || {};
-  const p2  = app?.["2_education"] || {};
-  const p3  = app?.["3_contact_details"] || {};
-  const p4  = app?.["4_travel_documents"] || [];
-  const p5  = app?.["5_professional_qualification_certificate_of_competency"] || [];
-  const p6  = app?.["6_next_of_kin_emergency_contact"] || {};
-  const p7  = app?.["7_health_certificates_and_vaccinations"] || {};
-  const p8  = app?.["8_marine_courses"] || [];
-  const p9  = app?.["9_complete_sea_service_details"] || {};
+  const p1 = app?.["1_personal_details"] || {};
+  const p2 = app?.["2_education"] || {};
+  const p3 = app?.["3_contact_details"] || {};
+  const p4 = app?.["4_travel_documents"] || [];
+  const p5 = app?.["5_professional_qualification_certificate_of_competency"] || [];
+  const p6 = app?.["6_next_of_kin_emergency_contact"] || {};
+  const p7 = app?.["7_health_certificates_and_vaccinations"] || {};
+  const p8 = app?.["8_marine_courses"] || [];
+  const p9 = app?.["9_complete_sea_service_details"] || {};
   const p10 = app?.["10_references"] || [];
   const p11 = app?.["11_declaration"] || {};
   const p12 = app?.["12_for_office_use_only"] || {};
 
-  const marline       = p2.marline_test || {};
-  const healthCerts   = p7.certificates || [];
-  const covid         = p7.covid_19 || {};
-  const seaService    = p9.service_records || [];
+  const marline = p2.marline_test || {};
+  const healthCerts = p7.certificates || [];
+  const covid = p7.covid_19 || {};
+  const seaService = p9.service_records || [];
   const applicantInfo = p9.applicant_info || {};
-  const declarationQ  = p11.questions || {};
+  const declarationQ = p11.questions || {};
 
   // ── Dynamically detect all language fields in p2 ─────────────────────────
   // Any key (besides college_school / marline_test) whose value is an object
@@ -273,7 +273,7 @@ export const SeafarerApplicationPDF = ({ app, contract }) => {
           <LabelValue label="Issue Date" value={fmtDate(appHeader.issue_date)} />
           <LabelValue label="Revision Date" value={fmtDate(appHeader.revision_date)} />
           <LabelValue label="Register Date" value={fmtDate(appHeader.register_date)} />
-          <LabelValue label="Available From" value={fmtDate(appHeader.expected_salary_available_date)} />
+          <LabelValue label="Available From" value={fmtDate(appHeader.available_date)} />
           <LabelValueNB label="Last Updated" value={val(appHeader.last_update_data)} />
         </View>
 
