@@ -164,25 +164,49 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         # 4. Travel Documents
         travel = validated_data.get('travel_documents', [])
         for t in travel:
-            t_type = t.get('type', '').lower()
-            if 'passport' in t_type:
+            t_type = t.get('type', '')
+            if not t_type:
+                continue
+            t_type_lower = t_type.lower()
+            if 'passport' in t_type_lower:
                 instance.passport_no = t.get('document_no', instance.passport_no)
                 instance.passport_issue_date = self._parse_date(t.get('iss_date'))
                 instance.passport_expiry_date = self._parse_date(t.get('exp_date'))
                 instance.passport_issued_by = t.get('iss_by_authority', instance.passport_issued_by)
                 instance.passport_place_of_issue = t.get('place_of_issue', instance.passport_place_of_issue)
-            elif 'seaman book' in t_type and 'other' not in t_type:
+            elif 'seaman book' in t_type_lower and 'other' not in t_type_lower:
                 instance.seaman_book_no = t.get('document_no', instance.seaman_book_no)
                 instance.seaman_book_issue_date = self._parse_date(t.get('iss_date'))
                 instance.seaman_book_expiry_date = self._parse_date(t.get('exp_date'))
                 instance.seaman_book_issued_by = t.get('iss_by_authority', instance.seaman_book_issued_by)
                 instance.seaman_book_place_of_issue = t.get('place_of_issue', instance.seaman_book_place_of_issue)
-            elif 'other seaman book' in t_type:
+            elif 'other seaman book' in t_type_lower:
                 instance.other_seaman_book_no = t.get('document_no', instance.other_seaman_book_no)
                 instance.other_seaman_book_issue_date = self._parse_date(t.get('iss_date'))
                 instance.other_seaman_book_expiry_date = self._parse_date(t.get('exp_date'))
                 instance.other_seaman_book_issued_by = t.get('iss_by_authority', instance.other_seaman_book_issued_by)
                 instance.other_seaman_book_place_of_issue = t.get('place_of_issue', instance.other_seaman_book_place_of_issue)
+            else:
+                # Find matching choice in PersonalDocument choices to use its exact model choice capitalization
+                matching_choice = None
+                for choice_val, _ in PersonalDocument.DOCUMENT_TYPE_CHOICES:
+                    if choice_val.lower() == t_type.lower():
+                        matching_choice = choice_val
+                        break
+                
+                if matching_choice:
+                    PersonalDocument.objects.update_or_create(
+                        user=instance,
+                        document_type=matching_choice,
+                        defaults={
+                            'document_number': t.get('document_no'),
+                            'issue_date': self._parse_date(t.get('iss_date')),
+                            'expiry_date': self._parse_date(t.get('exp_date')),
+                            'issued_by': t.get('iss_by_authority'),
+                            'place_of_issue': t.get('place_of_issue'),
+                            'issuing_country': t.get('issuing_country', '')
+                        }
+                    )
 
         # 5. Professional Qualification
         prof = validated_data.get('professional_qualification', [])
@@ -476,6 +500,20 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
             })
         else:
             docs.append({"type": "Other Seaman Book", "document_no": "", "iss_date": "", "exp_date": "", "iss_by_authority": "", "place_of_issue": ""})
+            
+        # Append PersonalDocument records (Visas, IDs, etc.)
+        for pd in obj.personal_documents.all():
+            docs.append({
+                "id": pd.id,
+                "type": pd.document_type,
+                "document_no": pd.document_number if pd.document_number else "",
+                "iss_date": pd.issue_date if pd.issue_date else "",
+                "exp_date": pd.expiry_date if pd.expiry_date else "",
+                "iss_by_authority": pd.issued_by if pd.issued_by else "",
+                "place_of_issue": pd.place_of_issue if pd.place_of_issue else "",
+                "issuing_country": pd.issuing_country if pd.issuing_country else "",
+                "file_url": pd.file.url if pd.file else None
+            })
             
         return docs
 
