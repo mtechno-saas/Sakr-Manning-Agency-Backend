@@ -15,7 +15,7 @@ import { pdf } from "@react-pdf/renderer";
 import {
     FileText, User, Building, Ship, Calendar, Briefcase, Award,
     DollarSign, Clock, MapPin, Anchor, ShieldCheck, Download, ExternalLink,
-    Hash, Globe, CheckCircle2, Waves, Mail, AlertCircle
+    Hash, Globe, CheckCircle2, Waves, Mail, AlertCircle, BookOpen
 } from "lucide-react";
 import { SeafarerApplicationPDF } from "../../PDF/SeafarerApplicationPDF";
 
@@ -254,8 +254,8 @@ export function ContractViewModal({
             {/* ── Company Details ────────────────────────────────────────── */}
             <Section title="Company Details" icon={Building} scale={scale} columns={2}>
                 <FieldItem label="Company Name" value={fmt(contract.company_details?.company_name ?? companyName)} icon={Building} scale={scale} />
-                <FieldItem label="Company Type" value={fmt(contract.company_details?.company_type)} icon={Briefcase} scale={scale} />
-                <FieldItem label="Country" value={fmt(contract.company_details?.company_flag)} icon={Globe} scale={scale} />
+                <FieldItem label="Company Type" value={fmt(contract.company_details?.company_type || contract.company_details?.company_type_name)} icon={Briefcase} scale={scale} />
+                <FieldItem label="Country" value={fmt(contract.company_details?.company_flag || contract.company_details?.company_flag_name)} icon={Globe} scale={scale} />
                 <FieldItem label="Contact Person" value={fmt(contract.company_details?.contact_person)} icon={User} scale={scale} />
                 <FieldItem label="Contact Email" value={fmt(contract.company_details?.contact_email)} icon={Mail} scale={scale} />
                 <FieldItem label="Status" value={fmt(contract.company_details?.status)} icon={CheckCircle2} scale={scale} />
@@ -429,6 +429,108 @@ export function ContractViewModal({
                         </Section>
                     )}
                 </>
+            )}
+
+            {/* Marine Courses */}
+            {contract.user_documents?.marine_courses?.length > 0 && (
+                <Section title="Marine Courses" icon={BookOpen} scale={scale} columns={1}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {/* Header row */}
+                        <div style={{
+                            display: "grid",
+                            gridTemplateColumns: "3fr 1fr 1fr",
+                            gap: "12px",
+                            padding: "6px 12px",
+                            background: "#EEF2FF",
+                            borderRadius: "8px",
+                            fontSize: `${Math.round(11 * scale)}px`,
+                            fontWeight: 700,
+                            color: "#4F46E5",
+                        }}>
+                            <span>Course Name</span>
+                            <span>Issue Date</span>
+                            <span>Expiry Date</span>
+                        </div>
+                        {contract.user_documents.marine_courses.map((course, idx) => (
+                            <div
+                                key={course.id ?? idx}
+                                style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "3fr 1fr 1fr",
+                                    gap: "12px",
+                                    padding: "10px 12px",
+                                    background: idx % 2 === 0 ? "#F9FAFB" : "#FFFFFF",
+                                    borderRadius: "8px",
+                                    border: "1px solid #E5E7EB",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <span style={{ fontSize: `${Math.round(12.5 * scale)}px`, fontWeight: 600, color: "#111827" }}>
+                                    {course.course_name}
+                                </span>
+                                <span style={{ fontSize: `${Math.round(12 * scale)}px`, color: "#374151" }}>
+                                    {fmtDate(course.issue_date)}
+                                </span>
+                                <span style={{ fontSize: `${Math.round(12 * scale)}px`, color: course.expiry_date ? "#374151" : "#9CA3AF" }}>
+                                    {fmtDate(course.expiry_date) !== "—" ? fmtDate(course.expiry_date) : "No Expiry"}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </Section>
+            )}
+
+            {/* Sea Service Records */}
+            {contract.user_documents.sea_service?.length > 0 && (
+                <Section title="Sea Service Records" icon={Anchor} scale={scale} columns={1}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {/* Header row */}
+                        <div style={{
+                            display: "grid",
+                            gridTemplateColumns: "3fr 1fr 1fr 1fr",
+                            gap: "12px",
+                            padding: "6px 12px",
+                            background: "#E0F2FE",
+                            borderRadius: "8px",
+                            fontSize: `${Math.round(11 * scale)}px`,
+                            fontWeight: 700,
+                            color: "#0369A1",
+                        }}>
+                            <span>Vessel Name</span>
+                            <span>Rank</span>
+                            <span>Signed On</span>
+                            <span>Signed Off</span>
+                        </div>
+                        {contract.user_documents.sea_service.map((service, idx) => (
+                            <div
+                                key={service.id ?? idx}
+                                style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "3fr 1fr 1fr 1fr",
+                                    gap: "12px",
+                                    padding: "10px 12px",
+                                    background: idx % 2 === 0 ? "#F9FAFB" : "#FFFFFF",
+                                    borderRadius: "8px",
+                                    border: "1px solid #E5E7EB",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <span style={{ fontSize: `${Math.round(12.5 * scale)}px`, fontWeight: 600, color: "#111827" }}>
+                                    {service.vessel_name}
+                                </span>
+                                <span style={{ fontSize: `${Math.round(12 * scale)}px`, color: "#374151" }}>
+                                    {fmt(service.rank_name ?? service.rank)}
+                                </span>
+                                <span style={{ fontSize: `${Math.round(12 * scale)}px`, color: "#374151" }}>
+                                    {fmtDate(service.signed_on)}
+                                </span>
+                                <span style={{ fontSize: `${Math.round(12 * scale)}px`, color: "#374151" }}>
+                                    {fmtDate(service.signed_off)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </Section>
             )}
 
             {/* Signed File (If available) */}
