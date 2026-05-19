@@ -26,11 +26,12 @@ const fmtDate = (d) => {
   }
 };
 
-const boolCheck = (obj) => {
-  if (!obj) return "—";
-  const found = Object.keys(obj).find((k) => obj[k] === true);
-  return found ? found.charAt(0).toUpperCase() + found.slice(1) : "—";
-};
+// Convert snake_case key like "english_language" → "English"
+const keyToLabel = (key) =>
+  key
+    .replace(/_language$/, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 const S = StyleSheet.create({
@@ -195,27 +196,42 @@ const Checkbox = ({ checked, label }) => (
 
 // ── Main Document ─────────────────────────────────────────────────────────────
 export const SeafarerApplicationPDF = ({ app, contract }) => {
-  const p1 = app?.["1_personal_details"] || {};
-  const p2 = app?.["2_education"] || {};
-  const p3 = app?.["3_contact_details"] || {};
-  const p4 = app?.["4_travel_documents"] || [];
-  const p5 = app?.["5_professional_qualification_certificate_of_competency"] || [];
-  const p6 = app?.["6_next_of_kin_emergency_contact"] || {};
-  const p7 = app?.["7_health_certificates_and_vaccinations"] || {};
-  const p8 = app?.["8_marine_courses"] || [];
-  const p9 = app?.["9_complete_sea_service_details"] || {};
+  // ── Top-level metadata sections ──────────────────────────────────────────
+  const docInfo   = app?.["document_info"]   || {};
+  const appHeader = app?.["application_header"] || {};
+
+  // ── Form sections ─────────────────────────────────────────────────────────
+  const p1  = app?.["1_personal_details"] || {};
+  const p2  = app?.["2_education"] || {};
+  const p3  = app?.["3_contact_details"] || {};
+  const p4  = app?.["4_travel_documents"] || [];
+  const p5  = app?.["5_professional_qualification_certificate_of_competency"] || [];
+  const p6  = app?.["6_next_of_kin_emergency_contact"] || {};
+  const p7  = app?.["7_health_certificates_and_vaccinations"] || {};
+  const p8  = app?.["8_marine_courses"] || [];
+  const p9  = app?.["9_complete_sea_service_details"] || {};
   const p10 = app?.["10_references"] || [];
   const p11 = app?.["11_declaration"] || {};
   const p12 = app?.["12_for_office_use_only"] || {};
 
-  const marline = p2.marline_test || {};
-  const english = p2.english_language || {};
-  const german = p2.german_language || {};
-  const covid = p7.covid_19 || {};
-  const healthCerts = p7.certificates || [];
-  const seaService = p9.service_records || [];
+  const marline       = p2.marline_test || {};
+  const healthCerts   = p7.certificates || [];
+  const covid         = p7.covid_19 || {};
+  const seaService    = p9.service_records || [];
   const applicantInfo = p9.applicant_info || {};
-  const declarationQ = p11.questions || {};
+  const declarationQ  = p11.questions || {};
+
+  // ── Dynamically detect all language fields in p2 ─────────────────────────
+  // Any key (besides college_school / marline_test) whose value is an object
+  // with fluent/good/average/poor boolean keys
+  const languages = Object.entries(p2).filter(
+    ([key, v]) =>
+      key !== "college_school" &&
+      key !== "marline_test" &&
+      typeof v === "object" &&
+      v !== null &&
+      ("fluent" in v || "good" in v || "average" in v || "poor" in v)
+  ).map(([key, v]) => ({ name: keyToLabel(key), ...v }));
 
   return (
     <Document
@@ -229,8 +245,12 @@ export const SeafarerApplicationPDF = ({ app, contract }) => {
         {/* ── HEADER ── */}
         <View style={S.headerBox}>
           <View style={S.headerLeft}>
-            <Text style={S.headerTitle}>SAKR MANNING AGENCY</Text>
-            <Text style={S.headerSub}>SEAFARER EMPLOYMENT APPLICATION FORM</Text>
+            <Text style={S.headerTitle}>{val(docInfo.agency_name, "SAKR MANNING AGENCY")}</Text>
+            {docInfo.description ? <Text style={S.headerSub}>{docInfo.description}</Text> : null}
+            {docInfo.manual_name ? (
+              <Text style={S.headerSub}>{docInfo.manual_name}  —  {val(docInfo.form_name)}</Text>
+            ) : null}
+            <Text style={S.headerSub}>Rev: {val(docInfo.revision)}  |  Page: {val(docInfo.page)}</Text>
             {contract?.id && (
               <Text style={[S.headerSub, { marginTop: 4 }]}>
                 Contract Ref: {contract.id}  |  Generated: {fmtDate(new Date().toISOString())}
@@ -240,6 +260,21 @@ export const SeafarerApplicationPDF = ({ app, contract }) => {
           <View style={S.headerRight}>
             <Text style={S.photoText}>PHOTO</Text>
           </View>
+        </View>
+
+        {/* ── APPLICATION HEADER ── */}
+        <SectionTitle>APPLICATION DETAILS</SectionTitle>
+        <View style={[S.row, { borderWidth: 0.5, borderColor: "#ccc" }]}>
+          <LabelValue label="Position Applied For" value={appHeader.application_for_position_as} flex={2} />
+          <LabelValue label="Register Code" value={appHeader.register_code} />
+          <LabelValue label="Other Position" value={appHeader.other_position_if_any} />
+        </View>
+        <View style={[S.row, { borderWidth: 0.5, borderTopWidth: 0, borderColor: "#ccc" }]}>
+          <LabelValue label="Issue Date" value={fmtDate(appHeader.issue_date)} />
+          <LabelValue label="Revision Date" value={fmtDate(appHeader.revision_date)} />
+          <LabelValue label="Register Date" value={fmtDate(appHeader.register_date)} />
+          <LabelValue label="Available From" value={fmtDate(appHeader.expected_salary_available_date)} />
+          <LabelValueNB label="Last Updated" value={val(appHeader.last_update_data)} />
         </View>
 
         {/* ── SECTION 1: PERSONAL DETAILS ── */}
@@ -283,26 +318,24 @@ export const SeafarerApplicationPDF = ({ app, contract }) => {
           <LabelValue label="Issued At" value={marline.issued_at} />
         </View>
 
-        <View style={[S.row, { borderWidth: 0.5, borderTopWidth: 0, borderColor: "#ccc" }]}>
-          <View style={[S.cell, { flex: 2 }]}>
-            <Text style={S.label}>English Language</Text>
-            <View style={{ flexDirection: "row", marginTop: 2 }}>
-              <Checkbox checked={english.fluent} label="Fluent" />
-              <Checkbox checked={english.good} label="Good" />
-              <Checkbox checked={english.average} label="Average" />
-              <Checkbox checked={english.poor} label="Poor" />
-            </View>
+        {languages.length > 0 && (
+          <View style={[S.row, { borderWidth: 0.5, borderTopWidth: 0, borderColor: "#ccc" }]}>
+            {languages.map((lang, i) => {
+              const isLast = i === languages.length - 1;
+              return (
+                <View key={i} style={[isLast ? S.cellNoBorder : S.cell, { flex: 1 }]}>
+                  <Text style={S.label}>{lang.name} Language</Text>
+                  <View style={{ flexDirection: "row", marginTop: 2 }}>
+                    <Checkbox checked={lang.fluent} label="Fluent" />
+                    <Checkbox checked={lang.good} label="Good" />
+                    <Checkbox checked={lang.average} label="Avg" />
+                    <Checkbox checked={lang.poor} label="Poor" />
+                  </View>
+                </View>
+              );
+            })}
           </View>
-          <View style={[S.cellNoBorder, { flex: 2 }]}>
-            <Text style={S.label}>German Language</Text>
-            <View style={{ flexDirection: "row", marginTop: 2 }}>
-              <Checkbox checked={german.fluent} label="Fluent" />
-              <Checkbox checked={german.good} label="Good" />
-              <Checkbox checked={german.average} label="Average" />
-              <Checkbox checked={german.poor} label="Poor" />
-            </View>
-          </View>
-        </View>
+        )}
 
         {/* ── SECTION 3: CONTACT DETAILS ── */}
         <SectionTitle>3. CONTACT DETAILS</SectionTitle>
@@ -375,29 +408,33 @@ export const SeafarerApplicationPDF = ({ app, contract }) => {
         <SectionTitle>7. HEALTH CERTIFICATES & VACCINATIONS</SectionTitle>
         <View style={[{ borderWidth: 0.5, borderColor: "#ccc" }]}>
           <View style={S.tableHeader}>
-            {["Flag State / Type", "Number", "Issue Date", "Expiry Date", "Issued By", "Issued At"].map((h) => (
-              <Text key={h} style={S.th}>{h}</Text>
+            {["Certificate / Type", "Number", "Issue Date", "Expiry Date", "1st Dose", "Last Dose", "Issued By", "Issued At"].map((h) => (
+              <Text key={h} style={[S.th, { flex: h === "Certificate / Type" ? 2 : 1 }]}>{h}</Text>
             ))}
           </View>
           {healthCerts.map((cert, i) => (
             <View key={i} style={S.tableRow}>
-              <Text style={S.td}>{val(cert.flag_state)}</Text>
+              <Text style={[S.td, { flex: 2 }]}>{val(cert.flag_state)}</Text>
               <Text style={S.td}>{val(cert.number)}</Text>
               <Text style={S.td}>{fmtDate(cert.issue_date)}</Text>
               <Text style={S.td}>{fmtDate(cert.expiry_date)}</Text>
+              <Text style={S.td}>{cert.first_dose ? fmtDate(cert.first_dose) : "—"}</Text>
+              <Text style={S.td}>{cert.last_dose ? fmtDate(cert.last_dose) : "—"}</Text>
               <Text style={S.td}>{val(cert.issued_by)}</Text>
               <Text style={S.td}>{val(cert.issued_at)}</Text>
             </View>
           ))}
         </View>
 
-        {/* COVID-19 */}
-        <View style={[S.row, { borderWidth: 0.5, borderTopWidth: 0, borderColor: "#ccc" }]}>
-          <LabelValue label="COVID-19 Vaccine" value={covid.vaccination_name} />
-          <LabelValue label="1st Dose" value={fmtDate(covid.first_dose)} />
-          <LabelValue label="2nd Dose" value={fmtDate(covid.second_dose)} />
-          <LabelValue label="Remarks" value={covid.other_does_or_remarks} flex={2} />
-        </View>
+        {/* COVID-19 (if present) */}
+        {(covid.vaccination_name || covid.first_dose || covid.second_dose) && (
+          <View style={[S.row, { borderWidth: 0.5, borderTopWidth: 0, borderColor: "#ccc" }]}>
+            <LabelValue label="COVID-19 Vaccine" value={covid.vaccination_name} />
+            <LabelValue label="1st Dose" value={fmtDate(covid.first_dose)} />
+            <LabelValue label="2nd Dose" value={fmtDate(covid.second_dose)} />
+            <LabelValue label="Remarks" value={covid.other_does_or_remarks} flex={2} />
+          </View>
+        )}
 
         {/* ── SECTION 8: MARINE COURSES ── */}
         <SectionTitle>8. MARINE COURSES</SectionTitle>
