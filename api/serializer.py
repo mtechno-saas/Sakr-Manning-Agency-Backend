@@ -198,6 +198,11 @@ class UserMeSerializer(serializers.ModelSerializer):
             
         return True
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['first_name'] = f"{instance.first_name} {instance.middle_name}".strip()
+        return representation
+
 
 # =====================
 # COMPANY SERIALIZERS
@@ -1704,6 +1709,17 @@ class UsersSerializer(serializers.ModelSerializer):
         }
 
     def to_internal_value(self, data):
+        if 'first_name' in data:
+            full_name = str(data.get('first_name') or '').strip()
+            if ' ' in full_name:
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                parts = full_name.split(' ', 1)
+                data['first_name'] = parts[0]
+                data['middle_name'] = parts[1] if len(parts) > 1 else ''
+
         # Pre-process 'application_for_position' if it's a list or an ID
         if 'application_for_position' in data:
             val = data.get('application_for_position')
@@ -1740,6 +1756,8 @@ class UsersSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Override to ensure proper serialization of nested fields"""
         representation = super().to_representation(instance)
+        # Combine first_name and middle_name for the frontend which binds full_name to first_name
+        representation['first_name'] = f"{instance.first_name} {instance.middle_name}".strip()
 
         # Hide generated_id for non-privileged users
         request = self.context.get('request')
@@ -1935,6 +1953,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def to_internal_value(self, data):
+        if 'first_name' in data:
+            full_name = str(data.get('first_name') or '').strip()
+            if ' ' in full_name:
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                parts = full_name.split(' ', 1)
+                data['first_name'] = parts[0]
+                data['middle_name'] = parts[1] if len(parts) > 1 else ''
+
         # Pre-process 'application_for_position' if it's a list or an ID
         if 'application_for_position' in data:
             val = data.get('application_for_position')
