@@ -1572,7 +1572,7 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
         full_name = self._safe_get(personal_details, 'Full_Name', 'name')
         if full_name:
             parts = full_name.split()
-            return ' '.join(parts[1:-1]) if len(parts) > 2 else ''
+            return ' '.join(parts[1:]) if len(parts) > 1 else ''
         return ''
     
     def get_profile_image(self, obj):
