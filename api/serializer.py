@@ -1245,6 +1245,30 @@ class ContractSerializer(serializers.ModelSerializer):
                     'error': f"Applicant {user.first_name} is already assigned to a ship during this period (From {ec_start} to {ec_end}). Overlapping Contract ID: {ec.id}"
                 })
 
+    @staticmethod
+    def parse_salary_value(salary_str):
+        if not salary_str:
+            return None
+        import re
+        match = re.match(r'^([\d\.,]+)', str(salary_str).strip())
+        if match:
+            val = match.group(1).replace(',', '')
+            try:
+                return float(val)
+            except ValueError:
+                pass
+        return None
+
+    @staticmethod
+    def parse_salary_currency(salary_str):
+        if not salary_str:
+            return None
+        salary_str = str(salary_str).strip().upper()
+        for currency in ['USD', 'EUR', 'GBP', 'EGP']:
+            if currency in salary_str:
+                return currency
+        return None
+
     def create(self, validated_data):
         # Extract Seafarer Application fields
         seafarer_fields = [
@@ -1299,11 +1323,29 @@ class ContractSerializer(serializers.ModelSerializer):
                 
                 if cv_sub.job_position:
                     validated_data['job_position'] = cv_sub.job_position
-                    # Auto-fill salary from job_position max salary if not explicitly provided
-                    if 'salary' not in validated_data and cv_sub.job_position.salary_max:
+                    
+                # Auto-fill salary from CV submission expected salary (user.salary) or fallback to job_position.salary_max
+                if 'salary' not in validated_data or validated_data['salary'] is None:
+                    user_sal = None
+                    if cv_sub.user and cv_sub.user.salary:
+                        user_sal = self.parse_salary_value(cv_sub.user.salary)
+                    
+                    if user_sal is not None:
+                        validated_data['salary'] = user_sal
+                    elif cv_sub.job_position and cv_sub.job_position.salary_max:
                         validated_data['salary'] = cv_sub.job_position.salary_max
-                    if 'currency' not in validated_data and cv_sub.job_position.currency:
+
+                # Auto-fill currency from CV submission expected salary currency or fallback to job_position.currency
+                if 'currency' not in validated_data or validated_data['currency'] is None:
+                    user_currency = None
+                    if cv_sub.user and cv_sub.user.salary:
+                        user_currency = self.parse_salary_currency(cv_sub.user.salary)
+                    
+                    if user_currency:
+                        validated_data['currency'] = user_currency
+                    elif cv_sub.job_position and cv_sub.job_position.currency:
                         validated_data['currency'] = cv_sub.job_position.currency
+
             except CVSubmission.DoesNotExist:
                 raise ValidationError({'error': f'CV Submission with id {cv_sub_id} not found.'})
         
@@ -1344,6 +1386,13 @@ class ContractSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         repr = super().to_representation(instance)
         repr['ship_name'] = instance.ship.ship_name if instance.ship else None
+        
+        # Ensure salary is equal to user expected salary (from CV submission/user profile) if contract salary is null
+        if (repr.get('salary') is None or repr.get('salary') == '') and instance.user:
+            user_sal = self.parse_salary_value(instance.user.salary)
+            if user_sal is not None:
+                repr['salary'] = f"{user_sal:.2f}"
+                
         return repr
 
     def update(self, instance, validated_data):
