@@ -1135,11 +1135,17 @@ class NextOfKin(models.Model):
 class PersonalDocument(models.Model):
     """Travel/Personal Documents"""
     DOCUMENT_TYPE_CHOICES = [
+        ("Australian Visa Crew", "Australian Visa Crew"),
         ("Bahamas Seaman's Book", "Bahamas Seaman's Book"),
         ("Belize Seaman's Book", "Belize Seaman's Book"),
         ("Bermuda Seaman's Book", "Bermuda Seaman's Book"),
+        ("Brazil", "Brazil"),
+        ("China", "China"),
+        ("Cyprus", "Cyprus"),
         ("Eu National Id", "Eu National Id"),
         ("Exit Interview", "Exit Interview"),
+        ("Germany Visa D", "Germany Visa D"),
+        ("Italian Visa D", "Italian Visa D"),
         ("Liberian Seaman's Book", "Liberian Seaman's Book"),
         ("Local Id Card", "Local Id Card"),
         ("Luxembourg Seaman's Book", "Luxembourg Seaman's Book"),
@@ -1150,10 +1156,16 @@ class PersonalDocument(models.Model):
         ("Permesso Soggiorno Temporaneo", "Permesso Soggiorno Temporaneo"),
         ("Personal Record Sheet", "Personal Record Sheet"),
         ("Residence Certificate", "Residence Certificate"),
+        ("Saudi Arabia", "Saudi Arabia"),
+        ("Schengen Visa", "Schengen Visa"),
         ("Seafarers' Id. Doc. Ilo 185", "Seafarers' Id. Doc. Ilo 185"),
         ("Seaman's Book", "Seaman's Book"),
         ("Seaman's Book/Card Or Id", "Seaman's Book/Card Or Id"),
+        ("Turkey", "Turkey"),
         ("U.K. Seaman's Book", "U.K. Seaman's Book"),
+        ("UAE", "UAE"),
+        ("US Visa B1/B2", "US Visa B1/B2"),
+        ("US Visa C1/D", "US Visa C1/D"),
     ]
 
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='personal_documents')
