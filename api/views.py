@@ -1963,6 +1963,20 @@ def get_coc_choices(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def get_document_types(request):
+    """
+    Return all available personal/travel document type choices.
+    GET /api/document-types/
+    """
+    choices = [
+        {"value": value, "label": label}
+        for value, label in PersonalDocument.DOCUMENT_TYPE_CHOICES
+    ]
+    return Response(choices)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_flags(request):
     """
     Return all available maritime flag states from dynamic core.models.Flag.
