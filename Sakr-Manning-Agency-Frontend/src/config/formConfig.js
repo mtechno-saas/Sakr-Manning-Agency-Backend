@@ -326,6 +326,18 @@ export const DOCUMENT_TYPE_OPTIONS = [
     { value: "Seaman's Book", label: "Seaman's Book" },
     { value: "Seaman's Book/Card Or Id", label: "Seaman's Book/Card or ID" },
     { value: "U.K. Seaman's Book", label: "U.K. Seaman's Book" },
+    { value: "Australian Visa Crew", label: "Australian Visa Crew" },
+    { value: "Brazil", label: "Brazil_Visa" },
+    { value: "China", label: "China_Visa" },
+    { value: "Cyprus", label: "Cyprus_Visa" },
+    { value: "Germany Visa D", label: "Germany Visa D" },
+    { value: "Italian Visa D", label: "Italian Visa D" },
+    { value: "Saudi Arabia", label: "Saudi Arabia_Visa" },
+    { value: "Schengen Visa", label: "Schengen Visa" },
+    { value: "Turkey", label: "Turkey_Visa" },
+    { value: "UAE", label: "UAE_Visa" },
+    { value: "US Visa B1/B2", label: "US Visa B1/B2" },
+    { value: "US Visa C1/D", label: "US Visa C1/D" },
 ];
 
 /**
