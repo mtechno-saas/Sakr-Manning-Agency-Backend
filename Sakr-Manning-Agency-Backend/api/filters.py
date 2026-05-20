@@ -67,6 +67,7 @@
 
 
 import django_filters
+from django.db.models import Q
 from .models import Users, Company, Interview, CVSubmission
 from finance.models import FinanceRecord
 
@@ -81,10 +82,31 @@ class UsersFilter(django_filters.FilterSet):
     rank_name = django_filters.CharFilter(field_name="codes__name", lookup_expr="icontains")
     assigned_code = django_filters.CharFilter(field_name="user_ranks__assigned_code", lookup_expr="icontains")
     role = django_filters.CharFilter(field_name="role", lookup_expr="iexact")
+    
+    # New filters for rank and job (positions/contracts)
+    position = django_filters.CharFilter(method="filter_position")
+    job_position_name = django_filters.CharFilter(field_name="contracts__rank__name", lookup_expr="icontains")
+    
+    # Contract/Company/Ship relations
+    company = django_filters.NumberFilter(field_name="contracts__company__id", lookup_expr="exact")
+    company_name = django_filters.CharFilter(field_name="contracts__company__company_name", lookup_expr="icontains")
+    ship = django_filters.NumberFilter(field_name="contracts__ship__id", lookup_expr="exact")
+    ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
+    contract_status = django_filters.CharFilter(field_name="contracts__status", lookup_expr="iexact")
 
     class Meta:
         model = Users
-        fields = ["name", "age", "marital_status", "user_status", "nationality", "nearest_port", "role"]
+        fields = [
+            "name", "age", "marital_status", "user_status", "nationality", 
+            "nearest_port", "role", "position", "job_position_name", 
+            "company", "company_name", "ship", "ship_name", "contract_status"
+        ]
+
+    def filter_position(self, queryset, name, value):
+        return queryset.filter(
+            Q(codes__name__icontains=value) |
+            Q(application_position__name__icontains=value)
+        ).distinct()
 
 
 class CompanyFilter(django_filters.FilterSet):
