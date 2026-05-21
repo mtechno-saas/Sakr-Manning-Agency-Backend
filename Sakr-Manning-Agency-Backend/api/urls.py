@@ -79,6 +79,8 @@ from .views import (
     add_user_rank,
     remove_user_certificate,
     remove_user_rank,
+    UserDocumentDownloadView,
+    UserCertificateDownloadView,
 )
 
 router = DefaultRouter()
@@ -104,7 +106,7 @@ urlpatterns = [
     path('filter/', get_filter_users, name='get_filter_users'),
     path('users/<int:pk>/', user_detail, name='user-detail'),
     path('users/<int:user_id>/assign-rank/<int:rank_id>/', assign_rank, name='assign-rank'),
-    
+
     # User-specific certificate and rank endpoints
     path('users/<int:user_id>/certificates/', get_user_certificates, name='user-certificates'),
     path('users/<int:user_id>/ranks/', get_user_ranks, name='user-ranks'),
@@ -112,4 +114,12 @@ urlpatterns = [
     path('users/<int:user_id>/ranks/add/', add_user_rank, name='add-user-rank'),
     path('users/<int:user_id>/certificates/<int:certificate_id>/remove/', remove_user_certificate, name='remove-user-certificate'),
     path('users/<int:user_id>/ranks/<int:rank_id>/remove/', remove_user_rank, name='remove-user-rank'),
+
+    # Document download endpoints (Admin/HR/Recruiter access)
+    # GET /api/users/{user_id}/download/{doc_type}/
+    # doc_type: passport | seaman_book | other_seaman_book | marlins_test | ces_test | profile_image
+    path('users/<int:user_id>/download/<str:doc_type>/', UserDocumentDownloadView.as_view(), name='user-document-download'),
+
+    # GET /api/users/{user_id}/download/certificate/{cert_id}/
+    path('users/<int:user_id>/download/certificate/<int:cert_id>/', UserCertificateDownloadView.as_view(), name='user-certificate-download'),
 ]
