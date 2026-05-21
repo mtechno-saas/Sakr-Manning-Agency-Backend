@@ -528,6 +528,29 @@ class FinanceRecordSerializer(serializers.ModelSerializer):
 
 
 # =====================
+# USER CERTIFICATE SERIALIZER
+# =====================
+
+class UserCertificateSerializer(serializers.ModelSerializer):
+    certificate_name = serializers.CharField(source='certificate_type.name', read_only=True, default=None)
+    certificate_file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserCertificate
+        fields = [
+            'id', 'document_name', 'certificate_name', 'document_number',
+            'country_of_issue', 'issue_date', 'expiry_date',
+            'issued_by', 'issued_at', 'category', 'certificate_file_url'
+        ]
+
+    def get_certificate_file_url(self, obj):
+        request = self.context.get('request')
+        if obj.certificate_file and request:
+            return request.build_absolute_uri(obj.certificate_file.url)
+        return None
+
+
+# =====================
 # CV SUBMISSION SERIALIZERS
 # =====================
 
@@ -559,6 +582,9 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     salary = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True)
     available_date = serializers.DateField(write_only=True, required=False, allow_null=True)
 
+    # Document fields
+    user_documents = serializers.SerializerMethodField()
+
     class Meta:
         model = CVSubmission
         fields = [
@@ -569,10 +595,84 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'status', 'submitted_date',
             'reviewed_by', 'reviewed_by_name', 'reviewed_date',
             'notes', 'rating', 'created_at', 'updated_at',
-            'salary', 'available_date'
+            'salary', 'available_date',
+            'user_documents',
         ]
         extra_kwargs = {
             'user': {'required': False}
+        }
+
+    def _build_file_url(self, file_field):
+        """Build absolute URL for a file field."""
+        request = self.context.get('request')
+        if file_field and request:
+            return request.build_absolute_uri(file_field.url)
+        return None
+
+    def get_user_documents(self, obj):
+        """Return all downloadable document links for the user."""
+        user = obj.user
+        if not user:
+            return {}
+
+        # Travel Documents
+        travel_documents = []
+        if getattr(user, 'passport_file', None):
+            travel_documents.append({
+                'type': 'Passport',
+                'number': user.passport_no or '',
+                'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
+                'file_url': self._build_file_url(user.passport_file),
+            })
+        if getattr(user, 'seaman_book_file', None):
+            travel_documents.append({
+                'type': 'Seaman Book',
+                'number': user.seaman_book_no or '',
+                'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
+                'file_url': self._build_file_url(user.seaman_book_file),
+            })
+        if getattr(user, 'other_seaman_book_file', None):
+            travel_documents.append({
+                'type': 'Other Seaman Book',
+                'number': user.other_seaman_book_no or '',
+                'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
+                'file_url': self._build_file_url(user.other_seaman_book_file),
+            })
+
+        # Marlins Test
+        marlins = None
+        if getattr(user, 'marlins_test_file', None):
+            marlins = {
+                'result': user.marlins_test_result or '',
+                'issued_date': str(user.marlins_test_issued_date) if user.marlins_test_issued_date else None,
+                'issued_by': user.marlins_test_issued_by or '',
+                'issued_at': user.marlins_test_issued_at or '',
+                'file_url': self._build_file_url(user.marlins_test_file),
+            }
+
+        # CES Test
+        ces = None
+        if getattr(user, 'ces_test_file', None):
+            ces = {
+                'result': getattr(user, 'ces_test_result', '') or '',
+                'issued_date': str(user.ces_test_issued_date) if getattr(user, 'ces_test_issued_date', None) else None,
+                'issued_by': getattr(user, 'ces_test_issued_by', '') or '',
+                'issued_at': getattr(user, 'ces_test_issued_at', '') or '',
+                'file_url': self._build_file_url(user.ces_test_file),
+            }
+
+        # Licenses (from UserCertificate)
+        licenses = UserCertificateSerializer(
+            user.user_certificates.all(),
+            many=True,
+            context=self.context
+        ).data
+
+        return {
+            'travel_documents': travel_documents,
+            'marlins_test': marlins,
+            'ces_test': ces,
+            'licenses': licenses,
         }
 
     def to_representation(self, instance):
@@ -749,6 +849,10 @@ class UsersSerializer(serializers.ModelSerializer):
             'disease_history', 'accident_history', 'psychiatric_treatment_history', 'addiction_history',
             'declaration_consent', 'declaration_date', 'declaration_place',
             'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
+            # Document Files
+            'passport_file', 'seaman_book_file', 'other_seaman_book_file',
+            'marlins_test_file',
+            'ces_test_result', 'ces_test_issued_date', 'ces_test_issued_by', 'ces_test_issued_at', 'ces_test_file',
             # Relationships
             'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services',
             'sea_services_data', 'references_data'
