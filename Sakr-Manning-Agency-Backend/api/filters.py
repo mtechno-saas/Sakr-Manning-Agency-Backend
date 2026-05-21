@@ -85,6 +85,7 @@ class UsersFilter(django_filters.FilterSet):
     
     # New filters for rank and job (positions/contracts)
     position = django_filters.CharFilter(method="filter_position")
+    position_name = django_filters.CharFilter(method="filter_position")
     job_position_name = django_filters.CharFilter(field_name="contracts__rank__name", lookup_expr="icontains")
     
     # Contract/Company/Ship relations
@@ -98,7 +99,7 @@ class UsersFilter(django_filters.FilterSet):
         model = Users
         fields = [
             "name", "age", "marital_status", "user_status", "nationality", 
-            "nearest_port", "role", "position", "job_position_name", 
+            "nearest_port", "role", "position", "position_name", "job_position_name", 
             "company", "company_name", "ship", "ship_name", "contract_status"
         ]
 
