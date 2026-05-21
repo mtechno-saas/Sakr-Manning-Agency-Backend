@@ -1437,8 +1437,8 @@ class DataMapperService:
         else:
             return {
                 "first_name": name_parts[0],
-                "middle_name": " ".join(name_parts[1:]),
-                "last_name": ""
+                "middle_name": "",
+                "last_name": " ".join(name_parts[1:])
             }
     
     @staticmethod
@@ -1538,7 +1538,8 @@ class DataMapperService:
             # Authentication & Basic Info
             'email': personal_details.get('email', '') or contact_details.get('email', ''),
             'first_name': name_parts['first_name'],
-            'middle_name': name_parts['middle_name'],
+            'middle_name': '',
+            'last_name': name_parts['last_name'],
             
             # Personal Info
             'age': age,

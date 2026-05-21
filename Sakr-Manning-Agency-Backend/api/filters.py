@@ -73,7 +73,7 @@ from finance.models import FinanceRecord
 
 
 class UsersFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name="first_name", lookup_expr="icontains")
+    name = django_filters.CharFilter(method="filter_name")
     age = django_filters.NumberFilter(field_name="age", lookup_expr="exact")
     marital_status = django_filters.CharFilter(field_name="marital_status", lookup_expr="iexact")
     user_status = django_filters.CharFilter(field_name="user_status", lookup_expr="iexact")
@@ -102,6 +102,13 @@ class UsersFilter(django_filters.FilterSet):
             "nearest_port", "role", "position", "position_name", "job_position_name", 
             "company", "company_name", "ship", "ship_name", "contract_status"
         ]
+
+    def filter_name(self, queryset, name, value):
+        return queryset.filter(
+            Q(first_name__icontains=value) |
+            Q(last_name__icontains=value) |
+            Q(email__icontains=value)
+        ).distinct()
 
     def filter_position(self, queryset, name, value):
         return queryset.filter(
@@ -177,7 +184,38 @@ class CVSubmissionFilter(django_filters.FilterSet):
     status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
     submitted_date_from = django_filters.DateFilter(field_name="submitted_date", lookup_expr="gte")
     submitted_date_to = django_filters.DateFilter(field_name="submitted_date", lookup_expr="lte")
+    
+    name = django_filters.CharFilter(method="filter_name")
+    position_name = django_filters.CharFilter(method="filter_position_name")
+    company_name = django_filters.CharFilter(method="filter_company_name")
+    rank_name = django_filters.CharFilter(method="filter_rank_name")
 
     class Meta:
         model = CVSubmission
-        fields = ["user", "position", "status"]
+        fields = ["user", "position", "status", "name", "position_name", "company_name", "rank_name"]
+
+    def filter_name(self, queryset, name, value):
+        return queryset.filter(
+            Q(user__first_name__icontains=value) |
+            Q(user__last_name__icontains=value) |
+            Q(user__email__icontains=value)
+        ).distinct()
+
+    def filter_position_name(self, queryset, name, value):
+        return queryset.filter(
+            Q(position__name__icontains=value) |
+            Q(user__user_ranks__rank__name__icontains=value) |
+            Q(user__application_position__name__icontains=value)
+        ).distinct()
+
+    def filter_company_name(self, queryset, name, value):
+        return queryset.filter(
+            Q(company__company_name__icontains=value) |
+            Q(user__contracts__company__company_name__icontains=value)
+        ).distinct()
+
+    def filter_rank_name(self, queryset, name, value):
+        return queryset.filter(
+            Q(position__name__icontains=value) |
+            Q(user__user_ranks__rank__name__icontains=value)
+        ).distinct()
