@@ -290,6 +290,34 @@ from tickets_papers.models import Ticket, TravelingPaper
 from ships.serializers import ShipSerializer
 
 
+
+def get_user_full_name(user):
+    """
+    Return a single clean full name for a user.
+    Works with both old model (middle_name) and new model (last_name).
+    Deduplicates if first_name accidentally contains the full name.
+    """
+    if user is None:
+        return ""
+    first = (user.first_name or "").strip()
+    # Prefer last_name; fall back to middle_name for older server deployments
+    last = (getattr(user, 'last_name', '') or '').strip()
+    if not last:
+        last = (getattr(user, 'middle_name', '') or '').strip()
+
+    parts = first.split()
+    if len(parts) > 1:
+        if last and first.lower().endswith(last.lower()):
+            # first_name accidentally contains the full name — strip the duplicate
+            first = first[:-len(last)].strip() or parts[0]
+        elif not last:
+            # No surname at all — split first word as first, rest as last
+            first = parts[0]
+            last = ' '.join(parts[1:])
+
+    return f"{first} {last}".strip()
+
+
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
@@ -496,7 +524,7 @@ class FinanceRecordSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}".strip()
+        return get_user_full_name(obj.user)
 
 
 # =====================
@@ -519,7 +547,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}".strip()
+        return get_user_full_name(obj.user)
 
 
 class CVSubmissionSerializer(serializers.ModelSerializer):
@@ -584,7 +612,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         return instance
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}".strip()
+        return get_user_full_name(obj.user)
 
 
 # =====================
@@ -606,7 +634,7 @@ class ContractListSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}".strip()
+        return get_user_full_name(obj.user)
 
 
 class ContractSerializer(serializers.ModelSerializer):
@@ -631,7 +659,7 @@ class ContractSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}".strip()
+        return get_user_full_name(obj.user)
 
 
 # =====================
@@ -730,46 +758,26 @@ class UsersSerializer(serializers.ModelSerializer):
             'password': {'write_only': True, 'required': False}
         }
 
-    @staticmethod
-    def _clean_name_parts(first_name, last_name):
-        """Return clean (first, last) ensuring last is not duplicated inside first."""
-        first = (first_name or '').strip()
-        last = (last_name or '').strip()
-
-        if not last:
-            # If no last name, split the first name
-            parts = first.split()
-            if len(parts) > 1:
-                first = parts[0]
-                last = ' '.join(parts[1:])
-            return first, last
-
-        # Deduplicate: if first ends with last, strip it
-        first_lower = first.lower()
-        last_lower = last.lower()
-        if first_lower.endswith(last_lower) and len(first_lower) > len(last_lower):
-            first = first[:-len(last)].strip()
-            if not first:
-                parts = (first_name or '').strip().split()
-                first = parts[0] if parts else ''
-
-        return first, last
-
     def get_name(self, obj):
-        """Return a clean, deduplicated full name."""
-        first, last = self._clean_name_parts(obj.first_name, obj.last_name)
-        return f"{first} {last}".strip()
+        """Return a clean, deduplicated full name (same format as CV submissions)."""
+        return get_user_full_name(obj)
 
     def to_representation(self, instance):
         """Override to ensure proper serialization of nested fields"""
         representation = super().to_representation(instance)
 
-        # Clean first_name / last_name in case server DB is not yet migrated
-        clean_first, clean_last = self._clean_name_parts(
-            instance.first_name, instance.last_name
-        )
-        representation['first_name'] = clean_first
-        representation['last_name'] = clean_last
+        # Always show a clean name regardless of DB state
+        representation['name'] = get_user_full_name(instance)
+        # Expose clean first/last for the frontend
+        representation['first_name'] = (instance.first_name or '').strip().split()[0] if instance.first_name else ''
+        last = (getattr(instance, 'last_name', '') or '').strip()
+        if not last:
+            last = (getattr(instance, 'middle_name', '') or '').strip()
+        # If first_name stored full name and last is a subset of it, derive last from first
+        first_raw = (instance.first_name or '').strip()
+        if not last and len(first_raw.split()) > 1:
+            last = ' '.join(first_raw.split()[1:])
+        representation['last_name'] = last
 
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
@@ -980,8 +988,4 @@ class DeclarationSerializer(serializers.ModelSerializer):
     
     def get_user_name(self, obj):
         """Return full name of the user"""
-        if not obj.user:
-            return ""
-        first = obj.user.first_name or ""
-        last = getattr(obj.user, 'last_name', '') or ""
-        return f"{first} {last}".strip()
+        return get_user_full_name(obj.user)
