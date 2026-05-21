@@ -607,36 +607,48 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         return None
 
     def get_user_documents(self, obj):
-        """Return all downloadable document links for the user."""
+        """Return all downloadable document links uploaded by the employee."""
         user = obj.user
         if not user:
             return {}
 
-        # Travel Documents
+        # ── Profile Image ─────────────────────────────────────────────────────
+        profile_image_url = self._build_file_url(user.profile_image) if getattr(user, 'profile_image', None) else None
+
+        # ── Travel Documents ──────────────────────────────────────────────────
         travel_documents = []
         if getattr(user, 'passport_file', None):
             travel_documents.append({
                 'type': 'Passport',
                 'number': user.passport_no or '',
+                'issue_date': str(user.passport_issue_date) if user.passport_issue_date else None,
                 'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
+                'issued_by': user.passport_issued_by or '',
+                'place_of_issue': user.passport_place_of_issue or '',
                 'file_url': self._build_file_url(user.passport_file),
             })
         if getattr(user, 'seaman_book_file', None):
             travel_documents.append({
                 'type': 'Seaman Book',
                 'number': user.seaman_book_no or '',
+                'issue_date': str(user.seaman_book_issue_date) if user.seaman_book_issue_date else None,
                 'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
+                'issued_by': user.seaman_book_issued_by or '',
+                'place_of_issue': user.seaman_book_place_of_issue or '',
                 'file_url': self._build_file_url(user.seaman_book_file),
             })
         if getattr(user, 'other_seaman_book_file', None):
             travel_documents.append({
                 'type': 'Other Seaman Book',
                 'number': user.other_seaman_book_no or '',
+                'issue_date': str(user.other_seaman_book_issue_date) if user.other_seaman_book_issue_date else None,
                 'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
+                'issued_by': user.other_seaman_book_issued_by or '',
+                'place_of_issue': user.other_seaman_book_place_of_issue or '',
                 'file_url': self._build_file_url(user.other_seaman_book_file),
             })
 
-        # Marlins Test
+        # ── Marlins Test ──────────────────────────────────────────────────────
         marlins = None
         if getattr(user, 'marlins_test_file', None):
             marlins = {
@@ -647,7 +659,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'file_url': self._build_file_url(user.marlins_test_file),
             }
 
-        # CES Test
+        # ── CES Test ──────────────────────────────────────────────────────────
         ces = None
         if getattr(user, 'ces_test_file', None):
             ces = {
@@ -658,19 +670,28 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'file_url': self._build_file_url(user.ces_test_file),
             }
 
-        # Licenses (from UserCertificate)
-        licenses = UserCertificateSerializer(
-            user.user_certificates.all(),
+        # ── Certificates & Courses (from UserCertificate) ─────────────────────
+        all_user_certs = user.user_certificates.select_related('certificate_type', 'rank').all()
+        certificates = UserCertificateSerializer(
+            all_user_certs.filter(category='Certificate'),
+            many=True,
+            context=self.context
+        ).data
+        courses = UserCertificateSerializer(
+            all_user_certs.filter(category='Course'),
             many=True,
             context=self.context
         ).data
 
         return {
+            'profile_image': profile_image_url,
             'travel_documents': travel_documents,
             'marlins_test': marlins,
             'ces_test': ces,
-            'licenses': licenses,
+            'certificates': certificates,
+            'courses': courses,
         }
+
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
