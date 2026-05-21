@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = '__all__'
+        exclude = ['middle_name']
 
     def get_is_online(self, obj):
         # Check cache for user activity
