@@ -391,7 +391,7 @@ class UserMeSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "first_name",
-            "middle_name",
+            "last_name",
             "profile_image",
             "role",
             "cv_status",
@@ -471,7 +471,7 @@ class InterviewCalendarSerializer(serializers.ModelSerializer):
         ]
 
     def get_candidate_name(self, obj):
-        return f"{obj.candidate.first_name} {obj.candidate.middle_name}".strip()
+        return f"{obj.candidate.first_name} {obj.candidate.last_name}".strip()
 
 
 # =====================
@@ -496,7 +496,7 @@ class FinanceRecordSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return f"{obj.user.first_name} {obj.user.last_name}".strip()
 
 
 # =====================
@@ -519,7 +519,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return f"{obj.user.first_name} {obj.user.last_name}".strip()
 
 
 class CVSubmissionSerializer(serializers.ModelSerializer):
@@ -584,7 +584,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         return instance
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return f"{obj.user.first_name} {obj.user.last_name}".strip()
 
 
 # =====================
@@ -606,7 +606,7 @@ class ContractListSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return f"{obj.user.first_name} {obj.user.last_name}".strip()
 
 
 class ContractSerializer(serializers.ModelSerializer):
@@ -631,7 +631,7 @@ class ContractSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return f"{obj.user.first_name} {obj.user.last_name}".strip()
 
 
 # =====================
@@ -682,7 +682,7 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = [
-            'id', 'email', 'first_name', 'middle_name', 'password',
+            'id', 'email', 'first_name', 'last_name', 'password',
             'profile_image', 'age', 'blood_type', 'smoker', 'us_visa_status',
             'schengen_visa_status', 'date_of_birth', 'marital_status', 'user_status',
             'nationality', 'Place_Of_Birth', 'Nearest_Port', 'Height_Cm', 'Weight_Kg',
@@ -864,7 +864,7 @@ class UsersSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ('email', 'password', 'first_name')
+        fields = ('email', 'password', 'first_name', 'last_name')
 
         extra_kwargs = {
             "password": {"write_only": True},
@@ -884,7 +884,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = Users.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
-            first_name=validated_data['first_name']
+            first_name=validated_data['first_name'],
+            last_name=validated_data.get('last_name', '')
         )
         return user
 
@@ -942,6 +943,5 @@ class DeclarationSerializer(serializers.ModelSerializer):
         if not obj.user:
             return ""
         first = obj.user.first_name or ""
-        middle = obj.user.middle_name or ""
         last = getattr(obj.user, 'last_name', '') or ""
-        return f"{first} {middle} {last}".strip()
+        return f"{first} {last}".strip()
