@@ -645,6 +645,9 @@ class UsersSerializer(serializers.ModelSerializer):
     references = ReferenceSerializer(many=True, read_only=True)
     sea_services = SeaServiceSerializer(many=True, read_only=True)
 
+    # Computed clean full name (deduplicates first_name/last_name)
+    name = serializers.SerializerMethodField()
+
     # Write-only fields for accepting lists of IDs during create/update
     rank_ids = serializers.ListField(
         child=serializers.CharField(),
@@ -682,7 +685,7 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = [
-            'id', 'email', 'first_name', 'last_name', 'password',
+            'id', 'email', 'name', 'first_name', 'last_name', 'password',
             'profile_image', 'age', 'blood_type', 'smoker', 'us_visa_status',
             'schengen_visa_status', 'date_of_birth', 'marital_status', 'user_status',
             'nationality', 'Place_Of_Birth', 'Nearest_Port', 'Height_Cm', 'Weight_Kg',
@@ -727,9 +730,46 @@ class UsersSerializer(serializers.ModelSerializer):
             'password': {'write_only': True, 'required': False}
         }
 
+    @staticmethod
+    def _clean_name_parts(first_name, last_name):
+        """Return clean (first, last) ensuring last is not duplicated inside first."""
+        first = (first_name or '').strip()
+        last = (last_name or '').strip()
+
+        if not last:
+            # If no last name, split the first name
+            parts = first.split()
+            if len(parts) > 1:
+                first = parts[0]
+                last = ' '.join(parts[1:])
+            return first, last
+
+        # Deduplicate: if first ends with last, strip it
+        first_lower = first.lower()
+        last_lower = last.lower()
+        if first_lower.endswith(last_lower) and len(first_lower) > len(last_lower):
+            first = first[:-len(last)].strip()
+            if not first:
+                parts = (first_name or '').strip().split()
+                first = parts[0] if parts else ''
+
+        return first, last
+
+    def get_name(self, obj):
+        """Return a clean, deduplicated full name."""
+        first, last = self._clean_name_parts(obj.first_name, obj.last_name)
+        return f"{first} {last}".strip()
+
     def to_representation(self, instance):
         """Override to ensure proper serialization of nested fields"""
         representation = super().to_representation(instance)
+
+        # Clean first_name / last_name in case server DB is not yet migrated
+        clean_first, clean_last = self._clean_name_parts(
+            instance.first_name, instance.last_name
+        )
+        representation['first_name'] = clean_first
+        representation['last_name'] = clean_last
 
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
