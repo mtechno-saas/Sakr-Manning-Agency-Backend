@@ -79,18 +79,18 @@ class UsersFilter(django_filters.FilterSet):
     user_status = django_filters.CharFilter(field_name="user_status", lookup_expr="iexact")
     nationality = django_filters.CharFilter(field_name="nationality", lookup_expr="icontains")
     nearest_port = django_filters.CharFilter(field_name="Nearest_Port", lookup_expr="icontains")
-    rank_name = django_filters.CharFilter(field_name="codes__name", lookup_expr="icontains")
+    rank_name = django_filters.CharFilter(method="filter_rank_name")
     assigned_code = django_filters.CharFilter(field_name="user_ranks__assigned_code", lookup_expr="icontains")
     role = django_filters.CharFilter(field_name="role", lookup_expr="iexact")
     
     # New filters for rank and job (positions/contracts)
     position = django_filters.CharFilter(method="filter_position")
     position_name = django_filters.CharFilter(method="filter_position")
-    job_position_name = django_filters.CharFilter(field_name="contracts__rank__name", lookup_expr="icontains")
+    job_position_name = django_filters.CharFilter(method="filter_job_position_name")
     
     # Contract/Company/Ship relations
-    company = django_filters.NumberFilter(field_name="contracts__company__id", lookup_expr="exact")
-    company_name = django_filters.CharFilter(field_name="contracts__company__company_name", lookup_expr="icontains")
+    company = django_filters.NumberFilter(method="filter_company")
+    company_name = django_filters.CharFilter(method="filter_company_name")
     ship = django_filters.NumberFilter(field_name="contracts__ship__id", lookup_expr="exact")
     ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
     contract_status = django_filters.CharFilter(field_name="contracts__status", lookup_expr="iexact")
@@ -106,7 +106,32 @@ class UsersFilter(django_filters.FilterSet):
     def filter_position(self, queryset, name, value):
         return queryset.filter(
             Q(codes__name__icontains=value) |
-            Q(application_position__name__icontains=value)
+            Q(application_position__name__icontains=value) |
+            Q(cv_submissions__position__name__icontains=value)
+        ).distinct()
+
+    def filter_job_position_name(self, queryset, name, value):
+        return queryset.filter(
+            Q(contracts__rank__name__icontains=value) |
+            Q(cv_submissions__position__name__icontains=value)
+        ).distinct()
+
+    def filter_company(self, queryset, name, value):
+        return queryset.filter(
+            Q(contracts__company__id=value) |
+            Q(cv_submissions__company__id=value)
+        ).distinct()
+
+    def filter_company_name(self, queryset, name, value):
+        return queryset.filter(
+            Q(contracts__company__company_name__icontains=value) |
+            Q(cv_submissions__company__company_name__icontains=value)
+        ).distinct()
+
+    def filter_rank_name(self, queryset, name, value):
+        return queryset.filter(
+            Q(codes__name__icontains=value) |
+            Q(cv_submissions__position__name__icontains=value)
         ).distinct()
 
 
