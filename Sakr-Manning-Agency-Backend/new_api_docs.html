@@ -417,7 +417,7 @@ th {
   {
     "email": "captain@example.com",
     "first_name": "James",
-    "middle_name": "Robert",
+    "last_name": "Robert",
     "phone_number": "+1234567890",
     "nationality": "Egypt",
     "date_of_birth": "1985-05-15",
@@ -1143,7 +1143,7 @@ th {
 <p><strong>Authentication &amp; Basic Info</strong>:</p>
 <ul>
 <li><code>email</code> (EmailField, unique) - Login credential</li>
-<li><code>first_name</code>, <code>middle_name</code> (CharField)</li>
+<li><code>first_name</code>, <code>last_name</code> (CharField)</li>
 <li><code>profile_image</code> (ImageField)</li>
 </ul>
 <p><strong>Personal Information</strong>:</p>
@@ -1347,7 +1347,7 @@ curl -X PATCH http://127.0.0.1:8000/api/users/1/ \
   -H &quot;Authorization: Bearer &lt;access_token&gt;&quot; \
   -H &quot;Content-Type: application/json&quot; \
   -d '{
-    &quot;middle_name&quot;: &quot;Robert&quot;,
+    &quot;last_name&quot;: &quot;Robert&quot;,
     &quot;phone_number&quot;: &quot;+20123456789&quot;,
     &quot;nationality&quot;: &quot;Egypt&quot;,
     &quot;date_of_birth&quot;: &quot;1980-05-15&quot;,
