@@ -315,7 +315,8 @@ from .serializer import (
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
     CVSubmissionSerializer, CVSubmissionListSerializer,
-    UserCertificateSerializer, DeclarationSerializer
+    UserCertificateSerializer, DeclarationSerializer,
+    get_user_full_name
 )
 from .filters import UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, CompanyFilter
 from .permissions import (
@@ -936,7 +937,7 @@ def get_user_certificates(request, user_id):
     serializer = CertificateSerializer(certificates, many=True)
     return Response({
         "user_id": user_id,
-        "user_name": f"{user.first_name} {user.middle_name}",
+        "user_name": get_user_full_name(user),
         "certificates": serializer.data
     })
 
@@ -956,7 +957,7 @@ def get_user_ranks(request, user_id):
     serializer = UserRankSerializer(user_ranks, many=True)
     return Response({
         "user_id": user_id,
-        "user_name": f"{user.first_name} {user.middle_name}",
+        "user_name": get_user_full_name(user),
         "ranks": serializer.data
     })
 
@@ -983,7 +984,7 @@ def add_user_certificate(request, user_id):
     
     user.certificates.add(certificate)
     return Response({
-        "message": f"Certificate '{certificate.name}' added to user {user.first_name} {user.middle_name}",
+        "message": f"Certificate '{certificate.name}' added to user {get_user_full_name(user)}",
         "certificate": CertificateSerializer(certificate).data
     }, status=status.HTTP_201_CREATED)
 
@@ -1014,7 +1015,7 @@ def add_user_rank(request, user_id):
     user_rank = UserRank.objects.create(user=user, rank=rank)
     serializer = UserRankSerializer(user_rank)
     return Response({
-        "message": f"Rank '{rank.name}' added to user {user.first_name} {user.middle_name}",
+        "message": f"Rank '{rank.name}' added to user {get_user_full_name(user)}",
         "user_rank": serializer.data
     }, status=status.HTTP_201_CREATED)
 
@@ -1035,7 +1036,7 @@ def remove_user_certificate(request, user_id, certificate_id):
     
     user.certificates.remove(certificate)
     return Response({
-        "message": f"Certificate '{certificate.name}' removed from user {user.first_name} {user.middle_name}"
+        "message": f"Certificate '{certificate.name}' removed from user {get_user_full_name(user)}"
     }, status=status.HTTP_200_OK)
 
 
@@ -1057,7 +1058,7 @@ def remove_user_rank(request, user_id, rank_id):
         user_rank = UserRank.objects.get(user=user, rank=rank)
         user_rank.delete()
         return Response({
-            "message": f"Rank '{rank.name}' removed from user {user.first_name} {user.middle_name}"
+            "message": f"Rank '{rank.name}' removed from user {get_user_full_name(user)}"
         }, status=status.HTTP_200_OK)
     except UserRank.DoesNotExist:
         return Response({"error": "User does not have this rank"}, status=status.HTTP_404_NOT_FOUND)

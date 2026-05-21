@@ -219,14 +219,14 @@ class UsersAdmin(admin.ModelAdmin):
     form = UsersAdminForm
     list_display = ('email', 'first_name', 'role', 'is_staff', 'is_active', 'created_at')
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'role', 'marital_status', 'nationality')
-    search_fields = ('email', 'first_name', 'middle_name')
+    search_fields = ('email', 'first_name', 'last_name')
     ordering = ('email',)
     readonly_fields = ('created_at', 'updated_at', 'last_login')
     filter_horizontal = ('certificates', 'codes')
 
     fieldsets = (
         ('Personal Info', {
-            'fields': ('first_name', 'middle_name', 'email', 'profile_image', 'age', 'date_of_birth', 'marital_status')
+            'fields': ('first_name', 'last_name', 'email', 'profile_image', 'age', 'date_of_birth', 'marital_status')
         }),
         ('Contact Information', {
             'fields': ('phone_number', 'tel_number', 'address', 'nationality', 'Place_Of_Birth', 'Nearest_Port')

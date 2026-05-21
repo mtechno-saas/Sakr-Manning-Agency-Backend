@@ -300,10 +300,7 @@ def get_user_full_name(user):
     if user is None:
         return ""
     first = (user.first_name or "").strip()
-    # Prefer last_name; fall back to middle_name for older server deployments
     last = (getattr(user, 'last_name', '') or '').strip()
-    if not last:
-        last = (getattr(user, 'middle_name', '') or '').strip()
 
     parts = first.split()
     if len(parts) > 1:
@@ -875,8 +872,6 @@ class UsersSerializer(serializers.ModelSerializer):
         # Expose clean first/last for the frontend
         representation['first_name'] = (instance.first_name or '').strip().split()[0] if instance.first_name else ''
         last = (getattr(instance, 'last_name', '') or '').strip()
-        if not last:
-            last = (getattr(instance, 'middle_name', '') or '').strip()
         # If first_name stored full name and last is a subset of it, derive last from first
         first_raw = (instance.first_name or '').strip()
         if not last and len(first_raw.split()) > 1:
