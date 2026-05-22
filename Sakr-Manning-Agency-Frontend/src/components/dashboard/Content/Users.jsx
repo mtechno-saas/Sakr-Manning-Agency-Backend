@@ -466,7 +466,7 @@ export function UserManagement({ scale = 1, isMobile }) {
       {
         key: "status",
         title: "status",
-        width: 100,
+        width: 160,
         sortable: true,
         isStatus: true,
         headerAlign: "center",
