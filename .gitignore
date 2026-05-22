@@ -1,4 +1,4 @@
-# No files are ignored
+t# No files are ignored
 __pycache__/
 *.pyc
 *.pyo
@@ -8,3 +8,4 @@ __pycache__/
 *.sqlite3
 django_project/
 db.sqlite3
+Sakr-Manning-Agency-Backend/

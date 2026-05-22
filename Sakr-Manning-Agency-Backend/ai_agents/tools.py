@@ -1,6 +1,6 @@
 # ai_agents/tools.py
-from langchain.agents import Tool
-from langchain.tools import StructuredTool
+from langchain_core.tools import Tool
+from langchain_core.tools import StructuredTool
 from langchain_community.tools import DuckDuckGoSearchRun, WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
 from pydantic import BaseModel, Field
@@ -8,24 +8,31 @@ import requests
 import json
 from datetime import datetime
 import re
+import uuid
 
 # --- Free Search Tools (No API Keys Required) ---
 
 # DuckDuckGo Search
 duckduckgo = DuckDuckGoSearchRun()
 
+def run_duckduckgo(query: str) -> str:
+    return duckduckgo.run(query)
+
 websearch_tool = Tool(
     name="WebSearch",
-    func=duckduckgo.run,
+    func=run_duckduckgo,
     description="Search the web for current information, news, facts, and general queries. Use this for real-time information and recent events."
 )
 
 # Wikipedia Search
 wikipedia = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
 
+def run_wikipedia(query: str) -> str:
+    return wikipedia.run(query)
+
 wikipedia_tool = Tool(
     name="WikipediaSearch",
-    func=wikipedia.run,
+    func=run_wikipedia,
     description="Search Wikipedia for detailed information about topics, people, places, concepts, and historical facts. Great for comprehensive background information."
 )
 

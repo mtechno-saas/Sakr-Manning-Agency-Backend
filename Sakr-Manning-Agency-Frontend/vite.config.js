@@ -8,7 +8,7 @@ export default defineConfig({
     historyApiFallback: true,
     proxy: {
       "/ai": {
-        target: "https://api.backend.hs.vc",
+        target: "https://backend.sakrshipping.com",
         changeOrigin: true,
         secure: true,
       },

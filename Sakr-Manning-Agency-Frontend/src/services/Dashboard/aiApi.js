@@ -5,7 +5,7 @@ import { handleApiError } from "../Auth/handlers.js";
 
 // Create separate axios instance for AI endpoints (without /api/ prefix)
 const aiApiInstance = axios.create({
-  baseURL: "https://api.backend.hs.vc", // No /api/ here
+  baseURL: "https://backend.sakrshipping.com", // No /api/ here
   timeout: 1500000, // 1500 seconds : 25 minutes
   headers: {
     "Content-Type": "application/json",

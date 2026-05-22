@@ -62,9 +62,9 @@ class Ship(models.Model):
     ]
 
     # --- Core Information ---
-    ship_name = models.CharField(max_length=200)
-    imo_number = models.CharField(max_length=10, unique=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='ships')
+    ship_name = models.CharField(max_length=200, null=True, blank=True)
+    imo_number = models.CharField(max_length=10, unique=True, null=True, blank=True)
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True, related_name='ships')
     crew = models.ManyToManyField(Users, related_name='ships', blank=True)
 
     # --- Fields from Figma (New & Updated) ---
@@ -80,21 +80,21 @@ class Ship(models.Model):
         null=True,
         related_name='ships'
     )
-    official_no = models.CharField(max_length=50, blank=True)
-    call_sign = models.CharField(max_length=20, blank=True)
-    mmsi_no = models.CharField(max_length=50, blank=True)
-    port_of_registry = models.CharField(max_length=100, blank=True)
+    official_no = models.CharField(max_length=50, null=True, blank=True)
+    call_sign = models.CharField(max_length=20, null=True, blank=True)
+    mmsi_no = models.CharField(max_length=50, null=True, blank=True)
+    port_of_registry = models.CharField(max_length=100, null=True, blank=True)
 
     # --- Technical Details ---
-    gross_tonnage = models.PositiveIntegerField(default=0)
-    deadweight = models.PositiveIntegerField(default=0, help_text="in metric tons")
+    gross_tonnage = models.PositiveIntegerField(default=0, null=True, blank=True)
+    deadweight = models.PositiveIntegerField(default=0, help_text="in metric tons", null=True, blank=True)
     year_built = models.PositiveIntegerField(null=True, blank=True)
-    builder = models.CharField(max_length=200, blank=True)
-    engine_type = models.CharField(max_length=100, blank=True)
-    engine_power_kw = models.PositiveIntegerField(default=0, verbose_name="Engine Power (KW)")
+    builder = models.CharField(max_length=200, null=True, blank=True)
+    engine_type = models.CharField(max_length=100, null=True, blank=True)
+    engine_power_kw = models.PositiveIntegerField(default=0, verbose_name="Engine Power (KW)", null=True, blank=True)
 
     # --- Status & Timestamps ---
-    status = models.CharField(max_length=20, choices=SHIP_STATUS, default='Active')
+    status = models.CharField(max_length=20, choices=SHIP_STATUS, default='Active', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

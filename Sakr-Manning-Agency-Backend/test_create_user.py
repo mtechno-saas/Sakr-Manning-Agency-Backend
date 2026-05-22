@@ -17,7 +17,7 @@ test_user_data = {
     "email": "captain@example.com",
     "password": "SecurePassword123!",  # Added password field
     "first_name": "James",
-    "middle_name": "Robert",
+    "last_name": "Robert",
     "phone_number": "+1234567890",
     "nationality": "Egypt",
     "date_of_birth": "1985-05-15",

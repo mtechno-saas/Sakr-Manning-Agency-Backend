@@ -71,8 +71,9 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
     def _parse_date(self, date_str):
         if not date_str:
             return None
-        if isinstance(date_str, (datetime, datetime.date)):
-            return date_str
+        from datetime import date
+        if isinstance(date_str, (datetime, date)):
+            return date_str if isinstance(date_str, date) else date_str.date()
         for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%Y'):
             try:
                 return datetime.strptime(str(date_str), fmt).date()
@@ -114,7 +115,14 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
             instance.register_code = header.get('register_code', instance.register_code)
             instance.other_position = header.get('other_position_if_any', instance.other_position)
             instance.register_date = self._parse_date(header.get('register_date'))
-            instance.available_date = self._parse_date(header.get('expected_salary_available_date'))
+            
+            if 'expected_salary' in header:
+                instance.salary = header.get('expected_salary')
+            
+            if 'available_date' in header:
+                instance.available_date = self._parse_date(header.get('available_date'))
+            elif 'expected_salary_available_date' in header:
+                instance.available_date = self._parse_date(header.get('expected_salary_available_date'))
 
         # 2. Education
         edu = validated_data.get('education', {})
@@ -156,25 +164,49 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         # 4. Travel Documents
         travel = validated_data.get('travel_documents', [])
         for t in travel:
-            t_type = t.get('type', '').lower()
-            if 'passport' in t_type:
+            t_type = t.get('type', '')
+            if not t_type:
+                continue
+            t_type_lower = t_type.lower()
+            if 'passport' in t_type_lower:
                 instance.passport_no = t.get('document_no', instance.passport_no)
                 instance.passport_issue_date = self._parse_date(t.get('iss_date'))
                 instance.passport_expiry_date = self._parse_date(t.get('exp_date'))
                 instance.passport_issued_by = t.get('iss_by_authority', instance.passport_issued_by)
                 instance.passport_place_of_issue = t.get('place_of_issue', instance.passport_place_of_issue)
-            elif 'seaman book' in t_type and 'other' not in t_type:
+            elif 'seaman book' in t_type_lower and 'other' not in t_type_lower:
                 instance.seaman_book_no = t.get('document_no', instance.seaman_book_no)
                 instance.seaman_book_issue_date = self._parse_date(t.get('iss_date'))
                 instance.seaman_book_expiry_date = self._parse_date(t.get('exp_date'))
                 instance.seaman_book_issued_by = t.get('iss_by_authority', instance.seaman_book_issued_by)
                 instance.seaman_book_place_of_issue = t.get('place_of_issue', instance.seaman_book_place_of_issue)
-            elif 'other seaman book' in t_type:
+            elif 'other seaman book' in t_type_lower:
                 instance.other_seaman_book_no = t.get('document_no', instance.other_seaman_book_no)
                 instance.other_seaman_book_issue_date = self._parse_date(t.get('iss_date'))
                 instance.other_seaman_book_expiry_date = self._parse_date(t.get('exp_date'))
                 instance.other_seaman_book_issued_by = t.get('iss_by_authority', instance.other_seaman_book_issued_by)
                 instance.other_seaman_book_place_of_issue = t.get('place_of_issue', instance.other_seaman_book_place_of_issue)
+            else:
+                # Find matching choice in PersonalDocument choices to use its exact model choice capitalization
+                matching_choice = None
+                for choice_val, _ in PersonalDocument.DOCUMENT_TYPE_CHOICES:
+                    if choice_val.lower() == t_type.lower():
+                        matching_choice = choice_val
+                        break
+                
+                if matching_choice:
+                    PersonalDocument.objects.update_or_create(
+                        user=instance,
+                        document_type=matching_choice,
+                        defaults={
+                            'document_number': t.get('document_no'),
+                            'issue_date': self._parse_date(t.get('iss_date')),
+                            'expiry_date': self._parse_date(t.get('exp_date')),
+                            'issued_by': t.get('iss_by_authority'),
+                            'place_of_issue': t.get('place_of_issue'),
+                            'issuing_country': t.get('issuing_country', '')
+                        }
+                    )
 
         # 5. Professional Qualification
         prof = validated_data.get('professional_qualification', [])
@@ -206,36 +238,43 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         health = validated_data.get('health_certificates', {})
         if health:
             certs = health.get('certificates', [])
+            # Use delete and recreate pattern to sync with frontend list
+            instance.vaccinations.all().delete()
+            
             for c in certs:
-                f_state = c.get('flag_state', '').lower()
-                v_name = ""
-                if 'international' in f_state:
-                    v_name = "Medical"
+                f_state = c.get('flag_state', '')
+                if not f_state: continue
+                
+                fs_lower = f_state.lower()
+                # Sync to legacy fields on User model if keyword matches
+                if 'international' in fs_lower or 'medical' in fs_lower:
                     instance.international_medical_number = c.get('number', instance.international_medical_number)
                     instance.international_medical_issue_date = self._parse_date(c.get('issue_date'))
                     instance.international_medical_expiry_date = self._parse_date(c.get('expiry_date'))
                     instance.health_issued_by = c.get('issued_by', instance.health_issued_by)
                     instance.health_issued_at = c.get('issued_at', instance.health_issued_at)
-                elif 'yellow fever' in f_state:
-                    v_name = "Yellow Fever"
+                elif 'yellow fever' in fs_lower:
                     instance.yellow_fever_number = c.get('number', instance.yellow_fever_number)
                     instance.yellow_fever_issue_date = self._parse_date(c.get('issue_date'))
                     instance.yellow_fever_expiry_date = self._parse_date(c.get('expiry_date'))
-                elif 'cholera' in f_state:
-                    v_name = "Cholera"
+                elif 'cholera' in fs_lower:
                     instance.cholera_number = c.get('number', instance.cholera_number)
                     instance.cholera_issue_date = self._parse_date(c.get('issue_date'))
                     instance.cholera_expiry_date = self._parse_date(c.get('expiry_date'))
                 
-                # Also sync to Vaccination model for full detail storage (issued_by/at)
-                if v_name:
-                    vacc, _ = Vaccination.objects.get_or_create(user=instance, name=v_name)
-                    vacc.number = c.get('number', vacc.number)
-                    vacc.issue_date = self._parse_date(c.get('issue_date'))
-                    vacc.expiry_date = self._parse_date(c.get('expiry_date'))
-                    vacc.issued_by = c.get('issued_by', vacc.issued_by)
-                    vacc.issued_at = c.get('issued_at', vacc.issued_at)
-                    vacc.save()
+                # Save to Vaccination model
+                Vaccination.objects.create(
+                    user=instance,
+                    name=f_state,
+                    number=c.get('number', ''),
+                    issue_date=self._parse_date(c.get('issue_date')),
+                    expiry_date=self._parse_date(c.get('expiry_date')),
+                    issued_by=c.get('issued_by', ''),
+                    issued_at=c.get('issued_at', ''),
+                    first_date=self._parse_date(c.get('first_dose')),
+                    last_date=self._parse_date(c.get('last_dose')),
+                    remarks=c.get('remarks', '')
+                )
             
             covid = health.get('covid_19', {})
             if covid:
@@ -259,8 +298,8 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                     course_number=c.get('number', ''),
                     issue_date=self._parse_date(c.get('issue_date')),
                     expiry_date=self._parse_date(c.get('expiry_date')),
-                    issued_by=c.get('issued_by_at', '').split('/')[0].strip() if '/' in c.get('issued_by_at', '') else c.get('issued_by_at', ''),
-                    issued_at=c.get('issued_by_at', '').split('/')[1].strip() if '/' in c.get('issued_by_at', '') else ''
+                    issued_by=c.get('issued_by', ''),
+                    issued_at=c.get('issued_at', '')
                 )
 
         # 9. Sea Service
@@ -307,10 +346,49 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         decl = validated_data.get('declaration', {})
         if decl:
             qs = decl.get('questions', {})
-            instance.disease_history = qs.get('suffer_disease_unfit_for_sea', {}).get('details', '')
-            instance.declaration_place = decl.get('place', instance.declaration_place)
-            instance.declaration_date = self._parse_date(decl.get('date'))
-            # Others can be added similarly
+            suffer_disease = qs.get('suffer_disease_unfit_for_sea', {})
+            addicted = qs.get('addicted_to_alcohol_or_drugs', {})
+            accident = qs.get('suffer_accident_disabled', {})
+            psychiatric = qs.get('undergo_psychiatric_treatment', {})
+
+            disease_ans = suffer_disease.get('answer', 'NO') == 'YES'
+            disease_det = suffer_disease.get('details', '')
+            addicted_ans = addicted.get('answer', 'NO') == 'YES'
+            addicted_det = addicted.get('details', '')
+            accident_ans = accident.get('answer', 'NO') == 'YES'
+            accident_det = accident.get('details', '')
+            psychiatric_ans = psychiatric.get('answer', 'NO') == 'YES'
+            psychiatric_det = psychiatric.get('details', '')
+
+            place = decl.get('place', '')
+            date_val = self._parse_date(decl.get('date'))
+
+            # Update User instance directly
+            instance.disease_history = disease_det if disease_ans else ''
+            instance.addiction_history = addicted_det if addicted_ans else ''
+            instance.accident_history = accident_det if accident_ans else ''
+            instance.psychiatric_treatment_history = psychiatric_det if psychiatric_ans else ''
+            instance.declaration_place = place
+            instance.declaration_date = date_val
+
+            # Also create/update a Declaration model record to ensure database integrity
+            from api.models import Declaration
+            Declaration.objects.update_or_create(
+                user=instance,
+                defaults={
+                    'has_disease': disease_ans,
+                    'disease_details': disease_det,
+                    'has_accident': accident_ans,
+                    'accident_details': accident_det,
+                    'has_psychiatric_treatment': psychiatric_ans,
+                    'psychiatric_treatment_details': psychiatric_det,
+                    'has_addiction': addicted_ans,
+                    'addiction_details': addicted_det,
+                    'consent_given': True,
+                    'declaration_place': place,
+                    'declaration_date': date_val
+                }
+            )
 
         # 12. Office Use
         office = validated_data.get('for_office_use_only', {})
@@ -362,7 +440,8 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
             "other_position_if_any": obj.other_position if obj.other_position else "",
             "register_date": obj.register_date if obj.register_date else "",
             "last_update_data": obj.last_updated_date.strftime("%Y-%m-%d %H:%M") if obj.last_updated_date else "",
-            "expected_salary_available_date": obj.available_date if obj.available_date else ""
+            "expected_salary": obj.salary if obj.salary else "",
+            "available_date": obj.available_date if obj.available_date else ""
         }
 
     def get_personal_details(self, obj):
@@ -461,6 +540,20 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         else:
             docs.append({"type": "Other Seaman Book", "document_no": "", "iss_date": "", "exp_date": "", "iss_by_authority": "", "place_of_issue": ""})
             
+        # Append PersonalDocument records (Visas, IDs, etc.)
+        for pd in obj.personal_documents.all():
+            docs.append({
+                "id": pd.id,
+                "type": pd.document_type,
+                "document_no": pd.document_number if pd.document_number else "",
+                "iss_date": pd.issue_date if pd.issue_date else "",
+                "exp_date": pd.expiry_date if pd.expiry_date else "",
+                "iss_by_authority": pd.issued_by if pd.issued_by else "",
+                "place_of_issue": pd.place_of_issue if pd.place_of_issue else "",
+                "issuing_country": pd.issuing_country if pd.issuing_country else "",
+                "file_url": pd.file.url if pd.file else None
+            })
+            
         return docs
 
     def get_professional_qualification(self, obj):
@@ -510,50 +603,23 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         }
 
     def get_health_certificates(self, obj):
-        # Helper to find vaccination details by name
-        def find_vaccine(name_query):
-            v = obj.vaccinations.filter(name__icontains=name_query).first()
-            if v:
-                return {
-                    "number": v.number or "",
-                    "issue_date": v.issue_date or "",
-                    "expiry_date": v.expiry_date or "",
-                    "issued_by": v.issued_by or "",
-                    "issued_at": v.issued_at or ""
-                }
-            return None
-
-        # Build certificates list
-        med = find_vaccine("Medical") or {
-            "number": obj.international_medical_number or "",
-            "issue_date": obj.international_medical_issue_date or "",
-            "expiry_date": obj.international_medical_expiry_date or "",
-            "issued_by": obj.health_issued_by or "",
-            "issued_at": obj.health_issued_at or ""
-        }
-        
-        yf = find_vaccine("Yellow Fever") or {
-            "number": obj.yellow_fever_number or "",
-            "issue_date": obj.yellow_fever_issue_date or "",
-            "expiry_date": obj.yellow_fever_expiry_date or "",
-            "issued_by": "",
-            "issued_at": ""
-        }
-
-        cho = find_vaccine("Cholera") or {
-            "number": obj.cholera_number or "",
-            "issue_date": obj.cholera_issue_date or "",
-            "expiry_date": obj.cholera_expiry_date or "",
-            "issued_by": "",
-            "issued_at": ""
-        }
+        vaccs = obj.vaccinations.all()
+        certs = []
+        for v in vaccs:
+            certs.append({
+                "flag_state": v.name,
+                "number": v.number or "",
+                "issue_date": v.issue_date or "",
+                "expiry_date": v.expiry_date or "",
+                "issued_by": v.issued_by or "",
+                "issued_at": v.issued_at or "",
+                "first_dose": v.first_date or "",
+                "last_dose": v.last_date or "",
+                "remarks": v.remarks or ""
+            })
 
         return {
-            "certificates": [
-                {"flag_state": "International Medical", **med},
-                {"flag_state": "Yellow Fever", **yf},
-                {"flag_state": "Cholera", **cho}
-            ],
+            "certificates": certs,
             "covid_19": {
                 "vaccination_name": obj.covid_vaccine_name or "",
                 "first_dose": obj.covid_first_dose or "",
@@ -571,23 +637,57 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                 "number": c.course_number,
                 "issue_date": c.issue_date if c.issue_date else "",
                 "expiry_date": c.expiry_date if c.expiry_date else "",
-                "issued_by_at": f"{c.issued_by} / {c.issued_at}".strip(" / ")
+                "issued_by": c.issued_by or "",
+                "issued_at": c.issued_at or ""
             })
         return result
 
     def get_sea_service_details(self, obj):
+        from core.models import Flag, VesselType
+        from api.models import Rank
+
         services = obj.sea_services.all()
         records = []
         for s in services:
+            # Resolve rank_name
+            rank_name = ""
+            if s.rank:
+                if s.rank.isdigit():
+                    rank_obj = Rank.objects.filter(id=int(s.rank)).first()
+                    rank_name = rank_obj.name if rank_obj else s.rank
+                else:
+                    rank_name = s.rank
+
+            # Resolve flag_name
+            flag_name = ""
+            if s.flag:
+                if s.flag.isdigit():
+                    flag_obj = Flag.objects.filter(id=int(s.flag)).first()
+                    flag_name = flag_obj.name if flag_obj else s.flag
+                else:
+                    flag_name = s.flag
+
+            # Resolve vessel_type_name
+            vessel_type_name = ""
+            if s.vessel_type:
+                if s.vessel_type.isdigit():
+                    vt_obj = VesselType.objects.filter(id=int(s.vessel_type)).first()
+                    vessel_type_name = vt_obj.name if vt_obj else s.vessel_type
+                else:
+                    vessel_type_name = s.vessel_type
+
             records.append({
                 "company_name": s.company_name,
                 "rank": s.rank,
+                "rank_name": rank_name,
                 "vessel_name_imo_number": f"{s.vessel_name} / {s.imo_number}".strip(" / "),
                 "flag": s.flag,
+                "flag_name": flag_name,
                 "signed_on": s.signed_on if s.signed_on else "",
                 "signed_off": s.signed_off if s.signed_off else "",
                 "period": s.period,
                 "vessel_type": s.vessel_type,
+                "vessel_type_name": vessel_type_name,
                 "dwt_grt": f"{s.dwt} / {s.grt}".strip(" / "),
                 "engine_type": s.engine_type,
                 "bh_kw": f"{s.bh} / {s.kw}".strip(" / "),
@@ -617,16 +717,50 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         return result
 
     def get_declaration(self, obj):
+        # Fallback fields on User model:
+        disease_ans = True if obj.disease_history else False
+        disease_det = obj.disease_history or ""
+        addicted_ans = True if obj.addiction_history else False
+        addicted_det = obj.addiction_history or ""
+        accident_ans = True if obj.accident_history else False
+        accident_det = obj.accident_history or ""
+        psychiatric_ans = True if obj.psychiatric_treatment_history else False
+        psychiatric_det = obj.psychiatric_treatment_history or ""
+        place = obj.declaration_place or ""
+        date = obj.declaration_date
+
+        # Check if the user has a linked Declaration model record (take the latest one)
+        latest_decl = obj.declarations.order_by('-created_at').first()
+        if latest_decl:
+            disease_ans = latest_decl.has_disease
+            disease_det = latest_decl.disease_details or ""
+            addicted_ans = latest_decl.has_addiction
+            addicted_det = latest_decl.addiction_details or ""
+            accident_ans = latest_decl.has_accident
+            accident_det = latest_decl.accident_details or ""
+            psychiatric_ans = latest_decl.has_psychiatric_treatment
+            psychiatric_det = latest_decl.psychiatric_treatment_details or ""
+            place = latest_decl.declaration_place or ""
+            date = latest_decl.declaration_date
+
+        import datetime
+        date_str = ""
+        if date:
+            if isinstance(date, (datetime.date, datetime.datetime)):
+                date_str = date.strftime('%Y-%m-%d')
+            else:
+                date_str = str(date)
+
         return {
             "questions": {
-                "suffer_disease_unfit_for_sea": {"answer": "YES" if obj.disease_history else "NO", "details": obj.disease_history or ""},
-                "addicted_to_alcohol_or_drugs": {"answer": "YES" if obj.addiction_history else "NO"},
-                "suffer_accident_disabled": {"answer": "YES" if obj.accident_history else "NO"},
-                "undergo_psychiatric_treatment": {"answer": "YES" if obj.psychiatric_treatment_history else "NO"}
+                "suffer_disease_unfit_for_sea": {"answer": "YES" if disease_ans else "NO", "details": disease_det},
+                "addicted_to_alcohol_or_drugs": {"answer": "YES" if addicted_ans else "NO", "details": addicted_det},
+                "suffer_accident_disabled": {"answer": "YES" if accident_ans else "NO", "details": accident_det},
+                "undergo_psychiatric_treatment": {"answer": "YES" if psychiatric_ans else "NO", "details": psychiatric_det}
             },
             "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
-            "place": obj.declaration_place if obj.declaration_place else "",
-            "date": obj.declaration_date if obj.declaration_date else "",
+            "place": place,
+            "date": date_str,
             "signature": ""
         }
 

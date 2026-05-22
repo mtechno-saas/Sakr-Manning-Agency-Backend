@@ -1313,7 +1313,7 @@ import os
 
 class DocumentUploadSerializer(serializers.Serializer):
     """Validate file uploads."""
-    file = serializers.FileField()
+    file = serializers.FileField(required=False, allow_null=True)
     
     def validate_file(self, value):
         """Validate file type and size."""
@@ -1477,7 +1477,7 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
     
     ranks = RankSerializer(many=True, read_only=True)
     certificates = CertificateSerializer(many=True, read_only=True)
-    references = ReferenceSerializer(many=True, read_only=True)
+    references = serializers.SerializerMethodField()
     sea_services = SeaServiceSerializer(many=True, read_only=True)
     
     class Meta:
@@ -1555,12 +1555,12 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
     def get_phone_number(self, obj):
         """Extract phone number."""
         contact_details = getattr(obj, 'contact_details', None)
-        return self._safe_get(contact_details, 'Mobile_Tel', 'phone', 'mobile')
-    
+        return self._safe_get(contact_details, 'Mobile_Tel', 'mobile_tel', 'phone', 'mobile')
+
     def get_address(self, obj):
         """Extract address."""
         contact_details = getattr(obj, 'contact_details', None)
-        return self._safe_get(contact_details, 'Home_Address_City', 'address', 'Address')
+        return self._safe_get(contact_details, 'Home_Address_City', 'home_address_city', 'address', 'Address')
     
     # ========================================================================
     # PERSONAL DETAILS METHODS
@@ -1569,7 +1569,7 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
     def get_first_name(self, obj):
         """Extract first name."""
         personal_details = getattr(obj, 'personal_details', None)
-        full_name = self._safe_get(personal_details, 'Full_Name', 'name')
+        full_name = self._safe_get(personal_details, 'Full_Name', 'full_name', 'name')
         if full_name:
             parts = full_name.split()
             return parts[0] if parts else ''
@@ -1578,10 +1578,10 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
     def get_middle_name(self, obj):
         """Extract middle name."""
         personal_details = getattr(obj, 'personal_details', None)
-        full_name = self._safe_get(personal_details, 'Full_Name', 'name')
+        full_name = self._safe_get(personal_details, 'Full_Name', 'full_name', 'name')
         if full_name:
             parts = full_name.split()
-            return ' '.join(parts[1:-1]) if len(parts) > 2 else ''
+            return ' '.join(parts[1:]) if len(parts) > 1 else ''
         return ''
     
     def get_profile_image(self, obj):
@@ -1612,7 +1612,7 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
     def get_date_of_birth(self, obj):
         """Extract date of birth."""
         personal_details = getattr(obj, 'personal_details', None)
-        return self._safe_get(personal_details, 'Date_Of_Birth', 'birth_date', 'date_of_birth')
+        return self._safe_get(personal_details, 'Date_Of_Birth', 'date_of_birth', 'birth_date')
     
     def get_marital_status(self, obj):
         """Extract marital status."""
@@ -1639,22 +1639,18 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
     # ========================================================================
     
     def get_overall_size(self, obj):
-        """Extract overall size."""
         personal_details = getattr(obj, 'personal_details', None)
         return self._safe_get(personal_details, 'Overall_Size', 'overall_size')
-    
+
     def get_shirt_size(self, obj):
-        """Extract shirt size."""
         personal_details = getattr(obj, 'personal_details', None)
         return self._safe_get(personal_details, 'Shirt_Size', 'shirt_size')
-    
+
     def get_trouser_size(self, obj):
-        """Extract trouser size."""
         personal_details = getattr(obj, 'personal_details', None)
         return self._safe_get(personal_details, 'Trouser_Size', 'trouser_size')
-    
+
     def get_shoes_size(self, obj):
-        """Extract shoes size."""
         personal_details = getattr(obj, 'personal_details', None)
         return self._safe_get(personal_details, 'Shoes_Size', 'shoes_size')
     
@@ -2153,3 +2149,30 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
         """Extract assessment date."""
         office_use = getattr(obj, 'office_use_only', None)
         return self._safe_get(office_use, 'Date', 'date')
+
+    def get_references(self, obj):
+        """
+        Read references from the JSONField (Applicant.references).
+        Returns a normalised list compatible with both old and new key formats.
+        """
+        raw = getattr(obj, 'references', None)
+        if not raw:
+            return []
+        if isinstance(raw, list):
+            result = []
+            for i, ref in enumerate(raw):
+                if isinstance(ref, dict):
+                    result.append({
+                        "no": ref.get("no", str(i + 1)),
+                        "company_name": (
+                            ref.get("company_management_country", "") or
+                            ref.get("company_name", "") or
+                            ref.get("Company_Management_Country", "")
+                        ),
+                        "position": ref.get("position", "") or ref.get("Position", ""),
+                        "name": ref.get("name", "") or ref.get("Name", ""),
+                        "tel": ref.get("tel", "") or ref.get("Tel", ""),
+                        "email": ref.get("email", "") or ref.get("Email", ""),
+                    })
+            return result
+        return []

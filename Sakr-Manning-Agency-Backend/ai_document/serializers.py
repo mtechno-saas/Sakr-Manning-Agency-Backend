@@ -1390,7 +1390,7 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
     # Define all SerializerMethodFields
     email = serializers.SerializerMethodField()
     first_name = serializers.SerializerMethodField()
-    middle_name = serializers.SerializerMethodField()
+    last_name = serializers.SerializerMethodField()
     profile_image = serializers.SerializerMethodField()
     age = serializers.SerializerMethodField()
     blood_type = serializers.SerializerMethodField()
@@ -1474,7 +1474,7 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Applicant
         fields = [
-            'id', 'email', 'first_name', 'middle_name', 'profile_image', 'age',
+            'id', 'email', 'first_name', 'last_name', 'profile_image', 'age',
             'blood_type', 'smoker', 'date_of_birth', 'marital_status', 'nationality',
             'place_of_birth', 'height_cm', 'weight_kg', 'phone_number', 'address',
             'passport_no', 'passport_issue_date', 'passport_expiry_date',
@@ -1566,13 +1566,13 @@ class ApplicantToUsersSerializer(serializers.ModelSerializer):
             return parts[0] if parts else ''
         return ''
     
-    def get_middle_name(self, obj):
-        """Extract middle name."""
+    def get_last_name(self, obj):
+        """Extract last name."""
         personal_details = getattr(obj, 'personal_details', None)
         full_name = self._safe_get(personal_details, 'Full_Name', 'name')
         if full_name:
             parts = full_name.split()
-            return ' '.join(parts[1:-1]) if len(parts) > 2 else ''
+            return ' '.join(parts[1:]) if len(parts) > 1 else ''
         return ''
     
     def get_profile_image(self, obj):

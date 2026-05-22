@@ -166,6 +166,8 @@ class SeaServiceSerializer(serializers.ModelSerializer):
 
 
 class UserMeSerializer(serializers.ModelSerializer):
+    cv_status = serializers.SerializerMethodField()
+
     class Meta:
         model = Users
         fields = [
@@ -175,7 +177,31 @@ class UserMeSerializer(serializers.ModelSerializer):
             "middle_name",
             "profile_image",
             "role",
+            "cv_status",
         ]
+
+    def get_cv_status(self, obj):
+        """
+        Logic:
+        - active, not registered yet (no docs) = false
+        - pending, black list = false
+        """
+        from api.models import Document
+        docs = Document.objects.filter(user=obj)
+        
+        if not docs.exists():
+            return False
+            
+        # Check for blacklist or pending across all user documents
+        if docs.filter(status__in=['Blacklist', 'Pending']).exists():
+            return False
+            
+        return True
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['first_name'] = f"{instance.first_name} {instance.middle_name}".strip()
+        return representation
 
 
 # =====================
@@ -246,7 +272,7 @@ class InterviewSerializer(serializers.ModelSerializer):
 class InterviewCalendarSerializer(serializers.ModelSerializer):
     """Lightweight serializer for calendar view"""
     candidate_name = serializers.SerializerMethodField()
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
 
     class Meta:
         model = Interview
@@ -267,7 +293,7 @@ class InterviewCalendarSerializer(serializers.ModelSerializer):
 class FinanceRecordSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     user_email = serializers.CharField(source='user.email', read_only=True)
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    company_name = serializers.CharField(source='company.company_name', read_only=True)
     approved_by_name = serializers.CharField(source='approved_by.first_name', read_only=True)
 
     class Meta:
@@ -298,6 +324,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
     # New fields pulled from the linked user profile
     generated_id = serializers.SerializerMethodField()
     salary = serializers.CharField(source='user.salary', read_only=True, default=None)
+    available_date = serializers.DateField(source='user.available_date', read_only=True, default=None)
     coded_rank = serializers.SerializerMethodField()
     
     # Directly expose the rank_code and assigned_code for the specific position
@@ -312,7 +339,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
             'company', 'company_name',      # company FK id AND display name
             'position', 'position_name',    # position FK id AND display name
             'experience_years', 'status', 'submitted_date',
-            'generated_id', 'salary', 'coded_rank',
+            'generated_id', 'salary', 'available_date', 'coded_rank',
             'rank_code', 'assigned_code',
             'job_position', 'job_position_details'
         ]
@@ -442,6 +469,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     availability_date = FlexibleDateField(required=False, allow_null=True)
     submitted_date = FlexibleDateField(required=False, allow_null=True)
     reviewed_date = FlexibleDateField(required=False, allow_null=True)
+    available_date = FlexibleDateField(write_only=True, required=False, allow_null=True)
     
     job_position_details = serializers.SerializerMethodField()
     seafarer_application = serializers.SerializerMethodField()
@@ -460,7 +488,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'status', 'submitted_date',
             'reviewed_by', 'reviewed_by_name', 'reviewed_by_name_display', 'reviewed_date',
             'notes', 'rating', 'created_at', 'updated_at',
-            'generated_id', 'salary', 'salary_display', 'coded_rank', 'coded_rank_input',
+            'generated_id', 'salary', 'salary_display', 'available_date', 'coded_rank', 'coded_rank_input',
             'rank_code', 'assigned_code',
             'assigned_code_updates',
             'certificates', 'certificate_ids',
@@ -477,6 +505,12 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'created_at': {'required': False},
             'updated_at': {'required': False},
         }
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['salary'] = instance.user.salary if instance.user else None
+        ret['available_date'] = instance.user.available_date if instance.user else None
+        return ret
 
     def to_internal_value(self, data):
         # Allow 'position' to be passed as a string (name) or an ID
@@ -524,7 +558,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         custom_fields = [
             'user_first_name', 'user_middle_name', 'user_email', 'company_name_input',
-            'position_name_input', 'reviewed_by_name', 'salary', 'coded_rank_input',
+            'position_name_input', 'reviewed_by_name', 'salary', 'available_date', 'coded_rank_input',
             'assigned_code_updates', 'certificate_ids', 'passport_update',
             'seaman_book_update', 'other_seaman_book_update', 'coc_update',
             'goc_update', 'licenses_update'
@@ -557,6 +591,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         position_name_input = validated_data.pop('position_name_input', None)
         reviewed_by_name = validated_data.pop('reviewed_by_name', None)
         salary = validated_data.pop('salary', None)
+        available_date = validated_data.pop('available_date', None)
         coded_rank_input = validated_data.pop('coded_rank_input', None)
         assigned_code_updates = validated_data.pop('assigned_code_updates', None)
         certificate_ids = validated_data.pop('certificate_ids', None)
@@ -577,12 +612,14 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             user.email = user_email
         if salary is not None:
             user.salary = salary
-        if any(v is not None for v in [user_first_name, user_middle_name, user_email, salary]):
+        if available_date is not None:
+            user.available_date = available_date
+        if any(v is not None for v in [user_first_name, user_middle_name, user_email, salary, available_date]):
             user.save()
 
         # Propagate company name to the Company model
         if company_name_input is not None and instance.company:
-            instance.company.name = company_name_input
+            instance.company.company_name = company_name_input
             instance.company.save()
 
         # Propagate position name to the Rank model
@@ -761,6 +798,24 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             return None
         return value
 
+    def validate_job_position(self, value):
+        if value is not None:
+            if value.quantity <= 0:
+                raise serializers.ValidationError("This Job Order Position has 0 openings. You cannot assign any applicants to it.")
+            
+            # Count existing active/pending contracts for this job position
+            from api.models import Contract
+            qs = Contract.objects.filter(
+                job_position=value,
+                status__in=['Pending', 'Signed', 'Pending Signature', 'Active']
+            )
+            assigned_count = qs.count()
+            if assigned_count >= value.quantity:
+                raise serializers.ValidationError(
+                    f"This Job Order Position is already fully assigned ({assigned_count}/{value.quantity} filled). You cannot assign any more applicants."
+                )
+        return value
+
     def get_user_name(self, obj):
         return f"{obj.user.first_name} {obj.user.middle_name}".strip()
 
@@ -792,8 +847,11 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         cv_id = obj.id
 
-        def build_download_url(doc_type):
-            return f"/api/cv-submissions/{cv_id}/download-document/?type={doc_type}"
+        def build_download_url(doc_type, doc_id=None):
+            url = f"/api/cv-submissions/{cv_id}/download-document/?type={doc_type}"
+            if doc_id:
+                url += f"&doc_id={doc_id}"
+            return url
 
         def file_url(field):
             if not field:
@@ -817,6 +875,51 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'download_url': f"/api/licenses/{lic.id}/download/" if lic.document_file else None,
             }
             for lic in licenses_qs
+        ]
+
+        # Sea Services
+        sea_services_qs = user.sea_services.all()
+        sea_services_data = [
+            {
+                'id': ss.id,
+                'vessel_name': ss.vessel_name,
+                'rank': ss.rank,
+                'signed_on': str(ss.signed_on) if ss.signed_on else None,
+                'signed_off': str(ss.signed_off) if ss.signed_off else None,
+                'file_url': file_url(ss.file) if ss.file else None,
+                'download_url': build_download_url('sea_service', ss.id) if ss.file else None,
+            }
+            for ss in sea_services_qs
+        ]
+
+        # Marine Courses
+        from courses.models import Course
+        courses_qs = Course.objects.filter(user=user)
+        courses_data = [
+            {
+                'id': c.id,
+                'course_name': c.course_name,
+                'issue_date': str(c.issue_date) if c.issue_date else None,
+                'expiry_date': str(c.expiry_date) if c.expiry_date else None,
+                'file_url': file_url(c.document) if c.document else None,
+                'download_url': build_download_url('course', c.id) if c.document else None,
+            }
+            for c in courses_qs
+        ]
+
+        # Medical / Vaccinations
+        from vaccinations.models import Vaccination
+        vaccinations_qs = Vaccination.objects.filter(user=user)
+        vaccinations_data = [
+            {
+                'id': v.id,
+                'vaccine_name': v.name,
+                'issue_date': str(v.issue_date) if v.issue_date else None,
+                'expiry_date': str(v.expiry_date) if v.expiry_date else None,
+                'file_url': file_url(v.document) if v.document else None,
+                'download_url': build_download_url('vaccination', v.id) if v.document else None,
+            }
+            for v in vaccinations_qs
         ]
 
         return {
@@ -872,8 +975,11 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'international_medical_number': user.international_medical_number,
                 'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
                 'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
+                'records': vaccinations_data,
             },
             'licenses': licenses_data,
+            'sea_service': sea_services_data,
+            'marine_courses': courses_data,
         }
 
     def get_certificates(self, obj):
@@ -931,8 +1037,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         return {
             'id': company.id,
             'company_name': company.company_name,
-            'company_type': getattr(company, 'company_type', None),
-            'country': getattr(company, 'country', None),
+            'company_type_name': str(company.company_type) if company.company_type else None,
+            'company_flag_name': str(company.company_flag) if company.company_flag else None,
             'contact_person': getattr(company, 'contact_person', None),
             'contact_email': getattr(company, 'contact_email', None),
             'status': getattr(company, 'status', None),
@@ -1049,6 +1155,120 @@ class ContractSerializer(serializers.ModelSerializer):
             'ship': {'required': False},
         }
 
+    def validate(self, data):
+        """
+        Check for logical date discrepancies.
+        """
+        sign_on = data.get('sign_on_date')
+        sign_off = data.get('sign_off_date')
+
+        if sign_on and sign_off and sign_off < sign_on:
+            raise serializers.ValidationError({
+                "sign_off_date": "Sign-off date cannot be before the sign-on date."
+            })
+            
+        return data
+
+    def validate_job_position(self, value):
+        if value is not None:
+            if value.quantity <= 0:
+                raise serializers.ValidationError("This Job Order Position has 0 openings. You cannot assign any applicants to it.")
+            
+            # Count existing active/pending contracts for this job position
+            from api.models import Contract
+            exclude_id = self.instance.id if (hasattr(self, 'instance') and self.instance) else None
+            qs = Contract.objects.filter(
+                job_position=value,
+                status__in=['Pending', 'Signed', 'Pending Signature', 'Active']
+            )
+            if exclude_id:
+                qs = qs.exclude(id=exclude_id)
+            
+            assigned_count = qs.count()
+            if assigned_count >= value.quantity:
+                raise serializers.ValidationError(
+                    f"This Job Order Position is already fully assigned ({assigned_count}/{value.quantity} filled). You cannot assign any more applicants."
+                )
+        return value
+
+    def validate_overlap(self, user, sign_on_date, sign_off_date, job_position=None, instance_id=None):
+        """
+        Ensures the seafarer doesn't have another Active/Signed/Pending contract 
+        during the same time period.
+        """
+        if not user or not sign_on_date:
+            return
+
+        from datetime import timedelta
+        from rest_framework.exceptions import ValidationError
+        
+        new_start = sign_on_date
+        new_end = sign_off_date
+        
+        if not new_end and job_position:
+            duration_months = job_position.contract_duration_months or 6
+            new_end = new_start + timedelta(days=30 * duration_months)
+        
+        # Find existing active/pending contracts for this user
+        existing_contracts = Contract.objects.filter(
+            user=user, 
+            status__in=['Pending', 'Pending Signature', 'Signed', 'Active']
+        )
+        if instance_id:
+            existing_contracts = existing_contracts.exclude(id=instance_id)
+            
+        for ec in existing_contracts:
+            ec_start = ec.sign_on_date
+            ec_end = ec.sign_off_date
+            
+            # If existing contract has no sign_off_date, estimate it for the check
+            if not ec_end:
+                if ec.job_position:
+                    ec_duration = ec.job_position.contract_duration_months or 6
+                    ec_end = ec_start + timedelta(days=30 * ec_duration)
+                else:
+                    ec_end = ec_start + timedelta(days=180) # Default 6 months
+            
+            # Overlap check logic
+            is_overlap = False
+            if new_end:
+                # If we have both start and end for new contract
+                if new_start <= ec_end and new_end >= ec_start:
+                    is_overlap = True
+            else:
+                # If we only have start for new contract, check if it falls within existing contract
+                if ec_start <= new_start <= ec_end:
+                    is_overlap = True
+
+            if is_overlap:
+                raise ValidationError({
+                    'error': f"Applicant {user.first_name} is already assigned to a ship during this period (From {ec_start} to {ec_end}). Overlapping Contract ID: {ec.id}"
+                })
+
+    @staticmethod
+    def parse_salary_value(salary_str):
+        if not salary_str:
+            return None
+        import re
+        match = re.match(r'^([\d\.,]+)', str(salary_str).strip())
+        if match:
+            val = match.group(1).replace(',', '')
+            try:
+                return float(val)
+            except ValueError:
+                pass
+        return None
+
+    @staticmethod
+    def parse_salary_currency(salary_str):
+        if not salary_str:
+            return None
+        salary_str = str(salary_str).strip().upper()
+        for currency in ['USD', 'EUR', 'GBP', 'EGP']:
+            if currency in salary_str:
+                return currency
+        return None
+
     def create(self, validated_data):
         # Extract Seafarer Application fields
         seafarer_fields = [
@@ -1103,15 +1323,58 @@ class ContractSerializer(serializers.ModelSerializer):
                 
                 if cv_sub.job_position:
                     validated_data['job_position'] = cv_sub.job_position
-                    # Auto-fill salary from job_position max salary if not explicitly provided
-                    if 'salary' not in validated_data and cv_sub.job_position.salary_max:
+                    
+                # Auto-fill salary from CV submission expected salary (user.salary) or fallback to job_position.salary_max
+                if 'salary' not in validated_data or validated_data['salary'] is None:
+                    user_sal = None
+                    if cv_sub.user and cv_sub.user.salary:
+                        user_sal = self.parse_salary_value(cv_sub.user.salary)
+                    
+                    if user_sal is not None:
+                        validated_data['salary'] = user_sal
+                    elif cv_sub.job_position and cv_sub.job_position.salary_max:
                         validated_data['salary'] = cv_sub.job_position.salary_max
-                    if 'currency' not in validated_data and cv_sub.job_position.currency:
+
+                # Auto-fill currency from CV submission expected salary currency or fallback to job_position.currency
+                if 'currency' not in validated_data or validated_data['currency'] is None:
+                    user_currency = None
+                    if cv_sub.user and cv_sub.user.salary:
+                        user_currency = self.parse_salary_currency(cv_sub.user.salary)
+                    
+                    if user_currency:
+                        validated_data['currency'] = user_currency
+                    elif cv_sub.job_position and cv_sub.job_position.currency:
                         validated_data['currency'] = cv_sub.job_position.currency
+
             except CVSubmission.DoesNotExist:
                 raise ValidationError({'error': f'CV Submission with id {cv_sub_id} not found.'})
         
+        # --- Overlap Validation ---
+        new_status = validated_data.get('status', 'Pending')
+        if new_status in ['Pending', 'Pending Signature', 'Signed', 'Active']:
+            self.validate_overlap(
+                user=validated_data.get('user'),
+                sign_on_date=validated_data.get('sign_on_date'),
+                sign_off_date=validated_data.get('sign_off_date'),
+                job_position=validated_data.get('job_position')
+            )
+        # --------------------------
+        
         contract = super().create(validated_data)
+
+        # Decrease Job Order Position quantity
+        if contract.job_position:
+            contract.job_position.quantity = max(0, contract.job_position.quantity - 1)
+            contract.job_position.save(update_fields=['quantity'])
+            
+            # Also decrease the company's overall open_positions
+            if contract.company:
+                contract.company.open_positions = max(0, contract.company.open_positions - 1)
+                contract.company.save(update_fields=['open_positions'])
+
+        # Add user to ship's crew
+        if contract.ship and contract.user:
+            contract.ship.crew.add(contract.user)
 
         # Apply Seafarer Application updates to the linked user
         if seafarer_data and contract.user:
@@ -1123,6 +1386,13 @@ class ContractSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         repr = super().to_representation(instance)
         repr['ship_name'] = instance.ship.ship_name if instance.ship else None
+        
+        # Ensure salary is equal to user expected salary (from CV submission/user profile) if contract salary is null
+        if (repr.get('salary') is None or repr.get('salary') == '') and instance.user:
+            user_sal = self.parse_salary_value(instance.user.salary)
+            if user_sal is not None:
+                repr['salary'] = f"{user_sal:.2f}"
+                
         return repr
 
     def update(self, instance, validated_data):
@@ -1141,7 +1411,31 @@ class ContractSerializer(serializers.ModelSerializer):
 
         validated_data.pop('applicant_name', None)
 
+        # --- Overlap Validation ---
+        # Validate if dates, user, or status are changing, AND the status is active/pending
+        new_status = validated_data.get('status', instance.status)
+        if new_status in ['Pending', 'Pending Signature', 'Signed', 'Active']:
+            if any(f in validated_data for f in ['sign_on_date', 'sign_off_date', 'user', 'status']):
+                self.validate_overlap(
+                    user=validated_data.get('user', instance.user),
+                    sign_on_date=validated_data.get('sign_on_date', instance.sign_on_date),
+                    sign_off_date=validated_data.get('sign_off_date', instance.sign_off_date),
+                    job_position=validated_data.get('job_position', instance.job_position),
+                    instance_id=instance.id
+                )
+        # --------------------------
+
+        old_ship = instance.ship
+        old_user = instance.user
+
         contract = super().update(instance, validated_data)
+
+        # Sync crew list if ship or user changed
+        if contract.ship != old_ship or contract.user != old_user:
+            if old_ship and old_user:
+                old_ship.crew.remove(old_user)
+            if contract.ship and contract.user:
+                contract.ship.crew.add(contract.user)
 
         # Apply Seafarer Application updates to the linked user
         if seafarer_data and contract.user:
@@ -1187,6 +1481,11 @@ class ContractSerializer(serializers.ModelSerializer):
         user = obj.user
         request = self.context.get('request')
 
+        cv_id = obj.id # Note: In ContractSerializer, obj is Contract, so cv_id here refers to Contract ID?
+        # Actually, the download endpoint we added is in CVSubmissionViewSet.
+        # But we could also add it to ContractViewSet if needed.
+        # Or just use the UserViewSet endpoints which are already generic.
+        
         def file_url(field):
             if not field:
                 return None
@@ -1206,8 +1505,54 @@ class ContractSerializer(serializers.ModelSerializer):
                 'issue_date': str(lic.issue_date) if lic.issue_date else None,
                 'expiration_date': str(lic.expiration_date) if lic.expiration_date else None,
                 'file_url': file_url(lic.document_file) if lic.document_file else None,
+                'download_url': f"/api/users/{user.id}/download-license/{lic.id}/" if lic.document_file else None,
             }
             for lic in licenses_qs
+        ]
+
+        # Sea Services
+        sea_services_qs = user.sea_services.all()
+        sea_services_data = [
+            {
+                'id': ss.id,
+                'vessel_name': ss.vessel_name,
+                'rank': ss.rank,
+                'signed_on': str(ss.signed_on) if ss.signed_on else None,
+                'signed_off': str(ss.signed_off) if ss.signed_off else None,
+                'file_url': file_url(ss.file) if ss.file else None,
+                'download_url': f"/api/users/{user.id}/download-sea-service/{ss.id}/" if ss.file else None,
+            }
+            for ss in sea_services_qs
+        ]
+
+        # Marine Courses
+        from courses.models import Course
+        courses_qs = Course.objects.filter(user=user)
+        courses_data = [
+            {
+                'id': c.id,
+                'course_name': c.course_name,
+                'issue_date': str(c.issue_date) if c.issue_date else None,
+                'expiry_date': str(c.expiry_date) if c.expiry_date else None,
+                'file_url': file_url(c.document) if c.document else None,
+                'download_url': f"/api/users/{user.id}/download-course/{c.id}/" if c.document else None,
+            }
+            for c in courses_qs
+        ]
+
+        # Medical / Vaccinations
+        from vaccinations.models import Vaccination
+        vaccinations_qs = Vaccination.objects.filter(user=user)
+        vaccinations_data = [
+            {
+                'id': v.id,
+                'vaccine_name': v.name,
+                'issue_date': str(v.issue_date) if v.issue_date else None,
+                'expiry_date': str(v.expiry_date) if v.expiry_date else None,
+                'file_url': file_url(v.document) if v.document else None,
+                'download_url': f"/api/users/{user.id}/download-vaccination/{v.id}/" if v.document else None,
+            }
+            for v in vaccinations_qs
         ]
 
         return {
@@ -1218,6 +1563,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'issued_by': user.passport_issued_by,
                 'place_of_issue': user.passport_place_of_issue,
                 'file_url': file_url(user.passport_attachment) if user.passport_attachment else None,
+                'download_url': f"/api/users/{user.id}/download-passport/" if user.passport_attachment else None,
             },
             'seaman_book': {
                 'seaman_book_no': user.seaman_book_no,
@@ -1226,6 +1572,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'issued_by': user.seaman_book_issued_by,
                 'place_of_issue': user.seaman_book_place_of_issue,
                 'file_url': file_url(user.seaman_book_attachment) if user.seaman_book_attachment else None,
+                'download_url': f"/api/users/{user.id}/download-seaman-book/" if user.seaman_book_attachment else None,
             },
             'other_seaman_book': {
                 'seaman_book_no': user.other_seaman_book_no,
@@ -1234,6 +1581,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'issued_by': user.other_seaman_book_issued_by,
                 'place_of_issue': user.other_seaman_book_place_of_issue,
                 'file_url': file_url(user.other_seaman_book_attachment) if user.other_seaman_book_attachment else None,
+                'download_url': f"/api/users/{user.id}/download-other-seaman-book/" if user.other_seaman_book_attachment else None,
             },
             'coc': {
                 'certificate_name': user.coc_certificate_name,
@@ -1260,8 +1608,11 @@ class ContractSerializer(serializers.ModelSerializer):
                 'international_medical_number': user.international_medical_number,
                 'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
                 'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
+                'records': vaccinations_data,
             },
             'licenses': licenses_data,
+            'sea_service': sea_services_data,
+            'marine_courses': courses_data,
         }
 
     def get_job_position_details(self, obj):
@@ -1303,8 +1654,8 @@ class ContractSerializer(serializers.ModelSerializer):
         return {
             'id': company.id,
             'company_name': company.company_name,
-            'company_type': getattr(company, 'company_type', None),
-            'country': getattr(company, 'country', None),
+            'company_type_name': str(company.company_type) if company.company_type else None,
+            'company_flag_name': str(company.company_flag) if company.company_flag else None,
             'contact_person': getattr(company, 'contact_person', None),
             'contact_email': getattr(company, 'contact_email', None),
             'status': getattr(company, 'status', None),
@@ -1323,13 +1674,12 @@ class UsersSerializer(serializers.ModelSerializer):
     sea_services = SeaServiceSerializer(many=True, read_only=True)
 
     # Write-only fields for accepting lists of IDs during create/update
-    rank_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Rank.objects.all(),
-        many=True,
+    rank_ids = serializers.ListField(
+        child=serializers.CharField(),
         write_only=True,
         source='codes',
         required=False,
-        help_text="List of Rank IDs to assign."
+        help_text="List of Rank IDs or codes/names to assign."
     )
     certificate_ids = serializers.PrimaryKeyRelatedField(
         queryset=Certificate.objects.all(),
@@ -1407,14 +1757,63 @@ class UsersSerializer(serializers.ModelSerializer):
             'next_of_kin_email': {'required': False, 'allow_null': True},
         }
 
+    def to_internal_value(self, data):
+        if 'first_name' in data:
+            full_name = str(data.get('first_name') or '').strip()
+            if ' ' in full_name:
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                parts = full_name.split(' ', 1)
+                data['first_name'] = parts[0]
+                data['middle_name'] = parts[1] if len(parts) > 1 else ''
+
+        # Pre-process 'application_for_position' if it's a list or an ID
+        if 'application_for_position' in data:
+            val = data.get('application_for_position')
+            # Handle list input
+            if isinstance(val, list):
+                val = val[0] if len(val) > 0 else None
+            
+            if val:
+                from api.models import Rank
+                rank_obj = None
+                # Handle ID input (integer or numeric string)
+                if isinstance(val, int) or (isinstance(val, str) and str(val).isdigit()):
+                    rank_obj = Rank.objects.filter(id=int(val)).first()
+                # Handle string name input
+                elif isinstance(val, str):
+                    rank_obj = Rank.objects.filter(name__iexact=val).first()
+                
+                if rank_obj:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['application_for_position'] = rank_obj.name
+                else:
+                    # Fallback to the string value if no rank found
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['application_for_position'] = str(val)
+
+        return super().to_internal_value(data)
+
     def to_representation(self, instance):
         """Override to ensure proper serialization of nested fields"""
         representation = super().to_representation(instance)
+        # Combine first_name and middle_name for the frontend which binds full_name to first_name
+        representation['first_name'] = f"{instance.first_name} {instance.middle_name}".strip()
 
         # Hide generated_id for non-privileged users
         request = self.context.get('request')
-        if request and hasattr(request.user, 'role') and request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
-            representation.pop('generated_id', None)
+        if request and hasattr(request.user, 'role'):
+            has_permission = request.user.role in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or getattr(request.user, 'is_superuser', False)
+            if not has_permission:
+                representation.pop('generated_id', None)
 
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
@@ -1489,8 +1888,19 @@ class UsersSerializer(serializers.ModelSerializer):
             user.save()
 
         # Handle the M2M relationships
-        for rank in codes_data:
-            UserRank.objects.create(user=user, rank=rank)
+        from django.db.models import Q
+        for rank_identifier in codes_data:
+            rank_identifier = str(rank_identifier).strip()
+            rank_obj = None
+            if rank_identifier.isdigit():
+                try:
+                    rank_obj = Rank.objects.get(pk=int(rank_identifier))
+                except Rank.DoesNotExist:
+                    pass
+            if not rank_obj:
+                rank_obj = Rank.objects.filter(Q(code__iexact=rank_identifier) | Q(name__iexact=rank_identifier)).first()
+            if rank_obj:
+                UserRank.objects.create(user=user, rank=rank_obj)
         if certificates_data:
             user.certificates.set(certificates_data)
 
@@ -1516,8 +1926,19 @@ class UsersSerializer(serializers.ModelSerializer):
         # Handle relationship updates
         if codes_data is not None:
             instance.user_ranks.all().delete()
-            for rank in codes_data:
-                UserRank.objects.create(user=instance, rank=rank)
+            from django.db.models import Q
+            for rank_identifier in codes_data:
+                rank_identifier = str(rank_identifier).strip()
+                rank_obj = None
+                if rank_identifier.isdigit():
+                    try:
+                        rank_obj = Rank.objects.get(pk=int(rank_identifier))
+                    except Rank.DoesNotExist:
+                        pass
+                if not rank_obj:
+                    rank_obj = Rank.objects.filter(Q(code__iexact=rank_identifier) | Q(name__iexact=rank_identifier)).first()
+                if rank_obj:
+                    UserRank.objects.create(user=instance, rank=rank_obj)
         if certificates_data is not None:
             instance.certificates.set(certificates_data)
 
@@ -1582,6 +2003,51 @@ class RegisterSerializer(serializers.ModelSerializer):
             }
         }
 
+    def to_internal_value(self, data):
+        if 'first_name' in data:
+            full_name = str(data.get('first_name') or '').strip()
+            if ' ' in full_name:
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                parts = full_name.split(' ', 1)
+                data['first_name'] = parts[0]
+                data['middle_name'] = parts[1] if len(parts) > 1 else ''
+
+        # Pre-process 'application_for_position' if it's a list or an ID
+        if 'application_for_position' in data:
+            val = data.get('application_for_position')
+            # Handle list input
+            if isinstance(val, list):
+                val = val[0] if len(val) > 0 else None
+            
+            if val:
+                from api.models import Rank
+                rank_obj = None
+                # Handle ID input (integer or numeric string)
+                if isinstance(val, int) or (isinstance(val, str) and str(val).isdigit()):
+                    rank_obj = Rank.objects.filter(id=int(val)).first()
+                # Handle string name input
+                elif isinstance(val, str):
+                    rank_obj = Rank.objects.filter(name__iexact=val).first()
+                
+                if rank_obj:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['application_for_position'] = rank_obj.name
+                else:
+                    # Fallback to the string value if no rank found
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['application_for_position'] = str(val)
+
+        return super().to_internal_value(data)
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = Users(**validated_data)
@@ -1591,6 +2057,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class DocumentSerializer(serializers.ModelSerializer):
     title = serializers.CharField(required=False)
+    file = serializers.FileField(required=False, allow_null=True)
     generated_id = serializers.SerializerMethodField()
     company_name = serializers.CharField(source='company.company_name', read_only=True)
     job_position_details = serializers.SerializerMethodField()
@@ -1598,29 +2065,113 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Document
-        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details']
+        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'position_id', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details']
         read_only_fields = ['user', 'created_at', 'updated_at']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        pos_value = instance.position
+        pos_id = instance.position_id
+        
+        # Keep 'position' as a string for the UI to prevent React rendering errors
+        # Provide 'position_id' as a separate field for logic/IDs
+        if pos_value or pos_id:
+            from api.models import Rank
+            # Sync name/ID if one is missing
+            rank = Rank.objects.filter(name__iexact=pos_value).first() if pos_value else None
+            
+            representation['position'] = pos_value or (rank.name if rank else None)
+            representation['position_id'] = pos_id or (rank.id if rank else None)
+        
+        return representation
     
     def to_internal_value(self, data):
+        # Alias common field names from frontend
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        else:
+            data = dict(data)
+
+        if 'rank_ids' in data and 'position' not in data:
+            data['position'] = data['rank_ids']
+        
+        if 'first_name' in data and 'name' not in data:
+            data['name'] = data['first_name']
+
+        if 'phone' in data and 'phone_number' not in data:
+            data['phone_number'] = data['phone']
+
+        # Pre-process 'position' if it's a list or an ID
+        if 'position' in data:
+            pos_val = data.get('position')
+            from api.models import Rank
+            rank_obj = None
+
+            # Handle list input (try each item until a valid Rank is found)
+            if isinstance(pos_val, list):
+                for item in pos_val:
+                    if isinstance(item, int) or (isinstance(item, str) and str(item).isdigit()):
+                        data['position_id'] = int(item)
+                        rank_obj = Rank.objects.filter(id=int(item)).first()
+                    elif isinstance(item, str):
+                        rank_obj = Rank.objects.filter(name__iexact=item).first()
+                    if rank_obj:
+                        break
+                
+                if rank_obj:
+                    data['position'] = rank_obj.name
+                    data['position_id'] = rank_obj.id
+                elif len(pos_val) > 0:
+                    # Fallback: find the first string that isn't just a number (the label)
+                    label = None
+                    for item in pos_val:
+                        if isinstance(item, str) and not str(item).isdigit():
+                            label = item
+                            break
+                    data['position'] = label if label else str(pos_val[0])
+            
+            else:
+                # Handle single ID or Name input
+                if isinstance(pos_val, int) or (isinstance(pos_val, str) and str(pos_val).isdigit()):
+                    data['position_id'] = int(pos_val)
+                    rank_obj = Rank.objects.filter(id=int(pos_val)).first()
+                elif isinstance(pos_val, str):
+                    rank_obj = Rank.objects.filter(name__iexact=pos_val).first()
+                
+                if rank_obj:
+                    data['position'] = rank_obj.name
+                    data['position_id'] = rank_obj.id
+                else:
+                    data['position'] = str(pos_val)
+
         # Auto-fill company and position if job_position is provided
         if 'job_position' in data and data['job_position']:
-            from companies.models import JobOrderPosition
             try:
-                job_pos = JobOrderPosition.objects.get(id=data['job_position'])
-                if hasattr(data, 'copy'):
-                    data = data.copy()
+                # Handle both integer IDs and potential string inputs
+                jp_id = data.get('job_position')
+                if isinstance(jp_id, str) and not jp_id.isdigit():
+                    # If it's a string name, try to find a matching rank position
+                    from companies.models import JobOrderPosition
+                    job_pos = JobOrderPosition.objects.filter(rank__name__iexact=jp_id).first()
                 else:
-                    data = dict(data)
-                
-                if 'company' not in data and job_pos.job_order and job_pos.job_order.company:
-                    data['company'] = job_pos.job_order.company.id
-                if 'position' not in data and job_pos.rank:
-                    data['position'] = job_pos.rank.name
-                if 'title' not in data:
-                    company_name = job_pos.job_order.company.company_name if job_pos.job_order and job_pos.job_order.company else "Unknown Company"
-                    rank_name = job_pos.rank.name if job_pos.rank else "Unknown Position"
-                    data['title'] = f"Application for {rank_name} at {company_name}"
-            except JobOrderPosition.DoesNotExist:
+                    from companies.models import JobOrderPosition
+                    job_pos = JobOrderPosition.objects.get(id=jp_id)
+
+                if job_pos:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    
+                    if 'company' not in data and job_pos.job_order and job_pos.job_order.company:
+                        data['company'] = job_pos.job_order.company.id
+                    if 'position' not in data and job_pos.rank:
+                        data['position'] = job_pos.rank.name
+                    if not data.get('title'):
+                        company_name = job_pos.job_order.company.company_name if job_pos.job_order and job_pos.job_order.company else "Unknown Company"
+                        rank_name = job_pos.rank.name if job_pos.rank else "Unknown Position"
+                        data['title'] = f"Application for {rank_name} at {company_name}"
+            except (JobOrderPosition.DoesNotExist, ValueError, TypeError):
                 pass
 
         return super().to_internal_value(data)
@@ -1637,7 +2188,8 @@ class DocumentSerializer(serializers.ModelSerializer):
             return None
         
         # Check Role of the viewer
-        if not request.user.is_authenticated or request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
+        has_permission = request.user.role in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or getattr(request.user, 'is_superuser', False)
+        if not request.user.is_authenticated or not has_permission:
             return None
             
         # Check Status of the document

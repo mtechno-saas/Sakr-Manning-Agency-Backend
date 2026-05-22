@@ -67,9 +67,24 @@ Authorization: Bearer eyJ...
     "open_positions": 5,
     "status": "Active",
     "contact_email": "info@sakrshipping.com",
+    "contact_phone": "+20 123 456 789",
+    "owner": "Capt. Ahmed Sakr",
     "website": "https://sakrshipping.com",
     "company_flag": "Egypt",
     "hourly_rate": "25.00",
+    "ships": [
+      {
+        "id": 1,
+        "ship_name": "MV Ocean Star",
+        "imo_number": "1234567",
+        "ship_type": "Container",
+        "flag": "Panama",
+        "status": "Active",
+        "official_no": "ON-999",
+        "call_sign": "C5XYZ",
+        "year_built": 2015
+      }
+    ],
     "created_at": "2026-04-01T10:00:00Z",
     "updated_at": "2026-04-20T14:30:00Z"
   }
@@ -88,6 +103,8 @@ Authorization: Bearer eyJ...
   "open_positions": 5,
   "status": "Active",
   "contact_email": "info@sakrshipping.com",
+  "contact_phone": "+20 123 456 789",
+  "owner": "Capt. Ahmed Sakr",
   "website": "https://sakrshipping.com",
   "company_flag": "Egypt",
   "hourly_rate": "25.00"
@@ -108,6 +125,7 @@ Authorization: Bearer eyJ...
   "website": "https://sakrshipping.com",
   "company_flag": "Egypt",
   "hourly_rate": "25.00",
+  "ships": [],
   "created_at": "2026-04-01T10:00:00Z",
   "updated_at": "2026-04-01T10:00:00Z"
 }
@@ -139,9 +157,24 @@ Authorization: Bearer eyJ...
   "open_positions": 5,
   "status": "Active",
   "contact_email": "info@sakrshipping.com",
+  "contact_phone": "+20 123 456 789",
+  "owner": "Capt. Ahmed Sakr",
   "website": "https://sakrshipping.com",
   "company_flag": "Egypt",
   "hourly_rate": "25.00",
+  "ships": [
+    {
+      "id": 1,
+      "ship_name": "MV Ocean Star",
+      "imo_number": "1234567",
+      "ship_type": "Container",
+      "flag": "Panama",
+      "status": "Active",
+      "official_no": "ON-999",
+      "call_sign": "C5XYZ",
+      "year_built": 2015
+    }
+  ],
   "created_at": "2026-04-01T10:00:00Z",
   "updated_at": "2026-04-20T14:30:00Z"
 }

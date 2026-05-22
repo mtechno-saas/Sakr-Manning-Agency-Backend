@@ -18,6 +18,7 @@ from langgraph.prebuilt import create_react_agent
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from .tools import tools
+import uuid
 
 # Use Gemma 3 1B model
 model = ChatOllama(model="llama3.1:8b")

@@ -216,8 +216,10 @@ class DocumentProcessor:
                 if paragraph.text.strip():
                     text_content.append(paragraph.text)
             
-            # Extract text from tables
+            # Extract text from tables and keep structure
+            tables_data = []
             for table in doc.tables:
+                table_matrix = []
                 for row in table.rows:
                     row_text = []
                     for cell in row.cells:
@@ -225,8 +227,22 @@ class DocumentProcessor:
                             row_text.append(cell.text.strip())
                     if row_text:
                         text_content.append(' | '.join(row_text))
+                        
+                    # Also build a matrix of unique cells for this row to preserve structural boundaries
+                    # (python-docx duplicates text in merged cells, so we deduplicate sequentially)
+                    clean_row = []
+                    for cell in row.cells:
+                        txt = cell.text.strip()
+                        if txt and (not clean_row or clean_row[-1] != txt):
+                            clean_row.append(txt)
+                    if clean_row:
+                        table_matrix.append(clean_row)
+                        
+                if table_matrix:
+                    tables_data.append(table_matrix)
             
             result['extracted_text'] = '\n\n'.join(text_content)
+            result['tables'] = tables_data
             
             # Calculate word count
             if result['extracted_text']:

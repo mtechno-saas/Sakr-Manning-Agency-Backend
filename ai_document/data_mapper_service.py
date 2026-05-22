@@ -1432,19 +1432,14 @@ class DataMapperService:
             return {"first_name": "", "middle_name": "", "last_name": ""}
         
         name_parts = full_name.strip().split()
-        
         if len(name_parts) == 1:
             return {"first_name": name_parts[0], "middle_name": "", "last_name": ""}
-        elif len(name_parts) == 2:
-            return {"first_name": name_parts[0], "middle_name": "", "last_name": name_parts[1]}
-        elif len(name_parts) >= 3:
+        else:
             return {
                 "first_name": name_parts[0],
-                "middle_name": " ".join(name_parts[1:-1]),
-                "last_name": name_parts[-1]
+                "middle_name": " ".join(name_parts[1:]),
+                "last_name": ""
             }
-        
-        return {"first_name": "", "middle_name": "", "last_name": ""}
     
     @staticmethod
     def calculate_age_from_birth_date(birth_date_str: str) -> Optional[int]:

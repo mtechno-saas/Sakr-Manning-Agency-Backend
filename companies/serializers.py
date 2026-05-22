@@ -2,6 +2,13 @@ from rest_framework import serializers
 from .models import Company, JobOrder, JobOrderPosition
 
 class CompanySerializer(serializers.ModelSerializer):
+    ships = serializers.SerializerMethodField()
+    company_type_name = serializers.CharField(source='company_type.name', read_only=True)
+    company_flag_name = serializers.CharField(source='company_flag.name', read_only=True)
+
+    open_positions = serializers.SerializerMethodField()
+    open_position_names = serializers.SerializerMethodField()
+
     class Meta:
         model = Company
         fields = '__all__'
@@ -11,12 +18,136 @@ class CompanySerializer(serializers.ModelSerializer):
                 'allow_null': True,
                 'allow_blank': True,
             },
-            'company_flag': {
-                'required': False,
-                'allow_null': True,
-                'allow_blank': True,
-            },
         }
+
+    def to_internal_value(self, data):
+        """
+        Accept `company_type` and `company_flag` as either integer IDs or string names.
+        """
+        if 'company_type' in data:
+            val = data['company_type']
+            if isinstance(val, str) and not val.isdigit() and val.strip():
+                from core.models import CompanyType
+                ct, _ = CompanyType.objects.get_or_create(name=val.strip())
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                data['company_type'] = ct.id
+
+        if 'company_flag' in data:
+            val = data['company_flag']
+            if isinstance(val, str) and not val.isdigit() and val.strip():
+                from core.models import Flag
+                flag, _ = Flag.objects.get_or_create(name=val.strip())
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                data['company_flag'] = flag.id
+
+        if 'website' in data and data['website']:
+            website_val = data['website']
+            if isinstance(website_val, str) and website_val.strip():
+                website_val = website_val.strip()
+                if not website_val.startswith(('http://', 'https://')):
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['website'] = f'https://{website_val}'
+
+        return super().to_internal_value(data)
+
+    def validate_contact_email(self, value):
+        if not value:
+            return value
+        allowed_suffixes = ['.de', '.dk', '.no', '.nl', '.it', '.gr', '.ch', '.co.uk', '.com']
+        value_lower = value.lower()
+        if not any(value_lower.endswith(suffix) for suffix in allowed_suffixes):
+            raise serializers.ValidationError(
+                f"Email must end with one of the allowed domains: {', '.join(allowed_suffixes)}"
+            )
+        return value
+
+    def validate_website(self, value):
+        if not value:
+            return value
+        allowed_suffixes = ['.de', '.dk', '.no', '.nl', '.it', '.gr', '.ch', '.co.uk', '.com']
+        
+        # Simple check for the domain suffix in the URL
+        from urllib.parse import urlparse
+        parsed = urlparse(value)
+        # If no netloc (e.g. "example.com"), check the path
+        domain = parsed.netloc.lower() or parsed.path.lower().split('/')[0]
+        
+        if not any(domain.endswith(suffix) for suffix in allowed_suffixes):
+            raise serializers.ValidationError(
+                f"Website must end with one of the allowed domains: {', '.join(allowed_suffixes)}"
+            )
+        return value
+
+    def get_open_positions(self, obj):
+        # Calculate remaining open slots by subtracting filled contracts from quantity
+        from .models import JobOrderPosition
+        from django.db.models import Count, Q
+        
+        positions = JobOrderPosition.objects.filter(
+            job_order__company=obj,
+            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
+        ).annotate(
+            filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
+        )
+        
+        total_remaining = 0
+        for pos in positions:
+            total_remaining += max(0, pos.quantity - pos.filled_slots)
+        return total_remaining
+
+    def get_open_position_names(self, obj):
+        # Return unique ranks and the total remaining slots for each
+        from .models import JobOrderPosition
+        from django.db.models import Count, Q
+        
+        positions = JobOrderPosition.objects.filter(
+            job_order__company=obj,
+            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
+        ).select_related('rank').annotate(
+            filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
+        )
+        
+        rank_data = {}
+        for pos in positions:
+            if pos.rank:
+                remaining = max(0, pos.quantity - pos.filled_slots)
+                if remaining > 0:
+                    rank_id = pos.rank.id
+                    if rank_id not in rank_data:
+                        rank_data[rank_id] = {
+                            "id": rank_id,
+                            "name": pos.rank.name,
+                            "count": remaining
+                        }
+                    else:
+                        rank_data[rank_id]["count"] += remaining
+        return list(rank_data.values())
+
+    def get_ships(self, obj):
+        ships = obj.ships.all()
+        return [
+            {
+                "id": ship.id,
+                "ship_name": ship.ship_name,
+                "imo_number": ship.imo_number,
+                "ship_type": ship.ship_type.name if ship.ship_type else None,
+                "flag": ship.flag.name if ship.flag else None,
+                "status": ship.status,
+                "official_no": ship.official_no,
+                "call_sign": ship.call_sign,
+                "year_built": ship.year_built
+            }
+            for ship in ships
+        ]
 
 
 class JobOrderPositionSerializer(serializers.ModelSerializer):

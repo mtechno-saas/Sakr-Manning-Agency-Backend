@@ -315,8 +315,11 @@ from .serializer import (
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
     CVSubmissionSerializer, CVSubmissionListSerializer,
-    UserCertificateSerializer, DeclarationSerializer
+    UserCertificateSerializer, DeclarationSerializer,
+    get_user_full_name
 )
+from django.http import FileResponse, Http404
+import os
 from .filters import UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, CompanyFilter
 from .permissions import (
     IsAdmin, IsHRManager, IsRecruiter, IsEmployee,
@@ -936,7 +939,7 @@ def get_user_certificates(request, user_id):
     serializer = CertificateSerializer(certificates, many=True)
     return Response({
         "user_id": user_id,
-        "user_name": f"{user.first_name} {user.middle_name}",
+        "user_name": get_user_full_name(user),
         "certificates": serializer.data
     })
 
@@ -956,7 +959,7 @@ def get_user_ranks(request, user_id):
     serializer = UserRankSerializer(user_ranks, many=True)
     return Response({
         "user_id": user_id,
-        "user_name": f"{user.first_name} {user.middle_name}",
+        "user_name": get_user_full_name(user),
         "ranks": serializer.data
     })
 
@@ -983,7 +986,7 @@ def add_user_certificate(request, user_id):
     
     user.certificates.add(certificate)
     return Response({
-        "message": f"Certificate '{certificate.name}' added to user {user.first_name} {user.middle_name}",
+        "message": f"Certificate '{certificate.name}' added to user {get_user_full_name(user)}",
         "certificate": CertificateSerializer(certificate).data
     }, status=status.HTTP_201_CREATED)
 
@@ -1014,7 +1017,7 @@ def add_user_rank(request, user_id):
     user_rank = UserRank.objects.create(user=user, rank=rank)
     serializer = UserRankSerializer(user_rank)
     return Response({
-        "message": f"Rank '{rank.name}' added to user {user.first_name} {user.middle_name}",
+        "message": f"Rank '{rank.name}' added to user {get_user_full_name(user)}",
         "user_rank": serializer.data
     }, status=status.HTTP_201_CREATED)
 
@@ -1035,7 +1038,7 @@ def remove_user_certificate(request, user_id, certificate_id):
     
     user.certificates.remove(certificate)
     return Response({
-        "message": f"Certificate '{certificate.name}' removed from user {user.first_name} {user.middle_name}"
+        "message": f"Certificate '{certificate.name}' removed from user {get_user_full_name(user)}"
     }, status=status.HTTP_200_OK)
 
 
@@ -1057,7 +1060,7 @@ def remove_user_rank(request, user_id, rank_id):
         user_rank = UserRank.objects.get(user=user, rank=rank)
         user_rank.delete()
         return Response({
-            "message": f"Rank '{rank.name}' removed from user {user.first_name} {user.middle_name}"
+            "message": f"Rank '{rank.name}' removed from user {get_user_full_name(user)}"
         }, status=status.HTTP_200_OK)
     except UserRank.DoesNotExist:
         return Response({"error": "User does not have this rank"}, status=status.HTTP_404_NOT_FOUND)
@@ -1120,3 +1123,132 @@ class DeclarationViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only Admin and HR Manager can delete declarations")
         instance.delete()
+
+
+# =====================
+# DOCUMENT DOWNLOAD VIEW
+# =====================
+
+# Mapping: doc_type → (model_field_name_on_Users, label)
+USER_DOC_FIELD_MAP = {
+    'passport':          ('passport_file',          'Passport'),
+    'seaman_book':       ('seaman_book_file',        'Seaman_Book'),
+    'other_seaman_book': ('other_seaman_book_file',  'Other_Seaman_Book'),
+    'marlins_test':      ('marlins_test_file',       'Marlins_Test'),
+    'ces_test':          ('ces_test_file',           'CES_Test'),
+    'profile_image':     ('profile_image',           'Profile_Image'),
+}
+
+
+class UserDocumentDownloadView(generics.GenericAPIView):
+    """
+    GET /api/users/<user_id>/download/<doc_type>/
+
+    Serves a user's uploaded document file as a download.
+    Access rules:
+      - Admin / HR Manager / Recruiter → can download any user's documents
+      - Employee → can only download their own documents
+
+    <doc_type> must be one of:
+      passport | seaman_book | other_seaman_book | marlins_test | ces_test | profile_image
+
+    For certificate/course files use:
+      GET /api/users/<user_id>/download/certificate/<cert_id>/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id, doc_type):
+        # ── Permission check ──────────────────────────────────────────────────
+        if request.user.role == 'Employee' and request.user.id != user_id:
+            return Response({'error': 'Permission denied'}, status=403)
+
+        # ── Fetch user ────────────────────────────────────────────────────────
+        user = get_object_or_404(Users, pk=user_id)
+
+        # ── Resolve the file field ────────────────────────────────────────────
+        if doc_type not in USER_DOC_FIELD_MAP:
+            return Response(
+                {'error': f'Unknown document type. Valid types: {list(USER_DOC_FIELD_MAP.keys())}'},
+                status=400
+            )
+
+        field_name, label = USER_DOC_FIELD_MAP[doc_type]
+        file_field = getattr(user, field_name, None)
+
+        if not file_field or not file_field.name:
+            return Response({'error': f'No {label} file uploaded for this user.'}, status=404)
+
+        # ── Serve the file ────────────────────────────────────────────────────
+        try:
+            file_path = file_field.path
+            if not os.path.exists(file_path):
+                return Response({'error': 'File not found on server.'}, status=404)
+
+            ext = os.path.splitext(file_path)[1].lower()
+            content_type_map = {
+                '.pdf':  'application/pdf',
+                '.doc':  'application/msword',
+                '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                '.jpg':  'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.png':  'image/png',
+            }
+            content_type = content_type_map.get(ext, 'application/octet-stream')
+            filename = f"{label}_{user_id}{ext}"
+
+            response = FileResponse(
+                open(file_path, 'rb'),
+                content_type=content_type,
+            )
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+
+class UserCertificateDownloadView(generics.GenericAPIView):
+    """
+    GET /api/users/<user_id>/download/certificate/<cert_id>/
+
+    Serves a specific UserCertificate file as a download.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id, cert_id):
+        if request.user.role == 'Employee' and request.user.id != user_id:
+            return Response({'error': 'Permission denied'}, status=403)
+
+        user = get_object_or_404(Users, pk=user_id)
+        cert = get_object_or_404(UserCertificate, pk=cert_id, user=user)
+
+        if not cert.certificate_file or not cert.certificate_file.name:
+            return Response({'error': 'No file uploaded for this certificate.'}, status=404)
+
+        try:
+            file_path = cert.certificate_file.path
+            if not os.path.exists(file_path):
+                return Response({'error': 'File not found on server.'}, status=404)
+
+            ext = os.path.splitext(file_path)[1].lower()
+            content_type_map = {
+                '.pdf':  'application/pdf',
+                '.doc':  'application/msword',
+                '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                '.jpg':  'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.png':  'image/png',
+            }
+            content_type = content_type_map.get(ext, 'application/octet-stream')
+            doc_name = (cert.document_name or 'Certificate').replace(' ', '_')
+            filename = f"{doc_name}_{user_id}{ext}"
+
+            response = FileResponse(
+                open(file_path, 'rb'),
+                content_type=content_type,
+            )
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)

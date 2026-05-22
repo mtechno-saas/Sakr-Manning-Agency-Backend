@@ -1,4 +1,5 @@
 import os
+
 from django.shortcuts import get_object_or_404
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
@@ -22,6 +23,7 @@ from .models import (
     Company, Interview, CVSubmission, Document,
     UserLanguage, PersonalDocument, Declaration, NextOfKin
 )
+from core.models import Flag, VesselType, CompanyType
 
 # For Verification Link
 from django.contrib.auth.tokens import default_token_generator
@@ -47,7 +49,11 @@ from .serializer import (
     CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer,
     UserLanguageSerializer, PersonalDocumentSerializer, LanguageProficiencySerializer
 )
-from .filters import UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, CompanyFilter
+from .filters import (
+    UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, 
+    CompanyFilter, ContractFilter, FlightBookingFilter, VisaApplicationFilter,
+    AuditFilter, IncidentReportFilter, ShipFilter
+)
 from .permissions import (
     IsAdmin, IsHRManager, IsRecruiter, IsEmployee,
     IsHROrReadOnly, IsOwnerOrHR, UserPermission,
@@ -679,6 +685,7 @@ class ContractViewSet(viewsets.ModelViewSet):
     """
     queryset = Contract.objects.select_related('user', 'ship', 'company', 'rank').all()
     permission_classes = [IsAuthenticated, ContractPermission]
+    filterset_class = ContractFilter
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -686,10 +693,63 @@ class ContractViewSet(viewsets.ModelViewSet):
         return ContractSerializer
 
     def get_queryset(self):
+        # Automatically transition expired contracts to 'Draft' status
+        today = timezone.now().date()
+        
+        # Performance Guard: Only run the update query once per day
+        last_update_date = cache.get('last_contract_expiry_check')
+        
+        if last_update_date != today:
+            # Find all contracts that have passed their sign-off date but are still in active states
+            expired_contracts = Contract.objects.filter(
+                sign_off_date__lt=today,
+                status__in=['Active', 'Signed', 'Pending Signature', 'Pending']
+            )
+            
+            # Bulk update to Draft
+            if expired_contracts.exists():
+                expired_contracts.update(status='Draft')
+            
+            # Cache the check for 24 hours
+            cache.set('last_contract_expiry_check', today, 86400)
+
         user = self.request.user
         if user.role in ['Admin', 'HR Manager', 'Recruiter']:
             return Contract.objects.select_related('user', 'ship', 'company', 'rank').all()
         return Contract.objects.filter(user=user)
+
+    def perform_destroy(self, instance):
+        if instance.job_position:
+            instance.job_position.quantity += 1
+            instance.job_position.save(update_fields=['quantity'])
+            
+            # Restore company's open_positions
+            if instance.company:
+                instance.company.open_positions += 1
+                instance.company.save(update_fields=['open_positions'])
+            
+        # If the applicant was assigned to the ship's crew for this contract, remove them
+        if instance.ship and instance.user:
+            instance.ship.crew.remove(instance.user)
+            
+        # Also clean up related CV Submissions
+        if instance.user:
+            from api.models import CVSubmission
+            cvs = CVSubmission.objects.filter(user=instance.user)
+            
+            for cv in cvs:
+                update_fields = []
+                if instance.ship and cv.ship == instance.ship:
+                    cv.ship = None
+                    update_fields.append('ship')
+                if instance.company and cv.company == instance.company:
+                    cv.company = None
+                    update_fields.append('company')
+                
+                if update_fields:
+                    cv.save(update_fields=update_fields)
+            
+        super().perform_destroy(instance)
 
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
@@ -718,6 +778,24 @@ class ContractViewSet(viewsets.ModelViewSet):
                 sign_off_date__gt=today + timedelta(days=30),
                 status__in=['Active', 'Signed']
             ).count(),
+        })
+
+    @action(detail=False, methods=['get'], url_path='status')
+    def status(self, request):
+        """Get contract counts by status"""
+        if request.user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            contracts = Contract.objects.all()
+        else:
+            contracts = Contract.objects.filter(user=request.user)
+        
+        return Response({
+            'active': contracts.filter(status='Active').count(),
+            'completed': contracts.filter(status='Completed').count(),
+            'pending': contracts.filter(status='Pending').count(),
+            'signed': contracts.filter(status='Signed').count(),
+            'pending_signature': contracts.filter(status='Pending Signature').count(),
+            'draft': contracts.filter(status='Draft').count(),
+            'cancelled': contracts.filter(status='Cancelled').count(),
         })
 
 
@@ -898,6 +976,12 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
             else:
                 serializer.save()
 
+    def perform_destroy(self, instance):
+        # If the applicant was assigned to the ship's crew for this CV submission, remove them
+        if instance.ship and instance.user:
+            instance.ship.crew.remove(instance.user)
+        super().perform_destroy(instance)
+
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
         """CV statistics for dashboard"""
@@ -976,7 +1060,7 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
         """
         Download a file attachment from the user linked to this CV submission.
 
-        GET /api/cv-submissions/{id}/download-document/?type=<doc_type>
+        GET /api/cv-submissions/{id}/download-document/?type=<doc_type>&doc_id=<id>
 
         Supported types:
           passport          → user.passport_attachment
@@ -984,11 +1068,17 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
           other_seaman_book → user.other_seaman_book_attachment
           marlins           → user.marlins_test_attachment
           ces               → user.ces_test_attachment
+          sea_service       → SeaService.objects.get(id=doc_id)
+          vaccination       → Vaccination.objects.get(id=doc_id)
+          course            → Course.objects.get(id=doc_id)
         """
         cv = self.get_object()
         user = cv.user
+        doc_type = request.query_params.get('type', '').strip()
+        doc_id = request.query_params.get('doc_id')
 
-        FILE_MAP = {
+        # 1. Handle user-level attachments (one-to-one with User)
+        USER_FILE_MAP = {
             'passport':          user.passport_attachment,
             'seaman_book':        user.seaman_book_attachment,
             'other_seaman_book':  user.other_seaman_book_attachment,
@@ -996,37 +1086,45 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
             'ces':                user.ces_test_attachment,
         }
 
-        doc_type = request.query_params.get('type', '').strip()
-        if not doc_type:
-            return Response(
-                {'error': f'Missing ?type= parameter. Choices: {list(FILE_MAP.keys())}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if doc_type not in FILE_MAP:
-            return Response(
-                {'error': f'Unknown type "{doc_type}". Choices: {list(FILE_MAP.keys())}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if doc_type in USER_FILE_MAP:
+            file_field = USER_FILE_MAP[doc_type]
+            if not file_field:
+                return Response({'error': f'No file uploaded for document type "{doc_type}"'}, status=404)
+            file_path = file_field.path
+        
+        # 2. Handle related model attachments (one-to-many)
+        elif doc_type in ['sea_service', 'vaccination', 'course']:
+            if not doc_id:
+                return Response({'error': f'doc_id is required for type "{doc_type}"'}, status=400)
+            
+            if doc_type == 'sea_service':
+                doc = user.sea_services.filter(id=doc_id).first()
+                file_field = getattr(doc, 'file', None)
+            elif doc_type == 'vaccination':
+                from vaccinations.models import Vaccination
+                doc = Vaccination.objects.filter(id=doc_id, user=user).first()
+                file_field = getattr(doc, 'document', None)
+            elif doc_type == 'course':
+                from courses.models import Course
+                doc = Course.objects.filter(id=doc_id, user=user).first()
+                file_field = getattr(doc, 'document', None)
+            
+            if not doc:
+                return Response({'error': f'Document #{doc_id} of type "{doc_type}" not found for this user'}, status=404)
+            if not file_field:
+                return Response({'error': f'No file attached to this {doc_type} record'}, status=404)
+            
+            file_path = file_field.path
+        
+        else:
+            choices = list(USER_FILE_MAP.keys()) + ['sea_service', 'vaccination', 'course']
+            return Response({'error': f'Unknown or missing type. Choices: {choices}'}, status=400)
 
-        file_field = FILE_MAP[doc_type]
-        if not file_field:
-            return Response(
-                {'error': f'No file uploaded for document type "{doc_type}"'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        file_path = file_field.path
+        # 3. Serve the file
         if not os.path.exists(file_path):
-            return Response(
-                {'error': 'File record exists but the file was not found on the server'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({'error': 'File record exists but the file was not found on the server'}, status=404)
 
-        return FileResponse(
-            open(file_path, 'rb'),
-            as_attachment=True,
-            filename=os.path.basename(file_path)
-        )
+        return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
 
 
 class ReferenceViewSet(viewsets.ModelViewSet):
@@ -1135,8 +1233,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
                         )
                         serializer.save(user=new_user)
                 else:
-                    # Fallback to uploader if no email provided (though rare for applications)
-                    serializer.save(user=self.request.user)
+                    # Fallback to uploader if no email provided
+                    if self.request.user and self.request.user.is_authenticated:
+                        serializer.save(user=self.request.user)
+                    else:
+                        from rest_framework.exceptions import ValidationError
+                        raise ValidationError({"email": "Email is required for unregistered users to process application."})
 
     def _sync_user_data(self, document):
         """Helper to sync Document data to User profile when Active"""
@@ -1516,31 +1618,87 @@ def remove_user_rank(request, user_id, rank_id):
 # Maps human-readable position names (from Document.POSITION_CHOICES)
 # to short rank codes used to auto-generate assigned_code (e.g. 'MST.001')
 POSITION_CODE_MAP = {
-    'Master':                                              'MST',
-    '1st. Officer – Chief Off.':                           '1ST_OFF',
-    '2nd. Officer':                                        '2ND_OFF',
-    '3rd. Officer':                                        '3RD_OFF',
-    'Tug Master':                                          'TUG_MST',
-    'Boson':                                               'BSN',
-    'A.B – O.S':                                           'AB_OS',
-    'Steward / Galley Boy':                                'STW',
-    'Cook / 2nd. Cook / Ass. Cook / Baker / Pastry':       'COOK',
-    'Carpenter':                                           'CARP',
-    'Waiter':                                              'WTR',
-    'Purser':                                              'PUR',
-    'Doctor':                                              'DOC',
-    '1st. Engineer':                                       '1ST_ENG',
-    '2nd. Engineer':                                       '2ND_ENG',
-    '3rd. Engineer':                                       '3RD_ENG',
-    'Electrical Engineer – E/E – ETO':                     'ETO',
-    'Assistant Electrician':                               'ASS_ELC',
-    '4th. Engineer':                                       '4TH_ENG',
-    'Electrician':                                         'ELC',
-    'Motor Man / Mechanic':                                'MTR_MAN',
-    'Oiler':                                               'OLR',
-    'Fitter – Welder':                                     'FTR',
-    'Wiper':                                               'WPR',
-    'Other':                                               'OTH',
+    'Master / Captain': 'DO-1.000',
+    'Staff Captain': 'DO-2.000',
+    'Chief Officer / Chief Mate': 'DO-3.000',
+    'Second Officer': 'DO-4.000',
+    'Third Officer': 'DO-5.000',
+    'Dynamic Positioning Operator (DPO)': 'DO-7.000',
+    'ROV Supervisor': 'DO-8.000',
+    'Offshore Installation Manager': 'DO-9.000',
+    'Deck Cadet': 'DO-10.000',
+    'Bosun': 'DR-1.000',
+    'ABLE SEAFARER DECK': 'DR-2.000',
+    'Able Seaman (AB)': 'DR-3.000',
+    'Ordinary Seaman (OS)': 'DR-4.000',
+    'Carpenter': 'DR-5.000',
+    'Pumpman': 'DR-6.000',
+    'Crane Operator': 'DR-7.000',
+    'Water and Pool': 'DR-8.000',
+    'Security Guard': 'DR-9.000',
+    'Life Guard': 'DR-10.000',
+    'Upholsterer': 'DR-11.000',
+    'Doctor': 'DR-12.000',
+    'Hotel Director': 'DR-13.000',
+    'Assistant Hotel Director': 'DR-14.000',
+    'Purser': 'DR-15.000',
+    'Assistant Purser': 'DR-16.000',
+    'Food & Beverage Manager': 'DR-17.000',
+    'Executive Chef': 'DR-18.000',
+    'Chief Housekeeper': 'DR-19.000',
+    'Guest Services Manager': 'DR-20.000',
+    'Restaurant Manager': 'DR-21.000',
+    'Head Waiter': 'DR-22.000',
+    'Waiter': 'DR-23.000',
+    'F&B attendant': 'DR-24.000',
+    'Bartender': 'DR-25.000',
+    'Cabin Steward': 'DR-26.000',
+    'Laundryman': 'DR-27.000',
+    'Cook': 'DR-28.000',
+    '2nd Cook': 'DR-29.000',
+    '3rd Cook': 'DR-30.000',
+    'Assistant Cook': 'DR-31.000',
+    'Baker': 'DR-32.000',
+    'Assistant Baker': 'DR-33.000',
+    'Pastry': 'DR-34.000',
+    'Assistant pastry': 'DR-35.000',
+    'Butcher': 'DR-36.000',
+    'Steward': 'DR-37.000',
+    'Utility Galley': 'DR-38.000',
+    'Tour Expert': 'DR-39.000',
+    'Photographer': 'DR-40.000',
+    'Chief Engineer': 'EO-1.000',
+    'Second Engineer': 'EO-2.000',
+    'Third Engineer': 'EO-3.000',
+    'Fourth Engineer': 'EO-4.000',
+    'ETO': 'EO-5.000',
+    '2ND ETO': 'EO-6.000',
+    '3RD ETO': 'EO-7.000',
+    'ELECTRICAL ENGINEER': 'EO-8.000',
+    'Refrigeration Engineer': 'EO-9.000',
+    'HVAC Engineer': 'EO-10.000',
+    'Engine Cadet': 'EO-11.000',
+    'Gas Engineer': 'EO-12.000',
+    'Cargo Engineer': 'EO-13.000',
+    'Reliquefaction Engineer': 'EO-14.000',
+    'Motorman': 'ER-1.000',
+    'Mechanic': 'ER-2.000',
+    'Assistant Mechanic': 'ER-3.000',
+    'Oiler': 'ER-4.000',
+    'Wiper': 'ER-5.000',
+    'Fitter': 'ER-6.000',
+    'Welder': 'ER-7.000',
+    'Plumber': 'ER-8.000',
+    'Assistant Plumber': 'ER-9.000',
+    'Electrician': 'ER-11.000',
+    '2nd Electrician': 'ER-12.000',
+    '3rd Electrician': 'ER-13.000',
+    'Assistant Electrician': 'ER-14.000',
+    'Trainee Electrician': 'ER-15.000',
+    'AC Technician': 'ER-16.000',
+    'Senior Accommodation Repairman': 'ER-17.000',
+    'junior Accommodation Repairman': 'ER-18.000',
+    'Other': 'OTH.000',
 }
 
 
@@ -1572,37 +1730,56 @@ def assign_rank_by_position(request, user_id):
         return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     # Validate position in request body
-    position_name = request.data.get('position', '').strip()
+    position_input = request.data.get('position', '')
+    if isinstance(position_input, int):
+        position_input = str(position_input)
+    
+    position_name = position_input.strip()
+    
     if not position_name:
         return Response(
             {'error': 'position is required.', 'hint': 'Use GET /api/positions/ to see all valid choices.'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Check position is a valid choice
-    valid_positions = [choice[0] for choice in Document.POSITION_CHOICES]
-    if position_name not in valid_positions:
-        return Response(
-            {
-                'error': f'"{position_name}" is not a valid position.',
-                'valid_positions': valid_positions,
-                'hint': 'Use GET /api/positions/ to get the full list.'
-            },
-            status=status.HTTP_400_BAD_REQUEST
+    # 1. Try to see if it's an existing Rank ID
+    rank = None
+    if position_name.isdigit():
+        rank = Rank.objects.filter(pk=int(position_name)).first()
+        if rank:
+            position_name = rank.name
+
+    # 2. If not found by ID, try finding by exact name in Rank table
+    if not rank:
+        rank = Rank.objects.filter(name__iexact=position_name).first()
+
+    # 3. If still not found, validate against hardcoded choices
+    if not rank:
+        valid_positions = [choice[0] for choice in Document.POSITION_CHOICES]
+        if position_name not in valid_positions:
+            return Response(
+                {
+                    'error': f'"{position_name}" is not a valid position.',
+                    'valid_positions': valid_positions,
+                    'hint': 'Use GET /api/positions/ to get the full list.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    # Map position name → short rank code (only if we didn't find it by ID)
+    created = False
+    if not rank:
+        rank_code = POSITION_CODE_MAP.get(position_name, position_name[:6].upper().replace(' ', '_'))
+
+        # Get or create the Rank object
+        rank, created = Rank.objects.get_or_create(
+            code=rank_code,
+            defaults={'name': position_name}
         )
-
-    # Map position name → short rank code
-    rank_code = POSITION_CODE_MAP.get(position_name, position_name[:6].upper().replace(' ', '_'))
-
-    # Get or create the Rank object
-    rank, created = Rank.objects.get_or_create(
-        code=rank_code,
-        defaults={'name': position_name}
-    )
 
     # Prevent duplicate assignment
     if UserRank.objects.filter(user=user, rank=rank).exists():
-        existing = UserRank.objects.get(user=user, rank=rank)
+        existing = UserRank.objects.filter(user=user, rank=rank).first()
         return Response(
             {
                 'error': f'User already has the rank "{position_name}".',
@@ -1701,12 +1878,16 @@ class DeclarationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        """Filter declarations based on user role"""
+        """Filter declarations based on user role and query params"""
         user = self.request.user
+        queryset = Declaration.objects.select_related('user')
         if user.role in ['Admin', 'HR Manager', 'Recruiter']:
-            return Declaration.objects.select_related('user').all()
+            user_id = self.request.query_params.get('user')
+            if user_id:
+                queryset = queryset.filter(user_id=user_id)
+            return queryset.all()
         # Employee can only see their own declarations
-        return Declaration.objects.filter(user=user)
+        return queryset.filter(user=user)
     
     def perform_create(self, serializer):
         """Set the user when creating a declaration"""
@@ -1747,14 +1928,26 @@ class DeclarationViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def get_positions(request):
     """
-    Return all available positions.
+    Return all available positions (Ranks).
     Accessible by any authenticated user.
     GET /api/positions/
     """
-    positions = [
-        {"value": value, "label": label}
-        for value, label in Document.POSITION_CHOICES
-    ]
+    ranks = Rank.objects.all().order_by('name')
+    if ranks.exists():
+        seen_names = set()
+        positions = []
+        for r in ranks:
+            # Strip whitespace to handle hidden duplicates
+            name_key = r.name.strip() if r.name else ""
+            if name_key and name_key not in seen_names:
+                positions.append({"value": r.id, "label": r.name, "code": r.code})
+                seen_names.add(name_key)
+    else:
+        # Fallback to hardcoded choices if Rank table is empty
+        positions = [
+            {"value": value, "label": label}
+            for value, label in Document.POSITION_CHOICES
+        ]
     return Response(positions)
 
 
@@ -1774,13 +1967,34 @@ def get_coc_choices(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def get_document_types(request):
+    """
+    Return all available personal/travel document type choices.
+    GET /api/document-types/
+    """
+    choices = [
+        {"value": value, "label": label}
+        for value, label in PersonalDocument.DOCUMENT_TYPE_CHOICES
+    ]
+    return Response(choices)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_flags(request):
     """
-    Return all available maritime flag states.
+    Return all available maritime flag states from dynamic core.models.Flag.
     Accessible by any authenticated user.
     GET /api/flags/
     """
+    db_flags = Flag.objects.all().order_by('name')
+    if db_flags.exists():
+        return Response([
+            {"value": f.id, "label": f.name, "icon": f.icon.url if f.icon else None}
+            for f in db_flags
+        ])
 
+    # Legacy fallback if DB is empty
     FLAGS = [
         ("Algeria", "Algeria"),
         ("Angola", "Angola"),
@@ -1934,12 +2148,23 @@ def get_flags(request):
         ("Yemen", "Yemen"),
         ("Zanzibar", "Zanzibar"),
     ]
+    return Response([{"value": val, "label": lab} for val, lab in FLAGS])
 
-    flags = [
-        {"value": value, "label": label}
-        for value, label in FLAGS
-    ]
-    return Response(flags)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_vessel_types(request):
+    """Return all available vessel types from dynamic core.models.VesselType."""
+    types = VesselType.objects.all().order_by('name')
+    return Response([{"value": t.id, "label": t.name} for t in types])
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_company_types(request):
+    """Return all available company types from dynamic core.models.CompanyType."""
+    types = CompanyType.objects.all().order_by('name')
+    return Response([{"value": t.id, "label": t.name} for t in types])
 
 
 class NextOfKinViewSet(viewsets.ModelViewSet):
@@ -1988,5 +2213,78 @@ class NextOfKinViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only delete your own emergency contacts")
         instance.delete()
+
+
+class GlobalSearchView(APIView):
+    """
+    Unified search endpoint to query across multiple sections:
+    Users, Ships, Companies, CV Submissions, and Contracts.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        if not query or len(query) < 2:
+            return Response({
+                'users': [],
+                'ships': [],
+                'companies': [],
+                'cvs': [],
+                'contracts': []
+            })
+
+        results = {}
+
+        # 1. Search Users (Seafarers)
+        users = Users.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(middle_name__icontains=query) |
+            Q(email__icontains=query) |
+            Q(phone_number__icontains=query) |
+            Q(nationality__icontains=query)
+        ).distinct()[:10]
+        # Using a simplified representation for global search results
+        results['users'] = [{
+            'id': u.id,
+            'name': f"{u.first_name} {u.middle_name}".strip(),
+            'email': u.email,
+            'phone': u.phone_number,
+            'role': u.role
+        } for u in users]
+
+        # 2. Search Ships
+        from ships.models import Ship
+        from ships.serializers import ShipSerializer
+        ships = Ship.objects.filter(
+            Q(ship_name__icontains=query) |
+            Q(imo_number__icontains=query)
+        ).distinct()[:10]
+        results['ships'] = ShipSerializer(ships, many=True).data
+
+        # 3. Search Companies
+        from companies.models import Company as MainCompany
+        companies = MainCompany.objects.filter(
+            Q(company_name__icontains=query) |
+            Q(contact_email__icontains=query)
+        ).distinct()[:10]
+        results['companies'] = CompanyListSerializer(companies, many=True).data
+
+        # 4. Search CV Submissions
+        cvs = CVSubmission.objects.filter(
+            Q(user__first_name__icontains=query) |
+            Q(user__middle_name__icontains=query) |
+            Q(notes__icontains=query)
+        ).distinct()[:10]
+        results['cvs'] = CVSubmissionListSerializer(cvs, many=True).data
+
+        # 5. Search Contracts
+        contracts = Contract.objects.filter(
+            Q(user__first_name__icontains=query) |
+            Q(status__icontains=query)
+        ).distinct()[:10]
+        results['contracts'] = ContractListSerializer(contracts, many=True).data
+
+        return Response(results)
+
 
 

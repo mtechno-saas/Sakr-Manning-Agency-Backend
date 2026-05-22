@@ -4,8 +4,8 @@ from django.shortcuts import render
 # core/views.py
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .models import Flag, VesselType
-from .serializers import FlagSerializer, VesselTypeSerializer 
+from .models import Flag, VesselType, CompanyType
+from .serializers import FlagSerializer, VesselTypeSerializer, CompanyTypeSerializer 
 
 
 class FlagViewSet(viewsets.ModelViewSet):
@@ -22,4 +22,12 @@ class VesselTypeViewSet(viewsets.ModelViewSet):
     """
     queryset = VesselType.objects.all()
     serializer_class = VesselTypeSerializer
+    permission_classes = [IsAuthenticated]
+
+class CompanyTypeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows Company Types to be viewed or edited.
+    """
+    queryset = CompanyType.objects.all()
+    serializer_class = CompanyTypeSerializer
     permission_classes = [IsAuthenticated]

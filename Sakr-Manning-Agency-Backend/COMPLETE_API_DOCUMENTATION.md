@@ -112,7 +112,7 @@ Authorization: Bearer <your_access_token>
   "email": "newuser@example.com",
   "password": "SecurePassword123",
   "first_name": "John",
-  "middle_name": "Michael",
+  "last_name": "Michael",
   "phone_number": "+201234567890",
   "nationality": "Egyptian"
 }
@@ -125,7 +125,7 @@ Authorization: Bearer <your_access_token>
   "id": 15,
   "email": "newuser@example.com",
   "first_name": "John",
-  "middle_name": "Michael",
+  "last_name": "Michael",
   "phone_number": "+201234567890",
   "nationality": "Egyptian",
   "role": "Employee",
@@ -146,7 +146,7 @@ Complete user model with all fields:
   "id": integer,
   "email": string (unique, required),
   "first_name": string (required),
-  "middle_name": string,
+  "last_name": string (required),
   "profile_image": file (image),
   
   # Personal Information
@@ -484,7 +484,7 @@ All error responses follow this structure:
     "id": 1,
     "email": "admin@example.com",
     "first_name": "Admin",
-    "middle_name": "User",
+    "last_name": "User",
     "profile_image": "http://domain.com/media/users/profile1.jpg",
     "age": 35,
     "nationality": "Egyptian",
@@ -521,7 +521,7 @@ All error responses follow this structure:
   "email": "captain@example.com",
   "password": "SecurePass123",
   "first_name": "John",
-  "middle_name": "Smith",
+  "last_name": "Smith",
   "phone_number": "+201234567890",
   "nationality": "Egyptian",
   "age": 45,
@@ -543,7 +543,7 @@ All error responses follow this structure:
   "id": 25,
   "email": "captain@example.com",
   "first_name": "John",
-  "middle_name": "Smith",
+  "last_name": "Smith",
   "role": "Employee",
   "created_at": "2024-12-01T15:30:00Z",
   "message": "User created successfully"
@@ -573,7 +573,7 @@ All error responses follow this structure:
   "id": 5,
   "email": "seafarer@example.com",
   "first_name": "Ahmed",
-  "middle_name": "Mohamed",
+  "last_name": "Mohamed",
   "profile_image": "http://domain.com/media/users/ahmed.jpg",
   "age": 32,
   "blood_type": "A+",
@@ -680,7 +680,7 @@ All error responses follow this structure:
   "id": 8,
   "email": "current@example.com",
   "first_name": "Current",
-  "middle_name": "User",
+  "last_name": "User",
   "role": "Employee",
   "profile_image": "http://domain.com/media/users/current.jpg"
 }
@@ -1314,7 +1314,7 @@ document: [PDF or DOCX file]
   "message": "Document processed and saved successfully",
   "extracted_data": {
     "first_name": "John",
-    "middle_name": "Michael",
+    "last_name": "Michael",
     "email": "john@example.com",
     "phone_number": "+201234567890",
     "nationality": "Egyptian",
@@ -1348,7 +1348,7 @@ document: [PDF or DOCX file]
   {
     "id": 45,
     "first_name": "John",
-    "middle_name": "Michael",
+    "last_name": "Michael",
     "email": "john@example.com",
     "phone_number": "+201234567890",
     "nationality": "Egyptian",

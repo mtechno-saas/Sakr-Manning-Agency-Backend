@@ -3486,325 +3486,378 @@ class DocumentUploadView(APIView):
     
     Uses serializers for validation and response formatting.
     """
+    authentication_classes = []  # Allow unauthenticated uploads
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser]
     serializer_class = DocumentUploadSerializer
 
     def post(self, request, *args, **kwargs):
         """Handle document upload with proper serializer validation."""
-        
-        # Validate file upload using serializer
-        upload_serializer = DocumentUploadSerializer(data=request.data)
-        if not upload_serializer.is_valid():
-            return Response(
-                upload_serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        file = upload_serializer.validated_data['file']
-        
-        # Save file temporarily
-        file_path = default_storage.save(f"tmp/{file.name}", ContentFile(file.read()))
-
-        processor = DocumentProcessor()
         try:
-            with transaction.atomic():
-                # Step 1: Extract text from document
-                result = processor.process_document(default_storage.path(file_path))
+            # Validate file upload using serializer
+            upload_serializer = DocumentUploadSerializer(data=request.data)
+            if not upload_serializer.is_valid():
+                return Response(
+                    upload_serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-                # Step 2: Clean extracted text
-                cleaned_text = clean_text(result.get("extracted_text", ""))
+            file = upload_serializer.validated_data.get('file')
+            
+            # File is required for AI processing
+            if not file:
+                return Response(
+                    {"file": ["A file is required for AI document processing."]},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Save file temporarily
+            file_path = default_storage.save(f"tmp/{file.name}", ContentFile(file.read()))
 
-                # Step 3: Convert text into structured JSON
-                structured_json = convert_text_to_json(cleaned_text)
+            processor = DocumentProcessor()
+            try:
+                with transaction.atomic():
+                    # Step 1: Extract text from document
+                    result = processor.process_document(default_storage.path(file_path))
 
-                # Ensure structured_json is a dictionary
-                if not isinstance(structured_json, dict):
-                    logger.error(f"convert_text_to_json returned {type(structured_json)}, expected dict")
-                    structured_json = {
-                        "Personal_Details": {},
-                        "Education": {},
-                        "Contact_Details": {},
-                        "Travel_Documents": {},
-                        "Professional_Qualifications": {},
-                        "Next_of_Kin_Emergency_Contact": {},
-                        "Health_Certificates_Vaccinations": {},
-                        "Covid_19_Vaccination": {},
-                        "Marine_Courses": {},
-                        "Sea_Service_Details": {},
-                        "Specialised_Experience": {},
-                        "References": {},
-                        "Declaration": {},
-                        "Office_Use_Only": {},
-                        "Physical_Measurements": {},
-                        "Language_Skills": {},
-                        "Medical_History": {},
-                        "Assessments": {},
-                        "Competency_Tests": {},
-                        "Applied_Position_Info": {},
-                        "error": f"Unexpected return type: {type(structured_json)}"
+                    # Step 2: Clean extracted text
+                    cleaned_text = clean_text(result.get("extracted_text", ""))
+
+                    # Step 3: Convert text into structured JSON
+                    parsed_tables = result.get("tables", [])
+                    structured_json = convert_text_to_json(cleaned_text, parsed_tables=parsed_tables)
+
+                    # Ensure structured_json is a dictionary
+                    if not isinstance(structured_json, dict):
+                        logger.error(f"convert_text_to_json returned {type(structured_json)}, expected dict")
+                        structured_json = {
+                            "Personal_Details": {},
+                            "Education": {},
+                            "Contact_Details": {},
+                            "Travel_Documents": {},
+                            "Professional_Qualifications": {},
+                            "Next_of_Kin_Emergency_Contact": {},
+                            "Health_Certificates_Vaccinations": {},
+                            "Covid_19_Vaccination": {},
+                            "Marine_Courses": {},
+                            "Sea_Service_Details": {},
+                            "Specialised_Experience": {},
+                            "References": {},
+                            "Declaration": {},
+                            "Office_Use_Only": {},
+                            "Physical_Measurements": {},
+                            "Language_Skills": {},
+                            "Medical_History": {},
+                            "Assessments": {},
+                            "Competency_Tests": {},
+                            "Applied_Position_Info": {},
+                            "error": f"Unexpected return type: {type(structured_json)}"
+                        }
+
+                    # VALIDATION CHECK: If document is not a valid maritime CV, do NOT save to database
+                    if "validation_error" in structured_json:
+                        # Clean up the temporary file
+                        try:
+                            default_storage.delete(file_path)
+                        except Exception as e:
+                            logger.warning(f"Failed to delete temporary file: {e}")
+                        
+                        # Return error response without saving anything
+                        return Response({
+                            "success": False,
+                            "error": "Invalid document",
+                            "message": structured_json.get("validation_error", "Document is not a valid maritime CV"),
+                            "file_name": file.name,
+                            "structured_data": structured_json,
+                            "page_count": result.get("page_count"),
+                            "word_count": len(cleaned_text.split()),
+                        }, status=status.HTTP_400_BAD_REQUEST)
+
+                    # Step 4: Save structured data into Applicant model
+                    # Map from numbered seafarer_application format to Applicant model fields
+                    _pd  = structured_json.get("1_personal_details", {})
+                    _edu = structured_json.get("2_education", {})
+                    _cd  = structured_json.get("3_contact_details", {})
+                    _td  = structured_json.get("4_travel_documents", [])
+                    _pq  = structured_json.get("5_professional_qualification_certificate_of_competency", [])
+                    _nok = structured_json.get("6_next_of_kin_emergency_contact", {})
+                    _hcv = structured_json.get("7_health_certificates_and_vaccinations", {})
+                    _mc  = structured_json.get("8_marine_courses", [])
+                    _ss  = structured_json.get("9_complete_sea_service_details", {})
+                    _ref = structured_json.get("10_references", [])
+                    _dec = structured_json.get("11_declaration", {})
+                    _ofc = structured_json.get("12_for_office_use_only", {})
+
+                    # Normalise marital_status: keep dict in seafarer_application,
+                    # but convert to string for Applicant model storage
+                    ms_raw = _pd.get("marital_status", {})
+                    if isinstance(ms_raw, dict):
+                        if ms_raw.get("married"):
+                            marital_str = "Married"
+                        elif ms_raw.get("single"):
+                            marital_str = "Single"
+                        else:
+                            marital_str = ""
+                        # _pd for model storage uses string; structured_json keeps the dict
+                        _pd_for_model = {**_pd, "marital_status": marital_str}
+                    else:
+                        _pd_for_model = _pd
+
+
+                    # Normalise contact_details key (e_mail → Email)
+                    _cd_normalised = {
+                        "Email": _cd.get("e_mail", "") or _cd.get("Email", ""),
+                        "Mobile_Tel": _cd.get("mobile_tel", "") or _cd.get("Mobile_Tel", ""),
+                        "Home_Address_City": _cd.get("home_address_city", "") or _cd.get("Home_Address_City", ""),
                     }
 
-                # VALIDATION CHECK: If document is not a valid maritime CV, do NOT save to database
-                if "validation_error" in structured_json:
-                    # Clean up the temporary file
+                    # Normalise travel_documents: ensure Type key is capitalised for _find_document()
+                    _td_normalised = []
+                    for doc in (_td if isinstance(_td, list) else []):
+                        _td_normalised.append({
+                            "Type": doc.get("type", doc.get("Type", "")),
+                            "Document_No": doc.get("document_no", doc.get("Document_No", "")),
+                            "ISS_Date": doc.get("iss_date", doc.get("ISS_Date", "")),
+                            "Exp_Date": doc.get("exp_date", doc.get("Exp_Date", "")),
+                            "ISS_By_Authority": doc.get("iss_by_authority", doc.get("ISS_By_Authority", "")),
+                            "Place_of_Issue": doc.get("place_of_issue", doc.get("Place_of_Issue", "")),
+                        })
+
+                    applicant = Applicant.objects.create(
+                        personal_details=_pd_for_model,
+                        education=_edu,
+                        contact_details=_cd_normalised,
+                        travel_documents=_td_normalised,
+                        professional_qualifications=_pq,
+                        next_of_kin_emergency_contact=_nok,
+                        health_certificates_vaccinations=_hcv,
+                        covid_19_vaccination=_hcv.get("covid_19", {}),
+                        marine_courses=_mc,
+                        sea_service_details=_ss.get("service_records", []),
+                        specialised_experience=[],
+                        references=_ref,
+                        declaration=_dec,
+                        office_use_only=_ofc,
+                        physical_measurements={},
+                        language_skills={},
+                        medical_history={},
+                        assessments={},
+                        competency_tests={},
+                        applied_position_info={},
+                    )
+
+
+                    logger.info(f"Successfully created applicant with ID: {applicant.id}")
+
+                    # Use serializer BEFORE user creation
+                    applicant_serializer = ApplicantToUsersSerializer(applicant)
+
+                    # Step 5: Convert and save to Users model
+                    user = None
+                    user_error = None
+                    try:
+                        logger.info("Converting applicant to Users model")
+                        
+                        # FIXED: Create user with proper type and date handling
+                        from api.models import Users
+                        from django.db import models
+                        from datetime import datetime
+                        
+                        serializer_data = applicant_serializer.data
+
+                        email = serializer_data.get('email')
+                        if not email:
+                            raise ValueError(['Email is required'])
+                        
+                        def convert_date(date_str):
+                            """Convert various date formats to YYYY-MM-DD."""
+                            if not date_str or not str(date_str).strip():
+                                return None
+                            
+                            date_str = str(date_str).strip()
+                            
+                            # Try different date formats
+                            formats = [
+                                '%d/%m/%Y',  # 18/6/1994
+                                '%d-%m-%Y',  # 18-6-1994
+                                '%Y-%m-%d',  # 1994-06-18 (already correct)
+                                '%d/%m/%y',  # 18/6/94
+                                '%d-%m-%y',  # 18-6-94
+                                '%Y/%m/%d',  # 1994/6/18
+                            ]
+                            
+                            for fmt in formats:
+                                try:
+                                    dt = datetime.strptime(date_str, fmt)
+                                    return dt.strftime('%Y-%m-%d')
+                                except ValueError:
+                                    continue
+                            
+                            # If no format works, return None
+                            logger.warning(f"Could not parse date: {date_str}")
+                            return None
+                        
+                        # Get all fields from Users model with their types
+                        user_model_fields = {f.name: f for f in Users._meta.get_fields()}
+                        
+                        # Build defaults dict with proper type handling
+                        defaults = {}
+                        for field_name, value in serializer_data.items():
+                            # Skip special fields
+                            if field_name in ['id', 'email', 'created_at', 'updated_at', 'ranks', 'certificates', 'references', 'sea_services']:
+                                continue
+                            
+                            # Only process if field exists in Users model
+                            if field_name not in user_model_fields:
+                                continue
+                            
+                            field = user_model_fields[field_name]
+                            
+                            # Handle different field types
+                            if isinstance(field, (models.DateField, models.DateTimeField)):
+                                # Date fields: convert format
+                                defaults[field_name] = convert_date(value)
+                            elif isinstance(field, (models.IntegerField, models.BigIntegerField, models.SmallIntegerField)):
+                                # Integer fields: use None if empty
+                                try:
+                                    defaults[field_name] = int(value) if value and str(value).strip() else None
+                                except (ValueError, TypeError):
+                                    defaults[field_name] = None
+                            elif isinstance(field, (models.FloatField, models.DecimalField)):
+                                # Float/Decimal fields: use None if empty
+                                try:
+                                    defaults[field_name] = float(value) if value and str(value).strip() else None
+                                except (ValueError, TypeError):
+                                    defaults[field_name] = None
+                            elif isinstance(field, models.BooleanField):
+                                # Boolean fields: use False if empty
+                                defaults[field_name] = bool(value) if value else False
+                            elif isinstance(field, models.JSONField):
+                                # JSON fields: use empty dict/list if empty
+                                defaults[field_name] = value if value else {}
+                            else:
+                                # String fields and others: use empty string if empty
+                                defaults[field_name] = value if value else ''
+                        
+                        user, created = Users.objects.update_or_create(
+                            email=email,
+                            defaults=defaults
+                        )
+                        
+                        action = "Created" if created else "Updated"
+                        logger.info(f"{action} user: {user.email} (ID: {user.id})")
+                        
+                    except Exception as ue:
+                        user_error = f"User creation error: {str(ue)}"
+                        logger.error(f"Failed to create user: {ue}")
+                        import traceback
+                        logger.error(traceback.format_exc())
+
+                    # Clean up file
                     try:
                         default_storage.delete(file_path)
                     except Exception as e:
                         logger.warning(f"Failed to delete temporary file: {e}")
+
+                    # Response with serialized applicant data
+                    response_status = status.HTTP_201_CREATED
+                    message = "Data saved successfully to both databases"
+
+                    if "error" in structured_json:
+                        response_status = status.HTTP_206_PARTIAL_CONTENT
+                        message = "Data saved with parsing issues"
+
+                    if not user:
+                        response_status = status.HTTP_206_PARTIAL_CONTENT
+                        message = "Data saved to Applicant database, but failed to save to Users database"
+
+                    # applicant_serializer already created above
                     
-                    # Return error response without saving anything
                     return Response({
-                        "success": False,
-                        "error": "Invalid document",
-                        "message": structured_json.get("validation_error", "Document is not a valid maritime CV"),
-                        "file_name": file.name,
-                        "structured_data": structured_json,
-                        "page_count": result.get("page_count"),
-                        "word_count": len(cleaned_text.split()),
-                    }, status=status.HTTP_400_BAD_REQUEST)
-
-                # Step 4: Save structured data into Applicant model
-                applicant = Applicant.objects.create(
-                    personal_details=structured_json.get("Personal_Details", {}),
-                    education=structured_json.get("Education", {}),
-                    contact_details=structured_json.get("Contact_Details", {}),
-                    travel_documents=structured_json.get("Travel_Documents", {}),
-                    professional_qualifications=structured_json.get("Professional_Qualifications", {}),
-                    next_of_kin_emergency_contact=structured_json.get("Next_of_Kin_Emergency_Contact", {}),
-                    health_certificates_vaccinations=structured_json.get("Health_Certificates_Vaccinations", {}),
-                    covid_19_vaccination=structured_json.get("Covid_19_Vaccination", {}),
-                    marine_courses=structured_json.get("Marine_Courses", {}),
-                    sea_service_details=structured_json.get("Sea_Service_Details", {}),
-                    specialised_experience=structured_json.get("Specialised_Experience", {}),
-                    references=structured_json.get("References", {}),
-                    declaration=structured_json.get("Declaration", {}),
-                    office_use_only=structured_json.get("Office_Use_Only", {}),
-                    physical_measurements=structured_json.get("Physical_Measurements", {}),
-                    language_skills=structured_json.get("Language_Skills", {}),
-                    medical_history=structured_json.get("Medical_History", {}),
-                    assessments=structured_json.get("Assessments", {}),
-                    competency_tests=structured_json.get("Competency_Tests", {}),
-                    applied_position_info=structured_json.get("Applied_Position_Info", {}),
-                )
-
-                # logger.info(f"Successfully created applicant with ID: {applicant.id}")
-
-                # # Step 5: Convert and save to Users model
-                # user = None
-                # user_error = None
-                # try:
-                #     logger.info("Converting applicant to Users model")
-                #     user = DataMapperService.save_applicant_as_user(applicant)
-                #     logger.info(f"Successfully created/updated user: {user.email} (ID: {user.id})")
-                # except Exception as ue:
-                #     user_error = f"User creation error: {str(ue)}"
-                #     logger.error(f"Failed to create user: {ue}")
-
-                # # Clean up file
-                # try:
-                #     default_storage.delete(file_path)
-                # except Exception as e:
-                #     logger.warning(f"Failed to delete temporary file: {e}")
-
-                # # Response with serialized applicant data
-                # response_status = status.HTTP_201_CREATED
-                # message = "Data saved successfully to both databases"
-
-                # if "error" in structured_json:
-                #     response_status = status.HTTP_206_PARTIAL_CONTENT
-                #     message = "Data saved with parsing issues"
-
-                # if not user:
-                #     response_status = status.HTTP_206_PARTIAL_CONTENT
-                #     message = "Data saved to Applicant database, but failed to save to Users database"
-
-                # # Use serializer for consistent response format
-                # applicant_serializer = ApplicantToUsersSerializer(applicant)
-
-                # return Response({
-                #     "success": True,
-                #     "message": message,
-                #     "applicant_id": applicant.id,
-                #     "user_id": user.id if user else None,
-                #     "user_email": user.email if user else None,
-                #     "file_name": file.name,
-                #     "applicant_data": applicant_serializer.data,
-                #     "structured_data": structured_json,
-                #     "page_count": result.get("page_count"),
-                #     "word_count": len(cleaned_text.split()),
-                #     "parsing_quality": "low" if "error" in structured_json else "high",
-                #     "user_creation_status": "success" if user else "failed",
-                #     "user_error": user_error,
-                # }, status=response_status)
-                # UPDATED SECTION FOR views.py
-# Replace lines 3565-3577 with this code
-
-# ULTIMATE FINAL FIX FOR views.py
-# This version handles date format conversion
-# Replace the user creation section with this code
-
-                logger.info(f"Successfully created applicant with ID: {applicant.id}")
-
-                # Use serializer BEFORE user creation
-                applicant_serializer = ApplicantToUsersSerializer(applicant)
-
-                # Step 5: Convert and save to Users model
-                user = None
-                user_error = None
-                try:
-                    logger.info("Converting applicant to Users model")
-                    
-                    # FIXED: Create user with proper type and date handling
-                    from api.models import Users
-                    from django.db import models
-                    from datetime import datetime
-                    
-                    serializer_data = applicant_serializer.data
-
-                    email = serializer_data.get('email')
-                    if not email:
-                        raise ValueError(['Email is required'])
-                    
-                    def convert_date(date_str):
-                        """Convert various date formats to YYYY-MM-DD."""
-                        if not date_str or not str(date_str).strip():
-                            return None
+                        "id": applicant.id,
+                        "user": user.id if user else None,
+                        "user_name": _pd_for_model.get("full_name", "") if isinstance(_pd_for_model, dict) else "",
+                        "user_email_display": user.email if user else None,
+                        "company": None,
+                        "company_name": "",
+                        "ship": None,
+                        "ship_details": None,
+                        "position": None,
+                        "position_name": "",
+                        "cv_file": "",
+                        "cover_letter": None,
+                        "experience_years": 0,
+                        "expected_salary": None,
+                        "availability_date": None,
+                        "status": "Pending",
+                        "submitted_date": datetime.now().strftime("%Y-%m-%d"),
+                        "reviewed_by": None,
+                        "reviewed_date": None,
+                        "notes": "Auto-created from AI Extraction",
+                        "rating": None,
+                        "created_at": applicant.created_at.isoformat() if applicant.created_at else None,
+                        "updated_at": applicant.updated_at.isoformat() if applicant.updated_at else None,
+                        "generated_id": str(applicant.id).zfill(12),
+                        "salary_display": "",
+                        "coded_rank": [],
+                        "rank_code": "",
+                        "assigned_code": "",
+                        "certificates": [],
+                        "user_documents": {
+                            "passport": {"passport_no": None, "issue_date": None, "expiry_date": None, "issued_by": None, "place_of_issue": None},
+                            "seaman_book": {"seaman_book_no": None, "issue_date": None, "expiry_date": None, "issued_by": None, "place_of_issue": None},
+                            "other_seaman_book": {"seaman_book_no": None, "issue_date": None, "expiry_date": None, "issued_by": None, "place_of_issue": None},
+                            "coc": {"certificate_name": None, "certificate_number": None, "issue_date": None, "expiry_date": None, "issued_by": None, "issued_at": None},
+                            "goc": {"certificate_number": None, "issue_date": None, "expiry_date": None, "issued_by": None, "issued_at": None},
+                            "health_certificate": {"flag_state": None, "number": None, "issue_date": None, "expiry_date": None, "issued_by": None, "issued_at": None},
+                            "licenses": []
+                        },
+                        "job_position": None,
+                        "job_position_details": None,
+                        "seafarer_application": structured_json,
+                        "company_details": None,
                         
-                        date_str = str(date_str).strip()
-                        
-                        # Try different date formats
-                        formats = [
-                            '%d/%m/%Y',  # 18/6/1994
-                            '%d-%m-%Y',  # 18-6-1994
-                            '%Y-%m-%d',  # 1994-06-18 (already correct)
-                            '%d/%m/%y',  # 18/6/94
-                            '%d-%m-%y',  # 18-6-94
-                            '%Y/%m/%d',  # 1994/6/18
-                        ]
-                        
-                        for fmt in formats:
-                            try:
-                                dt = datetime.strptime(date_str, fmt)
-                                return dt.strftime('%Y-%m-%d')
-                            except ValueError:
-                                continue
-                        
-                        # If no format works, return None
-                        logger.warning(f"Could not parse date: {date_str}")
-                        return None
-                    
-                    # Get all fields from Users model with their types
-                    user_model_fields = {f.name: f for f in Users._meta.get_fields()}
-                    
-                    # Build defaults dict with proper type handling
-                    defaults = {}
-                    for field_name, value in serializer_data.items():
-                        # Skip special fields
-                        if field_name in ['id', 'email', 'created_at', 'updated_at', 'ranks', 'certificates', 'references', 'sea_services']:
-                            continue
-                        
-                        # Only process if field exists in Users model
-                        if field_name not in user_model_fields:
-                            continue
-                        
-                        field = user_model_fields[field_name]
-                        
-                        # Handle different field types
-                        if isinstance(field, (models.DateField, models.DateTimeField)):
-                            # Date fields: convert format
-                            defaults[field_name] = convert_date(value)
-                        elif isinstance(field, (models.IntegerField, models.BigIntegerField, models.SmallIntegerField)):
-                            # Integer fields: use None if empty
-                            try:
-                                defaults[field_name] = int(value) if value and str(value).strip() else None
-                            except (ValueError, TypeError):
-                                defaults[field_name] = None
-                        elif isinstance(field, (models.FloatField, models.DecimalField)):
-                            # Float/Decimal fields: use None if empty
-                            try:
-                                defaults[field_name] = float(value) if value and str(value).strip() else None
-                            except (ValueError, TypeError):
-                                defaults[field_name] = None
-                        elif isinstance(field, models.BooleanField):
-                            # Boolean fields: use False if empty
-                            defaults[field_name] = bool(value) if value else False
-                        elif isinstance(field, models.JSONField):
-                            # JSON fields: use empty dict/list if empty
-                            defaults[field_name] = value if value else {}
-                        else:
-                            # String fields and others: use empty string if empty
-                            defaults[field_name] = value if value else ''
-                    
-                    user, created = Users.objects.update_or_create(
-                        email=email,
-                        defaults=defaults
-                    )
-                    
-                    action = "Created" if created else "Updated"
-                    logger.info(f"{action} user: {user.email} (ID: {user.id})")
-                    
-                except Exception as ue:
-                    user_error = f"User creation error: {str(ue)}"
-                    logger.error(f"Failed to create user: {ue}")
-                    import traceback
-                    logger.error(traceback.format_exc())
+                        # Keeping original upload metadata in a separate block just in case
+                        "_upload_meta": {
+                            "success": True,
+                            "message": message,
+                            "parsing_quality": "low" if "error" in structured_json else "high",
+                            "page_count": result.get("page_count"),
+                            "word_count": len(cleaned_text.split()),
+                            "user_creation_status": "success" if user else "failed",
+                            "user_error": user_error,
+                        }
+                    }, status=response_status)
 
-                # Clean up file
+
+            except DocumentProcessingError as e:
                 try:
                     default_storage.delete(file_path)
-                except Exception as e:
-                    logger.warning(f"Failed to delete temporary file: {e}")
-
-                # Response with serialized applicant data
-                response_status = status.HTTP_201_CREATED
-                message = "Data saved successfully to both databases"
-
-                if "error" in structured_json:
-                    response_status = status.HTTP_206_PARTIAL_CONTENT
-                    message = "Data saved with parsing issues"
-
-                if not user:
-                    response_status = status.HTTP_206_PARTIAL_CONTENT
-                    message = "Data saved to Applicant database, but failed to save to Users database"
-
-                # applicant_serializer already created above
-                
+                except Exception:
+                    pass
                 return Response({
-                    "success": True,
-                    "message": message,
-                    "applicant_id": applicant.id,
-                    "user_id": user.id if user else None,
-                    "user_email": user.email if user else None,
-                    "file_name": file.name,
-                    "applicant_data": applicant_serializer.data,
-                    "structured_data": structured_json,
-                    "page_count": result.get("page_count"),
-                    "word_count": len(cleaned_text.split()),
-                    "parsing_quality": "low" if "error" in structured_json else "high",
-                    "user_creation_status": "success" if user else "failed",
-                    "user_error": user_error,
-                }, status=response_status)
+                    "success": False,
+                    "error": str(e)
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-
-        except DocumentProcessingError as e:
-            try:
-                default_storage.delete(file_path)
-            except Exception:
-                pass
-            return Response({
-                "success": False,
-                "error": str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                try:
+                    default_storage.delete(file_path)
+                except Exception:
+                    pass
+                logger.error(f"Unexpected error during processing: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+                return Response({
+                    "success": False,
+                    "error": "Internal server error during document processing",
+                    "details": str(e)
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         except Exception as e:
-            try:
-                default_storage.delete(file_path)
-            except Exception:
-                pass
-            logger.error(f"Unexpected error: {e}")
+            logger.error(f"Unexpected error in document upload: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return Response({
                 "success": False,
                 "error": "Internal server error",

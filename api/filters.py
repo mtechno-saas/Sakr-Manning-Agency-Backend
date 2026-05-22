@@ -67,7 +67,8 @@
 
 
 import django_filters
-from .models import Users, Company, Interview, CVSubmission
+from django.db.models import Q
+from .models import Users, Company, Interview, CVSubmission, Contract
 from finance.models import FinanceRecord
 from companies.models import JobOrder
 from logistics.models import FlightBooking, VisaApplication, JoiningInstruction
@@ -75,27 +76,126 @@ from compliance.models import Audit, IncidentReport
 from ships.models import Ship
 
 
+class CharInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
+    pass
+
+
+class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
+    pass
+
+
 class UsersFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name="first_name", lookup_expr="icontains")
+    name = django_filters.CharFilter(method='filter_by_name')
     age = django_filters.NumberFilter(field_name="age", lookup_expr="exact")
     marital_status = django_filters.CharFilter(field_name="marital_status", lookup_expr="iexact")
-    user_status = django_filters.CharFilter(field_name="user_status", lookup_expr="iexact")
-    nationality = django_filters.CharFilter(field_name="nationality", lookup_expr="icontains")
+    user_status = CharInFilter(field_name="user_status", lookup_expr="in")
+    nationality = CharInFilter(field_name="nationality", lookup_expr="in")
     nearest_port = django_filters.CharFilter(field_name="Nearest_Port", lookup_expr="icontains")
+    
+    def filter_by_name(self, queryset, name, value):
+        if not value:
+            return queryset
+        
+        terms = value.split(',')
+        query = Q()
+        
+        for term in terms:
+            term = term.strip()
+            if not term:
+                continue
+            
+            term_query = Q(first_name__icontains=term) | Q(middle_name__icontains=term) | Q(email__icontains=term)
+            
+            parts = term.split()
+            if len(parts) >= 2:
+                term_query |= (Q(first_name__icontains=parts[0]) & Q(middle_name__icontains=parts[-1]))
+            
+            query |= term_query
+            
+        return queryset.filter(query).distinct()
+    
     rank_name = django_filters.CharFilter(field_name="codes__name", lookup_expr="icontains")
     assigned_code = django_filters.CharFilter(field_name="user_ranks__assigned_code", lookup_expr="icontains")
-    role = django_filters.CharFilter(field_name="role", lookup_expr="iexact")
+    
+    role = CharInFilter(field_name="role", lookup_expr="in")
     is_blacklisted = django_filters.BooleanFilter(field_name="is_blacklisted")
+    
+    company = django_filters.NumberFilter(field_name="contracts__company__id", lookup_expr="exact")
+    company_name = django_filters.CharFilter(field_name="contracts__company__company_name", lookup_expr="icontains")
+    
+    ship = django_filters.NumberFilter(field_name="contracts__ship__id", lookup_expr="exact")
+    ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
+    
+    job_position_name = django_filters.CharFilter(field_name="contracts__job_position__rank__name", lookup_expr="icontains")
+    
+    # Filter by Language - Search in both LanguageProficiency and UserLanguage models
+    language = django_filters.CharFilter(method='filter_by_language')
+
+    def filter_by_language(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(
+            Q(languages__language__icontains=value) | 
+            Q(user_languages__language__icontains=value) |
+            Q(english_language_level__icontains=value) |
+            Q(other_language__icontains=value)
+        ).distinct()
+    
+    contract_status = CharInFilter(field_name="contracts__status", lookup_expr="in")
+    
+    signed_on_from = django_filters.DateFilter(field_name="contracts__sign_on_date", lookup_expr="gte")
+    signed_on_to = django_filters.DateFilter(field_name="contracts__sign_on_date", lookup_expr="lte")
+    signed_off_from = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="gte")
+    signed_off_to = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="lte")
+
+    company_type = django_filters.CharFilter(field_name="contracts__company__company_type__name", lookup_expr="icontains")
+    ship_type = django_filters.CharFilter(field_name="contracts__ship__ship_type__name", lookup_expr="icontains")
+    
+    passport_no = django_filters.CharFilter(field_name="passport_no", lookup_expr="icontains")
+    passport_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    passport_expiry_from = django_filters.DateFilter(field_name="passport_expiry_date", lookup_expr="gte")
+    passport_expiry_to = django_filters.DateFilter(field_name="passport_expiry_date", lookup_expr="lte")
+    
+    seaman_book_no = django_filters.CharFilter(field_name="seaman_book_no", lookup_expr="icontains")
+    seaman_book_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    seaman_book_expiry_from = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="gte")
+    seaman_book_expiry_to = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="lte")
+    
+    document_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    
+    medical_no = django_filters.CharFilter(field_name="health_number", lookup_expr="icontains")
+    medical_expiry_from = django_filters.DateFilter(field_name="health_expiry_date", lookup_expr="gte")
+    medical_expiry_to = django_filters.DateFilter(field_name="health_expiry_date", lookup_expr="lte")
+    
+    course_name = django_filters.CharFilter(field_name="courses__course_name", lookup_expr="icontains")
+
+    document_status = django_filters.CharFilter(field_name="documents__status", lookup_expr="iexact")
+    document_title = django_filters.CharFilter(field_name="documents__title", lookup_expr="icontains")
+
+    position = django_filters.CharFilter(method='filter_by_position')
+    
+    def filter_by_position(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(
+            Q(codes__name__icontains=value) | 
+            Q(application_for_position__icontains=value)
+        ).distinct()
 
     class Meta:
         model = Users
-        fields = ["name", "age", "marital_status", "user_status", "nationality", "nearest_port", "role", "is_blacklisted"]
+        fields = [
+            "name", "age", "marital_status", "user_status", "nationality", 
+            "nearest_port", "role", "is_blacklisted", "company", "ship",
+            "language", "contract_status", "position", "document_status", "document_title",
+            "passport_no", "seaman_book_no", "medical_no", "course_name"
+        ]
 
 
 class CompanyFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
-    company_type = django_filters.CharFilter(field_name="company_type", lookup_expr="iexact")
-    status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
+    company_type = django_filters.AllValuesMultipleFilter(field_name="company_type")
+    status = django_filters.AllValuesMultipleFilter(field_name="status")
 
     class Meta:
         model = Company
@@ -143,7 +243,7 @@ class CVSubmissionFilter(django_filters.FilterSet):
 class JobOrderFilter(django_filters.FilterSet):
     company = django_filters.NumberFilter(field_name="company__id")
     ship = django_filters.NumberFilter(field_name="ship__id")
-    status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
+    status = django_filters.AllValuesMultipleFilter(field_name="status")
     reference_number = django_filters.CharFilter(field_name="reference_number", lookup_expr="icontains")
     request_date_from = django_filters.DateFilter(field_name="request_date", lookup_expr="gte")
     request_date_to = django_filters.DateFilter(field_name="request_date", lookup_expr="lte")
@@ -198,10 +298,29 @@ class ShipFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="ship_name", lookup_expr="icontains")
     imo_number = django_filters.CharFilter(field_name="imo_number", lookup_expr="icontains")
     company = django_filters.NumberFilter(field_name="company__id")
-    status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
+    status = django_filters.AllValuesMultipleFilter(field_name="status")
     flag = django_filters.CharFilter(field_name="flag__name", lookup_expr="icontains")
     ship_type = django_filters.CharFilter(field_name="ship_type__name", lookup_expr="icontains")
 
     class Meta:
         model = Ship
         fields = ["name", "imo_number", "company", "status", "flag", "ship_type"]
+
+
+class ContractFilter(django_filters.FilterSet):
+    user = django_filters.NumberFilter(field_name="user__id")
+    ship = django_filters.NumberFilter(field_name="ship__id")
+    company = django_filters.NumberFilter(field_name="company__id")
+    rank = django_filters.NumberFilter(field_name="rank__id")
+    status = django_filters.AllValuesMultipleFilter(field_name="status")
+    
+    sign_on_from = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="gte")
+    sign_on_to = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="lte")
+    sign_off_from = django_filters.DateFilter(field_name="sign_off_date", lookup_expr="gte")
+    sign_off_to = django_filters.DateFilter(field_name="sign_off_date", lookup_expr="lte")
+    
+    applicant_name = django_filters.CharFilter(field_name="user__first_name", lookup_expr="icontains")
+
+    class Meta:
+        model = Contract
+        fields = ["user", "ship", "company", "rank", "status"]

@@ -16,7 +16,7 @@ from api.models import Users
 class CrewMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['id', 'first_name', 'middle_name', 'email']
+        fields = ['id', 'first_name', 'last_name', 'email']
 
 
 class ShipSerializer(serializers.ModelSerializer):

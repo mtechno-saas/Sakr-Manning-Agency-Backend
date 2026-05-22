@@ -167,7 +167,7 @@ Retrieve a paginated list of all users.
       "id": 1,
       "email": "crew@sakr.com",
       "first_name": "Ahmed",
-      "middle_name": "Mohamed",
+      "last_name": "Mohamed",
       "role": "Employee",
       "nationality": "Egyptian",
       "phone_number": "+20-123-456-7890",
@@ -195,7 +195,7 @@ Create a complete user profile including Next of Kin, Documents, Education, Sea 
   "email": "john.doe@maritime.com",
   "password": "SecurePass123!",
   "first_name": "John",
-  "middle_name": "Michael",
+  "last_name": "Michael",
   "phone_number": "+1-555-0123",
   "nationality": "USA",
   "date_of_birth": "1985-05-15",
@@ -255,7 +255,7 @@ Create a complete user profile including Next of Kin, Documents, Education, Sea 
   "email": "simple@example.com",
   "password": "password123",
   "first_name": "Simple",
-  "middle_name": "User"
+  "last_name": "User"
 }
 ```
 
@@ -266,7 +266,7 @@ Create a complete user profile including Next of Kin, Documents, Education, Sea 
   "id": 15,
   "email": "john.doe@maritime.com",
   "first_name": "John",
-  "middle_name": "Michael",
+  "last_name": "Michael",
   "next_of_kin_full_name": "Jane Doe",
   "passport_no": "A12345678",
   "college_or_school": "California Maritime Academy",
@@ -319,7 +319,7 @@ Retrieve complete user profile including all sea services and references.
   "id": 10,
   "email": "user@example.com",
   "first_name": "John",
-  "middle_name": "Michael",
+  "last_name": "Michael",
   "phone_number": "+1-555-0123",
   "nationality": "USA",
   "next_of_kin_full_name": "Jane Doe",

@@ -643,18 +643,21 @@ class Users(AbstractBaseUser, PermissionsMixin):
     passport_expiry_date = models.DateField(null=True, blank=True)
     passport_issued_by = models.CharField(max_length=100, null=True, blank=True)
     passport_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
+    passport_file = models.FileField(upload_to='passports/', null=True, blank=True)
 
     seaman_book_no = models.CharField(max_length=50, null=True, blank=True)
     seaman_book_issue_date = models.DateField(null=True, blank=True)
     seaman_book_expiry_date = models.DateField(null=True, blank=True)
     seaman_book_issued_by = models.CharField(max_length=100, null=True, blank=True)
     seaman_book_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
+    seaman_book_file = models.FileField(upload_to='seaman_books/', null=True, blank=True)
 
     other_seaman_book_no = models.CharField(max_length=50, null=True, blank=True)
     other_seaman_book_issue_date = models.DateField(null=True, blank=True)
     other_seaman_book_expiry_date = models.DateField(null=True, blank=True)
     other_seaman_book_issued_by = models.CharField(max_length=100, null=True, blank=True)
     other_seaman_book_place_of_issue = models.CharField(max_length=100, null=True, blank=True)
+    other_seaman_book_file = models.FileField(upload_to='other_seaman_books/', null=True, blank=True)
 
     # Professional Qualification / Certificate of Competency
     coc_certificate_name = models.CharField(max_length=100, blank=True, null=True)
@@ -727,6 +730,13 @@ class Users(AbstractBaseUser, PermissionsMixin):
     marlins_test_issued_date = models.DateField(null=True, blank=True)
     marlins_test_issued_at = models.CharField(max_length=100, blank=True, null=True)
     marlins_test_issued_by = models.CharField(max_length=100, blank=True, null=True)
+    marlins_test_file = models.FileField(upload_to='marlins_tests/', null=True, blank=True)
+
+    ces_test_result = models.CharField(max_length=100, blank=True, null=True)
+    ces_test_issued_date = models.DateField(null=True, blank=True)
+    ces_test_issued_at = models.CharField(max_length=100, blank=True, null=True)
+    ces_test_issued_by = models.CharField(max_length=100, blank=True, null=True)
+    ces_test_file = models.FileField(upload_to='ces_tests/', null=True, blank=True)
 
     # Certificate Types (general qualifications)
     # NOTE: This tracks which certificate TYPES a user is qualified for.

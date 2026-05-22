@@ -290,6 +290,31 @@ from tickets_papers.models import Ticket, TravelingPaper
 from ships.serializers import ShipSerializer
 
 
+
+def get_user_full_name(user):
+    """
+    Return a single clean full name for a user.
+    Works with both old model (middle_name) and new model (last_name).
+    Deduplicates if first_name accidentally contains the full name.
+    """
+    if user is None:
+        return ""
+    first = (user.first_name or "").strip()
+    last = (getattr(user, 'last_name', '') or '').strip()
+
+    parts = first.split()
+    if len(parts) > 1:
+        if last and first.lower().endswith(last.lower()):
+            # first_name accidentally contains the full name — strip the duplicate
+            first = first[:-len(last)].strip() or parts[0]
+        elif not last:
+            # No surname at all — split first word as first, rest as last
+            first = parts[0]
+            last = ' '.join(parts[1:])
+
+    return f"{first} {last}".strip()
+
+
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
@@ -383,16 +408,37 @@ class SeaServiceSerializer(serializers.ModelSerializer):
 
 
 class UserMeSerializer(serializers.ModelSerializer):
+    cv_status = serializers.SerializerMethodField()
+
     class Meta:
         model = Users
         fields = [
             "id",
             "email",
             "first_name",
-            "middle_name",
+            "last_name",
             "profile_image",
             "role",
+            "cv_status",
         ]
+
+    def get_cv_status(self, obj):
+        """
+        Logic:
+        - active, not registered yet (no docs) = false
+        - pending, black list = false
+        """
+        from api.models import Document
+        docs = Document.objects.filter(user=obj)
+        
+        if not docs.exists():
+            return False
+            
+        # Check for blacklist or pending across all user documents
+        if docs.filter(status__in=['Blacklist', 'Pending']).exists():
+            return False
+            
+        return True
 
 
 # =====================
@@ -450,7 +496,7 @@ class InterviewCalendarSerializer(serializers.ModelSerializer):
         ]
 
     def get_candidate_name(self, obj):
-        return f"{obj.candidate.first_name} {obj.candidate.middle_name}".strip()
+        return f"{obj.candidate.first_name} {obj.candidate.last_name}".strip()
 
 
 # =====================
@@ -475,7 +521,30 @@ class FinanceRecordSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return get_user_full_name(obj.user)
+
+
+# =====================
+# USER CERTIFICATE SERIALIZER
+# =====================
+
+class UserCertificateSerializer(serializers.ModelSerializer):
+    certificate_name = serializers.CharField(source='certificate_type.name', read_only=True, default=None)
+    certificate_file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserCertificate
+        fields = [
+            'id', 'document_name', 'certificate_name', 'document_number',
+            'country_of_issue', 'issue_date', 'expiry_date',
+            'issued_by', 'issued_at', 'category', 'certificate_file_url'
+        ]
+
+    def get_certificate_file_url(self, obj):
+        request = self.context.get('request')
+        if obj.certificate_file and request:
+            return request.build_absolute_uri(obj.certificate_file.url)
+        return None
 
 
 # =====================
@@ -487,16 +556,18 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
+    salary = serializers.CharField(source='user.salary', read_only=True, default=None)
+    available_date = serializers.DateField(source='user.available_date', read_only=True, default=None)
 
     class Meta:
         model = CVSubmission
         fields = [
             'id', 'user', 'user_name', 'position_name', 'company_name',
-            'experience_years', 'status', 'submitted_date'
+            'experience_years', 'status', 'submitted_date', 'salary', 'available_date'
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return get_user_full_name(obj.user)
 
 
 class CVSubmissionSerializer(serializers.ModelSerializer):
@@ -505,6 +576,11 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
     reviewed_by_name = serializers.CharField(source='reviewed_by.first_name', read_only=True)
+    salary = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True)
+    available_date = serializers.DateField(write_only=True, required=False, allow_null=True)
+
+    # Document fields
+    user_documents = serializers.SerializerMethodField()
 
     class Meta:
         model = CVSubmission
@@ -515,14 +591,154 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             'expected_salary', 'availability_date',
             'status', 'submitted_date',
             'reviewed_by', 'reviewed_by_name', 'reviewed_date',
-            'notes', 'rating', 'created_at', 'updated_at'
+            'notes', 'rating', 'created_at', 'updated_at',
+            'salary', 'available_date',
+            'user_documents',
         ]
         extra_kwargs = {
             'user': {'required': False}
         }
 
+    def _build_file_url(self, file_field):
+        """Build absolute media URL — same format as cv_file."""
+        request = self.context.get('request')
+        if file_field and file_field.name and request:
+            return request.build_absolute_uri(file_field.url)
+        return None
+
+    def get_user_documents(self, obj):
+        """Return all uploaded document links in the same format as cv_file."""
+        user = obj.user
+        if not user:
+            return {}
+
+        def url(field):
+            """Return absolute media URL for a file field, or None."""
+            f = getattr(user, field, None)
+            return self._build_file_url(f) if f else None
+
+        # ── Profile Image ─────────────────────────────────────────────────────
+        profile_image = self._build_file_url(user.profile_image) if getattr(user, 'profile_image', None) else None
+
+        # ── Travel Documents ──────────────────────────────────────────────────
+        travel_documents = [
+            {
+                'type': 'Passport',
+                'number': user.passport_no or '',
+                'issue_date': str(user.passport_issue_date) if user.passport_issue_date else None,
+                'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
+                'issued_by': user.passport_issued_by or '',
+                'place_of_issue': user.passport_place_of_issue or '',
+                'file': url('passport_file'),
+            },
+            {
+                'type': 'Seaman Book',
+                'number': user.seaman_book_no or '',
+                'issue_date': str(user.seaman_book_issue_date) if user.seaman_book_issue_date else None,
+                'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
+                'issued_by': user.seaman_book_issued_by or '',
+                'place_of_issue': user.seaman_book_place_of_issue or '',
+                'file': url('seaman_book_file'),
+            },
+            {
+                'type': 'Other Seaman Book',
+                'number': user.other_seaman_book_no or '',
+                'issue_date': str(user.other_seaman_book_issue_date) if user.other_seaman_book_issue_date else None,
+                'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
+                'issued_by': user.other_seaman_book_issued_by or '',
+                'place_of_issue': user.other_seaman_book_place_of_issue or '',
+                'file': url('other_seaman_book_file'),
+            },
+        ]
+
+        # ── Marlins Test ──────────────────────────────────────────────────────
+        marlins = {
+            'result': user.marlins_test_result or '',
+            'issued_date': str(user.marlins_test_issued_date) if user.marlins_test_issued_date else None,
+            'issued_by': user.marlins_test_issued_by or '',
+            'issued_at': user.marlins_test_issued_at or '',
+            'file': url('marlins_test_file'),
+        }
+
+        # ── CES Test ──────────────────────────────────────────────────────────
+        ces = {
+            'result': getattr(user, 'ces_test_result', '') or '',
+            'issued_date': str(user.ces_test_issued_date) if getattr(user, 'ces_test_issued_date', None) else None,
+            'issued_by': getattr(user, 'ces_test_issued_by', '') or '',
+            'issued_at': getattr(user, 'ces_test_issued_at', '') or '',
+            'file': url('ces_test_file'),
+        }
+
+        # ── Certificates & Courses (from UserCertificate) ─────────────────────
+        all_user_certs = user.user_certificates.select_related('certificate_type', 'rank').all()
+
+        def cert_to_dict(cert):
+            return {
+                'id': cert.id,
+                'document_name': cert.document_name,
+                'document_number': cert.document_number or '',
+                'country_of_issue': cert.country_of_issue or '',
+                'issue_date': str(cert.issue_date) if cert.issue_date else None,
+                'expiry_date': str(cert.expiry_date) if cert.expiry_date else None,
+                'issued_by': cert.issued_by or '',
+                'issued_at': cert.issued_at or '',
+                'category': cert.category,
+                'file': self._build_file_url(cert.certificate_file) if cert.certificate_file and cert.certificate_file.name else None,
+            }
+
+        certificates = [cert_to_dict(c) for c in all_user_certs.filter(category='Certificate')]
+        courses = [cert_to_dict(c) for c in all_user_certs.filter(category='Course')]
+
+        return {
+            'profile_image': profile_image,
+            'travel_documents': travel_documents,
+            'marlins_test': marlins,
+            'ces_test': ces,
+            'certificates': certificates,
+            'courses': courses,
+        }
+
+
+
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['salary'] = instance.user.salary if instance.user else None
+        ret['available_date'] = instance.user.available_date if instance.user else None
+        return ret
+
+    def create(self, validated_data):
+        salary = validated_data.pop('salary', None)
+        available_date = validated_data.pop('available_date', None)
+        instance = super().create(validated_data)
+        
+        # Propagate to user
+        user = instance.user
+        if user:
+            if salary is not None:
+                user.salary = salary
+            if available_date is not None:
+                user.available_date = available_date
+            user.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        salary = validated_data.pop('salary', None)
+        available_date = validated_data.pop('available_date', None)
+        instance = super().update(instance, validated_data)
+        
+        # Propagate to user
+        user = instance.user
+        if user:
+            if salary is not None:
+                user.salary = salary
+            if available_date is not None:
+                user.available_date = available_date
+            user.save()
+        return instance
+
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return get_user_full_name(obj.user)
 
 
 # =====================
@@ -544,7 +760,7 @@ class ContractListSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return get_user_full_name(obj.user)
 
 
 class ContractSerializer(serializers.ModelSerializer):
@@ -569,7 +785,7 @@ class ContractSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return get_user_full_name(obj.user)
 
 
 # =====================
@@ -583,14 +799,16 @@ class UsersSerializer(serializers.ModelSerializer):
     references = ReferenceSerializer(many=True, read_only=True)
     sea_services = SeaServiceSerializer(many=True, read_only=True)
 
+    # Computed clean full name (deduplicates first_name/last_name)
+    name = serializers.SerializerMethodField()
+
     # Write-only fields for accepting lists of IDs during create/update
-    rank_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Rank.objects.all(),
-        many=True,
+    rank_ids = serializers.ListField(
+        child=serializers.CharField(),
         write_only=True,
         source='codes',
         required=False,
-        help_text="List of Rank IDs to assign."
+        help_text="List of Rank IDs or codes/names to assign."
     )
     certificate_ids = serializers.PrimaryKeyRelatedField(
         queryset=Certificate.objects.all(),
@@ -621,7 +839,7 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = [
-            'id', 'email', 'first_name', 'middle_name', 'password',
+            'id', 'email', 'name', 'first_name', 'last_name', 'password',
             'profile_image', 'age', 'blood_type', 'smoker', 'us_visa_status',
             'schengen_visa_status', 'date_of_birth', 'marital_status', 'user_status',
             'nationality', 'Place_Of_Birth', 'Nearest_Port', 'Height_Cm', 'Weight_Kg',
@@ -657,6 +875,10 @@ class UsersSerializer(serializers.ModelSerializer):
             'disease_history', 'accident_history', 'psychiatric_treatment_history', 'addiction_history',
             'declaration_consent', 'declaration_date', 'declaration_place',
             'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
+            # Document Files
+            'passport_file', 'seaman_book_file', 'other_seaman_book_file',
+            'marlins_test_file',
+            'ces_test_result', 'ces_test_issued_date', 'ces_test_issued_by', 'ces_test_issued_at', 'ces_test_file',
             # Relationships
             'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services',
             'sea_services_data', 'references_data'
@@ -666,9 +888,24 @@ class UsersSerializer(serializers.ModelSerializer):
             'password': {'write_only': True, 'required': False}
         }
 
+    def get_name(self, obj):
+        """Return a clean, deduplicated full name (same format as CV submissions)."""
+        return get_user_full_name(obj)
+
     def to_representation(self, instance):
         """Override to ensure proper serialization of nested fields"""
         representation = super().to_representation(instance)
+
+        # Always show a clean name regardless of DB state
+        representation['name'] = get_user_full_name(instance)
+        # Expose clean first/last for the frontend
+        representation['first_name'] = (instance.first_name or '').strip().split()[0] if instance.first_name else ''
+        last = (getattr(instance, 'last_name', '') or '').strip()
+        # If first_name stored full name and last is a subset of it, derive last from first
+        first_raw = (instance.first_name or '').strip()
+        if not last and len(first_raw.split()) > 1:
+            last = ' '.join(first_raw.split()[1:])
+        representation['last_name'] = last
 
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
@@ -724,8 +961,19 @@ class UsersSerializer(serializers.ModelSerializer):
             user.save()
 
         # Handle the M2M relationships
-        for rank in codes_data:
-            UserRank.objects.create(user=user, rank=rank)
+        from django.db.models import Q
+        for rank_identifier in codes_data:
+            rank_identifier = str(rank_identifier).strip()
+            rank_obj = None
+            if rank_identifier.isdigit():
+                try:
+                    rank_obj = Rank.objects.get(pk=int(rank_identifier))
+                except Rank.DoesNotExist:
+                    pass
+            if not rank_obj:
+                rank_obj = Rank.objects.filter(Q(code__iexact=rank_identifier) | Q(name__iexact=rank_identifier)).first()
+            if rank_obj:
+                UserRank.objects.create(user=user, rank=rank_obj)
         if certificates_data:
             user.certificates.set(certificates_data)
 
@@ -758,8 +1006,19 @@ class UsersSerializer(serializers.ModelSerializer):
         # Handle relationship updates
         if codes_data is not None:
             instance.user_ranks.all().delete()
-            for rank in codes_data:
-                UserRank.objects.create(user=instance, rank=rank)
+            from django.db.models import Q
+            for rank_identifier in codes_data:
+                rank_identifier = str(rank_identifier).strip()
+                rank_obj = None
+                if rank_identifier.isdigit():
+                    try:
+                        rank_obj = Rank.objects.get(pk=int(rank_identifier))
+                    except Rank.DoesNotExist:
+                        pass
+                if not rank_obj:
+                    rank_obj = Rank.objects.filter(Q(code__iexact=rank_identifier) | Q(name__iexact=rank_identifier)).first()
+                if rank_obj:
+                    UserRank.objects.create(user=instance, rank=rank_obj)
         if certificates_data is not None:
             instance.certificates.set(certificates_data)
 
@@ -781,7 +1040,7 @@ class UsersSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ('email', 'password', 'first_name')
+        fields = ('email', 'password', 'first_name', 'last_name')
 
         extra_kwargs = {
             "password": {"write_only": True},
@@ -801,7 +1060,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = Users.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
-            first_name=validated_data['first_name']
+            first_name=validated_data['first_name'],
+            last_name=validated_data.get('last_name', '')
         )
         return user
 
@@ -856,9 +1116,4 @@ class DeclarationSerializer(serializers.ModelSerializer):
     
     def get_user_name(self, obj):
         """Return full name of the user"""
-        if not obj.user:
-            return ""
-        first = obj.user.first_name or ""
-        middle = obj.user.middle_name or ""
-        last = getattr(obj.user, 'last_name', '') or ""
-        return f"{first} {middle} {last}".strip()
+        return get_user_full_name(obj.user)

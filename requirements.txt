@@ -12,6 +12,10 @@ python-docx==1.2.0
 docx2txt==0.9
 docx2python==3.5.0
 
+PyMuPDF==1.27.2.3
+PyPDF2==3.0.1
+pdfplumber==0.11.9
+
 ollama==0.5.3
 ddgs==9.5.5
 Pillow
@@ -26,3 +30,4 @@ django-cors-headers
 wikipedia
 email-validator==2.2.0
 google-auth>=2.0.0
+google-auth==2.51.0
