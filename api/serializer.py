@@ -1810,8 +1810,10 @@ class UsersSerializer(serializers.ModelSerializer):
 
         # Hide generated_id for non-privileged users
         request = self.context.get('request')
-        if request and hasattr(request.user, 'role') and request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
-            representation.pop('generated_id', None)
+        if request and hasattr(request.user, 'role'):
+            has_permission = request.user.role in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or getattr(request.user, 'is_superuser', False)
+            if not has_permission:
+                representation.pop('generated_id', None)
 
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
@@ -2186,7 +2188,8 @@ class DocumentSerializer(serializers.ModelSerializer):
             return None
         
         # Check Role of the viewer
-        if not request.user.is_authenticated or request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
+        has_permission = request.user.role in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or getattr(request.user, 'is_superuser', False)
+        if not request.user.is_authenticated or not has_permission:
             return None
             
         # Check Status of the document
