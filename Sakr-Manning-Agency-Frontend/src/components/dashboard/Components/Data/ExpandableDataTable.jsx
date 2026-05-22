@@ -332,6 +332,7 @@ export function ExpandableDataTable({
               if (col.isActions) return "48px";
               return col.width ? `${col.width}px` : "minmax(200px, 1fr)";
             }).join(" "),
+            alignContent: "start",
           }}
         >
           {/* Headers */}
