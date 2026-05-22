@@ -2,7 +2,7 @@
 
 export const config = {
   // API Configuration
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || "https://api.backend.soon.it/api/",
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || "https://backend.sakrshipping.com/api/",
   API_TIMEOUT: import.meta.env.VITE_API_TIMEOUT ? Number(import.meta.env.VITE_API_TIMEOUT) : 30000,
   // Auth Configuration
   TOKEN_REFRESH_THRESHOLD: 5 * 60 * 1000, // Refresh 5 minutes before expiry
