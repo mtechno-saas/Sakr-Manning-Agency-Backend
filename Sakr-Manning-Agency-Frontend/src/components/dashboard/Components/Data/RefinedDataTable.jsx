@@ -80,6 +80,16 @@ const STATUS_MAP = {
     color: COLORS.infoDark,
     fontWeight: 500,
   },
+  Vacation: {
+    bg: COLORS.amberLight,
+    color: COLORS.amberDark,
+    fontWeight: 500,
+  },
+  "Medical Vacation": {
+    bg: COLORS.errorLight,
+    color: COLORS.errorDark,
+    fontWeight: 500,
+  },
   INACTIVE: {
     bg: COLORS.errorLight,
     color: COLORS.errorDark,

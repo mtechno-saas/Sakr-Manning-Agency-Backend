@@ -101,17 +101,29 @@ export function UserManagement({ scale = 1, isMobile }) {
       name: user.first_name + " " + user.middle_name,
       email: user.email,
       role: user.role,
-      status:
-        user.user_status === "On Site" || user.user_status === "ON_SITE"
-          ? "Active"
-          : "Inactive",
-      // status: user.user_status,
+      position: (() => {
+        const pos = user.application_for_position;
+        if (!pos) return "-";
+        if (/^others?$/i.test(pos.trim())) {
+          return `other/${user.other_position || "-"}`;
+        }
+        return pos;
+      })(),
+      status: (() => {
+        const s = user.user_status;
+        if (!s) return "-";
+        const normalized = s.trim().toUpperCase();
+        if (normalized === "ON_SITE" || normalized === "ON SITE") return "On Site";
+        if (normalized === "VACATION") return "Vacation";
+        if (normalized === "MEDICAL VACATION" || normalized === "MEDICAL_VACATION") return "Medical Vacation";
+        return s;
+      })(),
       avatar: getMediaUrl(user.profile_image) || ASSETS.LOGO,
 
       lastLogin: formatLastLogin(user.last_login),
       isOnline: isUserOnline(user.last_login),
 
-      assignedCode: user.ranks[0]?.assigned_code,
+      assignedCode: user.ranks?.[0]?.assigned_code || "-",
       _original: user, // {additionally includes: marital_status, ... }
     }));
   }, [backendUsers]);
@@ -427,31 +439,24 @@ export function UserManagement({ scale = 1, isMobile }) {
         render: (value) => value,
       },
       {
-        key: "role",
-        title: "Role",
-        width: 80,
+        key: "position",
+        title: "Position",
+        width: 180,
         sortable: true,
-        render: (value) => {
-          const roleColors = {
-            Admin: "#BF4DD1",
-            "HR Manager": "#35C2FD",
-            Recruiter: "#54D14D",
-            Employee: "#FFC107",
-            Craw: "#FFC107",
-          };
-          return (
-            <span
-              style={{
-                color: roleColors[value] || "#000000",
-                fontWeight: 500,
-              }}
-            >
-              {value}
-            </span>
-          );
-        },
+        render: (value) => value,
       },
-      // {
+      {
+        key: "assignedCode",
+        title: "Assigned Rank Code",
+        width: 160,
+        sortable: true,
+        render: (value) => (
+          <span style={{ fontFamily: "monospace", fontWeight: 600, color: "#4F46E5" }}>
+            {value}
+          </span>
+        ),
+      },
+
       //   key: "lastLogin",
       //   title: "Last Login",
       //   width: 100,
