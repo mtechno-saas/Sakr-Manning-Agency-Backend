@@ -11,22 +11,13 @@ import { jobOrdersApi } from "../../../services/Dashboard/jobOrdersApi";
 import InfiniteTicker from "../../common/InfiniteTicker";
 
 
-// ── Fallback shown while loading or when the API returns nothing ──────────
-const FALLBACK_JOBS = [
-  { title: "Deck Officer", text: "Experienced officer required for international routes" },
-  { title: "Chief Engineer", text: "Senior engineer for bulk carrier fleet" },
-  { title: "AB Seaman", text: "Able seaman for container vessel" },
-  { title: "Cook / Catering Staff", text: "Catering positions available across our fleet" },
-  { title: "Electrician", text: "Marine electrician for offshore assignments" },
-];
-
 const HomePage = ({ user, onOpenForm, onNavigate }) => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [heroImageLoaded, setHeroImageLoaded] = useState(false);
 
   // ── Live vacancies state ─────────────────────────────────────────────────
-  const [jobs, setJobs] = useState(FALLBACK_JOBS);
+  const [jobs, setJobs] = useState([]);
   const [vacanciesLoading, setVacanciesLoading] = useState(true);
 
   const slides = [
@@ -73,32 +64,48 @@ const HomePage = ({ user, onOpenForm, onNavigate }) => {
       try {
         setVacanciesLoading(true);
         // We fetch positions directly as they represent the "Vacancies" for seafarers
-        const response = await jobOrdersApi.getJobPositions();
+        const response = await jobOrdersApi.getJobPositions({ status: "Open" });
         const list = Array.isArray(response) ? response : (response.results || response.job_positions || []);
 
-        if (!cancelled && list.length > 0) {
-          // Filter out jobs where rank_name is null, undefined, or empty
-          const validPositions = list.filter(
-            (p) => p && p.rank_name !== null && p.rank_name !== undefined && p.rank_name !== ""
-          );
+        if (!cancelled) {
+          if (list.length > 0) {
+            // Filter out jobs where rank_name is null, undefined, or empty
+            const validPositions = list.filter(
+              (p) => p && p.rank_name !== null && p.rank_name !== undefined && p.rank_name !== ""
+            );
 
-          if (validPositions.length > 0) {
-            const mapped = validPositions.map((p) => ({
-              title: p.rank_name,
-              salaryMin: p.salary_min,
-              salaryMax: p.salary_max,
-              currency: p.currency || 'USD',
-              duration: p.contract_duration_months,
-              quantity: p.quantity,
-              remarks: p.remarks,
-              id: p.id,
-            }));
-            setJobs(mapped);
+            if (validPositions.length > 0) {
+              // Deduplicate: Keep only the first vacancy for each rank_name (position)
+              const uniqueRanksMap = new Map();
+              validPositions.forEach((p) => {
+                const key = p.rank_name.trim().toLowerCase();
+                if (!uniqueRanksMap.has(key)) {
+                  uniqueRanksMap.set(key, p);
+                }
+              });
+              const deduplicatedPositions = Array.from(uniqueRanksMap.values());
+
+              const mapped = deduplicatedPositions.map((p) => ({
+                title: p.rank_name,
+                salaryMin: p.salary_min,
+                salaryMax: p.salary_max,
+                currency: p.currency || 'USD',
+                duration: p.contract_duration_months,
+                quantity: p.quantity,
+                remarks: p.remarks,
+                id: p.id,
+              }));
+              setJobs(mapped);
+            } else {
+              setJobs([]);
+            }
+          } else {
+            setJobs([]);
           }
         }
       } catch (err) {
-        // Silently fall back to the static list
-        console.warn("Could not load job positions from API:", err.message);
+        console.error("Could not load job positions from API:", err.message);
+        if (!cancelled) setJobs([]);
       } finally {
         if (!cancelled) setVacanciesLoading(false);
       }
@@ -397,16 +404,14 @@ const HomePage = ({ user, onOpenForm, onNavigate }) => {
           <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
             Open Vacancies
           </h3>
-          {!vacanciesLoading && (
+          {!vacanciesLoading && jobs.length > 0 && (
             <p className="text-sm sm:text-base text-gray-500">
-              {jobs === FALLBACK_JOBS
-                ? "Sample positions — check back soon for live listings"
-                : `${jobs.length} position${jobs.length !== 1 ? "s" : ""} currently available`}
+              {`${jobs.length} position${jobs.length !== 1 ? "s" : ""} currently available`}
             </p>
           )}
         </div>
 
-        {/* Ticker or skeletons */}
+        {/* Ticker or skeletons or empty state */}
         {vacanciesLoading ? (
           <div className="flex gap-4 sm:gap-5 overflow-x-hidden pb-4 px-6">
             {[1, 2, 3, 4].map((i) => (
@@ -415,6 +420,27 @@ const HomePage = ({ user, onOpenForm, onNavigate }) => {
                 className="flex-shrink-0 w-[260px] sm:w-[300px] h-[180px] rounded-2xl bg-gray-100 animate-pulse"
               />
             ))}
+          </div>
+        ) : jobs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 px-4 text-center max-w-md mx-auto">
+            <div className="w-16 h-16 bg-blue-50/50 rounded-full flex items-center justify-center mb-4 text-[#0065AF]">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <h4 className="text-lg font-semibold text-gray-900 mb-1">No Vacancies Available</h4>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+              There are currently no open vacancies listed. Please submit your CV through our quick apply form to be considered for future opportunities.
+            </p>
+            <Button
+              onClick={() => navigate("/quick-apply")}
+              variant="outlined"
+              className="px-6 py-2 border-[#0065AF] text-[#0065AF] rounded-3xl hover:bg-blue-50 transition-colors w-auto h-10"
+            >
+              <span className="font-medium text-xs sm:text-sm">Quick Apply</span>
+            </Button>
           </div>
         ) : (
           <InfiniteTicker
@@ -464,7 +490,7 @@ const HomePage = ({ user, onOpenForm, onNavigate }) => {
 
                       {/* Description / Remarks */}
                       <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 italic">
-                        {item.remarks || item.text || "Excellent opportunity. Click apply to submit your crew CV."}
+                        {item.remarks || item.text}
                       </p>
                     </div>
 
