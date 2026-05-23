@@ -60,20 +60,28 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 class VacancyPermission(BasePermission):
     """
-    Employees can only view vacancies.
-    Admins, HR Managers, and Recruiters can manage them.
+    Anyone (including public/unauthenticated) can view vacancies.
+    Only authenticated Admins, HR Managers, and Recruiters can manage them.
     """
     def has_permission(self, request, view):
+        # Allow public read access (GET)
+        if request.method in SAFE_METHODS:
+            return True
+            
+        # For creating/editing/deleting, user must be logged in
         if not request.user or not request.user.is_authenticated:
             return False
-        if request.user.role == 'Employee':
-            return request.method in SAFE_METHODS
+            
+        # Employees cannot manage vacancies
+        if getattr(request.user, 'role', None) == 'Employee':
+            return False
+            
         return True
 
 class VacancyViewSet(viewsets.ModelViewSet):
     """
     Manage Open Vacancies (add, delete, show, edit).
-    Permission: Employees can view, others can manage.
+    Permission: Public can view, others can manage.
     """
     queryset = Vacancy.objects.all()
     serializer_class = VacancySerializer

@@ -12,6 +12,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env in the project root (if present).
+# This is a no-op when .env does not exist, so production environments that
+# inject variables through the OS environment are unaffected.
+load_dotenv()
 
 
 
@@ -232,13 +238,8 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'api.Users'
-
-# ========================
-# GOOGLE OAUTH2 SETTINGS
-# ========================
-# Replace the placeholder below with your actual Client ID from:
-# Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs
-GOOGLE_OAUTH2_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_OAUTH2_CLIENT_ID', '')
+GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET', '')
 
 
 CORS_ALLOWED_ORIGINS = [

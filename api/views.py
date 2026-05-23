@@ -118,128 +118,72 @@ class GoogleAuthView(APIView):
     Flow:
       1. Frontend uses Google Sign-In SDK to get an id_token.
       2. Frontend sends that token here.
-      3. We verify it against Google's public keys.
-      4. We find or create the matching Users account.
-      5. We return our own Simple JWT access + refresh tokens.
+      3. GoogleTokenSerializer verifies it against Google's public keys.
+      4. GoogleUserService finds or creates the matching Users account.
+      5. JWTTokenService issues our own Simple JWT access + refresh tokens.
 
     New users are created with role='Employee' and an unusable password
     (Google is their only login method unless an admin sets a password).
-    Existing users whose email already exists will simply get new tokens.
+    Existing users whose email already exists are returned as-is.
+
+    Responses
+    ---------
+    200 OK  — { access, refresh, user: { id, email, first_name, middle_name, role } }
+    400 BAD REQUEST — invalid / unverified / missing token
+    403 FORBIDDEN   — account is deactivated
+    503 UNAVAILABLE — OAuth not configured on this server
     """
     permission_classes = [AllowAny]
     authentication_classes = []
 
     def post(self, request):
-        from google.oauth2 import id_token as google_id_token
-        from google.auth.transport import requests as google_requests
-        from django.conf import settings
-        from rest_framework_simplejwt.tokens import RefreshToken
-        from .serializer import GoogleAuthSerializer
+        from .google_auth_serializer import GoogleTokenSerializer
+        from .google_user_service import GoogleUserService
+        from .jwt_token_service import JWTTokenService
 
-        # 1. Validate request body
-        serializer = GoogleAuthSerializer(data=request.data)
+        # Step 1 — Validate & verify the Google ID token
+        serializer = GoogleTokenSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        raw_token = serializer.validated_data['id_token']
-
-        # 2. Verify the Google ID token
-        try:
-            client_id = getattr(settings, 'GOOGLE_OAUTH2_CLIENT_ID', None)
-            if not client_id or client_id == 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com':
+            errors = serializer.errors.get("id_token", serializer.errors)
+            # Distinguish between a configuration error and a bad token
+            error_str = str(errors)
+            if "not configured" in error_str:
                 return Response(
-                    {"error": "Google OAuth2 is not configured on this server. Please set GOOGLE_OAUTH2_CLIENT_ID in settings."},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                    {"error": error_str},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
-
-            idinfo = google_id_token.verify_oauth2_token(
-                raw_token,
-                google_requests.Request(),
-                client_id
-            )
-        except ValueError as e:
-            # Token is invalid or expired
             return Response(
-                {"error": f"Invalid Google token: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception as e:
-            return Response(
-                {"error": f"Google token verification failed: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": errors},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 3. Extract user info from the verified payload
-        google_email = idinfo.get('email')
-        google_first_name = idinfo.get('given_name') or idinfo.get('name', '').split(' ')[0] or 'User'
-        google_middle_name = idinfo.get('family_name', '')
-        google_picture = idinfo.get('picture', '')
-        email_verified = idinfo.get('email_verified', False)
+        google_payload: dict = serializer.google_payload
 
-        if not google_email:
-            return Response(
-                {"error": "Google account does not have a verified email address."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # Step 2 — Resolve (or create) the local user
+        user, created = GoogleUserService.get_or_create_user_from_google(google_payload)
 
-        if not email_verified:
-            return Response(
-                {"error": "Google email address is not verified. Please verify your Google account email first."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # 4. Get or create the user
-        user, created = Users.objects.get_or_create(
-            email=google_email,
-            defaults={
-                'first_name': google_first_name,
-                'middle_name': google_middle_name,
-                'role': 'Employee',
-                'is_active': True,
-            }
-        )
-
-        if created:
-            # New user — set an unusable password (Google is the auth method)
-            user.set_unusable_password()
-            # Optionally fetch and save the profile picture
-            if google_picture:
-                import urllib.request
-                import os
-                from django.core.files.base import ContentFile
-                try:
-                    with urllib.request.urlopen(google_picture) as resp:
-                        image_data = resp.read()
-                        ext = 'jpg'
-                        filename = f"google_{user.id}.{ext}"
-                        user.profile_image.save(filename, ContentFile(image_data), save=False)
-                except Exception:
-                    pass  # Don't block sign-in if the picture download fails
-            user.save()
-
-        elif not user.is_active:
+        if not user.is_active:
             return Response(
                 {"error": "Your account has been deactivated. Please contact the administrator."},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
 
-        # 5. Issue our own JWT tokens
-        refresh = RefreshToken.for_user(user)
-        access = refresh.access_token
+        # Step 3 — Issue JWT tokens
+        tokens: dict = JWTTokenService.get_tokens_for_user(user)
 
-        return Response({
-            "access": str(access),
-            "refresh": str(refresh),
-            "created": created,  # True = new account, False = existing account
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "first_name": user.first_name,
-                "middle_name": user.middle_name,
-                "role": user.role,
-                "profile_image": request.build_absolute_uri(user.profile_image.url) if user.profile_image else None,
-            }
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                **tokens,
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "middle_name": user.middle_name,
+                    "role": user.role,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class LanguageProficiencyViewSet(viewsets.ModelViewSet):
