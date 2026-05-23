@@ -892,8 +892,17 @@ class UsersSerializer(serializers.ModelSerializer):
 
         # Use the deduplicated full name for the 'name' field
         representation['name'] = get_user_full_name(instance)
-        # We no longer aggressively split first_name and last_name here
-        # so they return exactly what is stored in the database without concatenation.
+        
+        # Prevent the frontend from duplicating names if it concatenates first_name + last_name
+        first = (instance.first_name or '').strip()
+        last = (getattr(instance, 'last_name', '') or '').strip()
+        
+        # If first_name ALREADY contains the last_name, strip it out of first_name for the API response
+        if last and first.lower().endswith(last.lower()):
+            first = first[:-len(last)].strip()
+            
+        representation['first_name'] = first
+        representation['last_name'] = last
 
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
