@@ -56,12 +56,27 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'recent_companies': list(recent_companies)
         })
 
+from rest_framework.permissions import BasePermission, SAFE_METHODS
+
+class VacancyPermission(BasePermission):
+    """
+    Employees can only view vacancies.
+    Admins, HR Managers, and Recruiters can manage them.
+    """
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if request.user.role == 'Employee':
+            return request.method in SAFE_METHODS
+        return True
+
 class VacancyViewSet(viewsets.ModelViewSet):
     """
     Manage Open Vacancies (add, delete, show, edit).
-    Permission: everyone except 'Employee'.
+    Permission: Employees can view, others can manage.
     """
     queryset = Vacancy.objects.all()
     serializer_class = VacancySerializer
-    permission_classes = [NotEmployeePermission]
+    permission_classes = [VacancyPermission]
+    filterset_fields = ['status', 'company']
 
