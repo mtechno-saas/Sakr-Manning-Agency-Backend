@@ -294,7 +294,6 @@ from ships.serializers import ShipSerializer
 def get_user_full_name(user):
     """
     Return a single clean full name for a user.
-    Works with both old model (middle_name) and new model (last_name).
     Deduplicates if first_name accidentally contains the full name.
     """
     if user is None:
@@ -302,17 +301,12 @@ def get_user_full_name(user):
     first = (user.first_name or "").strip()
     last = (getattr(user, 'last_name', '') or '').strip()
 
-    parts = first.split()
-    if len(parts) > 1:
-        if last and first.lower().endswith(last.lower()):
-            # first_name accidentally contains the full name — strip the duplicate
-            first = first[:-len(last)].strip() or parts[0]
-        elif not last:
-            # No surname at all — split first word as first, rest as last
-            first = parts[0]
-            last = ' '.join(parts[1:])
-
-    return f"{first} {last}".strip()
+    # If the first_name already ends with the last_name, it's already the full name.
+    # Otherwise, safely concatenate them.
+    if last and not first.lower().endswith(last.lower()):
+        return f"{first} {last}".strip()
+        
+    return first
 
 
 class TicketSerializer(serializers.ModelSerializer):
@@ -896,16 +890,10 @@ class UsersSerializer(serializers.ModelSerializer):
         """Override to ensure proper serialization of nested fields"""
         representation = super().to_representation(instance)
 
-        # Always show a clean name regardless of DB state
+        # Use the deduplicated full name for the 'name' field
         representation['name'] = get_user_full_name(instance)
-        # Expose clean first/last for the frontend
-        representation['first_name'] = (instance.first_name or '').strip().split()[0] if instance.first_name else ''
-        last = (getattr(instance, 'last_name', '') or '').strip()
-        # If first_name stored full name and last is a subset of it, derive last from first
-        first_raw = (instance.first_name or '').strip()
-        if not last and len(first_raw.split()) > 1:
-            last = ' '.join(first_raw.split()[1:])
-        representation['last_name'] = last
+        # We no longer aggressively split first_name and last_name here
+        # so they return exactly what is stored in the database without concatenation.
 
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
