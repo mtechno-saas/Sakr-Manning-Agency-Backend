@@ -35,8 +35,34 @@ class FlexibleURLField(serializers.CharField):
         return value
 
 
+class FlexibleEmailField(serializers.CharField):
+    """
+    A lenient email field that accepts all TLDs including industry-specific ones:
+    .com, .net, .org, .maritime, .shipping, .crew, .jobs, .agency, and any others.
+    """
+    def to_internal_value(self, data):
+        value = super().to_internal_value(data)
+        if not value:
+            return value
+
+        value = value.strip().lower()
+
+        # Validate basic email format: something@domain.tld
+        email_pattern = re.compile(
+            r'^[a-zA-Z0-9._%+-]+'   # local part
+            r'@'                     # @ symbol
+            r'[a-zA-Z0-9.-]+'       # domain
+            r'\.[a-zA-Z]{2,}$'      # TLD (2+ chars covers all TLDs)
+        )
+        if not email_pattern.match(value):
+            raise serializers.ValidationError('Enter a valid email address.')
+
+        return value
+
+
 class CompanySerializer(serializers.ModelSerializer):
     website = FlexibleURLField(required=False, allow_blank=True, allow_null=True)
+    contact_email = FlexibleEmailField(required=True)
 
     class Meta:
         model = Company
