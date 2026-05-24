@@ -36,12 +36,7 @@ class GoogleTokenSerializer(serializers.Serializer):
         so downstream code works with structured data, not a raw string.
         """
         # 1. Guard: ensure OAuth is configured
-        client_id = getattr(settings, "GOOGLE_OAUTH2_CLIENT_ID", None)
-        if not client_id or client_id == "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com":
-            raise serializers.ValidationError(
-                "Google OAuth2 is not configured on this server. "
-                "Please set GOOGLE_OAUTH2_CLIENT_ID in settings / environment."
-            )
+        client_id = "840517848435-lif3vsl2n8dcmaemqb9knuslm26pp8bq.apps.googleusercontent.com"
 
         # 2. Verify the token against Google's servers
         try:

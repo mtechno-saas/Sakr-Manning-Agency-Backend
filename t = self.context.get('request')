@@ -1,0 +1,24 @@
+[0;1;32m●[0m gunicorn.service - gunicorn daemon for Sakr Manning Agency
+     Loaded: loaded (]8;;file://srv1080138/etc/systemd/system/gunicorn.service/etc/systemd/system/gunicorn.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Sun 2026-05-24 21:58:28 UTC; 56s ago
+   Main PID: 231532 (gunicorn)
+      Tasks: 5 (limit: 19144)
+     Memory: 139.0M (peak: 139.7M)
+        CPU: 1.090s
+     CGroup: /system.slice/gunicorn.service
+             ├─[0;38;5;245m231532 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/python3 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/gunicorn --access-logfile - --workers 4 --timeout 700 --bind 127.0.0.1:8000 saker.wsgi:application[0m
+             ├─[0;38;5;245m231552 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/python3 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/gunicorn --access-logfile - --workers 4 --timeout 700 --bind 127.0.0.1:8000 saker.wsgi:application[0m
+             ├─[0;38;5;245m231553 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/python3 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/gunicorn --access-logfile - --workers 4 --timeout 700 --bind 127.0.0.1:8000 saker.wsgi:application[0m
+             ├─[0;38;5;245m231554 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/python3 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/gunicorn --access-logfile - --workers 4 --timeout 700 --bind 127.0.0.1:8000 saker.wsgi:application[0m
+             └─[0;38;5;245m231555 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/python3 /opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/gunicorn --access-logfile - --workers 4 --timeout 700 --bind 127.0.0.1:8000 saker.wsgi:application[0m
+
+May 24 21:58:30 srv1080138 gunicorn[231532]: [2026-05-24 21:58:30 +0000] [231532] [ERROR] Connection in use: ('127.0.0.1', 8000)
+May 24 21:58:30 srv1080138 gunicorn[231532]: [2026-05-24 21:58:30 +0000] [231532] [ERROR] connection to ('127.0.0.1', 8000) failed: [Errno 98] Address already in use
+May 24 21:58:31 srv1080138 gunicorn[231532]: [2026-05-24 21:58:31 +0000] [231532] [ERROR] Connection in use: ('127.0.0.1', 8000)
+May 24 21:58:31 srv1080138 gunicorn[231532]: [2026-05-24 21:58:31 +0000] [231532] [ERROR] connection to ('127.0.0.1', 8000) failed: [Errno 98] Address already in use
+May 24 21:58:32 srv1080138 gunicorn[231532]: [2026-05-24 21:58:32 +0000] [231532] [INFO] Listening at: http://127.0.0.1:8000 (231532)
+May 24 21:58:32 srv1080138 gunicorn[231532]: [2026-05-24 21:58:32 +0000] [231532] [INFO] Using worker: sync
+May 24 21:58:32 srv1080138 gunicorn[231552]: [2026-05-24 21:58:32 +0000] [231552] [INFO] Booting worker with pid: 231552
+May 24 21:58:32 srv1080138 gunicorn[231553]: [2026-05-24 21:58:32 +0000] [231553] [INFO] Booting worker with pid: 231553
+May 24 21:58:32 srv1080138 gunicorn[231554]: [2026-05-24 21:58:32 +0000] [231554] [INFO] Booting worker with pid: 231554
+May 24 21:58:32 srv1080138 gunicorn[231555]: [2026-05-24 21:58:32 +0000] [231555] [INFO] Booting worker with pid: 231555

@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -71,6 +72,20 @@ class CompanyViewSet(viewsets.ModelViewSet):
 from api.filters import JobOrderFilter
 from api.permissions import JobOrderPermission
 
+class PublicJobOrderPermission(BasePermission):
+    """
+    Public GET access to job orders and positions.
+    Only authenticated Admins/HR/Recruiters can create/edit/delete.
+    """
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if getattr(request.user, "role", None) == "Employee":
+            return False
+        return True
+
 class JobOrderViewSet(viewsets.ModelViewSet):
     """
     Job Orders — formal manpower requests from companies.
@@ -80,7 +95,7 @@ class JobOrderViewSet(viewsets.ModelViewSet):
     queryset = JobOrder.objects.all()
     serializer_class = JobOrderSerializer
     filterset_class = JobOrderFilter
-    permission_classes = [JobOrderPermission]
+    permission_classes = [PublicJobOrderPermission]
 
 
 class JobOrderPositionViewSet(viewsets.ModelViewSet):
@@ -107,7 +122,7 @@ class JobOrderPositionViewSet(viewsets.ModelViewSet):
     queryset = JobOrderPosition.objects.all()
     serializer_class = JobOrderPositionSerializer
     filterset_fields = ['job_order', 'rank']
-    permission_classes = [JobOrderPermission]
+    permission_classes = [PublicJobOrderPermission]
 
     def get_serializer(self, *args, **kwargs):
         # If the incoming data is a list, set many=True so DRF

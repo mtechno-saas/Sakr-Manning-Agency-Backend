@@ -1667,6 +1667,20 @@ class ContractSerializer(serializers.ModelSerializer):
 # =====================
 
 class UsersSerializer(serializers.ModelSerializer):
+    first_name = serializers.SerializerMethodField()
+    middle_name = serializers.SerializerMethodField()
+
+    def get_first_name(self, obj):
+        first = (obj.first_name or "").strip()
+        last = (getattr(obj, "last_name", "") or getattr(obj, "middle_name", "") or "").strip()
+        if last and not first.lower().endswith(last.lower()):
+            return f"{first} {last}".strip()
+        return first
+
+    def get_middle_name(self, obj):
+        return ""
+
+
     # Read-only nested serializers for detailed representation
     ranks = UserRankSerializer(source='user_ranks', many=True, read_only=True)
     certificates = CertificateSerializer(many=True, read_only=True)
@@ -1811,7 +1825,7 @@ class UsersSerializer(serializers.ModelSerializer):
         # Hide generated_id for non-privileged users
         request = self.context.get('request')
         if request and hasattr(request.user, 'role'):
-            has_permission = request.user.role in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or getattr(request.user, 'is_superuser', False)
+            has_permission = request.user.is_authenticated and getattr(request.user, 'role', '') in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or getattr(request.user, 'is_superuser', False)
             if not has_permission:
                 representation.pop('generated_id', None)
 
@@ -2068,6 +2082,41 @@ class DocumentSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'position_id', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details']
         read_only_fields = ['user', 'created_at', 'updated_at']
 
+    def validate(self, attrs):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            first_name = getattr(request.user, 'first_name', '')
+            last_name = getattr(request.user, 'last_name', '')
+            first_name = getattr(request.user, 'first_name', '').strip()
+            last_name = getattr(request.user, 'last_name', '').strip()
+            if last_name and not first_name.lower().endswith(last_name.lower()):
+                full_name = f"{first_name} {last_name}".strip()
+            else:
+                full_name = first_name
+            
+            if full_name:
+                attrs['name'] = full_name
+                
+            if getattr(request.user, 'email', ''):
+                attrs['email'] = request.user.email
+                
+        return super().validate(attrs)
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            first_name = getattr(request.user, 'first_name', '')
+            last_name = getattr(request.user, 'last_name', '')
+            full_name = f"{first_name} {last_name}".strip()
+            
+            if full_name:
+                attrs['name'] = full_name
+                
+            if getattr(request.user, 'email', ''):
+                attrs['email'] = request.user.email
+                
+        return super().validate(attrs)
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         pos_value = instance.position
@@ -2180,6 +2229,33 @@ class DocumentSerializer(serializers.ModelSerializer):
         # If title is not provided, use the filename
         if not attrs.get('title') and attrs.get('file'):
             attrs['title'] = attrs['file'].name
+            
+        request = self.context.get('request')
+        
+        # 1. Security for Authenticated Employees: Enforce their own profile data
+        if request and request.user and request.user.is_authenticated and request.user.role == 'Employee':
+            if 'name' in attrs:
+                attrs['name'] = f"{request.user.first_name or ''} {request.user.middle_name or ''}".strip()
+            if 'email' in attrs:
+                attrs['email'] = request.user.email
+                
+        # 2. Security for Unauthenticated Users (Quick Apply): Prevent name spoofing on existing emails
+        else:
+            email = attrs.get('email')
+            name = attrs.get('name')
+            
+            if email and name:
+                from api.models import Users
+                existing_user = Users.objects.filter(email__iexact=email).first()
+                if existing_user:
+                    existing_full = f"{existing_user.first_name or ''} {existing_user.middle_name or ''}".strip()
+                    
+                    # If the submitted name does not match the registered name (case-insensitive)
+                    if name.strip().lower() != existing_full.lower():
+                        from rest_framework.exceptions import ValidationError
+                        raise ValidationError({
+                            'name': f"The email '{email}' is already registered to '{existing_full.title()}'. You cannot use a different name for this email."
+                        })
         return attrs
 
     def get_generated_id(self, obj):
@@ -2188,7 +2264,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             return None
         
         # Check Role of the viewer
-        has_permission = request.user.role in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or getattr(request.user, 'is_superuser', False)
+        has_permission = request.user.is_authenticated and getattr(request.user, 'role', '') in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or getattr(request.user, 'is_superuser', False)
         if not request.user.is_authenticated or not has_permission:
             return None
             
@@ -2251,7 +2327,7 @@ class NextOfKinSerializer(serializers.ModelSerializer):
     class Meta:
         model = NextOfKin
         fields = [
-            'id', 'user', 'full_name', 'relationship',
+            'id', 'user', 'first_name', 'middle_name', 'relationship',
             'address_country', 'phone', 'phone2', 'email',
             'created_at', 'updated_at'
         ]

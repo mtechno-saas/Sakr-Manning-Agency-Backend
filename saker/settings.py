@@ -17,10 +17,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env in the project root (if present).
 # This is a no-op when .env does not exist, so production environments that
 # inject variables through the OS environment are unaffected.
-load_dotenv()
-
-
-
+load_dotenv('/opt/sakr/Sakr-Manning-Agency-Backend/.env', override=True)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,11 +35,16 @@ SECRET_KEY = 'django-insecure-^hvh8+)3^ifz_%u6sjo67e)u!4xv%#d672l023$xo@ec!b$kmx
 DEBUG = False
 
 ALLOWED_HOSTS = [
+    "sakrshipping.com",
+    "www.sakrshipping.com",
+    "backend.sakrshipping.com",
+    "app.sakrshipping.com",	
     "api.backend.soon.it",
     "api.sakrshipping.com",
     "api.backend.hs.vc",
     "localhost",
     "127.0.0.1"
+
 ]
 
 
@@ -238,10 +240,11 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'api.Users'
-GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_OAUTH2_CLIENT_ID', '')
-GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET', '')
-
-
+# Google OAuth2 Configuration
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_OAUTH2_CLIENT_ID', '840517848435-lif3vsl2n8dcmaemqb9knuslm26pp8bq.apps.googleusercontent.com')
+GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET', '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')
+GOOGLE_CLIENT_ID = GOOGLE_OAUTH2_CLIENT_ID
+GOOGLE_CLIENT_SECRET = GOOGLE_OAUTH2_CLIENT_SECRET
 CORS_ALLOWED_ORIGINS = [
     "https://sakr-maritime.vercel.app",
     "https://test.sakrshipping.com",
@@ -251,10 +254,13 @@ CORS_ALLOWED_ORIGINS = [
     "https://api.sakrshipping.com",
     "http://api.backend.hs.vc",
     "https://api.backend.hs.vc",
+    "https://app.sakrshipping.com",	
+    "https://backend.sakrshipping.com",
+    "https://sakrshipping.com",
+    "https://www.sakrshipping.com",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
-
 
 CSRF_TRUSTED_ORIGINS = [
     "https://sakr-maritime.vercel.app",
@@ -265,6 +271,9 @@ CSRF_TRUSTED_ORIGINS = [
     "https://api.backend.hs.vc",
     "http://localhost:5173",
     "https://localhost:5173",
+    "https://sakrshipping.com",
+    "https://www.sakrshipping.com",
+    "https://backend.sakrshipping.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -279,8 +288,9 @@ CORS_ALLOW_METHODS = [
     "POST",
     "PUT",
 ]
-
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://sakrshipping.com",
+]
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # or your provider
 EMAIL_PORT = 587
