@@ -1167,10 +1167,14 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     else:
                         # Create new user for this applicant
                         print(f"DEBUG: Creating new user for Quick Applier: {email}")
-                        first_name = name.split(' ')[0] if name else "Applicant"
+                        parts = name.split(' ', 1) if name else ["Applicant"]
+                        first_name = parts[0]
+                        middle_name = parts[1] if len(parts) > 1 else ""
+                        
                         new_user = Users.objects.create_user(
                             email=email,
                             first_name=first_name,
+                            middle_name=middle_name,
                             role='Employee', # Default role for applicants
                             password=None, # Unusable password until they set it
                             # user_status='Active' # Removed invalid choice
