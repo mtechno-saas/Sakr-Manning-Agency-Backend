@@ -955,7 +955,7 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
     - Recruiter: View and update status
     - Employee: Own CVs only
     """
-    queryset = CVSubmission.objects.select_related('user', 'position', 'company').all()
+    queryset = CVSubmission.objects.select_related('user', 'position', 'company', 'ship', 'ship__ship_type', 'ship__flag').all()
     permission_classes = [IsAuthenticated, CVPermission]
     filterset_class = CVSubmissionFilter
 
@@ -967,7 +967,7 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.role in ['Admin', 'HR Manager', 'Recruiter']:
-            return CVSubmission.objects.select_related('user', 'position', 'company').all()
+            return CVSubmission.objects.select_related('user', 'position', 'company', 'ship', 'ship__ship_type', 'ship__flag').all()
         return CVSubmission.objects.filter(user=user)
 
     def perform_create(self, serializer):

@@ -418,6 +418,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(write_only=True, required=False)
     company_name_input = serializers.CharField(write_only=True, required=False)
     position_name_input = serializers.CharField(write_only=True, required=False)
+    ship_name_input = serializers.CharField(write_only=True, required=False)
     reviewed_by_name = serializers.CharField(write_only=True, required=False)
     salary = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True)
 
@@ -497,7 +498,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'user_name', 'user_first_name', 'user_middle_name',
             'user_email', 'user_email_display', 'company', 'company_name', 'company_name_input',
-            'ship', 'ship_name', 'ship_details',
+            'ship', 'ship_name', 'ship_details', 'ship_name_input',
             'position', 'position_name', 'position_name_input',
             'cv_file', 'cover_letter', 'experience_years',
             'expected_salary', 'availability_date',
@@ -581,7 +582,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         custom_fields = [
             'user_first_name', 'user_middle_name', 'user_email', 'company_name_input',
-            'position_name_input', 'reviewed_by_name', 'salary', 'available_date', 'coded_rank_input',
+            'position_name_input', 'ship_name_input', 'reviewed_by_name', 'salary', 'available_date', 'coded_rank_input',
             'assigned_code_updates', 'certificate_ids', 'passport_update',
             'seaman_book_update', 'other_seaman_book_update', 'coc_update',
             'goc_update', 'licenses_update'
@@ -612,6 +613,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         user_email = validated_data.pop('user_email', None)
         company_name_input = validated_data.pop('company_name_input', None)
         position_name_input = validated_data.pop('position_name_input', None)
+        ship_name_input = validated_data.pop('ship_name_input', None)
         reviewed_by_name = validated_data.pop('reviewed_by_name', None)
         salary = validated_data.pop('salary', None)
         available_date = validated_data.pop('available_date', None)
@@ -649,6 +651,17 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         if position_name_input is not None and instance.position:
             instance.position.name = position_name_input
             instance.position.save()
+
+        # Handle ship_name_input
+        if ship_name_input is not None:
+            from ships.models import Ship
+            from rest_framework.exceptions import ValidationError
+            try:
+                ship_obj = Ship.objects.get(ship_name__iexact=ship_name_input)
+                instance.ship = ship_obj
+                instance.save(update_fields=['ship'])
+            except Ship.DoesNotExist:
+                raise ValidationError({'ship_name_input': f"Ship with name '{ship_name_input}' not found."})
 
         # Propagate reviewed_by_name to the reviewed_by User
         if reviewed_by_name is not None and instance.reviewed_by:
@@ -1419,6 +1432,11 @@ class ContractSerializer(serializers.ModelSerializer):
                         validated_data['currency'] = user_currency
                     elif cv_sub.job_position and cv_sub.job_position.currency:
                         validated_data['currency'] = cv_sub.job_position.currency
+
+                # IMPORTANT: Also update the ship on the CV submission itself so it shows up in CV endpoints
+                if 'ship' in validated_data and validated_data['ship']:
+                    cv_sub.ship = validated_data['ship']
+                    cv_sub.save(update_fields=['ship'])
 
             except CVSubmission.DoesNotExist:
                 raise ValidationError({'error': f'CV Submission with id {cv_sub_id} not found.'})
