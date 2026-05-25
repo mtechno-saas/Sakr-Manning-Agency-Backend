@@ -2356,7 +2356,7 @@ class NextOfKinSerializer(serializers.ModelSerializer):
     class Meta:
         model = NextOfKin
         fields = [
-            'id', 'user', 'first_name', 'middle_name', 'relationship',
+            'id', 'user', 'full_name', 'relationship',
             'address_country', 'phone', 'phone2', 'email',
             'created_at', 'updated_at'
         ]
