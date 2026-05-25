@@ -846,8 +846,6 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         Returns all official/travel documents linked to the user, grouped by type.
         File attachments include a `download_url` pointing to:
           GET /api/cv-submissions/{cv_id}/download-document/?type=<doc_type>
-        Licenses each have their own:
-          GET /api/licenses/{license_id}/download/
         """
         user = obj.user
         request = self.context.get('request')
@@ -878,7 +876,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'issue_date': str(lic.issue_date) if lic.issue_date else None,
                 'expiration_date': str(lic.expiration_date) if lic.expiration_date else None,
                 'file_url': file_url(lic.document_file) if lic.document_file else None,
-                'download_url': f"/api/licenses/{lic.id}/download/" if lic.document_file else None,
+                'download_url': build_download_url('license', lic.id) if lic.document_file else None,
             }
             for lic in licenses_qs
         ]
@@ -928,6 +926,28 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             for v in vaccinations_qs
         ]
 
+        # Personal Documents (Visas / other IDs)
+        from api.models import PersonalDocument
+        personal_docs_qs = PersonalDocument.objects.filter(user=user)
+        personal_docs_data = [
+            {
+                'id': pd.id,
+                'document_type': pd.document_type,
+                'document_number': pd.document_number,
+                'issuing_country': pd.issuing_country,
+                'issue_date': str(pd.issue_date) if pd.issue_date else None,
+                'expiry_date': str(pd.expiry_date) if pd.expiry_date else None,
+                'file_url': file_url(pd.file) if pd.file else None,
+                'download_url': build_download_url('personal_document', pd.id) if pd.file else None,
+            }
+            for pd in personal_docs_qs
+        ]
+
+        # Find specific records for singleton attachments
+        coc_lic = licenses_qs.filter(document_name__icontains='coc').first()
+        goc_lic = licenses_qs.filter(document_name__icontains='goc').first()
+        med_cert = vaccinations_qs.filter(name="Medical Certificate For Seafarers").first()
+
         return {
             'passport': {
                 'passport_no': user.passport_no,
@@ -963,6 +983,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.coc_expiry_date) if user.coc_expiry_date else None,
                 'issued_by': user.coc_issued_by,
                 'issued_at': user.coc_issued_at,
+                'file_url': file_url(coc_lic.document_file) if coc_lic and coc_lic.document_file else None,
+                'download_url': build_download_url('coc') if coc_lic and coc_lic.document_file else None,
             },
             'goc': {
                 'certificate_number': user.goc_certificate_number,
@@ -970,6 +992,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.goc_expiry_date) if user.goc_expiry_date else None,
                 'issued_by': user.goc_issued_by,
                 'issued_at': user.goc_issued_at,
+                'file_url': file_url(goc_lic.document_file) if goc_lic and goc_lic.document_file else None,
+                'download_url': build_download_url('goc') if goc_lic and goc_lic.document_file else None,
             },
             'health_certificate': {
                 'flag_state': user.health_flag_state,
@@ -981,11 +1005,14 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'international_medical_number': user.international_medical_number,
                 'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
                 'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
+                'file_url': file_url(med_cert.document) if med_cert and med_cert.document else None,
+                'download_url': build_download_url('health_certificate') if med_cert and med_cert.document else None,
                 'records': vaccinations_data,
             },
             'licenses': licenses_data,
             'sea_service': sea_services_data,
             'marine_courses': courses_data,
+            'personal_documents': personal_docs_data,
         }
 
     def get_certificates(self, obj):
@@ -1487,11 +1514,6 @@ class ContractSerializer(serializers.ModelSerializer):
         user = obj.user
         request = self.context.get('request')
 
-        cv_id = obj.id # Note: In ContractSerializer, obj is Contract, so cv_id here refers to Contract ID?
-        # Actually, the download endpoint we added is in CVSubmissionViewSet.
-        # But we could also add it to ContractViewSet if needed.
-        # Or just use the UserViewSet endpoints which are already generic.
-        
         def file_url(field):
             if not field:
                 return None
@@ -1561,6 +1583,28 @@ class ContractSerializer(serializers.ModelSerializer):
             for v in vaccinations_qs
         ]
 
+        # Personal Documents (Visas / other IDs)
+        from api.models import PersonalDocument
+        personal_docs_qs = PersonalDocument.objects.filter(user=user)
+        personal_docs_data = [
+            {
+                'id': pd.id,
+                'document_type': pd.document_type,
+                'document_number': pd.document_number,
+                'issuing_country': pd.issuing_country,
+                'issue_date': str(pd.issue_date) if pd.issue_date else None,
+                'expiry_date': str(pd.expiry_date) if pd.expiry_date else None,
+                'file_url': file_url(pd.file) if pd.file else None,
+                'download_url': f"/api/users/{user.id}/download-personal-document/{pd.id}/" if pd.file else None,
+            }
+            for pd in personal_docs_qs
+        ]
+
+        # Find specific records for singleton attachments
+        coc_lic = licenses_qs.filter(document_name__icontains='coc').first()
+        goc_lic = licenses_qs.filter(document_name__icontains='goc').first()
+        med_cert = vaccinations_qs.filter(name="Medical Certificate For Seafarers").first()
+
         return {
             'passport': {
                 'passport_no': user.passport_no,
@@ -1596,6 +1640,8 @@ class ContractSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.coc_expiry_date) if user.coc_expiry_date else None,
                 'issued_by': user.coc_issued_by,
                 'issued_at': user.coc_issued_at,
+                'file_url': file_url(coc_lic.document_file) if coc_lic and coc_lic.document_file else None,
+                'download_url': f"/api/users/{user.id}/download-document/?type=coc" if coc_lic and coc_lic.document_file else None,
             },
             'goc': {
                 'certificate_number': user.goc_certificate_number,
@@ -1603,6 +1649,8 @@ class ContractSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.goc_expiry_date) if user.goc_expiry_date else None,
                 'issued_by': user.goc_issued_by,
                 'issued_at': user.goc_issued_at,
+                'file_url': file_url(goc_lic.document_file) if goc_lic and goc_lic.document_file else None,
+                'download_url': f"/api/users/{user.id}/download-document/?type=goc" if goc_lic and goc_lic.document_file else None,
             },
             'health_certificate': {
                 'flag_state': user.health_flag_state,
@@ -1614,11 +1662,14 @@ class ContractSerializer(serializers.ModelSerializer):
                 'international_medical_number': user.international_medical_number,
                 'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
                 'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
+                'file_url': file_url(med_cert.document) if med_cert and med_cert.document else None,
+                'download_url': f"/api/users/{user.id}/download-document/?type=health_certificate" if med_cert and med_cert.document else None,
                 'records': vaccinations_data,
             },
             'licenses': licenses_data,
             'sea_service': sea_services_data,
             'marine_courses': courses_data,
+            'personal_documents': personal_docs_data,
         }
 
     def get_job_position_details(self, obj):
