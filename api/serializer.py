@@ -947,6 +947,18 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         coc_lic = licenses_qs.filter(document_name__icontains='coc').first()
         goc_lic = licenses_qs.filter(document_name__icontains='goc').first()
         med_cert = vaccinations_qs.filter(name="Medical Certificate For Seafarers").first()
+        passport_doc = personal_docs_qs.filter(document_type__iexact='Passport').first()
+        seaman_book_doc = personal_docs_qs.filter(document_type__iexact="Seaman's Book").first()
+        other_seaman_book_doc = personal_docs_qs.filter(document_type__icontains="Seaman's Book").exclude(id=getattr(seaman_book_doc, 'id', None)).first()
+
+        passport_file = user.passport_attachment if user.passport_attachment else getattr(passport_doc, 'file', None)
+        passport_download_url = build_download_url('passport') if user.passport_attachment else (build_download_url('personal_document', passport_doc.id) if passport_doc and passport_doc.file else None)
+
+        seaman_book_file = user.seaman_book_attachment if user.seaman_book_attachment else getattr(seaman_book_doc, 'file', None)
+        seaman_book_download_url = build_download_url('seaman_book') if user.seaman_book_attachment else (build_download_url('personal_document', seaman_book_doc.id) if seaman_book_doc and seaman_book_doc.file else None)
+
+        other_seaman_book_file = user.other_seaman_book_attachment if user.other_seaman_book_attachment else getattr(other_seaman_book_doc, 'file', None)
+        other_seaman_book_download_url = build_download_url('other_seaman_book') if user.other_seaman_book_attachment else (build_download_url('personal_document', other_seaman_book_doc.id) if other_seaman_book_doc and other_seaman_book_doc.file else None)
 
         return {
             'passport': {
@@ -955,8 +967,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
                 'issued_by': user.passport_issued_by,
                 'place_of_issue': user.passport_place_of_issue,
-                'file_url': file_url(user.passport_attachment) if user.passport_attachment else None,
-                'download_url': build_download_url('passport') if user.passport_attachment else None,
+                'file_url': file_url(passport_file) if passport_file else None,
+                'download_url': passport_download_url,
             },
             'seaman_book': {
                 'seaman_book_no': user.seaman_book_no,
@@ -964,8 +976,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
                 'issued_by': user.seaman_book_issued_by,
                 'place_of_issue': user.seaman_book_place_of_issue,
-                'file_url': file_url(user.seaman_book_attachment) if user.seaman_book_attachment else None,
-                'download_url': build_download_url('seaman_book') if user.seaman_book_attachment else None,
+                'file_url': file_url(seaman_book_file) if seaman_book_file else None,
+                'download_url': seaman_book_download_url,
             },
             'other_seaman_book': {
                 'seaman_book_no': user.other_seaman_book_no,
@@ -973,8 +985,8 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
                 'issued_by': user.other_seaman_book_issued_by,
                 'place_of_issue': user.other_seaman_book_place_of_issue,
-                'file_url': file_url(user.other_seaman_book_attachment) if user.other_seaman_book_attachment else None,
-                'download_url': build_download_url('other_seaman_book') if user.other_seaman_book_attachment else None,
+                'file_url': file_url(other_seaman_book_file) if other_seaman_book_file else None,
+                'download_url': other_seaman_book_download_url,
             },
             'coc': {
                 'certificate_name': user.coc_certificate_name,
@@ -2148,6 +2160,18 @@ class UsersSerializer(serializers.ModelSerializer):
         coc_lic = licenses_qs.filter(document_name__icontains='coc').first()
         goc_lic = licenses_qs.filter(document_name__icontains='goc').first()
         med_cert = vaccinations_qs.filter(name="Medical Certificate For Seafarers").first()
+        passport_doc = personal_docs_qs.filter(document_type__iexact='Passport').first()
+        seaman_book_doc = personal_docs_qs.filter(document_type__iexact="Seaman's Book").first()
+        other_seaman_book_doc = personal_docs_qs.filter(document_type__icontains="Seaman's Book").exclude(id=getattr(seaman_book_doc, 'id', None)).first()
+
+        passport_file = user.passport_attachment if user.passport_attachment else getattr(passport_doc, 'file', None)
+        passport_download_url = build_download_url('passport') if user.passport_attachment else (build_download_url('personal_document', passport_doc.id) if passport_doc and passport_doc.file else None)
+
+        seaman_book_file = user.seaman_book_attachment if user.seaman_book_attachment else getattr(seaman_book_doc, 'file', None)
+        seaman_book_download_url = build_download_url('seaman_book') if user.seaman_book_attachment else (build_download_url('personal_document', seaman_book_doc.id) if seaman_book_doc and seaman_book_doc.file else None)
+
+        other_seaman_book_file = user.other_seaman_book_attachment if user.other_seaman_book_attachment else getattr(other_seaman_book_doc, 'file', None)
+        other_seaman_book_download_url = build_download_url('other_seaman_book') if user.other_seaman_book_attachment else (build_download_url('personal_document', other_seaman_book_doc.id) if other_seaman_book_doc and other_seaman_book_doc.file else None)
 
         return {
             'passport': {
@@ -2156,8 +2180,8 @@ class UsersSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
                 'issued_by': user.passport_issued_by,
                 'place_of_issue': user.passport_place_of_issue,
-                'file_url': file_url(user.passport_attachment) if user.passport_attachment else None,
-                'download_url': build_download_url('passport') if user.passport_attachment else None,
+                'file_url': file_url(passport_file) if passport_file else None,
+                'download_url': passport_download_url,
             },
             'seaman_book': {
                 'seaman_book_no': user.seaman_book_no,
@@ -2165,8 +2189,8 @@ class UsersSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
                 'issued_by': user.seaman_book_issued_by,
                 'place_of_issue': user.seaman_book_place_of_issue,
-                'file_url': file_url(user.seaman_book_attachment) if user.seaman_book_attachment else None,
-                'download_url': build_download_url('seaman_book') if user.seaman_book_attachment else None,
+                'file_url': file_url(seaman_book_file) if seaman_book_file else None,
+                'download_url': seaman_book_download_url,
             },
             'other_seaman_book': {
                 'seaman_book_no': user.other_seaman_book_no,
@@ -2174,8 +2198,8 @@ class UsersSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
                 'issued_by': user.other_seaman_book_issued_by,
                 'place_of_issue': user.other_seaman_book_place_of_issue,
-                'file_url': file_url(user.other_seaman_book_attachment) if user.other_seaman_book_attachment else None,
-                'download_url': build_download_url('other_seaman_book') if user.other_seaman_book_attachment else None,
+                'file_url': file_url(other_seaman_book_file) if other_seaman_book_file else None,
+                'download_url': other_seaman_book_download_url,
             },
             'coc': {
                 'certificate_name': user.coc_certificate_name,
