@@ -1743,6 +1743,7 @@ class UsersSerializer(serializers.ModelSerializer):
     certificates = CertificateSerializer(many=True, read_only=True)
     references = ReferenceSerializer(many=True, read_only=True)
     sea_services = SeaServiceSerializer(many=True, read_only=True)
+    user_documents = serializers.SerializerMethodField()
 
     # Write-only fields for accepting lists of IDs during create/update
     rank_ids = serializers.ListField(
@@ -1818,7 +1819,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
             # Relationships
             'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services',
-            'generated_id'
+            'generated_id', 'user_documents'
         ]
         extra_kwargs = {
             'profile_image': {'required': False},
@@ -2043,6 +2044,174 @@ class UsersSerializer(serializers.ModelSerializer):
             instance.certificates.set(certificates_data)
 
         return instance
+
+    def get_user_documents(self, obj):
+        user = obj
+        request = self.context.get('request')
+
+        def build_download_url(doc_type, doc_id=None):
+            url = f"/api/users/users/{user.id}/download-document/?type={doc_type}"
+            if doc_id:
+                url += f"&doc_id={doc_id}"
+            return url
+
+        def file_url(field):
+            if not field:
+                return None
+            if request:
+                return request.build_absolute_uri(field.url)
+            return field.url
+
+        # Licenses (from licenses app)
+        from licenses.models import UserLicense
+        licenses_qs = UserLicense.objects.filter(user=user)
+        licenses_data = [
+            {
+                'id': lic.id,
+                'document_name': lic.document_name,
+                'document_number': lic.document_number,
+                'country_of_issue': lic.country_of_issue,
+                'issue_date': str(lic.issue_date) if lic.issue_date else None,
+                'expiration_date': str(lic.expiration_date) if lic.expiration_date else None,
+                'file_url': file_url(lic.document_file) if lic.document_file else None,
+                'download_url': build_download_url('license', lic.id) if lic.document_file else None,
+            }
+            for lic in licenses_qs
+        ]
+
+        # Sea Services
+        sea_services_qs = user.sea_services.all()
+        sea_services_data = [
+            {
+                'id': ss.id,
+                'vessel_name': ss.vessel_name,
+                'rank': ss.rank,
+                'signed_on': str(ss.signed_on) if ss.signed_on else None,
+                'signed_off': str(ss.signed_off) if ss.signed_off else None,
+                'file_url': file_url(ss.file) if ss.file else None,
+                'download_url': build_download_url('sea_service', ss.id) if ss.file else None,
+            }
+            for ss in sea_services_qs
+        ]
+
+        # Marine Courses
+        from courses.models import Course
+        courses_qs = Course.objects.filter(user=user)
+        courses_data = [
+            {
+                'id': c.id,
+                'course_name': c.course_name,
+                'issue_date': str(c.issue_date) if c.issue_date else None,
+                'expiry_date': str(c.expiry_date) if c.expiry_date else None,
+                'file_url': file_url(c.document) if c.document else None,
+                'download_url': build_download_url('course', c.id) if c.document else None,
+            }
+            for c in courses_qs
+        ]
+
+        # Medical / Vaccinations
+        from vaccinations.models import Vaccination
+        vaccinations_qs = Vaccination.objects.filter(user=user)
+        vaccinations_data = [
+            {
+                'id': v.id,
+                'vaccine_name': v.name,
+                'issue_date': str(v.issue_date) if v.issue_date else None,
+                'expiry_date': str(v.expiry_date) if v.expiry_date else None,
+                'file_url': file_url(v.document) if v.document else None,
+                'download_url': build_download_url('vaccination', v.id) if v.document else None,
+            }
+            for v in vaccinations_qs
+        ]
+
+        # Personal Documents (Visas / other IDs)
+        from api.models import PersonalDocument
+        personal_docs_qs = PersonalDocument.objects.filter(user=user)
+        personal_docs_data = [
+            {
+                'id': pd.id,
+                'document_type': pd.document_type,
+                'document_number': pd.document_number,
+                'issuing_country': pd.issuing_country,
+                'issue_date': str(pd.issue_date) if pd.issue_date else None,
+                'expiry_date': str(pd.expiry_date) if pd.expiry_date else None,
+                'file_url': file_url(pd.file) if pd.file else None,
+                'download_url': build_download_url('personal_document', pd.id) if pd.file else None,
+            }
+            for pd in personal_docs_qs
+        ]
+
+        # Find specific records for singleton attachments
+        coc_lic = licenses_qs.filter(document_name__icontains='coc').first()
+        goc_lic = licenses_qs.filter(document_name__icontains='goc').first()
+        med_cert = vaccinations_qs.filter(name="Medical Certificate For Seafarers").first()
+
+        return {
+            'passport': {
+                'passport_no': user.passport_no,
+                'issue_date': str(user.passport_issue_date) if user.passport_issue_date else None,
+                'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
+                'issued_by': user.passport_issued_by,
+                'place_of_issue': user.passport_place_of_issue,
+                'file_url': file_url(user.passport_attachment) if user.passport_attachment else None,
+                'download_url': build_download_url('passport') if user.passport_attachment else None,
+            },
+            'seaman_book': {
+                'seaman_book_no': user.seaman_book_no,
+                'issue_date': str(user.seaman_book_issue_date) if user.seaman_book_issue_date else None,
+                'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
+                'issued_by': user.seaman_book_issued_by,
+                'place_of_issue': user.seaman_book_place_of_issue,
+                'file_url': file_url(user.seaman_book_attachment) if user.seaman_book_attachment else None,
+                'download_url': build_download_url('seaman_book') if user.seaman_book_attachment else None,
+            },
+            'other_seaman_book': {
+                'seaman_book_no': user.other_seaman_book_no,
+                'issue_date': str(user.other_seaman_book_issue_date) if user.other_seaman_book_issue_date else None,
+                'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
+                'issued_by': user.other_seaman_book_issued_by,
+                'place_of_issue': user.other_seaman_book_place_of_issue,
+                'file_url': file_url(user.other_seaman_book_attachment) if user.other_seaman_book_attachment else None,
+                'download_url': build_download_url('other_seaman_book') if user.other_seaman_book_attachment else None,
+            },
+            'coc': {
+                'certificate_name': user.coc_certificate_name,
+                'certificate_number': user.coc_certificate_number,
+                'issue_date': str(user.coc_issue_date) if user.coc_issue_date else None,
+                'expiry_date': str(user.coc_expiry_date) if user.coc_expiry_date else None,
+                'issued_by': user.coc_issued_by,
+                'issued_at': user.coc_issued_at,
+                'file_url': file_url(coc_lic.document_file) if coc_lic and coc_lic.document_file else None,
+                'download_url': build_download_url('coc') if coc_lic and coc_lic.document_file else None,
+            },
+            'goc': {
+                'certificate_number': user.goc_certificate_number,
+                'issue_date': str(user.goc_issue_date) if user.goc_issue_date else None,
+                'expiry_date': str(user.goc_expiry_date) if user.goc_expiry_date else None,
+                'issued_by': user.goc_issued_by,
+                'issued_at': user.goc_issued_at,
+                'file_url': file_url(goc_lic.document_file) if goc_lic and goc_lic.document_file else None,
+                'download_url': build_download_url('goc') if goc_lic and goc_lic.document_file else None,
+            },
+            'health_certificate': {
+                'flag_state': user.health_flag_state,
+                'number': user.health_number,
+                'issue_date': str(user.health_issue_date) if user.health_issue_date else None,
+                'expiry_date': str(user.health_expiry_date) if user.health_expiry_date else None,
+                'issued_by': user.health_issued_by,
+                'issued_at': user.health_issued_at,
+                'international_medical_number': user.international_medical_number,
+                'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
+                'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
+                'file_url': file_url(med_cert.document) if med_cert and med_cert.document else None,
+                'download_url': build_download_url('health_certificate') if med_cert and med_cert.document else None,
+                'records': vaccinations_data,
+            },
+            'licenses': licenses_data,
+            'sea_service': sea_services_data,
+            'marine_courses': courses_data,
+            'personal_documents': personal_docs_data,
+        }
 class LanguageProficiencySerializer(serializers.ModelSerializer):
     class Meta:
         model = LanguageProficiency
