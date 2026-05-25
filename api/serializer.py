@@ -77,7 +77,11 @@ class SeaServiceSerializer(serializers.ModelSerializer):
 
     def get_download_url(self, obj):
         if getattr(obj, 'file', None) and getattr(obj, 'user', None):
-            return f"/api/users/{obj.user.id}/download-sea-service/{obj.id}/"
+            path = f"/api/users/{obj.user.id}/download-sea-service/{obj.id}/"
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(path)
+            return path
         return None
 
     def validate(self, data):
@@ -2653,7 +2657,11 @@ class PersonalDocumentSerializer(serializers.ModelSerializer):
 
     def get_download_url(self, obj):
         if getattr(obj, 'file', None) and getattr(obj, 'user', None):
-            return f"/api/users/{obj.user.id}/download-personal-document/{obj.id}/"
+            path = f"/api/users/{obj.user.id}/download-personal-document/{obj.id}/"
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(path)
+            return path
         return None
 
 

@@ -19,5 +19,9 @@ class UserLicenseSerializer(serializers.ModelSerializer):
 
     def get_download_url(self, obj):
         if getattr(obj, 'document_file', None) and getattr(obj, 'user', None):
-            return f"/api/users/{obj.user.id}/download-license/{obj.id}/"
+            path = f"/api/users/{obj.user.id}/download-license/{obj.id}/"
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(path)
+            return path
         return None
