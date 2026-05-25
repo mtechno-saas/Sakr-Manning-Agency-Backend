@@ -1831,22 +1831,31 @@ class UsersSerializer(serializers.ModelSerializer):
 
         # Enhance application_for_position to include rank_code and assigned_code
         app_pos_name = instance.application_for_position
+        
+        # 1. Try to find the user rank that exactly matches the string
+        ur = None
         if app_pos_name:
             ur = instance.user_ranks.filter(rank__name__iexact=app_pos_name).first()
-            if ur:
-                representation['application_for_position'] = {
-                    "name": app_pos_name,
-                    "rank_code": ur.rank.code,
-                    "assigned_code": ur.assigned_code
-                }
-            else:
-                from api.models import Rank
-                rank = Rank.objects.filter(name__iexact=app_pos_name).first()
-                representation['application_for_position'] = {
-                    "name": app_pos_name,
-                    "rank_code": rank.code if rank else None,
-                    "assigned_code": None
-                }
+            
+        # 2. If no exact match, fallback to the user's first assigned rank
+        if not ur:
+            ur = instance.user_ranks.first()
+
+        if ur:
+            representation['application_for_position'] = {
+                "name": ur.rank.name,
+                "rank_code": ur.rank.code,
+                "assigned_code": ur.assigned_code
+            }
+        elif app_pos_name:
+            # 3. Fallback: they have a string but no assigned user_rank yet
+            from api.models import Rank
+            rank = Rank.objects.filter(name__iexact=app_pos_name).first()
+            representation['application_for_position'] = {
+                "name": app_pos_name,
+                "rank_code": rank.code if rank else None,
+                "assigned_code": None
+            }
         else:
             representation['application_for_position'] = None
 
