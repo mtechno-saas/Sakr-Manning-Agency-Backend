@@ -1,4 +1,4 @@
-#!/opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/python3
+#!/run/media/storm/New Volume/2-TECHNO AQUARE/venv/bin/python3
 
 
 import argparse

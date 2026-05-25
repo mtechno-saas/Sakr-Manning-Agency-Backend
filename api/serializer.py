@@ -875,7 +875,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'country_of_issue': lic.country_of_issue,
                 'issue_date': str(lic.issue_date) if lic.issue_date else None,
                 'expiration_date': str(lic.expiration_date) if lic.expiration_date else None,
-                'file_url': file_url(lic.document_file) if lic.document_file else None,
+                'file_url': None,
                 'download_url': build_download_url('license', lic.id) if lic.document_file else None,
             }
             for lic in licenses_qs
@@ -890,7 +890,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'rank': ss.rank,
                 'signed_on': str(ss.signed_on) if ss.signed_on else None,
                 'signed_off': str(ss.signed_off) if ss.signed_off else None,
-                'file_url': file_url(ss.file) if ss.file else None,
+                'file_url': None,
                 'download_url': build_download_url('sea_service', ss.id) if ss.file else None,
             }
             for ss in sea_services_qs
@@ -905,7 +905,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'course_name': c.course_name,
                 'issue_date': str(c.issue_date) if c.issue_date else None,
                 'expiry_date': str(c.expiry_date) if c.expiry_date else None,
-                'file_url': file_url(c.document) if c.document else None,
+                'file_url': None,
                 'download_url': build_download_url('course', c.id) if c.document else None,
             }
             for c in courses_qs
@@ -920,7 +920,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'vaccine_name': v.name,
                 'issue_date': str(v.issue_date) if v.issue_date else None,
                 'expiry_date': str(v.expiry_date) if v.expiry_date else None,
-                'file_url': file_url(v.document) if v.document else None,
+                'file_url': None,
                 'download_url': build_download_url('vaccination', v.id) if v.document else None,
             }
             for v in vaccinations_qs
@@ -937,7 +937,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'issuing_country': pd.issuing_country,
                 'issue_date': str(pd.issue_date) if pd.issue_date else None,
                 'expiry_date': str(pd.expiry_date) if pd.expiry_date else None,
-                'file_url': file_url(pd.file) if pd.file else None,
+                'file_url': None,
                 'download_url': build_download_url('personal_document', pd.id) if pd.file else None,
             }
             for pd in personal_docs_qs
@@ -967,7 +967,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
                 'issued_by': user.passport_issued_by,
                 'place_of_issue': user.passport_place_of_issue,
-                'file_url': file_url(passport_file) if passport_file else None,
+                'file_url': None,
                 'download_url': passport_download_url,
             },
             'seaman_book': {
@@ -976,7 +976,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
                 'issued_by': user.seaman_book_issued_by,
                 'place_of_issue': user.seaman_book_place_of_issue,
-                'file_url': file_url(seaman_book_file) if seaman_book_file else None,
+                'file_url': None,
                 'download_url': seaman_book_download_url,
             },
             'other_seaman_book': {
@@ -985,7 +985,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
                 'issued_by': user.other_seaman_book_issued_by,
                 'place_of_issue': user.other_seaman_book_place_of_issue,
-                'file_url': file_url(other_seaman_book_file) if other_seaman_book_file else None,
+                'file_url': None,
                 'download_url': other_seaman_book_download_url,
             },
             'coc': {
@@ -995,7 +995,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.coc_expiry_date) if user.coc_expiry_date else None,
                 'issued_by': user.coc_issued_by,
                 'issued_at': user.coc_issued_at,
-                'file_url': file_url(coc_lic.document_file) if coc_lic and coc_lic.document_file else None,
+                'file_url': None,
                 'download_url': build_download_url('coc') if coc_lic and coc_lic.document_file else None,
             },
             'goc': {
@@ -1004,7 +1004,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.goc_expiry_date) if user.goc_expiry_date else None,
                 'issued_by': user.goc_issued_by,
                 'issued_at': user.goc_issued_at,
-                'file_url': file_url(goc_lic.document_file) if goc_lic and goc_lic.document_file else None,
+                'file_url': None,
                 'download_url': build_download_url('goc') if goc_lic and goc_lic.document_file else None,
             },
             'health_certificate': {
@@ -1017,7 +1017,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'international_medical_number': user.international_medical_number,
                 'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
                 'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
-                'file_url': file_url(med_cert.document) if med_cert and med_cert.document else None,
+                'file_url': None,
                 'download_url': build_download_url('health_certificate') if med_cert and med_cert.document else None,
                 'records': vaccinations_data,
             },
@@ -1544,7 +1544,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'country_of_issue': lic.country_of_issue,
                 'issue_date': str(lic.issue_date) if lic.issue_date else None,
                 'expiration_date': str(lic.expiration_date) if lic.expiration_date else None,
-                'file_url': file_url(lic.document_file) if lic.document_file else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-license/{lic.id}/" if lic.document_file else None,
             }
             for lic in licenses_qs
@@ -1559,7 +1559,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'rank': ss.rank,
                 'signed_on': str(ss.signed_on) if ss.signed_on else None,
                 'signed_off': str(ss.signed_off) if ss.signed_off else None,
-                'file_url': file_url(ss.file) if ss.file else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-sea-service/{ss.id}/" if ss.file else None,
             }
             for ss in sea_services_qs
@@ -1574,7 +1574,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'course_name': c.course_name,
                 'issue_date': str(c.issue_date) if c.issue_date else None,
                 'expiry_date': str(c.expiry_date) if c.expiry_date else None,
-                'file_url': file_url(c.document) if c.document else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-course/{c.id}/" if c.document else None,
             }
             for c in courses_qs
@@ -1589,7 +1589,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'vaccine_name': v.name,
                 'issue_date': str(v.issue_date) if v.issue_date else None,
                 'expiry_date': str(v.expiry_date) if v.expiry_date else None,
-                'file_url': file_url(v.document) if v.document else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-vaccination/{v.id}/" if v.document else None,
             }
             for v in vaccinations_qs
@@ -1606,7 +1606,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'issuing_country': pd.issuing_country,
                 'issue_date': str(pd.issue_date) if pd.issue_date else None,
                 'expiry_date': str(pd.expiry_date) if pd.expiry_date else None,
-                'file_url': file_url(pd.file) if pd.file else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-personal-document/{pd.id}/" if pd.file else None,
             }
             for pd in personal_docs_qs
@@ -1624,7 +1624,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
                 'issued_by': user.passport_issued_by,
                 'place_of_issue': user.passport_place_of_issue,
-                'file_url': file_url(user.passport_attachment) if user.passport_attachment else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-passport/" if user.passport_attachment else None,
             },
             'seaman_book': {
@@ -1633,7 +1633,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
                 'issued_by': user.seaman_book_issued_by,
                 'place_of_issue': user.seaman_book_place_of_issue,
-                'file_url': file_url(user.seaman_book_attachment) if user.seaman_book_attachment else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-seaman-book/" if user.seaman_book_attachment else None,
             },
             'other_seaman_book': {
@@ -1642,7 +1642,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
                 'issued_by': user.other_seaman_book_issued_by,
                 'place_of_issue': user.other_seaman_book_place_of_issue,
-                'file_url': file_url(user.other_seaman_book_attachment) if user.other_seaman_book_attachment else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-other-seaman-book/" if user.other_seaman_book_attachment else None,
             },
             'coc': {
@@ -1652,7 +1652,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.coc_expiry_date) if user.coc_expiry_date else None,
                 'issued_by': user.coc_issued_by,
                 'issued_at': user.coc_issued_at,
-                'file_url': file_url(coc_lic.document_file) if coc_lic and coc_lic.document_file else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-document/?type=coc" if coc_lic and coc_lic.document_file else None,
             },
             'goc': {
@@ -1661,7 +1661,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.goc_expiry_date) if user.goc_expiry_date else None,
                 'issued_by': user.goc_issued_by,
                 'issued_at': user.goc_issued_at,
-                'file_url': file_url(goc_lic.document_file) if goc_lic and goc_lic.document_file else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-document/?type=goc" if goc_lic and goc_lic.document_file else None,
             },
             'health_certificate': {
@@ -1674,7 +1674,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 'international_medical_number': user.international_medical_number,
                 'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
                 'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
-                'file_url': file_url(med_cert.document) if med_cert and med_cert.document else None,
+                'file_url': None,
                 'download_url': f"/api/users/{user.id}/download-document/?type=health_certificate" if med_cert and med_cert.document else None,
                 'records': vaccinations_data,
             },
@@ -2088,7 +2088,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'country_of_issue': lic.country_of_issue,
                 'issue_date': str(lic.issue_date) if lic.issue_date else None,
                 'expiration_date': str(lic.expiration_date) if lic.expiration_date else None,
-                'file_url': file_url(lic.document_file) if lic.document_file else None,
+                'file_url': None,
                 'download_url': build_download_url('license', lic.id) if lic.document_file else None,
             }
             for lic in licenses_qs
@@ -2103,7 +2103,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'rank': ss.rank,
                 'signed_on': str(ss.signed_on) if ss.signed_on else None,
                 'signed_off': str(ss.signed_off) if ss.signed_off else None,
-                'file_url': file_url(ss.file) if ss.file else None,
+                'file_url': None,
                 'download_url': build_download_url('sea_service', ss.id) if ss.file else None,
             }
             for ss in sea_services_qs
@@ -2118,7 +2118,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'course_name': c.course_name,
                 'issue_date': str(c.issue_date) if c.issue_date else None,
                 'expiry_date': str(c.expiry_date) if c.expiry_date else None,
-                'file_url': file_url(c.document) if c.document else None,
+                'file_url': None,
                 'download_url': build_download_url('course', c.id) if c.document else None,
             }
             for c in courses_qs
@@ -2133,7 +2133,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'vaccine_name': v.name,
                 'issue_date': str(v.issue_date) if v.issue_date else None,
                 'expiry_date': str(v.expiry_date) if v.expiry_date else None,
-                'file_url': file_url(v.document) if v.document else None,
+                'file_url': None,
                 'download_url': build_download_url('vaccination', v.id) if v.document else None,
             }
             for v in vaccinations_qs
@@ -2150,7 +2150,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'issuing_country': pd.issuing_country,
                 'issue_date': str(pd.issue_date) if pd.issue_date else None,
                 'expiry_date': str(pd.expiry_date) if pd.expiry_date else None,
-                'file_url': file_url(pd.file) if pd.file else None,
+                'file_url': None,
                 'download_url': build_download_url('personal_document', pd.id) if pd.file else None,
             }
             for pd in personal_docs_qs
@@ -2180,7 +2180,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.passport_expiry_date) if user.passport_expiry_date else None,
                 'issued_by': user.passport_issued_by,
                 'place_of_issue': user.passport_place_of_issue,
-                'file_url': file_url(passport_file) if passport_file else None,
+                'file_url': None,
                 'download_url': passport_download_url,
             },
             'seaman_book': {
@@ -2189,7 +2189,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.seaman_book_expiry_date) if user.seaman_book_expiry_date else None,
                 'issued_by': user.seaman_book_issued_by,
                 'place_of_issue': user.seaman_book_place_of_issue,
-                'file_url': file_url(seaman_book_file) if seaman_book_file else None,
+                'file_url': None,
                 'download_url': seaman_book_download_url,
             },
             'other_seaman_book': {
@@ -2198,7 +2198,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.other_seaman_book_expiry_date) if user.other_seaman_book_expiry_date else None,
                 'issued_by': user.other_seaman_book_issued_by,
                 'place_of_issue': user.other_seaman_book_place_of_issue,
-                'file_url': file_url(other_seaman_book_file) if other_seaman_book_file else None,
+                'file_url': None,
                 'download_url': other_seaman_book_download_url,
             },
             'coc': {
@@ -2208,7 +2208,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.coc_expiry_date) if user.coc_expiry_date else None,
                 'issued_by': user.coc_issued_by,
                 'issued_at': user.coc_issued_at,
-                'file_url': file_url(coc_lic.document_file) if coc_lic and coc_lic.document_file else None,
+                'file_url': None,
                 'download_url': build_download_url('coc') if coc_lic and coc_lic.document_file else None,
             },
             'goc': {
@@ -2217,7 +2217,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'expiry_date': str(user.goc_expiry_date) if user.goc_expiry_date else None,
                 'issued_by': user.goc_issued_by,
                 'issued_at': user.goc_issued_at,
-                'file_url': file_url(goc_lic.document_file) if goc_lic and goc_lic.document_file else None,
+                'file_url': None,
                 'download_url': build_download_url('goc') if goc_lic and goc_lic.document_file else None,
             },
             'health_certificate': {
@@ -2230,7 +2230,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 'international_medical_number': user.international_medical_number,
                 'international_medical_issue_date': str(user.international_medical_issue_date) if user.international_medical_issue_date else None,
                 'international_medical_expiry_date': str(user.international_medical_expiry_date) if user.international_medical_expiry_date else None,
-                'file_url': file_url(med_cert.document) if med_cert and med_cert.document else None,
+                'file_url': None,
                 'download_url': build_download_url('health_certificate') if med_cert and med_cert.document else None,
                 'records': vaccinations_data,
             },

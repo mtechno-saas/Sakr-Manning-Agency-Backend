@@ -1,4 +1,6 @@
-#!/opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/python3
+#!/bin/sh
+'''exec' "/run/media/storm/New Volume/2-TECHNO AQUARE/venv/bin/python3" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys

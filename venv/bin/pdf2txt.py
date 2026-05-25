@@ -1,4 +1,4 @@
-#!/opt/sakr/Sakr-Manning-Agency-Backend/venv/bin/python3
+#!/run/media/storm/New Volume/2-TECHNO AQUARE/venv/bin/python3
 """A command line tool for extracting text and images from PDF and
 output it to plain text, html, xml or tags.
 """
