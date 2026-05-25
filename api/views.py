@@ -474,66 +474,108 @@ class UserViewSet(viewsets.ModelViewSet):
     def download_user_document(self, request, pk=None):
         """
         Download any user-level file attachment by type.
-        GET /api/users/{id}/download-document/?type=<doc_type>
+        GET /api/users/users/{id}/download-document/?type=<doc_type>&doc_id=<id>
 
         Supported types:
-          passport, seaman_book, other_seaman_book, marlins, ces, profile_image, file, coc, goc, health_certificate
-        Permission: Own profile or Admin only.
+          Singleton (no doc_id needed):
+            passport, seaman_book, other_seaman_book, marlins, ces, profile_image, file, coc, goc, health_certificate
+          Related (doc_id required):
+            license, sea_service, course, vaccination, personal_document
+
+        Permission: Own profile or Admin/HR/Recruiter.
         """
         user = self._check_download_permission(request, pk)
         if isinstance(user, Response):
             return user
 
         doc_type = request.query_params.get('type', '').strip()
+        doc_id = request.query_params.get('doc_id')
         if not doc_type:
             return Response(
                 {'error': 'Missing ?type= parameter.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if doc_type == 'coc':
+        file_path = None
+
+        # 1. User-level singleton attachments
+        USER_FILE_MAP = {
+            'passport': user.passport_attachment,
+            'seaman_book': user.seaman_book_attachment,
+            'other_seaman_book': user.other_seaman_book_attachment,
+            'marlins': user.marlins_test_attachment,
+            'ces': user.ces_test_attachment,
+            'profile_image': user.profile_image,
+            'file': user.file,
+        }
+
+        if doc_type in USER_FILE_MAP:
+            file_field = USER_FILE_MAP[doc_type]
+            if not file_field:
+                return Response({'error': f'No file uploaded for document type "{doc_type}"'}, status=404)
+            file_path = file_field.path
+
+        elif doc_type == 'coc':
             from licenses.models import UserLicense
             lic = UserLicense.objects.filter(user=user, document_name__icontains='coc').first()
-            if not lic:
-                return Response({'error': 'No COC license record found'}, status=status.HTTP_404_NOT_FOUND)
-            file_field = getattr(lic, 'document_file', None)
+            if not lic or not lic.document_file:
+                return Response({'error': 'No COC file uploaded'}, status=404)
+            file_path = lic.document_file.path
+
         elif doc_type == 'goc':
             from licenses.models import UserLicense
             lic = UserLicense.objects.filter(user=user, document_name__icontains='goc').first()
-            if not lic:
-                return Response({'error': 'No GOC license record found'}, status=status.HTTP_404_NOT_FOUND)
-            file_field = getattr(lic, 'document_file', None)
+            if not lic or not lic.document_file:
+                return Response({'error': 'No GOC file uploaded'}, status=404)
+            file_path = lic.document_file.path
+
         elif doc_type == 'health_certificate':
             from vaccinations.models import Vaccination
             vac = Vaccination.objects.filter(user=user, name="Medical Certificate For Seafarers").first()
-            if not vac:
-                return Response({'error': 'No Medical Certificate record found'}, status=status.HTTP_404_NOT_FOUND)
-            file_field = getattr(vac, 'document', None)
-        else:
-            FILE_MAP = {
-                'passport': user.passport_attachment,
-                'seaman_book': user.seaman_book_attachment,
-                'other_seaman_book': user.other_seaman_book_attachment,
-                'marlins': user.marlins_test_attachment,
-                'ces': user.ces_test_attachment,
-                'profile_image': user.profile_image,
-                'file': user.file,
-            }
-            if doc_type not in FILE_MAP:
-                choices = list(FILE_MAP.keys()) + ['coc', 'goc', 'health_certificate']
-                return Response(
-                    {'error': f'Unknown type "{doc_type}". Choices: {choices}'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            file_field = FILE_MAP[doc_type]
+            if not vac or not vac.document:
+                return Response({'error': 'No Medical Certificate file uploaded'}, status=404)
+            file_path = vac.document.path
 
-        if not file_field:
+        # 2. Related model attachments (require doc_id)
+        elif doc_type in ['sea_service', 'vaccination', 'course', 'personal_document', 'license']:
+            if not doc_id:
+                return Response({'error': f'doc_id is required for type "{doc_type}"'}, status=400)
+
+            if doc_type == 'sea_service':
+                doc = user.sea_services.filter(id=doc_id).first()
+                file_field = getattr(doc, 'file', None)
+            elif doc_type == 'vaccination':
+                from vaccinations.models import Vaccination
+                doc = Vaccination.objects.filter(id=doc_id, user=user).first()
+                file_field = getattr(doc, 'document', None)
+            elif doc_type == 'course':
+                from courses.models import Course
+                doc = Course.objects.filter(id=doc_id, user=user).first()
+                file_field = getattr(doc, 'document', None)
+            elif doc_type == 'personal_document':
+                from api.models import PersonalDocument
+                doc = PersonalDocument.objects.filter(id=doc_id, user=user).first()
+                file_field = getattr(doc, 'file', None)
+            elif doc_type == 'license':
+                from licenses.models import UserLicense
+                doc = UserLicense.objects.filter(id=doc_id, user=user).first()
+                file_field = getattr(doc, 'document_file', None)
+
+            if not doc:
+                return Response({'error': f'Document #{doc_id} of type "{doc_type}" not found for this user'}, status=404)
+            if not file_field:
+                return Response({'error': f'No file attached to this {doc_type} record'}, status=404)
+
+            file_path = file_field.path
+
+        else:
+            all_choices = list(USER_FILE_MAP.keys()) + ['coc', 'goc', 'health_certificate', 'sea_service', 'vaccination', 'course', 'personal_document', 'license']
             return Response(
-                {'error': f'No file uploaded for document type "{doc_type}"'},
-                status=status.HTTP_404_NOT_FOUND
+                {'error': f'Unknown type "{doc_type}". Choices: {all_choices}'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
-        file_path = file_field.path
+        # 3. Serve the file
         if not os.path.exists(file_path):
             return Response(
                 {'error': 'File record exists but the file was not found on the server'},
