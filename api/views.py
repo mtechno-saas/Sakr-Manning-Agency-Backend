@@ -276,12 +276,16 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def _check_download_permission(self, request, pk):
         """
-        Returns the target User object if the caller is the owner or an Admin.
+        Returns the target User object if the caller is the owner or an Admin/HR/Recruiter.
         Otherwise returns a 403 Response.
         """
         user = self.get_object()  # triggers DRF object-level perm check
-        if request.user.role != 'Admin' and user != request.user:
-            return Response({'error': 'Permission denied. Only the profile owner or Admin can download.'}, status=403)
+        has_permission = request.user.is_authenticated and (
+            getattr(request.user, 'role', '') in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or 
+            getattr(request.user, 'is_superuser', False)
+        )
+        if not has_permission and user != request.user:
+            return Response({'error': 'Permission denied. Only the profile owner or privileged users can download.'}, status=403)
         return user
 
     # ============================
