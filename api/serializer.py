@@ -1744,6 +1744,9 @@ class UsersSerializer(serializers.ModelSerializer):
     references = ReferenceSerializer(many=True, read_only=True)
     sea_services = SeaServiceSerializer(many=True, read_only=True)
     user_documents = serializers.SerializerMethodField()
+    seafarer_application = serializers.SerializerMethodField()
+    coded_rank = serializers.SerializerMethodField()
+    salary_display = serializers.CharField(source='salary', read_only=True)
 
     # Write-only fields for accepting lists of IDs during create/update
     rank_ids = serializers.ListField(
@@ -1819,7 +1822,7 @@ class UsersSerializer(serializers.ModelSerializer):
             'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
             # Relationships
             'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services',
-            'generated_id', 'user_documents'
+            'generated_id', 'user_documents', 'seafarer_application', 'coded_rank', 'salary_display'
         ]
         extra_kwargs = {
             'profile_image': {'required': False},
@@ -2212,6 +2215,27 @@ class UsersSerializer(serializers.ModelSerializer):
             'marine_courses': courses_data,
             'personal_documents': personal_docs_data,
         }
+
+    def get_seafarer_application(self, obj):
+        """Return the full nested seafarer profile for the user."""
+        from .seafarer_application_serializers import SeafarerApplicationSerializer
+        return SeafarerApplicationSerializer(obj, context={'exclude_headers': True}).data
+
+    def get_coded_rank(self, obj):
+        """
+        Returns all assigned rank codes for the user.
+        Each entry contains: assigned_code, rank_code, rank_name.
+        """
+        user_ranks = obj.user_ranks.select_related('rank').all()
+        return [
+            {
+                'assigned_code': ur.assigned_code,
+                'rank_code': ur.rank.code,
+                'rank_name': ur.rank.name,
+            }
+            for ur in user_ranks
+        ]
+
 class LanguageProficiencySerializer(serializers.ModelSerializer):
     class Meta:
         model = LanguageProficiency
