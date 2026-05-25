@@ -1829,6 +1829,27 @@ class UsersSerializer(serializers.ModelSerializer):
             if not has_permission:
                 representation.pop('generated_id', None)
 
+        # Enhance application_for_position to include rank_code and assigned_code
+        app_pos_name = instance.application_for_position
+        if app_pos_name:
+            ur = instance.user_ranks.filter(rank__name__iexact=app_pos_name).first()
+            if ur:
+                representation['application_for_position'] = {
+                    "name": app_pos_name,
+                    "rank_code": ur.rank.code,
+                    "assigned_code": ur.assigned_code
+                }
+            else:
+                from api.models import Rank
+                rank = Rank.objects.filter(name__iexact=app_pos_name).first()
+                representation['application_for_position'] = {
+                    "name": app_pos_name,
+                    "rank_code": rank.code if rank else None,
+                    "assigned_code": None
+                }
+        else:
+            representation['application_for_position'] = None
+
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
             instance.user_ranks.all(),
