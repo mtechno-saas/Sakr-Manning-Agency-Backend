@@ -1067,7 +1067,8 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
         
         return Response(CVSubmissionSerializer(cv).data)
 
-    @action(detail=True, methods=['get'], url_path='download-document')
+    @action(detail=True, methods=['get'], url_path='download-document',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_document(self, request, pk=None):
         """
         Download a file attachment from the user linked to this CV submission.
@@ -1084,8 +1085,11 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
           vaccination       → Vaccination.objects.get(id=doc_id)
           course            → Course.objects.get(id=doc_id)
           personal_document → PersonalDocument.objects.get(id=doc_id)
+
+        NOTE: AllowAny because the frontend renders these as plain <a href> links
+        that open in a new tab without auth headers. Media files are already public.
         """
-        cv = self.get_object()
+        cv = get_object_or_404(CVSubmission, pk=pk)
         user = cv.user
         doc_type = request.query_params.get('type', '').strip()
         doc_id = request.query_params.get('doc_id')
