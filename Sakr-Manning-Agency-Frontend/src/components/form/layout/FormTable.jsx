@@ -80,7 +80,7 @@ export function CrudTable({
      * Returns the URL string if found, or null.
      */
     const getFileUrl = (item) => {
-        const FILE_URL_KEYS = ["file_url", "document", "document_file", "file", "attachment"];
+        const FILE_URL_KEYS = ["download_url", "file_url", "document", "document_file", "file", "attachment"];
         for (const key of FILE_URL_KEYS) {
             const val = item[key];
             if (val && typeof val === "string" && val.trim() !== "") {

@@ -246,12 +246,11 @@ class UserViewSet(viewsets.ModelViewSet):
             'active_users': users.filter(is_active=True).count(),
         })
 
-    @action(detail=True, methods=['get'], url_path='download-marlins')
+    @action(detail=True, methods=['get'], url_path='download-marlins',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_marlins(self, request, pk=None):
         """Download Marlins test attachment"""
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         if not user.marlins_test_attachment:
             return Response({'error': 'No Marlins test file uploaded'}, status=404)
         file_path = user.marlins_test_attachment.path
@@ -259,12 +258,11 @@ class UserViewSet(viewsets.ModelViewSet):
             return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
         return Response({'error': 'File not found'}, status=404)
 
-    @action(detail=True, methods=['get'], url_path='download-ces')
+    @action(detail=True, methods=['get'], url_path='download-ces',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_ces(self, request, pk=None):
         """Download CES test attachment"""
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         if not user.ces_test_attachment:
             return Response({'error': 'No CES test file uploaded'}, status=404)
         file_path = user.ces_test_attachment.path
@@ -296,16 +294,15 @@ class UserViewSet(viewsets.ModelViewSet):
     # TRAVEL DOCUMENT DOWNLOADS
     # ============================
 
-    @action(detail=True, methods=['get'], url_path='download-passport')
+    @action(detail=True, methods=['get'], url_path='download-passport',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_passport(self, request, pk=None):
         """
         Download passport attachment.
         GET /api/users/{id}/download-passport/
         Permission: Own profile or Admin only.
         """
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         if not user.passport_attachment:
             return Response({'error': 'No passport file uploaded'}, status=404)
         file_path = user.passport_attachment.path
@@ -313,16 +310,15 @@ class UserViewSet(viewsets.ModelViewSet):
             return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
         return Response({'error': 'File not found on server'}, status=404)
 
-    @action(detail=True, methods=['get'], url_path='download-seaman-book')
+    @action(detail=True, methods=['get'], url_path='download-seaman-book',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_seaman_book(self, request, pk=None):
         """
         Download seaman book attachment.
         GET /api/users/{id}/download-seaman-book/
         Permission: Own profile or Admin only.
         """
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         if not user.seaman_book_attachment:
             return Response({'error': 'No seaman book file uploaded'}, status=404)
         file_path = user.seaman_book_attachment.path
@@ -330,16 +326,15 @@ class UserViewSet(viewsets.ModelViewSet):
             return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
         return Response({'error': 'File not found on server'}, status=404)
 
-    @action(detail=True, methods=['get'], url_path='download-other-seaman-book')
+    @action(detail=True, methods=['get'], url_path='download-other-seaman-book',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_other_seaman_book(self, request, pk=None):
         """
         Download other/second seaman book attachment.
         GET /api/users/{id}/download-other-seaman-book/
         Permission: Own profile or Admin only.
         """
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         if not user.other_seaman_book_attachment:
             return Response({'error': 'No other seaman book file uploaded'}, status=404)
         file_path = user.other_seaman_book_attachment.path
@@ -347,16 +342,15 @@ class UserViewSet(viewsets.ModelViewSet):
             return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
         return Response({'error': 'File not found on server'}, status=404)
 
-    @action(detail=True, methods=['get'], url_path='download-personal-document/(?P<doc_id>[^/.]+)')
+    @action(detail=True, methods=['get'], url_path='download-personal-document/(?P<doc_id>[^/.]+)',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_personal_document(self, request, pk=None, doc_id=None):
         """
         Download a specific PersonalDocument (travel/ID document) by its ID.
         GET /api/users/{user_id}/download-personal-document/{doc_id}/
         Permission: Own profile or Admin only.
         """
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         doc = user.personal_documents.filter(id=doc_id).first()
         if not doc:
             return Response({'error': f'Personal document #{doc_id} not found for this user'}, status=404)
@@ -371,7 +365,8 @@ class UserViewSet(viewsets.ModelViewSet):
     # CERTIFICATE DOWNLOADS
     # ============================
 
-    @action(detail=True, methods=['get'], url_path='download-license/(?P<license_id>[^/.]+)')
+    @action(detail=True, methods=['get'], url_path='download-license/(?P<license_id>[^/.]+)',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_license(self, request, pk=None, license_id=None):
         """
         Download a specific license/certificate document by its ID.
@@ -380,9 +375,7 @@ class UserViewSet(viewsets.ModelViewSet):
         Covers: COC, GOC, and all STCW license documents.
         """
         from licenses.models import UserLicense
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         lic = UserLicense.objects.filter(id=license_id, user=user).first()
         if not lic:
             return Response({'error': f'License #{license_id} not found for this user'}, status=404)
@@ -397,7 +390,8 @@ class UserViewSet(viewsets.ModelViewSet):
     # MEDICAL / HEALTH DOWNLOADS
     # ============================
 
-    @action(detail=True, methods=['get'], url_path='download-vaccination/(?P<vaccination_id>[^/.]+)')
+    @action(detail=True, methods=['get'], url_path='download-vaccination/(?P<vaccination_id>[^/.]+)',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_vaccination(self, request, pk=None, vaccination_id=None):
         """
         Download a specific vaccination/medical document by its ID.
@@ -406,9 +400,7 @@ class UserViewSet(viewsets.ModelViewSet):
         Covers: Yellow Fever, COVID, Medical Certificate for Seafarers, etc.
         """
         from vaccinations.models import Vaccination
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         vac = Vaccination.objects.filter(id=vaccination_id, user=user).first()
         if not vac:
             return Response({'error': f'Vaccination #{vaccination_id} not found for this user'}, status=404)
@@ -423,7 +415,8 @@ class UserViewSet(viewsets.ModelViewSet):
     # MARINE COURSE DOWNLOADS
     # ============================
 
-    @action(detail=True, methods=['get'], url_path='download-course/(?P<course_id>[^/.]+)')
+    @action(detail=True, methods=['get'], url_path='download-course/(?P<course_id>[^/.]+)',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_course(self, request, pk=None, course_id=None):
         """
         Download a specific marine course document by its ID.
@@ -431,9 +424,7 @@ class UserViewSet(viewsets.ModelViewSet):
         Permission: Own profile or Admin only.
         """
         from courses.models import Course
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         course = Course.objects.filter(id=course_id, user=user).first()
         if not course:
             return Response({'error': f'Course #{course_id} not found for this user'}, status=404)
@@ -448,16 +439,15 @@ class UserViewSet(viewsets.ModelViewSet):
     # SEA-SERVICE DOWNLOADS
     # ============================
 
-    @action(detail=True, methods=['get'], url_path='download-sea-service/(?P<service_id>[^/.]+)')
+    @action(detail=True, methods=['get'], url_path='download-sea-service/(?P<service_id>[^/.]+)',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_sea_service(self, request, pk=None, service_id=None):
         """
         Download a specific sea service record file by its ID.
         GET /api/users/{user_id}/download-sea-service/{service_id}/
         Permission: Own profile or Admin only.
         """
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
         service = user.sea_services.filter(id=service_id).first()
         if not service:
             return Response({'error': f'Sea service #{service_id} not found for this user'}, status=404)

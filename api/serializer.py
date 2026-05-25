@@ -1987,6 +1987,21 @@ class UsersSerializer(serializers.ModelSerializer):
         else:
             representation['bmi'] = None
 
+        # Rewrite file fields to use secure download URLs instead of raw media URLs
+        for field_name, doc_type in [
+            ('marlins_test_attachment', 'marlins'),
+            ('ces_test_attachment', 'ces'),
+            ('passport_attachment', 'passport'),
+            ('seaman_book_attachment', 'seaman_book'),
+            ('other_seaman_book_attachment', 'other_seaman_book'),
+        ]:
+            if representation.get(field_name):
+                download_path = f"/api/users/users/{instance.id}/download-document/?type={doc_type}"
+                if request:
+                    representation[field_name] = request.build_absolute_uri(download_path)
+                else:
+                    representation[field_name] = download_path
+
         return representation
 
     def create(self, validated_data):
