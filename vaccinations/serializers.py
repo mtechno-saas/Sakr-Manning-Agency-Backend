@@ -7,11 +7,17 @@ class VaccinationSerializer(serializers.ModelSerializer):
     expiry_date = FlexibleDateField(required=False, allow_null=True)
     first_date = FlexibleDateField(required=False, allow_null=True)
     last_date = FlexibleDateField(required=False, allow_null=True)
+    download_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Vaccination
         fields = "__all__"
-        read_only_fields = ("user", "created_at", "updated_at")
+        read_only_fields = ("user", "download_url", "created_at", "updated_at")
+
+    def get_download_url(self, obj):
+        if getattr(obj, 'document', None) and getattr(obj, 'user', None):
+            return f"/api/users/{obj.user.id}/download-vaccination/{obj.id}/"
+        return None
 
     def validate(self, data):
         issue = data.get("issue_date")

@@ -7,11 +7,17 @@ class CourseSerializer(serializers.ModelSerializer):
     document = serializers.FileField(required=False, allow_null=True, default=None)
     issue_date = FlexibleDateField(required=False, allow_null=True)
     expiry_date = FlexibleDateField(required=False, allow_null=True)
+    download_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Course
         fields = '__all__'
-        read_only_fields = ['user']
+        read_only_fields = ['user', 'download_url']
+
+    def get_download_url(self, obj):
+        if getattr(obj, 'document', None) and getattr(obj, 'user', None):
+            return f"/api/users/{obj.user.id}/download-course/{obj.id}/"
+        return None
 
     def to_internal_value(self, data):
         """Strip document field if it's not an actual file upload"""

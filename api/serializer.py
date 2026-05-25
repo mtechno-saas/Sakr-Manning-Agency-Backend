@@ -68,11 +68,17 @@ class ReferenceSerializer(serializers.ModelSerializer):
 class SeaServiceSerializer(serializers.ModelSerializer):
     signed_on = FlexibleDateField(required=False, allow_null=True)
     signed_off = FlexibleDateField(required=False, allow_null=True)
+    download_url = serializers.SerializerMethodField()
 
     class Meta:
         model = SeaService
         fields = '__all__'
-        read_only_fields = ['user']
+        read_only_fields = ['user', 'download_url']
+
+    def get_download_url(self, obj):
+        if getattr(obj, 'file', None) and getattr(obj, 'user', None):
+            return f"/api/users/{obj.user.id}/download-sea-service/{obj.id}/"
+        return None
 
     def validate(self, data):
         signed_on = data.get('signed_on', self.instance.signed_on if self.instance else None)
@@ -2337,17 +2343,23 @@ class UserLanguageSerializer(serializers.ModelSerializer):
 
 
 class PersonalDocumentSerializer(serializers.ModelSerializer):
+    download_url = serializers.SerializerMethodField()
+
     class Meta:
         model = PersonalDocument
         fields = [
             'id', 'user', 'document_type', 'document_number',
             'issue_date', 'expiry_date', 'issuing_country', 'issued_by',
-            'place_of_issue', 'file',
+            'place_of_issue', 'file', 'download_url',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at', 'download_url']
         extra_kwargs = {'user': {'required': False}}
 
+    def get_download_url(self, obj):
+        if getattr(obj, 'file', None) and getattr(obj, 'user', None):
+            return f"/api/users/{obj.user.id}/download-personal-document/{obj.id}/"
+        return None
 
 
 from .models import NextOfKin
