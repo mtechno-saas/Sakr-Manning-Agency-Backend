@@ -1059,6 +1059,21 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
         
         return Response(CVSubmissionSerializer(cv).data)
 
+    @action(detail=True, methods=['get'], url_path='download-cv',
+            permission_classes=[AllowAny], authentication_classes=[])
+    def download_cv(self, request, pk=None):
+        """
+        Download the CV file associated with this submission.
+        GET /api/cv-submissions/{id}/download-cv/
+        """
+        cv = get_object_or_404(CVSubmission, pk=pk)
+        if not cv.cv_file:
+            return Response({'error': 'No CV file attached to this submission'}, status=404)
+        file_path = cv.cv_file.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
+        return Response({'error': 'File not found on server'}, status=404)
+
     @action(detail=True, methods=['get'], url_path='download-document',
             permission_classes=[AllowAny], authentication_classes=[])
     def download_document(self, request, pk=None):

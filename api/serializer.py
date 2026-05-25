@@ -526,6 +526,13 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         ret = super().to_representation(instance)
         ret['salary'] = instance.user.salary if instance.user else None
         ret['available_date'] = instance.user.available_date if instance.user else None
+        if instance.cv_file:
+            path = f"/api/cv-submissions/{instance.id}/download-cv/"
+            request = self.context.get('request')
+            if request:
+                ret['cv_file'] = request.build_absolute_uri(path)
+            else:
+                ret['cv_file'] = path
         return ret
 
     def to_internal_value(self, data):
