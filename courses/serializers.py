@@ -23,6 +23,12 @@ class CourseSerializer(serializers.ModelSerializer):
             return path
         return None
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.document and instance.user:
+            ret['document'] = self.get_download_url(instance)
+        return ret
+
     def to_internal_value(self, data):
         """Strip document field if it's not an actual file upload"""
         if isinstance(data, dict):

@@ -84,6 +84,12 @@ class SeaServiceSerializer(serializers.ModelSerializer):
             return path
         return None
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.file and instance.user:
+            ret['file'] = self.get_download_url(instance)
+        return ret
+
     def validate(self, data):
         signed_on = data.get('signed_on', self.instance.signed_on if self.instance else None)
         signed_off = data.get('signed_off', self.instance.signed_off if self.instance else None)
@@ -2663,6 +2669,12 @@ class PersonalDocumentSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(path)
             return path
         return None
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.file and instance.user:
+            ret['file'] = self.get_download_url(instance)
+        return ret
 
 
 from .models import NextOfKin

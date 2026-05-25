@@ -23,6 +23,12 @@ class VaccinationSerializer(serializers.ModelSerializer):
             return path
         return None
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.document and instance.user:
+            ret['document'] = self.get_download_url(instance)
+        return ret
+
     def validate(self, data):
         issue = data.get("issue_date")
         expiry = data.get("expiry_date")

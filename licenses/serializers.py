@@ -25,3 +25,9 @@ class UserLicenseSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(path)
             return path
         return None
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if instance.document_file and instance.user:
+            ret['document_file'] = self.get_download_url(instance)
+        return ret
