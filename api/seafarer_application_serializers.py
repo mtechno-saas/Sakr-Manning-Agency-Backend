@@ -678,15 +678,15 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
 
             records.append({
                 "company_name": s.company_name,
-                "rank": s.rank,
+                "rank": rank_name,
                 "rank_name": rank_name,
                 "vessel_name_imo_number": f"{s.vessel_name} / {s.imo_number}".strip(" / "),
-                "flag": s.flag,
+                "flag": flag_name,
                 "flag_name": flag_name,
                 "signed_on": s.signed_on if s.signed_on else "",
                 "signed_off": s.signed_off if s.signed_off else "",
                 "period": s.period,
-                "vessel_type": s.vessel_type,
+                "vessel_type": vessel_type_name,
                 "vessel_type_name": vessel_type_name,
                 "dwt_grt": f"{s.dwt} / {s.grt}".strip(" / "),
                 "engine_type": s.engine_type,
