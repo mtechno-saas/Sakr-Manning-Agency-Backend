@@ -1829,7 +1829,8 @@ class UsersSerializer(serializers.ModelSerializer):
             if not has_permission:
                 representation.pop('generated_id', None)
 
-        # Enhance application_for_position to include rank_code and assigned_code
+        # Keep application_for_position as a string to prevent frontend .trim() crashes
+        # Provide rank_code and assigned_code as separate top-level fields
         app_pos_name = instance.application_for_position
         
         # 1. Try to find the user rank that exactly matches the string
@@ -1842,22 +1843,20 @@ class UsersSerializer(serializers.ModelSerializer):
             ur = instance.user_ranks.first()
 
         if ur:
-            representation['application_for_position'] = {
-                "name": ur.rank.name,
-                "rank_code": ur.rank.code,
-                "assigned_code": ur.assigned_code
-            }
+            representation['application_for_position'] = ur.rank.name
+            representation['rank_code'] = ur.rank.code
+            representation['assigned_code'] = ur.assigned_code
         elif app_pos_name:
             # 3. Fallback: they have a string but no assigned user_rank yet
             from api.models import Rank
             rank = Rank.objects.filter(name__iexact=app_pos_name).first()
-            representation['application_for_position'] = {
-                "name": app_pos_name,
-                "rank_code": rank.code if rank else None,
-                "assigned_code": None
-            }
+            representation['application_for_position'] = app_pos_name
+            representation['rank_code'] = rank.code if rank else None
+            representation['assigned_code'] = None
         else:
             representation['application_for_position'] = None
+            representation['rank_code'] = None
+            representation['assigned_code'] = None
 
         # Explicitly serialize ranks with assigned_code
         representation['ranks'] = UserRankSerializer(
