@@ -904,11 +904,19 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
 
         # Sea Services
         sea_services_qs = user.sea_services.all()
+        from api.models import Rank
+        from core.models import VesselType, Flag
+        ranks_dict = {str(r.id): r.name for r in Rank.objects.all()}
+        vessels_dict = {str(v.id): v.name for v in VesselType.objects.all()}
+        flags_dict = {str(f.id): f.name for f in Flag.objects.all()}
+
         sea_services_data = [
             {
                 'id': ss.id,
                 'vessel_name': ss.vessel_name,
-                'rank': ss.rank,
+                'rank': ranks_dict.get(str(ss.rank), ss.rank) if ss.rank else '',
+                'vessel_type': vessels_dict.get(str(ss.vessel_type), ss.vessel_type) if getattr(ss, 'vessel_type', None) else '',
+                'flag': flags_dict.get(str(ss.flag), ss.flag) if getattr(ss, 'flag', None) else '',
                 'signed_on': str(ss.signed_on) if ss.signed_on else None,
                 'signed_off': str(ss.signed_off) if ss.signed_off else None,
                 'file_url': file_url(ss.file, download_path=build_download_url('sea_service', ss.id)) if ss.file else None,
@@ -1577,11 +1585,19 @@ class ContractSerializer(serializers.ModelSerializer):
 
         # Sea Services
         sea_services_qs = user.sea_services.all()
+        from api.models import Rank
+        from core.models import VesselType, Flag
+        ranks_dict = {str(r.id): r.name for r in Rank.objects.all()}
+        vessels_dict = {str(v.id): v.name for v in VesselType.objects.all()}
+        flags_dict = {str(f.id): f.name for f in Flag.objects.all()}
+
         sea_services_data = [
             {
                 'id': ss.id,
                 'vessel_name': ss.vessel_name,
-                'rank': ss.rank,
+                'rank': ranks_dict.get(str(ss.rank), ss.rank) if ss.rank else '',
+                'vessel_type': vessels_dict.get(str(ss.vessel_type), ss.vessel_type) if getattr(ss, 'vessel_type', None) else '',
+                'flag': flags_dict.get(str(ss.flag), ss.flag) if getattr(ss, 'flag', None) else '',
                 'signed_on': str(ss.signed_on) if ss.signed_on else None,
                 'signed_off': str(ss.signed_off) if ss.signed_off else None,
                 'file_url': file_url(ss.file, download_path=f"/api/users/{user.id}/download-sea-service/{ss.id}/") if ss.file else None,
@@ -2140,11 +2156,19 @@ class UsersSerializer(serializers.ModelSerializer):
 
         # Sea Services
         sea_services_qs = user.sea_services.all()
+        from api.models import Rank
+        from core.models import VesselType, Flag
+        ranks_dict = {str(r.id): r.name for r in Rank.objects.all()}
+        vessels_dict = {str(v.id): v.name for v in VesselType.objects.all()}
+        flags_dict = {str(f.id): f.name for f in Flag.objects.all()}
+
         sea_services_data = [
             {
                 'id': ss.id,
                 'vessel_name': ss.vessel_name,
-                'rank': ss.rank,
+                'rank': ranks_dict.get(str(ss.rank), ss.rank) if ss.rank else '',
+                'vessel_type': vessels_dict.get(str(ss.vessel_type), ss.vessel_type) if getattr(ss, 'vessel_type', None) else '',
+                'flag': flags_dict.get(str(ss.flag), ss.flag) if getattr(ss, 'flag', None) else '',
                 'signed_on': str(ss.signed_on) if ss.signed_on else None,
                 'signed_off': str(ss.signed_off) if ss.signed_off else None,
                 'file_url': file_url(ss.file, download_path=build_download_url('sea_service', ss.id)) if ss.file else None,
