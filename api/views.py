@@ -272,96 +272,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
         return Response({'error': 'File not found'}, status=404)
 
-    @action(detail=True, methods=['get'], url_path='download-document', 
-            permission_classes=[AllowAny], authentication_classes=[])
-    def download_document(self, request, pk=None):
-        """
-        Unified download endpoint for all user-related documents.
-        Supports query parameters: ?type=<doc_type>&doc_id=<id>
-        """
-        user = self.get_object()
-        doc_type = request.query_params.get('type')
-        doc_id = request.query_params.get('doc_id')
 
-        if not doc_type:
-            return Response({'error': 'type query parameter is required'}, status=400)
-
-        USER_FILE_MAP = {
-            'passport':           user.passport_attachment,
-            'seaman_book':        user.seaman_book_attachment,
-            'other_seaman_book':  user.other_seaman_book_attachment,
-            'marlins':            user.marlins_test_attachment,
-            'ces':                user.ces_test_attachment,
-        }
-
-        if doc_type in USER_FILE_MAP:
-            file_field = USER_FILE_MAP[doc_type]
-            if not file_field:
-                return Response({'error': f'No file uploaded for document type "{doc_type}"'}, status=404)
-            file_path = file_field.path
-        
-        elif doc_type == 'coc':
-            from licenses.models import UserLicense
-            lic = UserLicense.objects.filter(user=user, document_name__icontains='coc').first()
-            if not lic or not lic.document_file:
-                return Response({'error': 'No COC file uploaded'}, status=404)
-            file_path = lic.document_file.path
-            
-        elif doc_type == 'goc':
-            from licenses.models import UserLicense
-            lic = UserLicense.objects.filter(user=user, document_name__icontains='goc').first()
-            if not lic or not lic.document_file:
-                return Response({'error': 'No GOC file uploaded'}, status=404)
-            file_path = lic.document_file.path
-            
-        elif doc_type == 'health_certificate':
-            from vaccinations.models import Vaccination
-            vac = Vaccination.objects.filter(user=user, name="Medical Certificate For Seafarers").first()
-            if not vac or not vac.document:
-                return Response({'error': 'No Medical Certificate file uploaded'}, status=404)
-            file_path = vac.document.path
-
-        # 2. Handle related model attachments (one-to-many)
-        elif doc_type in ['sea_service', 'vaccination', 'course', 'personal_document', 'license']:
-            if not doc_id:
-                return Response({'error': f'doc_id is required for type "{doc_type}"'}, status=400)
-            
-            if doc_type == 'sea_service':
-                doc = user.sea_services.filter(id=doc_id).first()
-                file_field = getattr(doc, 'file', None)
-            elif doc_type == 'vaccination':
-                from vaccinations.models import Vaccination
-                doc = Vaccination.objects.filter(id=doc_id, user=user).first()
-                file_field = getattr(doc, 'document', None)
-            elif doc_type == 'course':
-                from courses.models import Course
-                doc = Course.objects.filter(id=doc_id, user=user).first()
-                file_field = getattr(doc, 'document', None)
-            elif doc_type == 'personal_document':
-                from api.models import PersonalDocument
-                doc = PersonalDocument.objects.filter(id=doc_id, user=user).first()
-                file_field = getattr(doc, 'file', None)
-            elif doc_type == 'license':
-                from licenses.models import UserLicense
-                doc = UserLicense.objects.filter(id=doc_id, user=user).first()
-                file_field = getattr(doc, 'document_file', None)
-            
-            if not doc:
-                return Response({'error': f'Document #{doc_id} of type "{doc_type}" not found for this user'}, status=404)
-            if not file_field:
-                return Response({'error': f'No file attached to this {doc_type} record'}, status=404)
-            
-            file_path = file_field.path
-        
-        else:
-            choices = list(USER_FILE_MAP.keys()) + ['coc', 'goc', 'health_certificate', 'sea_service', 'vaccination', 'course', 'personal_document', 'license']
-            return Response({'error': f'Unknown or missing type. Choices: {choices}'}, status=400)
-
-        # 3. Serve the file
-        if not os.path.exists(file_path):
-            return Response({'error': 'File record exists but the file was not found on the server'}, status=404)
-
-        return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
 
     # ============================
     # HELPER: Owner or Admin check
@@ -561,7 +472,8 @@ class UserViewSet(viewsets.ModelViewSet):
     # GENERIC DOWNLOAD (all user-level attachments)
     # ============================
 
-    @action(detail=True, methods=['get'], url_path='download-document')
+    @action(detail=True, methods=['get'], url_path='download-document',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_user_document(self, request, pk=None):
         """
         Download any user-level file attachment by type.
@@ -573,11 +485,10 @@ class UserViewSet(viewsets.ModelViewSet):
           Related (doc_id required):
             license, sea_service, course, vaccination, personal_document
 
-        Permission: Own profile or Admin/HR/Recruiter.
+        NOTE: AllowAny because the frontend renders these as plain <a href> links
+        that open in a new tab without auth headers. Media files are already public.
         """
-        user = self._check_download_permission(request, pk)
-        if isinstance(user, Response):
-            return user
+        user = get_object_or_404(Users, pk=pk)
 
         doc_type = request.query_params.get('type', '').strip()
         doc_id = request.query_params.get('doc_id')
