@@ -511,10 +511,11 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                 "iss_date": obj.passport_issue_date if obj.passport_issue_date else "",
                 "exp_date": obj.passport_expiry_date if obj.passport_expiry_date else "",
                 "iss_by_authority": obj.passport_issued_by if obj.passport_issued_by else "",
-                "place_of_issue": obj.passport_place_of_issue if obj.passport_place_of_issue else ""
+                "place_of_issue": obj.passport_place_of_issue if obj.passport_place_of_issue else "",
+                "file_url": obj.passport_attachment.url if obj.passport_attachment else None
             })
         else:
-            docs.append({"type": "Passport", "document_no": "", "iss_date": "", "exp_date": "", "iss_by_authority": "", "place_of_issue": ""})
+            docs.append({"type": "Passport", "document_no": "", "iss_date": "", "exp_date": "", "iss_by_authority": "", "place_of_issue": "", "file_url": None})
 
         if obj.seaman_book_no:
             docs.append({
@@ -523,10 +524,11 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                 "iss_date": obj.seaman_book_issue_date if obj.seaman_book_issue_date else "",
                 "exp_date": obj.seaman_book_expiry_date if obj.seaman_book_expiry_date else "",
                 "iss_by_authority": obj.seaman_book_issued_by if obj.seaman_book_issued_by else "",
-                "place_of_issue": obj.seaman_book_place_of_issue if obj.seaman_book_place_of_issue else ""
+                "place_of_issue": obj.seaman_book_place_of_issue if obj.seaman_book_place_of_issue else "",
+                "file_url": obj.seaman_book_attachment.url if obj.seaman_book_attachment else None
             })
         else:
-            docs.append({"type": "Seaman Book", "document_no": "", "iss_date": "", "exp_date": "", "iss_by_authority": "", "place_of_issue": ""})
+            docs.append({"type": "Seaman Book", "document_no": "", "iss_date": "", "exp_date": "", "iss_by_authority": "", "place_of_issue": "", "file_url": None})
 
         if obj.other_seaman_book_no:
             docs.append({
@@ -535,10 +537,11 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                 "iss_date": obj.other_seaman_book_issue_date if obj.other_seaman_book_issue_date else "",
                 "exp_date": obj.other_seaman_book_expiry_date if obj.other_seaman_book_expiry_date else "",
                 "iss_by_authority": obj.other_seaman_book_issued_by if obj.other_seaman_book_issued_by else "",
-                "place_of_issue": obj.other_seaman_book_place_of_issue if obj.other_seaman_book_place_of_issue else ""
+                "place_of_issue": obj.other_seaman_book_place_of_issue if obj.other_seaman_book_place_of_issue else "",
+                "file_url": obj.other_seaman_book_attachment.url if obj.other_seaman_book_attachment else None
             })
         else:
-            docs.append({"type": "Other Seaman Book", "document_no": "", "iss_date": "", "exp_date": "", "iss_by_authority": "", "place_of_issue": ""})
+            docs.append({"type": "Other Seaman Book", "document_no": "", "iss_date": "", "exp_date": "", "iss_by_authority": "", "place_of_issue": "", "file_url": None})
             
         # Append PersonalDocument records (Visas, IDs, etc.)
         for pd in obj.personal_documents.all():
