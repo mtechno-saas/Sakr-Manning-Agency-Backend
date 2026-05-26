@@ -2471,41 +2471,6 @@ class DocumentSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'position_id', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details']
         read_only_fields = ['user', 'created_at', 'updated_at']
 
-    def validate(self, attrs):
-        request = self.context.get('request')
-        if request and hasattr(request, 'user') and request.user.is_authenticated:
-            first_name = getattr(request.user, 'first_name', '')
-            last_name = getattr(request.user, 'last_name', '')
-            first_name = getattr(request.user, 'first_name', '').strip()
-            last_name = getattr(request.user, 'last_name', '').strip()
-            if last_name and not first_name.lower().endswith(last_name.lower()):
-                full_name = f"{first_name} {last_name}".strip()
-            else:
-                full_name = first_name
-            
-            if full_name:
-                attrs['name'] = full_name
-                
-            if getattr(request.user, 'email', ''):
-                attrs['email'] = request.user.email
-                
-        return super().validate(attrs)
-
-    def validate(self, attrs):
-        request = self.context.get('request')
-        if request and hasattr(request, 'user') and request.user.is_authenticated:
-            first_name = getattr(request.user, 'first_name', '')
-            last_name = getattr(request.user, 'last_name', '')
-            full_name = f"{first_name} {last_name}".strip()
-            
-            if full_name:
-                attrs['name'] = full_name
-                
-            if getattr(request.user, 'email', ''):
-                attrs['email'] = request.user.email
-                
-        return super().validate(attrs)
-
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         pos_value = instance.position
@@ -2621,30 +2586,46 @@ class DocumentSerializer(serializers.ModelSerializer):
             
         request = self.context.get('request')
         
-        # 1. Security for Authenticated Employees: Enforce their own profile data
+        # 1. Security for Authenticated Employees: Enforce their own registered name and email
         if request and request.user and request.user.is_authenticated and request.user.role == 'Employee':
-            if 'name' in attrs:
-                attrs['name'] = f"{request.user.first_name or ''} {request.user.middle_name or ''}".strip()
-            if 'email' in attrs:
-                attrs['email'] = request.user.email
+            registered_full_name = f"{request.user.first_name or ''} {request.user.middle_name or ''}".strip()
+            registered_email = (request.user.email or '').strip().lower()
+            
+            # Reject if the submitted email does not match the registered email
+            submitted_email = attrs.get('email', '').strip().lower()
+            if submitted_email and submitted_email != registered_email:
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({
+                    'email': f"You must use your registered email address ({request.user.email}). Quick Apply only accepts the email you registered with."
+                })
+            
+            # Reject if the submitted name does not match the registered name
+            submitted_name = attrs.get('name', '').strip().lower()
+            if submitted_name and submitted_name != registered_full_name.lower():
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({
+                    'name': f"You must use your registered name ({registered_full_name}). Quick Apply only accepts the name you registered with."
+                })
+            
+            # Always enforce the registered profile data
+            attrs['name'] = registered_full_name
+            attrs['email'] = request.user.email
                 
-        # 2. Security for Unauthenticated Users (Quick Apply): Prevent name spoofing on existing emails
+        # 2. Security for Unauthenticated Users (Quick Apply): Reject if email belongs to a registered user
         else:
             email = attrs.get('email')
             name = attrs.get('name')
             
-            if email and name:
+            if email:
                 from api.models import Users
                 existing_user = Users.objects.filter(email__iexact=email).first()
                 if existing_user:
-                    existing_full = f"{existing_user.first_name or ''} {existing_user.middle_name or ''}".strip()
-                    
-                    # If the submitted name does not match the registered name (case-insensitive)
-                    if name.strip().lower() != existing_full.lower():
-                        from rest_framework.exceptions import ValidationError
-                        raise ValidationError({
-                            'name': f"The email '{email}' is already registered to '{existing_full.title()}'. You cannot use a different name for this email."
-                        })
+                    # If the email is already registered, the user must log in first
+                    # They cannot submit a Quick Apply as a guest with a registered email
+                    from rest_framework.exceptions import ValidationError
+                    raise ValidationError({
+                        'email': f"The email '{email}' is already registered. Please log in first and then submit your application using your registered account."
+                    })
         return attrs
 
     def get_generated_id(self, obj):
