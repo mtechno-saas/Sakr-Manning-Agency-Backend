@@ -2612,9 +2612,9 @@ class DocumentSerializer(serializers.ModelSerializer):
             attrs['email'] = request.user.email
                 
         # 2. Security for Unauthenticated Users (Quick Apply): Reject if email belongs to a registered user
-        else:
+        # Skip this check for authenticated admins/HR/recruiters doing updates
+        elif not request or not request.user or not request.user.is_authenticated:
             email = attrs.get('email')
-            name = attrs.get('name')
             
             if email:
                 from api.models import Users
