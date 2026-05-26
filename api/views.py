@@ -1359,19 +1359,28 @@ class DocumentViewSet(viewsets.ModelViewSet):
                         code = f"CUS-{str(uuid.uuid4())[:6].upper()}"
                     rank = Rank.objects.create(code=code, name=document.position)
                 
-                # Create the submission if it doesn't exist
+                # Create or update the submission so it doesn't duplicate
                 # Include the company from the document so it links to the right job order company
-                submission, created = CVSubmission.objects.get_or_create(
-                    user=user,
-                    position=rank,
-                    company=getattr(document, 'company', None),
-                    job_position=getattr(document, 'job_position', None),
-                    defaults={
-                        'cv_file': document.file,
-                        'status': 'Approved',
-                        'notes': 'Auto-created from Approved Document'
-                    }
-                )
+                submission = CVSubmission.objects.filter(user=user).first()
+                if submission:
+                    submission.position = rank
+                    submission.company = getattr(document, 'company', None)
+                    submission.job_position = getattr(document, 'job_position', None)
+                    if document.file:
+                        submission.cv_file = document.file
+                    if submission.status not in ['Approved', 'Hired']:
+                        submission.status = 'Approved'
+                    submission.save()
+                else:
+                    submission = CVSubmission.objects.create(
+                        user=user,
+                        position=rank,
+                        company=getattr(document, 'company', None),
+                        job_position=getattr(document, 'job_position', None),
+                        cv_file=document.file,
+                        status='Approved',
+                        notes='Auto-created from Approved Document'
+                    )
                 
                 # Auto-assign UserRank (from our previous logic)
                 from api.models import UserRank
