@@ -173,6 +173,13 @@ if uploaded_files:
                 if "error" in result:
                     st.error(f"❌ Failed to parse {file.name}: {result['error']}")
                 else:
+                    # Show what the AI extracted (for debugging)
+                    with st.expander(f"🔍 AI Extraction Result for {file.name}"):
+                        st.json(result)
+                        if not result.get("email"):
+                            st.warning("⚠️ No email found! Showing raw PDF text below:")
+                            st.text_area("Raw PDF Text", cv_text[:3000], height=200)
+                    
                     extracted_rank = result.get("rank", "Unknown")
                     
                     if target_rank != "All Ranks" and extracted_rank.lower() != target_rank.lower():
