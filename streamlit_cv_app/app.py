@@ -20,11 +20,14 @@ def extract_text_from_pdf(pdf_file):
 def parse_cv_with_ai(cv_text, api_key, target_rank="All Ranks", filename=""):
     genai.configure(api_key=api_key)
     model_name = None
-    for m in genai.list_models():
-        if 'generateContent' in m.supported_generation_methods:
-            if 'flash' in m.name or 'pro' in m.name:
-                model_name = m.name
-                break
+    try:
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                if 'flash' in m.name or 'pro' in m.name:
+                    model_name = m.name
+                    break
+    except Exception as e:
+        return {"error": f"API Error (Likely invalid or expired API Key): {str(e)}"}
                 
     if not model_name:
         return {"error": "No supported text generation models found for this API key."}
