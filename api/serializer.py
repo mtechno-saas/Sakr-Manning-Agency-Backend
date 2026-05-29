@@ -2489,8 +2489,16 @@ class DocumentSerializer(serializers.ModelSerializer):
         return representation
     
     def to_internal_value(self, data):
-        # Alias common field names from frontend
-        if hasattr(data, 'copy'):
+        # Make data mutable for field aliasing below.
+        # Avoid QueryDict.copy() which deep-copies and crashes on file uploads
+        # (BufferedRandom objects cannot be pickled).
+        if hasattr(data, 'lists'):
+            new_data = {}
+            for key in data:
+                values = data.getlist(key)
+                new_data[key] = values if len(values) > 1 else values[0]
+            data = new_data
+        elif hasattr(data, 'copy'):
             data = data.copy()
         else:
             data = dict(data)
