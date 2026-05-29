@@ -38,8 +38,8 @@ def parse_cv_with_ai(cv_text, api_key, target_rank="All Ranks"):
     
     Extract the following details from the CV text provided below:
     - Full Name
-    - Email Address
-    - Phone Number
+    - Email Address (IMPORTANT: Look for any email address in the CV. It may be labeled as "Email", "E-mail", "Gmail", "GMAIL", "Mail", "E-Mail Address", or similar. Extract the full email address like example@gmail.com)
+    - Phone Number (may be labeled as "Phone", "Mobile", "Tel", "Mob", "Cell", "WhatsApp", or similar)
     - Rank (Infer the most recent rank. If the candidate's rank clearly matches or is equivalent to the Target Rank '{target_rank}', output exactly '{target_rank}'. Otherwise, output their actual inferred rank.)
     
     Return ONLY a valid JSON object with the following exact keys:
