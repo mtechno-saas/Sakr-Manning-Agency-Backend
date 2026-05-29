@@ -298,3 +298,27 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mtechsaas@gmail.com'
 EMAIL_HOST_PASSWORD = 'udnw dixo vjsq yuqw'
 DEFAULT_FROM_EMAIL = 'Sakr Manning Agency <crew@sakrshipping.com>'
+
+# Logging configuration - captures Django errors to a file
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/gunicorn/django_errors.log',
+        },
+        'console': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
