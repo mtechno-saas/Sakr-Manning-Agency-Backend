@@ -1267,6 +1267,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     # Check if user exists
                     existing_user = Users.objects.filter(email=email).first()
                     if existing_user:
+                        # Update user's name if it was empty or defaulted to "Applicant"
+                        if name and (not existing_user.first_name or existing_user.first_name == 'Applicant'):
+                            parts = name.split(' ', 1)
+                            existing_user.first_name = parts[0]
+                            existing_user.middle_name = parts[1] if len(parts) > 1 else ""
+                            existing_user.save()
                         serializer.save(user=existing_user)
                     else:
                         # Create new user for this applicant
