@@ -1273,6 +1273,13 @@ class DocumentViewSet(viewsets.ModelViewSet):
                             existing_user.first_name = parts[0]
                             existing_user.middle_name = parts[1] if len(parts) > 1 else ""
                             existing_user.save()
+                        
+                        # Auto-fill document fields from user if they are missing
+                        if not name and existing_user.first_name and existing_user.first_name != 'Applicant':
+                            serializer.validated_data['name'] = f"{existing_user.first_name} {existing_user.middle_name}".strip()
+                        if not serializer.validated_data.get('phone_number') and existing_user.phone_number:
+                            serializer.validated_data['phone_number'] = existing_user.phone_number
+
                         serializer.save(user=existing_user)
                     else:
                         # Create new user for this applicant
