@@ -1,0 +1,201 @@
+import streamlit as st
+import pandas as pd
+import json
+import time
+import requests
+import google.generativeai as genai
+import PyPDF2
+from io import BytesIO
+
+# --- AI Extraction Logic ---
+def extract_text_from_pdf(pdf_file):
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    text = ""
+    for page in pdf_reader.pages:
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted + "\n"
+    return text
+
+def parse_cv_with_ai(cv_text, api_key, target_rank="All Ranks"):
+    genai.configure(api_key=api_key)
+    model_name = None
+    for m in genai.list_models():
+        if 'generateContent' in m.supported_generation_methods:
+            if 'flash' in m.name or 'pro' in m.name:
+                model_name = m.name
+                break
+                
+    if not model_name:
+        return {"error": "No supported text generation models found for this API key."}
+        
+    model = genai.GenerativeModel(model_name)
+    
+    prompt = f"""
+    You are an AI assistant that extracts structured information from resumes/CVs.
+    
+    Target Rank to look for: {target_rank}
+    
+    Extract the following details from the CV text provided below:
+    - Full Name
+    - Email Address
+    - Phone Number
+    - Rank (Infer the most recent rank. If the candidate's rank clearly matches or is equivalent to the Target Rank '{target_rank}', output exactly '{target_rank}'. Otherwise, output their actual inferred rank.)
+    
+    Return ONLY a valid JSON object with the following exact keys:
+    {{"full_name": "", "email": "", "phone": "", "rank": ""}}
+    
+    CV TEXT:
+    """ + cv_text
+    
+    try:
+        response = model.generate_content(prompt)
+        text_resp = response.text.strip()
+        
+        if text_resp.startswith("```json"):
+            text_resp = text_resp[7:]
+        elif text_resp.startswith("```"):
+            text_resp = text_resp[3:]
+            
+        if text_resp.endswith("```"):
+            text_resp = text_resp[:-3]
+            
+        return json.loads(text_resp.strip())
+    except Exception as e:
+        return {"error": str(e)}
+
+# --- Django Integration Logic ---
+def send_to_django(extracted_data, file_obj, django_url, auth_token=""):
+    """Send extracted data and PDF file to Django Backend via POST request."""
+    # Reset file pointer to beginning so the requests library can read the PDF bytes
+    file_obj.seek(0)
+    
+    # We send the data as multipart/form-data so we can include the physical file
+    # Ensure the key 'file' matches what your Django serializer expects for the document!
+    files = {
+        'file': (file_obj.name, file_obj, 'application/pdf')
+    }
+    
+    # The extracted JSON data is sent as form fields. 
+    # Make sure these keys exactly match the fields in your Django model/serializer.
+    data = {
+        'full_name': extracted_data.get("full_name", ""),
+        'email': extracted_data.get("email", ""),
+        'phone': extracted_data.get("phone", ""),
+        'rank': extracted_data.get("rank", ""),
+    }
+    
+    headers = {}
+    if auth_token:
+        # Adjust 'Bearer' to 'Token' or 'JWT' depending on your Django auth configuration
+        headers['Authorization'] = f'Bearer {auth_token}'  
+        
+    try:
+        response = requests.post(django_url, data=data, files=files, headers=headers)
+        response.raise_for_status() # Raise an exception for bad status codes (like 400 or 500)
+        
+        # Try to parse response JSON, but handle cases where Django returns empty body
+        try:
+            resp_data = response.json()
+        except ValueError:
+            resp_data = {"status": "Success, but no JSON returned"}
+            
+        return True, resp_data
+    except requests.exceptions.RequestException as e:
+        # Return the exact error string (and response body if available) to help debugging
+        err_msg = str(e)
+        if hasattr(e, 'response') and e.response is not None:
+            err_msg += f" | Body: {e.response.text}"
+        return False, err_msg
+
+# --- Streamlit UI ---
+st.set_page_config(page_title="CV AI Extractor", page_icon="🤖", layout="wide")
+
+st.title("🤖 AI-Powered CV Extractor (API Integrated)")
+st.markdown("Upload PDFs to extract candidate data and push them directly to your Django backend (`/api/documents/`).")
+
+# Sidebar for Configuration
+with st.sidebar:
+    st.header("⚙️ Configuration")
+    api_key = st.text_input("Gemini API Key", type="password", help="Required for AI extraction.")
+    st.divider()
+    st.subheader("Django Connection")
+    django_url = st.text_input("Django API Endpoint", value="https://backend.sakrshipping.com/api/documents/")
+    django_token = st.text_input("Django Auth Token (Optional)", type="password", help="If your API requires authentication.")
+
+# Upload Area
+st.subheader("📤 Upload Candidate CVs")
+
+ranks = [
+    "All Ranks", "Master / Captain", "Staff Captain", "Chief Officer / Chief Mate", "Second Officer",
+    "Third Officer", "Dynamic Positioning Operator (DPO)", "ROV Supervisor",
+    "Offshore Installation Manager", "Deck Cadet", "Bosun", "ABLE SEAFARER DECK",
+    "Able Seaman (AB)", "Ordinary Seaman (OS)", "Carpenter", "Pumpman", "Crane Operator",
+    "Water and Pool", "Security Guard", "Life Guard", "Upholsterer", "Doctor",
+    "Hotel Director", "Assistant Hotel Director", "Purser", "Assistant Purser",
+    "Food & Beverage Manager", "Executive Chef", "Chief Housekeeper", "Guest Services Manager",
+    "Restaurant Manager", "Head Waiter", "Waiter", "F&B attendant", "Bartender",
+    "Cabin Steward", "Laundryman", "Cook", "2nd Cook", "3rd Cook", "Assistant Cook",
+    "Baker", "Assistant Baker", "Pastry", "Assistant pastry", "Butcher", "Steward",
+    "Utility Galley", "Tour Expert", "Photographer", "Chief Engineer", "Second Engineer",
+    "Third Engineer", "Fourth Engineer", "ETO", "2ND ETO", "3RD ETO", "ELECTRICAL ENGINEER",
+    "Refrigeration Engineer", "HVAC Engineer", "Engine Cadet", "Gas Engineer",
+    "Cargo Engineer", "Reliquefaction Engineer", "Motorman", "Mechanic", "Assistant Mechanic",
+    "Oiler", "Wiper", "Fitter", "Welder", "Plumber", "Assistant Plumber", "Electrician",
+    "2nd Electrician", "3rd Electrician", "Assistant Electrician", "Trainee Electrician",
+    "AC Technician", "Senior Accommodation Repairman", "Junior Accommodation Repairman", "Other"
+]
+target_rank = st.selectbox("Filter by Target Rank", options=ranks)
+
+uploaded_files = st.file_uploader("Drop PDF files here", type=["pdf"], accept_multiple_files=True)
+
+if uploaded_files:
+    if not api_key:
+        st.warning("⚠️ Please enter your Gemini API Key in the sidebar.")
+    elif not django_url:
+        st.warning("⚠️ Please enter the Django API URL in the sidebar.")
+    else:
+        if st.button("Extract & Send to Django", type="primary"):
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            successful_uploads = []
+            
+            for i, file in enumerate(uploaded_files):
+                status_text.text(f"Processing {file.name} ({i+1}/{len(uploaded_files)})...")
+                
+                # Step A: Extract
+                cv_text = extract_text_from_pdf(file)
+                
+                # Step B: AI Parse
+                result = parse_cv_with_ai(cv_text, api_key, target_rank)
+                
+                if "error" in result:
+                    st.error(f"❌ Failed to parse {file.name}: {result['error']}")
+                else:
+                    extracted_rank = result.get("rank", "Unknown")
+                    
+                    if target_rank != "All Ranks" and extracted_rank.lower() != target_rank.lower():
+                        st.warning(f"⏭️ Skipped {file.name}: Rank ({extracted_rank}) does not match target ({target_rank}).")
+                    else:
+                        # Step C: Send to Django
+                        status_text.text(f"Sending {file.name} to Django API...")
+                        success, api_response = send_to_django(result, file, django_url, django_token)
+                        
+                        if success:
+                            st.success(f"✅ Successfully sent {file.name} to Django!")
+                            successful_uploads.append({"filename": file.name, **result})
+                        else:
+                            st.error(f"❌ Django API Error for {file.name}: {api_response}")
+                
+                progress_bar.progress((i + 1) / len(uploaded_files))
+                
+                if i < len(uploaded_files) - 1:
+                    status_text.text(f"Pausing 15s for Gemini API limits (File {i+1} of {len(uploaded_files)} done)...")
+                    time.sleep(15)
+            
+            status_text.text("✅ All processing complete!")
+            
+            if successful_uploads:
+                with st.expander("View Successfully Uploaded Data"):
+                    st.json(successful_uploads)
