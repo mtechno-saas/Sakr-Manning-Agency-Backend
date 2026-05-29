@@ -79,10 +79,10 @@ def send_to_django(extracted_data, file_obj, django_url, auth_token=""):
     # The extracted JSON data is sent as form fields. 
     # Make sure these keys exactly match the fields in your Django model/serializer.
     data = {
-        'full_name': extracted_data.get("full_name", ""),
+        'name': extracted_data.get("full_name", ""),
         'email': extracted_data.get("email", ""),
         'phone': extracted_data.get("phone", ""),
-        'rank': extracted_data.get("rank", ""),
+        'position': extracted_data.get("rank", ""),
     }
     
     headers = {}
