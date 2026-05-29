@@ -1309,9 +1309,30 @@ class DocumentViewSet(viewsets.ModelViewSet):
                         )
                         serializer.save(user=new_user)
                 else:
-                    # Fallback to uploader if no email provided
-                    if self.request.user and self.request.user.is_authenticated:
+                    # No email provided
+                    if self.request.user and self.request.user.is_authenticated and self.request.user.role == 'Employee' and not self.request.user.is_superuser:
+                        # If an employee uploads their own document without an email, attach to them
                         serializer.save(user=self.request.user)
+                    elif self.request.user and self.request.user.is_authenticated:
+                        # If Admin/HR uploads a CV and AI failed to extract email, create a new applicant profile
+                        # with a placeholder email so it doesn't get attached to the Admin's profile.
+                        import uuid
+                        placeholder_email = f"applicant_{uuid.uuid4().hex[:8]}@placeholder.sakrshipping.com"
+                        print(f"DEBUG: Creating new user with placeholder email: {placeholder_email}")
+                        
+                        parts = name.split(' ', 1) if name else ["Applicant"]
+                        first_name = parts[0]
+                        middle_name = parts[1] if len(parts) > 1 else ""
+                        
+                        new_user = Users.objects.create_user(
+                            email=placeholder_email,
+                            first_name=first_name,
+                            middle_name=middle_name,
+                            role='Employee',
+                            password=None,
+                        )
+                        serializer.validated_data['email'] = placeholder_email
+                        serializer.save(user=new_user)
                     else:
                         from rest_framework.exceptions import ValidationError
                         raise ValidationError({"email": "Email is required for unregistered users to process application."})
