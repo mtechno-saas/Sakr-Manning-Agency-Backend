@@ -176,6 +176,19 @@ if uploaded_files:
                 if "error" in result:
                     st.error(f"❌ Failed to parse {file.name}: {result['error']}")
                 else:
+                    import re
+                    # Fallback: If AI couldn't extract the name, extract it from the filename
+                    if not result.get("full_name"):
+                        # Remove .pdf, numbers, and common suffixes
+                        clean_name = re.sub(r'\.pdf$', '', file.name, flags=re.IGNORECASE)
+                        clean_name = re.sub(r'_Application|_CV|\d+', '', clean_name, flags=re.IGNORECASE)
+                        clean_name = clean_name.replace('_', ' ').strip()
+                        
+                        # In files like "OILER Mahmoud", we try to separate rank and name, 
+                        # but just setting the whole cleaned string ensures Django doesn't crash
+                        result["full_name"] = clean_name
+                        st.info(f"ℹ️ Name not found in text. Fallback extracted from filename: {clean_name}")
+
                     # Show what the AI extracted (for debugging)
                     with st.expander(f"🔍 AI Extraction Result for {file.name}"):
                         st.json(result)
@@ -184,6 +197,9 @@ if uploaded_files:
                             st.text_area("Raw PDF Text", cv_text[:3000], height=200)
                     
                     extracted_rank = result.get("rank", "Unknown")
+                    if not extracted_rank or extracted_rank == "Unknown":
+                        extracted_rank = target_rank if target_rank != "All Ranks" else "Unknown"
+                        result["rank"] = extracted_rank
                     
                     if target_rank != "All Ranks" and extracted_rank.lower() != target_rank.lower():
                         st.warning(f"⏭️ Skipped {file.name}: Rank ({extracted_rank}) does not match target ({target_rank}).")
