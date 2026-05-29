@@ -17,7 +17,7 @@ def extract_text_from_pdf(pdf_file):
             text += extracted + "\n"
     return text
 
-def parse_cv_with_ai(cv_text, api_key, target_rank="All Ranks", filename=""):
+def parse_cv_with_ai(pdf_bytes, cv_text, api_key, target_rank="All Ranks", filename=""):
     genai.configure(api_key=api_key)
     model_name = None
     try:
@@ -40,22 +40,23 @@ def parse_cv_with_ai(cv_text, api_key, target_rank="All Ranks", filename=""):
     Target Rank to look for: {target_rank}
     PDF Filename (use as a hint if the CV text is incomplete): {filename}
     
-    Extract the following details from the CV text provided below:
-    - Full Name (IMPORTANT: If the name is not clearly found in the CV text, try to infer it from the filename above. The filename often contains the rank and full name, e.g. "OILER John Smith.pdf")
-    - Email Address (IMPORTANT: Look for any email address in the CV. It may be labeled as "Email", "E-mail", "Gmail", "GMAIL", "Mail", "E-Mail Address", or similar. Extract the full email address like example@gmail.com)
+    Extract the following details from the attached PDF document.
+    - Full Name (IMPORTANT: If the name is not clearly found in the document, try to infer it from the filename above. The filename often contains the rank and full name, e.g. "OILER John Smith.pdf")
+    - Email Address (IMPORTANT: Look for any email address. It may be labeled as "Email", "E-mail", "Gmail", "GMAIL", "Mail", "E-Mail Address", or similar. Extract the full email address like example@gmail.com)
     - Phone Number (may be labeled as "Phone", "Mobile", "Tel", "Mob", "Cell", "WhatsApp", or similar)
-    - Rank (IMPORTANT: Infer the most recent rank from the CV text. If not found in the text, infer from the filename. If the candidate's rank clearly matches or is equivalent to the Target Rank '{target_rank}', output exactly '{target_rank}'. Otherwise, output their actual inferred rank.)
+    - Rank (IMPORTANT: Infer the most recent rank from the document. If not found, infer from the filename. If the candidate's rank clearly matches or is equivalent to the Target Rank '{target_rank}', output exactly '{target_rank}'. Otherwise, output their actual inferred rank.)
     
-    CRITICAL: Never return empty strings if you can infer the information from either the CV text OR the filename. Try your best to fill every field.
+    CRITICAL: Never return empty strings if you can infer the information from either the PDF OR the filename. Try your best to fill every field.
     
     Return ONLY a valid JSON object with the following exact keys:
     {{"full_name": "", "email": "", "phone": "", "rank": ""}}
-    
-    CV TEXT:
-    """ + cv_text
+    """
     
     try:
-        response = model.generate_content(prompt)
+        response = model.generate_content([
+            {"mime_type": "application/pdf", "data": pdf_bytes},
+            prompt
+        ])
         text_resp = response.text.strip()
         
         if text_resp.startswith("```json"):
@@ -170,11 +171,14 @@ if uploaded_files:
             for i, file in enumerate(uploaded_files):
                 status_text.text(f"Processing {file.name} ({i+1}/{len(uploaded_files)})...")
                 
-                # Step A: Extract
+                # Step A: Read raw bytes and extract text (for debugging)
+                file.seek(0)
+                pdf_bytes = file.read()
+                file.seek(0)
                 cv_text = extract_text_from_pdf(file)
                 
-                # Step B: AI Parse
-                result = parse_cv_with_ai(cv_text, api_key, target_rank, filename=file.name)
+                # Step B: AI Parse directly using PDF bytes
+                result = parse_cv_with_ai(pdf_bytes, cv_text, api_key, target_rank, filename=file.name)
                 
                 if "error" in result:
                     st.error(f"❌ Failed to parse {file.name}: {result['error']}")
