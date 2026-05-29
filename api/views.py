@@ -1263,6 +1263,17 @@ class DocumentViewSet(viewsets.ModelViewSet):
                 email = serializer.validated_data.get('email')
                 name = serializer.validated_data.get('name')
                 
+                # Server-side fallback: extract name from filename if missing
+                if not name and 'file' in self.request.FILES:
+                    import re
+                    filename = self.request.FILES['file'].name
+                    clean_name = re.sub(r'\.pdf$|\.docx$', '', filename, flags=re.IGNORECASE)
+                    clean_name = re.sub(r'_Application|_CV|\d+', '', clean_name, flags=re.IGNORECASE)
+                    clean_name = clean_name.replace('_', ' ').strip()
+                    if clean_name:
+                        name = clean_name
+                        serializer.validated_data['name'] = clean_name
+                
                 if email:
                     # Check if user exists
                     existing_user = Users.objects.filter(email=email).first()
