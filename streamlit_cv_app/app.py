@@ -27,7 +27,6 @@ def extract_text_from_docx(docx_file):
     for paragraph in doc.paragraphs:
         if paragraph.text.strip():
             text += paragraph.text + "\n"
-    # Also extract text from tables (CVs often use tables for layout)
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
@@ -53,30 +52,95 @@ def parse_cv_with_ai(file_bytes, cv_text, api_key, target_rank="All Ranks", file
     model = genai.GenerativeModel(model_name)
     
     prompt = f"""
-    You are an AI assistant that extracts structured information from resumes/CVs.
+    You are an AI assistant that extracts ALL structured information from seafarer resumes/CVs.
     
     Target Rank to look for: {target_rank}
     Filename (use as a hint if the CV text is incomplete): {filename}
     
     Extract the following details from the {'document text below' if is_docx else 'attached PDF document'}.
-    - Full Name (IMPORTANT: If the name is not clearly found in the document, try to infer it from the filename above. The filename often contains the rank and full name, e.g. "OILER John Smith.pdf")
-    - Email Address (IMPORTANT: Look for any email address. It may be labeled as "Email", "E-mail", "Gmail", "GMAIL", "Mail", "E-Mail Address", or similar. Extract the full email address like example@gmail.com)
-    - Phone Number (may be labeled as "Phone", "Mobile", "Tel", "Mob", "Cell", "WhatsApp", or similar)
-    - Rank (IMPORTANT: Infer the most recent rank from the document. If not found, infer from the filename. If the candidate's rank clearly matches or is equivalent to the Target Rank '{target_rank}', output exactly '{target_rank}'. Otherwise, output their actual inferred rank.)
     
-    CRITICAL: Never return empty strings if you can infer the information from either the document OR the filename. Try your best to fill every field.
+    PERSONAL INFORMATION:
+    - full_name: Full Name (if not found, infer from filename)
+    - email: Email Address (look for Email, E-mail, Gmail, Mail, etc.)
+    - phone: Phone Number (look for Phone, Mobile, Tel, Mob, Cell, WhatsApp, etc.)
+    - rank: Most recent rank/position (if matches Target Rank '{target_rank}', output exactly that)
+    - date_of_birth: Date of birth (format: YYYY-MM-DD)
+    - nationality: Nationality
+    - place_of_birth: Place of birth
+    - marital_status: Marital Status (Single or Married)
+    - height_cm: Height in cm (number only)
+    - weight_kg: Weight in kg (number only)
+    - address: Home address
+    - country: Country
+    - city: City
     
-    Return ONLY a valid JSON object with the following exact keys:
-    {{"full_name": "", "email": "", "phone": "", "rank": ""}}
+    PASSPORT:
+    - passport_no: Passport number
+    - passport_issue_date: Passport issue date (YYYY-MM-DD)
+    - passport_expiry_date: Passport expiry date (YYYY-MM-DD)
+    - passport_issued_by: Passport issuing authority
+    - passport_place_of_issue: Passport place of issue
+    
+    SEAMAN BOOK:
+    - seaman_book_no: Seaman book number
+    - seaman_book_issue_date: Seaman book issue date (YYYY-MM-DD)
+    - seaman_book_expiry_date: Seaman book expiry date (YYYY-MM-DD)
+    - seaman_book_issued_by: Seaman book issuing authority
+    - seaman_book_place_of_issue: Seaman book place of issue
+    
+    NEXT OF KIN / EMERGENCY CONTACT:
+    - next_of_kin_full_name: Emergency contact name
+    - next_of_kin_relationship: Relationship
+    - next_of_kin_phone: Emergency contact phone
+    - next_of_kin_address_country: Emergency contact address/country
+    
+    SEA SERVICE (list of previous ship experiences):
+    - sea_services: Array of objects, each with: vessel_name, rank, signed_on (YYYY-MM-DD), signed_off (YYYY-MM-DD)
+    
+    CRITICAL RULES:
+    - Use YYYY-MM-DD format for ALL dates
+    - Use empty string "" for any field you cannot find (never use null)
+    - Extract as many sea service records as you can find
+    - Try your best to fill every field from the document
+    
+    Return ONLY a valid JSON object with this exact structure:
+    {{
+        "full_name": "",
+        "email": "",
+        "phone": "",
+        "rank": "",
+        "date_of_birth": "",
+        "nationality": "",
+        "place_of_birth": "",
+        "marital_status": "",
+        "height_cm": "",
+        "weight_kg": "",
+        "address": "",
+        "country": "",
+        "city": "",
+        "passport_no": "",
+        "passport_issue_date": "",
+        "passport_expiry_date": "",
+        "passport_issued_by": "",
+        "passport_place_of_issue": "",
+        "seaman_book_no": "",
+        "seaman_book_issue_date": "",
+        "seaman_book_expiry_date": "",
+        "seaman_book_issued_by": "",
+        "seaman_book_place_of_issue": "",
+        "next_of_kin_full_name": "",
+        "next_of_kin_relationship": "",
+        "next_of_kin_phone": "",
+        "next_of_kin_address_country": "",
+        "sea_services": []
+    }}
     """
     
     try:
         if is_docx:
-            # For DOCX files, send extracted text as part of the prompt
             docx_prompt = prompt + f"\n\n--- DOCUMENT TEXT ---\n{cv_text}\n--- END OF DOCUMENT ---"
             response = model.generate_content(docx_prompt)
         else:
-            # For PDF files, send the raw binary directly to Gemini
             response = model.generate_content([
                 {"mime_type": "application/pdf", "data": file_bytes},
                 prompt
@@ -97,8 +161,7 @@ def parse_cv_with_ai(file_bytes, cv_text, api_key, target_rank="All Ranks", file
 
 # --- Django Integration Logic ---
 def send_to_documents(extracted_data, file_obj, base_url, auth_token=""):
-    """Step 1: Send extracted data and file to /api/documents/ endpoint.
-    This creates the User and Document records in Django."""
+    """Step 1: Send extracted data and file to /api/documents/ endpoint."""
     file_obj.seek(0)
     
     file_ext = os.path.splitext(file_obj.name)[1].lower()
@@ -141,8 +204,7 @@ def send_to_documents(extracted_data, file_obj, base_url, auth_token=""):
 
 
 def send_to_cv_submissions(extracted_data, file_obj, base_url, doc_response, auth_token=""):
-    """Step 2: Send extracted data to /api/cv-submissions/ endpoint.
-    Uses the user ID from the document response to link the submission."""
+    """Step 2: Send extracted data to /api/cv-submissions/ endpoint."""
     file_obj.seek(0)
     
     file_ext = os.path.splitext(file_obj.name)[1].lower()
@@ -151,7 +213,6 @@ def send_to_cv_submissions(extracted_data, file_obj, base_url, doc_response, aut
     else:
         mime_type = 'application/pdf'
     
-    # Get the user ID from the document response
     user_id = doc_response.get('user')
     if not user_id:
         return False, "Could not get user ID from document response"
@@ -165,7 +226,7 @@ def send_to_cv_submissions(extracted_data, file_obj, base_url, doc_response, aut
         'position': extracted_data.get("rank", ""),
         'user_email': extracted_data.get("email", ""),
         'status': 'Pending',
-        'notes': f'Auto-submitted via AI CV Extractor',
+        'notes': 'Auto-submitted via AI CV Extractor',
     }
     
     headers = {}
@@ -190,11 +251,126 @@ def send_to_cv_submissions(extracted_data, file_obj, base_url, doc_response, aut
         return False, err_msg
 
 
+def update_user_profile(extracted_data, base_url, user_id, auth_token=""):
+    """Step 3: Update the user profile with ALL extracted details via PATCH."""
+    
+    # Build the update payload — only include non-empty fields
+    user_data = {}
+    
+    # Personal details
+    field_map = {
+        'date_of_birth': 'date_of_birth',
+        'nationality': 'nationality',
+        'place_of_birth': 'Place_Of_Birth',
+        'marital_status': 'marital_status',
+        'height_cm': 'Height_Cm',
+        'weight_kg': 'Weight_Kg',
+        'address': 'address',
+        'country': 'country',
+        'city': 'city',
+        'phone': 'phone_number',
+        # Passport
+        'passport_no': 'passport_no',
+        'passport_issue_date': 'passport_issue_date',
+        'passport_expiry_date': 'passport_expiry_date',
+        'passport_issued_by': 'passport_issued_by',
+        'passport_place_of_issue': 'passport_place_of_issue',
+        # Seaman Book
+        'seaman_book_no': 'seaman_book_no',
+        'seaman_book_issue_date': 'seaman_book_issue_date',
+        'seaman_book_expiry_date': 'seaman_book_expiry_date',
+        'seaman_book_issued_by': 'seaman_book_issued_by',
+        'seaman_book_place_of_issue': 'seaman_book_place_of_issue',
+        # Next of Kin
+        'next_of_kin_full_name': 'next_of_kin_full_name',
+        'next_of_kin_relationship': 'next_of_kin_relationship',
+        'next_of_kin_phone': 'next_of_kin_phone',
+        'next_of_kin_address_country': 'next_of_kin_address_country',
+    }
+    
+    for ai_key, django_key in field_map.items():
+        val = extracted_data.get(ai_key, "")
+        if val and str(val).strip():
+            # Convert height/weight to integers
+            if django_key in ('Height_Cm', 'Weight_Kg'):
+                try:
+                    user_data[django_key] = int(float(str(val).strip()))
+                except (ValueError, TypeError):
+                    pass
+            else:
+                user_data[django_key] = str(val).strip()
+    
+    # Set the rank/position
+    rank = extracted_data.get("rank", "")
+    if rank:
+        user_data['application_for_position'] = rank
+        user_data['rank_ids'] = [rank]
+    
+    if not user_data:
+        return True, {"status": "No additional data to update"}
+    
+    headers = {'Content-Type': 'application/json'}
+    if auth_token:
+        headers['Authorization'] = f'Bearer {auth_token}'
+    
+    try:
+        url = base_url.rstrip('/') + f'/api/users/users/{user_id}/'
+        response = requests.patch(url, json=user_data, headers=headers)
+        response.raise_for_status()
+        
+        try:
+            resp_data = response.json()
+        except ValueError:
+            resp_data = {"status": "Profile updated successfully"}
+            
+        return True, resp_data
+    except requests.exceptions.RequestException as e:
+        err_msg = str(e)
+        if hasattr(e, 'response') and e.response is not None:
+            err_msg += f" | Body: {e.response.text}"
+        return False, err_msg
+
+
+def add_sea_services(sea_services, base_url, user_id, auth_token=""):
+    """Step 4: Add sea service records to the user profile."""
+    if not sea_services:
+        return True, {"status": "No sea service records to add"}
+    
+    headers = {'Content-Type': 'application/json'}
+    if auth_token:
+        headers['Authorization'] = f'Bearer {auth_token}'
+    
+    results = []
+    for service in sea_services:
+        data = {}
+        if service.get('vessel_name'):
+            data['vessel_name'] = service['vessel_name']
+        if service.get('rank'):
+            data['rank'] = service['rank']
+        if service.get('signed_on'):
+            data['signed_on'] = service['signed_on']
+        if service.get('signed_off'):
+            data['signed_off'] = service['signed_off']
+        
+        if not data.get('vessel_name'):
+            continue
+            
+        try:
+            url = base_url.rstrip('/') + f'/api/users/{user_id}/sea-services/'
+            response = requests.post(url, json=data, headers=headers)
+            response.raise_for_status()
+            results.append({"vessel": data.get('vessel_name'), "status": "ok"})
+        except requests.exceptions.RequestException as e:
+            results.append({"vessel": data.get('vessel_name'), "status": str(e)})
+    
+    return True, results
+
+
 # --- Streamlit UI ---
 st.set_page_config(page_title="CV AI Extractor", page_icon="🤖", layout="wide")
 
-st.title("🤖 AI-Powered CV Extractor (API Integrated)")
-st.markdown("Upload CVs to extract candidate data → save to **Documents** → save to **CV Submissions**.")
+st.title("🤖 AI-Powered CV Extractor (Full Profile)")
+st.markdown("Upload CVs → Extract **all** details with AI → Save to **Documents** + **CV Submissions** + **User Profile**.")
 
 # Sidebar for Configuration
 with st.sidebar:
@@ -260,26 +436,23 @@ if uploaded_files:
                 else:
                     cv_text = extract_text_from_pdf(file)
                 
-                # Step B: AI Parse (PDF sent as binary, DOCX sent as extracted text)
+                # Step B: AI Parse — extract ALL details
                 result = parse_cv_with_ai(file_bytes, cv_text, api_key, target_rank, filename=file.name, is_docx=is_docx)
                 
                 if "error" in result:
                     st.error(f"❌ Failed to parse {file.name}: {result['error']}")
                 else:
-                    # Fallback: If AI couldn't extract the name, extract it from the filename
+                    # Fallback: name from filename
                     if not result.get("full_name"):
                         clean_name = re.sub(r'\.(pdf|docx)$', '', file.name, flags=re.IGNORECASE)
                         clean_name = re.sub(r'_Application|_CV|\d+', '', clean_name, flags=re.IGNORECASE)
                         clean_name = clean_name.replace('_', ' ').strip()
                         result["full_name"] = clean_name
-                        st.info(f"ℹ️ Name not found in text. Fallback extracted from filename: {clean_name}")
+                        st.info(f"ℹ️ Name fallback from filename: {clean_name}")
 
-                    # Show what the AI extracted (for debugging)
-                    with st.expander(f"🔍 AI Extraction Result for {file.name}"):
+                    # Show AI extraction results
+                    with st.expander(f"🔍 AI Extraction for {file.name}", expanded=False):
                         st.json(result)
-                        if not result.get("email"):
-                            st.warning("⚠️ No email found! Showing raw text below:")
-                            st.text_area("Raw Text", cv_text[:3000], height=200)
                     
                     extracted_rank = result.get("rank", "Unknown")
                     if not extracted_rank or extracted_rank == "Unknown":
@@ -287,35 +460,56 @@ if uploaded_files:
                         result["rank"] = extracted_rank
                     
                     if target_rank != "All Ranks" and extracted_rank.lower() != target_rank.lower():
-                        st.warning(f"⏭️ Skipped {file.name}: Rank ({extracted_rank}) does not match target ({target_rank}).")
+                        st.warning(f"⏭️ Skipped {file.name}: Rank ({extracted_rank}) ≠ target ({target_rank})")
                     else:
                         # Step C: Send to /api/documents/
-                        status_text.text(f"📄 Saving {file.name} to Documents...")
+                        status_text.text(f"📄 Step 1/4: Saving document for {file.name}...")
                         doc_success, doc_response = send_to_documents(result, file, django_base_url, django_token)
                         
                         if doc_success:
-                            st.success(f"✅ Document saved for {file.name}")
+                            st.success(f"✅ Step 1: Document saved")
+                            user_id = doc_response.get('user')
                             
                             # Step D: Send to /api/cv-submissions/
-                            status_text.text(f"📋 Creating CV Submission for {file.name}...")
+                            status_text.text(f"📋 Step 2/4: Creating CV Submission for {file.name}...")
                             cv_success, cv_response = send_to_cv_submissions(result, file, django_base_url, doc_response, django_token)
                             
                             if cv_success:
-                                st.success(f"✅ CV Submission created for {file.name}")
-                                successful_uploads.append({
-                                    "filename": file.name,
-                                    "document_id": doc_response.get('id'),
-                                    "cv_submission_id": cv_response.get('id'),
-                                    **result
-                                })
+                                st.success(f"✅ Step 2: CV Submission created")
                             else:
-                                st.warning(f"⚠️ Document saved but CV Submission failed for {file.name}: {cv_response}")
-                                successful_uploads.append({
-                                    "filename": file.name,
-                                    "document_id": doc_response.get('id'),
-                                    "cv_submission_failed": True,
-                                    **result
-                                })
+                                st.warning(f"⚠️ Step 2 failed: {cv_response}")
+                            
+                            # Step E: Update user profile with ALL extracted details
+                            if user_id:
+                                status_text.text(f"👤 Step 3/4: Updating user profile for {file.name}...")
+                                profile_success, profile_response = update_user_profile(result, django_base_url, user_id, django_token)
+                                
+                                if profile_success:
+                                    st.success(f"✅ Step 3: User profile updated")
+                                else:
+                                    st.warning(f"⚠️ Step 3 failed: {profile_response}")
+                                
+                                # Step F: Add sea service records
+                                sea_services = result.get("sea_services", [])
+                                if sea_services:
+                                    status_text.text(f"🚢 Step 4/4: Adding {len(sea_services)} sea service records...")
+                                    ss_success, ss_response = add_sea_services(sea_services, django_base_url, user_id, django_token)
+                                    
+                                    if ss_success:
+                                        st.success(f"✅ Step 4: {len(sea_services)} sea service records added")
+                                    else:
+                                        st.warning(f"⚠️ Step 4 failed: {ss_response}")
+                                else:
+                                    st.info("ℹ️ Step 4: No sea service records found in CV")
+                            
+                            successful_uploads.append({
+                                "filename": file.name,
+                                "document_id": doc_response.get('id'),
+                                "cv_submission_id": cv_response.get('id') if cv_success else None,
+                                "user_id": user_id,
+                                "fields_extracted": len([v for v in result.values() if v and v != [] and v != ""]),
+                                **{k: v for k, v in result.items() if k != 'sea_services'}
+                            })
                         else:
                             st.error(f"❌ Document API Error for {file.name}: {doc_response}")
                 
@@ -328,5 +522,5 @@ if uploaded_files:
             status_text.text("✅ All processing complete!")
             
             if successful_uploads:
-                with st.expander("View Successfully Uploaded Data"):
+                with st.expander("📊 Summary of All Uploads"):
                     st.json(successful_uploads)
