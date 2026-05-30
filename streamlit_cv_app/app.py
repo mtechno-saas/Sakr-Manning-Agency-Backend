@@ -162,9 +162,8 @@ def send_to_cv_submissions(extracted_data, file_obj, base_url, doc_response, aut
     
     data = {
         'user': user_id,
-        'position_name_input': extracted_data.get("rank", ""),
+        'position': extracted_data.get("rank", ""),
         'user_email': extracted_data.get("email", ""),
-        'user_first_name': extracted_data.get("full_name", ""),
         'status': 'Pending',
         'notes': f'Auto-submitted via AI CV Extractor',
     }

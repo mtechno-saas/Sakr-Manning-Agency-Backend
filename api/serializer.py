@@ -544,15 +544,32 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 from api.models import Rank, RANKS
                 rank = Rank.objects.filter(name__iexact=pos_val).first()
                 if not rank:
+                    # Try partial/contains match in DB
+                    rank = Rank.objects.filter(name__icontains=pos_val).first()
+                if not rank:
                     code = None
+                    pos_lower = pos_val.lower().strip()
+                    # 1) Exact match against RANKS list
                     for c, n in RANKS:
-                        if n.lower() == pos_val.lower():
+                        if n.lower().strip() == pos_lower:
                             code = c
                             break
+                    # 2) Partial/contains match
+                    if not code:
+                        for c, n in RANKS:
+                            if pos_lower in n.lower() or n.lower() in pos_lower:
+                                code = c
+                                break
                     if not code:
                         import uuid
                         code = f"CUS-{str(uuid.uuid4())[:6].upper()}"
-                    rank = Rank.objects.create(code=code, name=pos_val)
+                    # Use canonical RANKS name if found
+                    rank_name = pos_val
+                    for c, n in RANKS:
+                        if c == code:
+                            rank_name = n
+                            break
+                    rank = Rank.objects.create(code=code, name=rank_name)
 
                 if hasattr(data, 'copy'):
                     data = data.copy()
