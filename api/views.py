@@ -1391,18 +1391,49 @@ class DocumentViewSet(viewsets.ModelViewSet):
             # Auto-create CVSubmission so the approved employee appears in the CV Submissions board
             if document.position:
                 from .models import Rank, CVSubmission, RANKS
-                # Ensure rank exists
-                rank = Rank.objects.filter(name__iexact=document.position).first()
+                # Ensure rank exists — try flexible matching
+                pos = document.position.strip()
+                rank = Rank.objects.filter(name__iexact=pos).first()
                 if not rank:
+                    # Also try partial/contains match in existing DB ranks
+                    rank = Rank.objects.filter(name__icontains=pos).first()
+                    if not rank and len(pos) > 3:
+                        # Try the reverse: see if the position contains a known rank name
+                        for r in Rank.objects.all():
+                            if r.name.lower() in pos.lower() or pos.lower() in r.name.lower():
+                                rank = r
+                                break
+                
+                if not rank:
+                    # Look up code from the RANKS constant list with flexible matching
                     code = None
+                    pos_lower = pos.lower().strip()
+                    
+                    # 1) Exact match
                     for c, n in RANKS:
-                        if n.lower() == document.position.lower():
+                        if n.lower().strip() == pos_lower:
                             code = c
                             break
+                    
+                    # 2) Partial/contains match (e.g. "Oiler" matches "Oiler")
+                    if not code:
+                        for c, n in RANKS:
+                            if pos_lower in n.lower() or n.lower() in pos_lower:
+                                code = c
+                                break
+                    
                     if not code:
                         import uuid
                         code = f"CUS-{str(uuid.uuid4())[:6].upper()}"
-                    rank = Rank.objects.create(code=code, name=document.position)
+                        print(f"WARNING: No matching rank code found for position '{pos}', using fallback: {code}")
+                    
+                    # Use the canonical RANKS name if we found a match, otherwise use the document position
+                    rank_name = pos
+                    for c, n in RANKS:
+                        if c == code:
+                            rank_name = n
+                            break
+                    rank = Rank.objects.create(code=code, name=rank_name)
                 
                 # Create or update the submission so it doesn't duplicate
                 # Include the company from the document so it links to the right job order company
