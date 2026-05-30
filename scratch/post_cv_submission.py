@@ -197,7 +197,7 @@ def run_ingestion():
         "user_first_name": first_name,
         "user_middle_name": middle_name,
         "user_email": email,
-        "position_name_input": ai_data.get("position_name"),
+        "position": ai_data.get("position_name"),
         "status": ai_data.get("status"),
         "notes": ai_data.get("notes"),
         "coded_rank_input": ai_data.get("coded_rank"),
@@ -214,7 +214,23 @@ def run_ingestion():
                 if subkey in payload[key] and not payload[key][subkey]:
                     payload[key][subkey] = None
 
-    serializer = CVSubmissionSerializer(data=payload)
+    # Determine the requested position ID/Rank
+    position_name = payload.get("position")
+    rank_obj = Rank.objects.filter(name__iexact=position_name).first() if position_name else None
+
+    # Look for an existing CV Submission for this user (and position)
+    if rank_obj:
+        existing_submission = CVSubmission.objects.filter(user=user, position=rank_obj).first()
+    else:
+        existing_submission = CVSubmission.objects.filter(user=user).first()
+
+    if existing_submission:
+        print(f"Found existing CV Submission (ID: {existing_submission.id}). Updating it...")
+        serializer = CVSubmissionSerializer(instance=existing_submission, data=payload, partial=True)
+    else:
+        print("No existing CV Submission found. Creating a new one...")
+        serializer = CVSubmissionSerializer(data=payload)
+
     if serializer.is_valid():
         submission = serializer.save(user=user)
         print(f"Successfully ingested CV Submission ID: {submission.id} via DRF Service Layer.")
@@ -294,5 +310,28 @@ def run_ingestion():
         except ImportError:
             print("Warning: courses.models.Course not found.")
 
+def cleanup_duplicates():
+    from django.db.models import Count
+    # Find users with multiple CV Submissions for the same position
+    duplicates = CVSubmission.objects.values('user', 'position').annotate(
+        count=Count('id')
+    ).filter(count__gt=1)
+
+    for dup in duplicates:
+        user_id = dup['user']
+        pos_id = dup['position']
+        # Get all submissions for this user/position ordered by latest first
+        submissions = CVSubmission.objects.filter(
+            user_id=user_id, position_id=pos_id
+        ).order_by('-id')
+        
+        # Keep the first one (most recent), delete the rest
+        if submissions.count() > 1:
+            to_keep = submissions.first()
+            to_delete = submissions.exclude(id=to_keep.id)
+            deleted_count, _ = to_delete.delete()
+            print(f"Cleaned up {deleted_count} duplicate CV Submissions for User ID {user_id}.")
+
 if __name__ == "__main__":
     run_ingestion()
+    cleanup_duplicates()
