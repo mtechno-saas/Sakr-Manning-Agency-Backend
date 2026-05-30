@@ -1,0 +1,170 @@
+{
+    "id": 83,
+    "user": 131,
+    "user_name": "AHMED BASIOUNY",
+    "user_email_display": "CAP.AHMEDEZZ@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/83/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2025-09-05",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T00:10:05.124Z",
+    "updated_at": "2026-05-31T00:10:05.124Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.075",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.075",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A 30858681",
+            "issue_date": "2022-07-17",
+            "expiry_date": "2029-07-16",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "20",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S 00022531",
+            "issue_date": "2022-05-11",
+            "expiry_date": "2026-02-23",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "PA 0337757",
+            "issue_date": "2022-10-21",
+            "expiry_date": "2026-02-23",
+            "issued_by": "PANAMA",
+            "place_of_issue": "PIREAUS",
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC ( Rank) MASTER",
+            "certificate_number": "7289",
+            "issue_date": "2022-05-11",
+            "expiry_date": "2026-02-23",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": "A25-0081",
+            "issue_date": "2025-08-12",
+            "expiry_date": "2029-10-18",
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "25570",
+            "issue_date": "2024-02-28",
+            "expiry_date": "2026-02-23",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "25570",
+            "international_medical_issue_date": "2024-02-28",
+            "international_medical_expiry_date": "2026-02-23",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "STAR GROUP", "rank": "MASTER", "vessel_name": "SEA STAR", "signed_on": "2025-02-01", "signed_off": "2025-07-20", "period": "", "vessel_type": "BULK CARRIER", "dwt": "3433" },
+            { "company_name": "DRAGON LIFE STOCK", "rank": "MASTER", "vessel_name": "DRAGON", "signed_on": "2024-04-05", "signed_off": "2025-03-05", "period": "", "vessel_type": "LIVE STOCK", "dwt": "3013" },
+            { "company_name": "STAR GROUP", "rank": "MASTER", "vessel_name": "ISLAND STAR", "signed_on": "2023-10-08", "signed_off": "2024-02-28", "period": "", "vessel_type": "BULK CARRIER", "dwt": "3890" },
+            { "company_name": "WHITE STAR SHIPPING", "rank": "MASTER", "vessel_name": "SEA NAVIGATOR", "signed_on": "2023-02-08", "signed_off": "2023-08-29", "period": "", "vessel_type": "GEN.CARGO", "dwt": "3931" },
+            { "company_name": "WHITE STAR SHIPPING", "rank": "MASTER", "vessel_name": "PRINCESS MAYSA", "signed_on": "2022-10-07", "signed_off": "2022-12-28", "period": "", "vessel_type": "GEN.CARGO", "dwt": "5659" },
+            { "company_name": "VARIETY CRUISES", "rank": "MASTER", "vessel_name": "VARITY VOYAGER", "signed_on": "2021-05-01", "signed_off": "2022-03-31", "period": "", "vessel_type": "PASSENGER", "dwt": "1593" },
+            { "company_name": "VARIETY CRUISES", "rank": "MASTER", "vessel_name": "VARITY VOYAGER", "signed_on": "2020-02-11", "signed_off": "2020-12-07", "period": "", "vessel_type": "PASSENGER", "dwt": "1593" },
+            { "company_name": "LYDIA MAR", "rank": "CH.OFF", "vessel_name": "ITHAKI", "signed_on": "2019-03-22", "signed_off": "2019-11-14", "period": "", "vessel_type": "BULK CARRIER", "dwt": "23268" },
+            { "company_name": "VARIETY CRUISES", "rank": "MASTER", "vessel_name": "VARITY VOYAGER", "signed_on": "2018-10-10", "signed_off": "2019-02-21", "period": "", "vessel_type": "PASSENGER", "dwt": "1593" },
+            { "company_name": "VARIETY CRUISES", "rank": "MASTER", "vessel_name": "TO CALLISTO", "signed_on": "2018-02-23", "signed_off": "2018-04-08", "period": "", "vessel_type": "PASSENGER", "dwt": "4490" },
+            { "company_name": "LIDMAR", "rank": "CH.OFF", "vessel_name": "M/V SKOPOS", "signed_on": "2017-03-19", "signed_off": "2017-12-05", "period": "", "vessel_type": "BULK", "dwt": "17784" }
+        ],
+        "marine_courses": [
+            { "course_name": "Proficiency In Personal Survival Techniques", "number": "L 561770", "issue_date": "2021-02-28", "expiry_date": "2026-02-24", "issued_by_at": "AAST" },
+            { "course_name": "Advanced Fire Prevention and Fire Fighting", "number": "L 562457", "issue_date": "2021-03-03", "expiry_date": "2026-03-01", "issued_by_at": "AAST" },
+            { "course_name": "Medical Care Studies", "number": "L 561140", "issue_date": "2021-02-24", "expiry_date": "2026-02-22", "issued_by_at": "AAST" },
+            { "course_name": "Personal Safety and Social Responsibilities", "number": "L 562748", "issue_date": "2021-03-04", "expiry_date": "2026-03-03", "issued_by_at": "AAST" },
+            { "course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "L 636685", "issue_date": "2022-06-02", "expiry_date": "2027-05-29", "issued_by_at": "AAST" },
+            { "course_name": "Proficiency as a ship Security officer    ( PSSO )", "number": "L 836611", "issue_date": "2022-06-02", "expiry_date": "2027-06-01", "issued_by_at": "AAST" },
+            { "course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "L 562836", "issue_date": "2021-03-04", "expiry_date": "2026-03-03", "issued_by_at": "AAST" },
+            { "course_name": "G.M.D.S.S", "number": "L 839718", "issue_date": "2025-08-14", "expiry_date": "2030-08-06", "issued_by_at": "AAST" },
+            { "course_name": "Advanced Communications", "number": "L 251723", "issue_date": "2016-02-04", "expiry_date": "XXXXX", "issued_by_at": "AAST" },
+            { "course_name": "ECDIS Advanced Simulator (Management Level)", "number": "L 836277", "issue_date": "2025-07-31", "expiry_date": "2030-07-30", "issued_by_at": "AAST" },
+            { "course_name": "ECDIS Simulator (Operation Level)", "number": "L 074299", "issue_date": "2013-07-30", "expiry_date": "XXXXX", "issued_by_at": "AAST" },
+            { "course_name": "Prevention and Combating of Marine Pollution", "number": "L 075141", "issue_date": "2013-08-01", "expiry_date": "XXXXX", "issued_by_at": "AAST" },
+            { "course_name": "Radar & ARPA Simulator and Search &rescue,ARPA Simulator and Search", "number": "L 252318", "issue_date": "2016-02-07", "expiry_date": "XXXXX", "issued_by_at": "AAST" },
+            { "course_name": "Marine Radar and automatic Radar Plotting", "number": "L 075142", "issue_date": "2013-08-01", "expiry_date": "0", "issued_by_at": "XXXXX" },
+            { "course_name": "Bridge resource Management      (B.R.M)", "number": "45671/09", "issue_date": "2009-11-12", "expiry_date": "XXXXX", "issued_by_at": "AAST" }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "AHMED BASIOUNY",
+            "date_of_birth": "1974-09-28",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "EGYPT",
+            "height_cm": "175",
+            "weight_kg": "130",
+            "place_of_birth": "ALEXANDRIA",
+            "overall_size": "",
+            "shirt_size": "60",
+            "nearest_port": "TURKEY-LEBANON-EU",
+            "trouser_size": "52",
+            "shoes_size": "46"
+        },
+        "2_education": {
+            "college_school": "AAST",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": { "fluent": false, "good": false, "average": false, "poor": false },
+            "german_language": { "fluent": false, "good": false, "average": false, "poor": false }
+        },
+        "3_contact_details": {
+            "home_address_city": "ABI-BAKER ALSIDDIK STREET,NOUR AL-ISLAM TOWER,MONTAZAH 2,ALEXANDRIA",
+            "e_mail": "CAP.AHMEDEZZ@GMAIL.COM",
+            "mobile_tel": "01004695410"
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

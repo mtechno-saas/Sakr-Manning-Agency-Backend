@@ -1,0 +1,149 @@
+{
+    "id": 98,
+    "user": 146,
+    "user_name": "HESHAM HASSAN ALY ABDELRAHMAN",
+    "user_email_display": "",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/98/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-04-29",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:20:00.000000Z",
+    "updated_at": "2026-05-31T01:20:00.000000Z",
+    "generated_id": null,
+    "salary_display": "10000$ to 12000$",
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.034",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.034",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "HESHAM HASSAN ALY ABDELRAHMAN",
+            "date_of_birth": "1967-05-12",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egyptian",
+            "height_cm": "172cm",
+            "weight_kg": "98Kg",
+            "place_of_birth": "Alexandria",
+            "overall_size": "3XL",
+            "shirt_size": "3XL",
+            "nearest_port": "",
+            "trouser_size": "3XL",
+            "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "Arab Academy for since & technology, Marine transportation",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": true,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "3 Al-hafiz Osman St. –El-Ibrahimia",
+            "e_mail": "",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

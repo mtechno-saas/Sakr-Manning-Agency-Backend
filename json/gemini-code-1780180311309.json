@@ -1,0 +1,135 @@
+{
+    "id": 100,
+    "user": 148,
+    "user_name": "Hossam Elsayed Abbas Hamed",
+    "user_email_display": "N/A",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/100/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:30:00.000000Z",
+    "updated_at": "2026-05-31T01:30:00.000000Z",
+    "generated_id": null,
+    "salary_display": "As per company rules",
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.047",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.047",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "international_medical_number": null,
+            "international_medical_issue_date": null,
+            "international_medical_expiry_date": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "N.N.C", "rank": "Chief Officer", "vessel_name": "Wadi Albostan", "signed_on": "2019-02-28", "signed_off": "2019-07-09", "period": "4 m 11 d", "vessel_type": "Bulk Carrier", "dwt": "57320" },
+            { "company_name": "N.N.C", "rank": "Chief Officer", "vessel_name": "Wadi Alrayan", "signed_on": "2018-04-05", "signed_off": "2018-12-22", "period": "8 m 17 d", "vessel_type": "Container", "dwt": "40301" },
+            { "company_name": "N.N.C", "rank": "Chief Officer", "vessel_name": "Wadi Safaga", "signed_on": "2017-11-28", "signed_off": "2018-01-24", "period": "2 m 26 d", "vessel_type": "Bulk Carrier", "dwt": "80443" },
+            { "company_name": "N.N.C", "rank": "Chief Officer", "vessel_name": "Wadi Safaga", "signed_on": "2016-11-03", "signed_off": "2017-10-30", "period": "11m 27 d", "vessel_type": "Bulk Carrier", "dwt": "80443" },
+            { "company_name": "N.N.C", "rank": "Chief Officer", "vessel_name": "Wadi Albostan", "signed_on": "2015-12-18", "signed_off": "2016-07-19", "period": "7 m 1 d", "vessel_type": "Bulk Carrier", "dwt": "57320" }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Hossam Elsayed Abbas Hamed",
+            "date_of_birth": "1964-08-27",
+            "marital_status": { "single": false, "married": true },
+            "nationality": "Egyptian",
+            "height_cm": "179 cm", "weight_kg": "90 Kg",
+            "place_of_birth": "Alexandria / Egypt",
+            "overall_size": "XXL", "shirt_size": "XXXL", "nearest_port": "", "trouser_size": "54", "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "Arab Academy for Science, Technology and Maritime Transport",
+            "marline_test": { "issued_date": "2021-10-28", "result_percentage": "81 %", "issued_by_authority": "Pan Arab", "issued_at": "Alexandria - Egypt" },
+            "english_language": { "fluent": true, "good": false, "average": false, "poor": false },
+            "german_language": { "fluent": false, "good": false, "average": false, "poor": false }
+        },
+        "3_contact_details": {
+            "home_address_city": "140Z, 1st Floor, Alexandria, Egypt",
+            "e_mail": "",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

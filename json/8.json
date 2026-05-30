@@ -1,0 +1,139 @@
+{
+    "id": 81,
+    "user": 129,
+    "user_name": "ADEL ALY MAHMOUD ALY NAGGA",
+    "user_email_display": "adel.nagga79@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/81/download-cv/",
+    "cover_letter": null,
+    "experience_years": 15,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T00:05:22.190410Z",
+    "updated_at": "2026-05-31T00:05:22.190410Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.009",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.009",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A21458963",
+            "issue_date": "2021-02-14",
+            "expiry_date": "2028-02-13",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Port Said",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00019412",
+            "issue_date": "2022-06-01",
+            "expiry_date": "2027-05-31",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC- MASTER (UNLIMITED)",
+            "certificate_number": "8954",
+            "issue_date": "2022-07-10",
+            "expiry_date": "2027-05-31",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": "GOC-7841",
+            "issue_date": "2022-04-12",
+            "expiry_date": "2027-04-11",
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "03954",
+            "issue_date": "2025-07-20",
+            "expiry_date": "2027-07-19",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "03954",
+            "international_medical_issue_date": "2025-07-20",
+            "international_medical_expiry_date": "2027-07-19",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "Canal Shipping Agencies", "rank": "3rd Off", "vessel_name": "Port Said Star", "signed_on": "2011-04-12", "signed_off": "2011-11-15", "period": "7.1", "vessel_type": "G.C", "dwt": "5400" },
+            { "company_name": "Canal Shipping Agencies", "rank": "2nd Off", "vessel_name": "Port Said Star", "signed_on": "2013-02-10", "signed_off": "2013-09-22", "period": "7.4", "vessel_type": "G.C", "dwt": "5400" },
+            { "company_name": "Egyptian Navigation Co.", "rank": "Ch. Off", "vessel_name": "Alexandria", "signed_on": "2016-10-15", "signed_off": "2017-05-20", "period": "7.1", "vessel_type": "Bulk carrier", "dwt": "32000" },
+            { "company_name": "El-Sakr Shipping", "rank": "Master", "vessel_name": "Sakr 1", "signed_on": "2021-11-01", "signed_off": "2022-06-15", "period": "7.5", "vessel_type": "Bulk carrier", "dwt": "41000" },
+            { "company_name": "El-Sakr Shipping", "rank": "Master", "vessel_name": "Sakr 1", "signed_on": "2023-08-10", "signed_off": "2024-03-20", "period": "7.3", "vessel_type": "Bulk carrier", "dwt": "41000" }
+        ],
+        "marine_courses": [
+            { "course_name": "Proficiency In Personal Survival Techniques", "number": "L 611245", "issue_date": "2022-05-12", "expiry_date": "2027-05-11", "issued_by_at": "IHNS / ALEX." },
+            { "course_name": "Advanced Fire Prevention and Fire Fighting", "number": "L 611890", "issue_date": "2022-05-16", "expiry_date": "2027-05-15", "issued_by_at": "IHNS / ALEX." },
+            { "course_name": "Radar & ARPA Simulator", "number": "38411/22/EG", "issue_date": "2022-06-10", "expiry_date": "XXXXX", "issued_by_at": "AAST / ALEX." }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "ADEL ALY MAHMOUD ALY NAGGA",
+            "date_of_birth": "1979-06-25",
+            "marital_status": { "single": false, "married": true },
+            "nationality": "Egyptian",
+            "height_cm": "177", "weight_kg": "85",
+            "place_of_birth": "Port Said",
+            "overall_size": "", "shirt_size": "L", "nearest_port": "Port Said Port", "trouser_size": "34", "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "",
+            "marline_test": { "issued_date": "2025-05-10", "result_percentage": "92%", "issued_by_authority": "Marlins", "issued_at": "Port Said" },
+            "english_language": { "fluent": true, "good": false, "average": false, "poor": false },
+            "german_language": { "fluent": false, "good": false, "average": false, "poor": false }
+        },
+        "3_contact_details": {
+            "home_address_city": "Port Said",
+            "e_mail": "adel.nagga79@gmail.com",
+            "mobile_tel": "01004125896"
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

@@ -1,0 +1,300 @@
+{
+    "id": 81,
+    "user": 129,
+    "user_name": "ADEL ALY MAHMOUD ALY NAGGA",
+    "user_email_display": "Cap.nagga59@yahoo.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/81/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T00:05:22.190410Z",
+    "updated_at": "2026-05-31T00:05:22.190410Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.050",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.050",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "international_medical_number": null,
+            "international_medical_issue_date": null,
+            "international_medical_expiry_date": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "company_name": "ALRASHID SHIPPING OPRATION MANAGER-DUBAI-U.A.E.",
+                "rank": "MASTER",
+                "vessel_name": "MANZAR ALMADINA",
+                "signed_on": "2006-01-04",
+                "signed_off": "2007-01-30",
+                "period": "",
+                "vessel_type": "Bulk",
+                "dwt": "38292/57240"
+            },
+            {
+                "company_name": "CHARTERD HOUSE MARINE LONDON PORT CAPTAIN & D.P.A & OWNER REPRESENTATIVE AT MUMBAY",
+                "rank": "PORT CAPTAIN & D.P.A",
+                "vessel_name": "QUUEEN TOWER",
+                "signed_on": "2003-04-24",
+                "signed_off": "2004-04-30",
+                "period": "",
+                "vessel_type": "Passenger",
+                "dwt": "6009/1500passinger"
+            },
+            {
+                "company_name": "Tartous Shipping ",
+                "rank": "MASTER",
+                "vessel_name": "AL KARIM",
+                "signed_on": "2002-05-11",
+                "signed_off": "2003-04-14",
+                "period": "",
+                "vessel_type": "Container feeder",
+                "dwt": "16852/24365"
+            },
+            {
+                "company_name": "Misr Shipping Co",
+                "rank": "MASTER",
+                "vessel_name": "Abydos",
+                "signed_on": "1998-12-23",
+                "signed_off": "1999-05-30",
+                "period": "",
+                "vessel_type": "Bulk",
+                "dwt": "43790/53054"
+            },
+            {
+                "company_name": "Nasr Elsabbagh Shipping",
+                "rank": "MASTER",
+                "vessel_name": "Neptune",
+                "signed_on": "1998-06-10",
+                "signed_off": "1998-08-22",
+                "period": "",
+                "vessel_type": "G. Cargo",
+                "dwt": "6542/9228"
+            },
+            {
+                "company_name": "Kavadas Co",
+                "rank": "MASTER",
+                "vessel_name": "Karla",
+                "signed_on": "1997-09-05",
+                "signed_off": "1998-02-18",
+                "period": "",
+                "vessel_type": "Bulk",
+                "dwt": "28854/40450"
+            },
+            {
+                "company_name": "EGYPTIAN INTERNATIONAL SHIPPING",
+                "rank": "CH.OFF",
+                "vessel_name": "Pyramids",
+                "signed_on": "1997-04-01",
+                "signed_off": "1997-09-25",
+                "period": "",
+                "vessel_type": "G. Cargo",
+                "dwt": "22318/35334"
+            }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Adel Aly Mahmoud Aly Nagga",
+            "date_of_birth": "1959-12-29",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egyptian",
+            "height_cm": "180",
+            "weight_kg": "105",
+            "place_of_birth": "Alexandria, Egypt",
+            "overall_size": "XXXL ",
+            "shirt_size": "XXXL ",
+            "nearest_port": "",
+            "trouser_size": "56 / 42",
+            "shoes_size": "44"
+        },
+        "2_education": {
+            "college_school": "Arab Academy for Science and Technology and Maritime Transport",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": true,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "19 Farouk Abd Elwahab st. Miami - Alexandria  - EGYPT ",
+            "e_mail": "Cap.nagga59@yahoo.com ",
+            "mobile_tel": ""
+        },
+        "4_travel_documents": [],
+        "5_professional_qualification_certificate_of_competency": [
+            {
+                "certificate_name": "COC (Rank)",
+                "number": "",
+                "issue_date": "",
+                "expiry_date": "",
+                "issued_by": "EAMS",
+                "issued_at": "Alex."
+            },
+            {
+                "certificate_name": "GOC",
+                "number": "",
+                "issue_date": "",
+                "expiry_date": "",
+                "issued_by": "NTRA",
+                "issued_at": "Cairo"
+            }
+        ],
+        "6_next_of_kin_emergency_contact": {
+            "full_name": "",
+            "address_country": "",
+            "tel_no_mobile": "",
+            "relationship": "",
+            "email": ""
+        },
+        "7_health_certificates_and_vaccinations": {
+            "certificates": [],
+            "covid_19": {
+                "vaccination_name": "",
+                "first_dose": "",
+                "second_dose": "",
+                "other_does_or_remarks": ""
+            }
+        },
+        "8_marine_courses": [],
+        "9_complete_sea_service_details": {
+            "applicant_info": {
+                "name": "",
+                "rank": "",
+                "register_code": ""
+            },
+            "service_records": []
+        },
+        "10_references": [],
+        "11_declaration": {
+            "questions": {
+                "suffer_disease_unfit_for_sea": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "addicted_to_alcohol_or_drugs": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "suffer_accident_disabled": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "undergo_psychiatric_treatment": {
+                    "answer": "NO",
+                    "details": ""
+                }
+            },
+            "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+            "place": "",
+            "date": "",
+            "signature": ""
+        },
+        "12_for_office_use_only": {
+            "initial_assessment_of_applicant": "",
+            "comments": "",
+            "responsible_person": {
+                "name_signature": "",
+                "date": ""
+            }
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

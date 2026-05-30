@@ -1,0 +1,177 @@
+{
+    "id": 74,
+    "user": 122,
+    "user_name": "ASHRAF MAGED HABIB GENDY",
+    "user_email_display": "ashrafegyprints@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/74/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-03-05",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-30T17:48:01.410708Z",
+    "updated_at": "2026-05-30T17:48:01.441843Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.021",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.021",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A32187810",
+            "issue_date": "2022-11-23",
+            "expiry_date": "2022-11-22",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "ALEX",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00028710",
+            "issue_date": "2023-02-08",
+            "expiry_date": "2027-12-24",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": "5868",
+            "issue_date": "2023-02-07",
+            "expiry_date": "2027-12-24",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": "0030889",
+            "issue_date": "2018-07-24",
+            "expiry_date": "2023-09-23",
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "11054",
+            "issue_date": "2023-02-15",
+            "expiry_date": "2025-02-14",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "11054",
+            "international_medical_issue_date": "2023-02-15",
+            "international_medical_expiry_date": "2025-02-14",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "PMS", "rank": "CH.OFF", "vessel_name": "PMS32", "signed_on": "2014-12-15", "signed_off": "2015-12-14", "period": "", "vessel_type": "AHTS", "dwt": "1252" },
+            { "company_name": "PMS", "rank": "CH.OFF", "vessel_name": "PMS17", "signed_on": "2016-01-05", "signed_off": "2017-01-04", "period": "", "vessel_type": "DP1 .BARGE", "dwt": "5730" },
+            { "company_name": "PMS", "rank": "CH.OFF", "vessel_name": "PMS3308", "signed_on": "2017-03-06", "signed_off": "2017-11-26", "period": "", "vessel_type": "DPII .AHTS", "dwt": "2441" },
+            { "company_name": "PMS", "rank": "E.X MASTER", "vessel_name": "PMS3308", "signed_on": "2017-11-28", "signed_off": "2018-11-27", "period": "", "vessel_type": "DPII.AHTS", "dwt": "2441" },
+            { "company_name": "PMS", "rank": "E.X MASTER", "vessel_name": "PMS3308", "signed_on": "2019-10-13", "signed_off": "2020-05-01", "period": "", "vessel_type": "DPII.AHTS", "dwt": "2441" },
+            { "company_name": "PMS", "rank": "MASTER", "vessel_name": "PMS5", "signed_on": "2020-05-07", "signed_off": "2021-05-06", "period": "", "vessel_type": "TUG", "dwt": "437" },
+            { "company_name": "PMS", "rank": "MASTER", "vessel_name": "PMS31", "signed_on": "2021-11-08", "signed_off": "2022-11-07", "period": "", "vessel_type": "AHTS", "dwt": "840" },
+            { "company_name": "PMS", "rank": "MASTER", "vessel_name": "PMS4", "signed_on": "2022-11-10", "signed_off": "2023-02-05", "period": "", "vessel_type": "AHTS", "dwt": "485" }
+        ],
+        "marine_courses": [
+            { "course_name": "Proficiency In Personal Survival Techniques", "number": "", "issue_date": "2023-01-08", "expiry_date": "2023-01-03", "issued_by_at": "" },
+            { "course_name": "Advanced Fire Prevention and Fire Fighting", "number": "", "issue_date": "2023-01-02", "expiry_date": "2027-12-31", "issued_by_at": "" },
+            { "course_name": "Medical Care Studies", "number": "", "issue_date": "2023-01-08", "expiry_date": "2028-01-02", "issued_by_at": "" },
+            { "course_name": "Personal Safety and Social Responsibilities", "number": "", "issue_date": "2023-01-02", "expiry_date": "2027-12-30", "issued_by_at": "" },
+            { "course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "", "issue_date": "2022-12-25", "expiry_date": "2027-12-21", "issued_by_at": "" },
+            { "course_name": "Proficiency as a ship Security officer ( PSSO )", "number": "", "issue_date": "2023-01-16", "expiry_date": "2028-01-09", "issued_by_at": "" },
+            { "course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "", "issue_date": "2023-01-04", "expiry_date": "2027-01-01", "issued_by_at": "" },
+            { "course_name": "G.M.D.S.S", "number": "", "issue_date": "2018-07-02", "expiry_date": "2023-06-26", "issued_by_at": "" },
+            { "course_name": "Advanced Communications", "number": "", "issue_date": "2018-06-20", "expiry_date": "XXXX", "issued_by_at": "" },
+            { "course_name": "ECDIS Advanced Simulator (Management Level)", "number": "", "issue_date": "2018-06-20", "expiry_date": "XXXX", "issued_by_at": "" },
+            { "course_name": "ECDIS Simulator (Operation Level)", "number": "", "issue_date": "2022-12-26", "expiry_date": "2027-12-24", "issued_by_at": "" },
+            { "course_name": "Prevention and Combating of Marine Pollution", "number": "", "issue_date": "2018-06-20", "expiry_date": "XXXX", "issued_by_at": "" },
+            { "course_name": "Radar & ARPA Simulator and Search &rescue ARPA Simulator and Search", "number": "", "issue_date": "2018-06-20", "expiry_date": "XXXX", "issued_by_at": "" },
+            { "course_name": "Marine Radar and automatic Radar Plotting", "number": "", "issue_date": "2018-06-20", "expiry_date": "XXXX", "issued_by_at": "" },
+            { "course_name": "SHIP HANDLING AND MANEUVERING", "number": "", "issue_date": "2018-06-20", "expiry_date": "XXXX", "issued_by_at": "" }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "ASHRAF MAGED HABIB GENDY",
+            "date_of_birth": "1971-04-10",
+            "marital_status": {
+                "single": false,
+                "married": false
+            },
+            "nationality": "EGYPTION",
+            "height_cm": "177",
+            "weight_kg": "85",
+            "place_of_birth": "CAIRO",
+            "overall_size": "L",
+            "shirt_size": "L",
+            "nearest_port": "",
+            "trouser_size": "31",
+            "shoes_size": "43"
+        },
+        "2_education": {
+            "college_school": "NAVAL COLLEGE",
+            "marline_test": {
+                "issued_date": "2014",
+                "result_percentage": "84",
+                "issued_by_authority": "SEC",
+                "issued_at": "ALEXANDRIA"
+            },
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "52 ABD EL MONIEM SANAD- CAMP CEZAR- ALEXANDRIA",
+            "e_mail": "ashrafegyprints@gmail.com",
+            "mobile_tel": "01010272037"
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

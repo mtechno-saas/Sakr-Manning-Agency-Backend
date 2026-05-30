@@ -1,0 +1,149 @@
+{
+    "id": 108,
+    "user": 156,
+    "user_name": "MAGDY MOHAMED MOHAMED ELHANOUN",
+    "user_email_display": "MAGDY_ELHANOUN@YAHOO.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/108/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:34:00.000000Z",
+    "updated_at": "2026-05-31T01:34:00.000000Z",
+    "generated_id": null,
+    "salary_display": "175 – 250 USD",
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.081",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.081",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "MAGDY MOHAMED MOHAMED ELHANOUN",
+            "date_of_birth": "1964-09-16",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egptian",
+            "height_cm": "160",
+            "weight_kg": "69",
+            "place_of_birth": "16/09/2964",
+            "overall_size": "L",
+            "shirt_size": "L",
+            "nearest_port": "Borg alarb",
+            "trouser_size": "38",
+            "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "Arab for",
+            "marline_test": {
+                "issued_date": "2012-09-01",
+                "result_percentage": "75",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": true,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "Egypt / Alexandria",
+            "e_mail": "MAGDY_ELHANOUN@YAHOO.COM",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

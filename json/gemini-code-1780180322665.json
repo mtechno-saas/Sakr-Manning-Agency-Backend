@@ -1,0 +1,126 @@
+{
+    "id": 101,
+    "user": 149,
+    "user_name": "HUSSIEN HASSAAN HUSSIEN HASSAAN",
+    "user_email_display": "N/A",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/101/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:30:00.000000Z",
+    "updated_at": "2026-05-31T01:30:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.054",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.054",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "HUSSIEN HASSAAN HUSSIEN HASSAAN",
+            "date_of_birth": "1985-01-14",
+            "marital_status": { "single": false, "married": true },
+            "nationality": "Egyptian",
+            "height_cm": "175", "weight_kg": "78",
+            "place_of_birth": "Suez",
+            "overall_size": "XL", "shirt_size": "L", "nearest_port": "CAIRO", "trouser_size": "XL", "shoes_size": "44"
+        },
+        "2_education": {
+            "college_school": "The Arab Academy for Science ,Technology &Maritime Transport",
+            "marline_test": { "issued_date": "", "result_percentage": "", "issued_by_authority": "", "issued_at": "" },
+            "english_language": { "fluent": true, "good": false, "average": false, "poor": false },
+            "german_language": { "fluent": false, "good": false, "average": false, "poor": false }
+        },
+        "3_contact_details": {
+            "home_address_city": "RED SEA-Hurghada/ Capt.Hussien.H Villa No.22/G-Zahi Hwas St.",
+            "e_mail": "",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

@@ -1,0 +1,203 @@
+{
+    "id": 88,
+    "user": 136,
+    "user_name": "BASHEER RASHED ALI AHMED",
+    "user_email_display": "Basher323rashed@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/88/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-03-21",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:05:00.000000Z",
+    "updated_at": "2026-05-31T01:05:00.000000Z",
+    "generated_id": null,
+    "salary_display": "4000usd",
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.023",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.023",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "international_medical_number": null,
+            "international_medical_issue_date": null,
+            "international_medical_expiry_date": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "company_name": "BLUE WATER",
+                "rank": "MASTER",
+                "vessel_name": "BLUE WATER",
+                "signed_on": "2021-05-01",
+                "signed_off": "2021-11-08",
+                "period": "6m,7D",
+                "vessel_type": "A.H.T",
+                "dwt": "775"
+            },
+            {
+                "company_name": "OSSCO",
+                "rank": "CHIEF OFFICER",
+                "vessel_name": "M.T GRACE-A",
+                "signed_on": "2020-06-18",
+                "signed_off": "2021-01-04",
+                "period": "6m,17D",
+                "vessel_type": "Oil Products Tanker",
+                "dwt": "14331"
+            },
+            {
+                "company_name": "OSSCO",
+                "rank": "CHIEF OFFICER",
+                "vessel_name": "M.T GRACE-A",
+                "signed_on": "2019-10-01",
+                "signed_off": "2020-05-15",
+                "period": "7m,14D",
+                "vessel_type": "Oil Products Tanker",
+                "dwt": "14331"
+            },
+            {
+                "company_name": "OSSCO",
+                "rank": "CHIEF OFFICER",
+                "vessel_name": "M.T GRACE-A",
+                "signed_on": "2018-11-04",
+                "signed_off": "2019-09-05",
+                "period": "10m,1D",
+                "vessel_type": "Oil Products Tanker",
+                "dwt": "14331"
+            },
+            {
+                "company_name": "OSSCO",
+                "rank": "CHIEF OFFICER",
+                "vessel_name": "M.T GRACE-A",
+                "signed_on": "2018-02-17",
+                "signed_off": "2018-10-20",
+                "period": "8m,3D",
+                "vessel_type": "Oil Products Tanker",
+                "dwt": "14331"
+            }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "BASHEER RASHED ALI AHMED",
+            "date_of_birth": "1987-08-27",
+            "marital_status": {
+                "single": false,
+                "married": false
+            },
+            "nationality": "Yemeni",
+            "height_cm": "173",
+            "weight_kg": "95",
+            "place_of_birth": "Yemen - Aden",
+            "overall_size": "xxl",
+            "shirt_size": "42",
+            "nearest_port": "",
+            "trouser_size": "38",
+            "shoes_size": "43"
+        },
+        "2_education": {
+            "college_school": "Maritime Sciences and Technology Institute Marsati",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "YEMEN / ADEN , SHAJIHAN STREET, HOUSE NO 118/50B",
+            "e_mail": "Basher323rashed@gmail.com",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

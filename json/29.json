@@ -1,0 +1,158 @@
+{
+    "id": 91,
+    "user": 139,
+    "user_name": "Eslam Nagib Mahmoud Mohamed Elattar",
+    "user_email_display": "eslamelattar@aim.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/91/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:10:00.000000Z",
+    "updated_at": "2026-05-31T01:10:00.000000Z",
+    "generated_id": null,
+    "salary_display": "6500",
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.043",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.043",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "international_medical_number": null,
+            "international_medical_issue_date": null,
+            "international_medical_expiry_date": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "Navmarine Denizcilik Ticaret", "rank": "MASTER", "vessel_name": "NAVMARINE4", "signed_on": "2022-11-08", "signed_off": "2023-04-23", "period": "", "vessel_type": "G.C", "dwt": "6350" },
+            { "company_name": "Navmarine Denizcilik Ticaret", "rank": "MASTER", "vessel_name": "NAVMARINE4", "signed_on": "2022-04-05", "signed_off": "2022-07-30", "period": "", "vessel_type": "G.C", "dwt": "6350" },
+            { "company_name": "Navmarine Denizcilik Ticaret", "rank": "MASTER", "vessel_name": "NAVMARINE4", "signed_on": "2021-01-25", "signed_off": "2021-10-10", "period": "", "vessel_type": "G.C", "dwt": "6350" },
+            { "company_name": "LDPL Guiney", "rank": "MASTER", "vessel_name": "ALM AQUARIUS", "signed_on": "2020-08-11", "signed_off": "2020-12-14", "period": "", "vessel_type": "BULK", "dwt": "12450" },
+            { "company_name": "SAN NIKOLLA", "rank": "MASTER", "vessel_name": "ITALIAN TRADER", "signed_on": "2019-02-03", "signed_off": "2019-07-25", "period": "", "vessel_type": "BULK", "dwt": "8440" }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Eslam Nagib Mahmoud Mohamed Elattar",
+            "date_of_birth": "1981-02-12",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egyptian",
+            "height_cm": "170",
+            "weight_kg": "72",
+            "place_of_birth": "CAIRO",
+            "overall_size": "L",
+            "shirt_size": "L",
+            "nearest_port": "Alexandria",
+            "trouser_size": "32",
+            "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "Arab Academy for Science, Technology & Maritime Transport",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": true,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "CAIRO",
+            "e_mail": "eslamelattar@aim.com",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

@@ -1,0 +1,139 @@
+{
+    "id": 78,
+    "user": 126,
+    "user_name": "ABDALLA MAHOMUD ABDOU MOHAMED",
+    "user_email_display": "abdalla.maritime@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/78/download-cv/",
+    "cover_letter": null,
+    "experience_years": 15,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T00:01:10.201410Z",
+    "updated_at": "2026-05-31T00:01:10.201410Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.006",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.006",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A31145269",
+            "issue_date": "2022-01-10",
+            "expiry_date": "2029-01-09",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Port Said",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00021458",
+            "issue_date": "2023-03-11",
+            "expiry_date": "2028-03-10",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC- MASTER (UNLIMITED)",
+            "certificate_number": "9112",
+            "issue_date": "2023-04-15",
+            "expiry_date": "2028-03-10",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": "GOC-8114",
+            "issue_date": "2023-01-11",
+            "expiry_date": "2028-01-10",
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "04112",
+            "issue_date": "2025-02-14",
+            "expiry_date": "2027-02-13",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "04112",
+            "international_medical_issue_date": "2025-02-14",
+            "international_medical_expiry_date": "2027-02-13",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "United Arab Shipping Co.", "rank": "3rd Off", "vessel_name": "Barzan", "signed_on": "2010-05-12", "signed_off": "2011-01-15", "period": "8.1", "vessel_type": "Container", "dwt": "188000" },
+            { "company_name": "United Arab Shipping Co.", "rank": "2nd Off", "vessel_name": "Alula", "signed_on": "2012-04-01", "signed_off": "2012-11-20", "period": "7.6", "vessel_type": "Container", "dwt": "135000" },
+            { "company_name": "Kuwait Oil Tanker Co.", "rank": "Ch. Off", "vessel_name": "Al Salmi", "signed_on": "2016-09-01", "signed_off": "2017-04-10", "period": "7.3", "vessel_type": "Oil Tanker", "dwt": "310000" },
+            { "company_name": "Ocean Shipping", "rank": "Master", "vessel_name": "Blue Marlin 1", "signed_on": "2021-10-15", "signed_off": "2022-05-01", "period": "6.5", "vessel_type": "G.C", "dwt": "8400" },
+            { "company_name": "Ocean Shipping", "rank": "Master", "vessel_name": "Blue Marlin 1", "signed_on": "2023-06-10", "signed_off": "2023-12-28", "period": "6.6", "vessel_type": "G.C", "dwt": "8400" }
+        ],
+        "marine_courses": [
+            { "course_name": "Proficiency In Personal Survival Techniques", "number": "L 645110", "issue_date": "2023-02-05", "expiry_date": "2028-02-04", "issued_by_at": "IHNS / ALEX." },
+            { "course_name": "Advanced Fire Prevention and Fire Fighting", "number": "L 645820", "issue_date": "2023-02-10", "expiry_date": "2028-02-09", "issued_by_at": "IHNS / ALEX." },
+            { "course_name": "Radar & ARPA Simulator", "number": "39621/23/EG", "issue_date": "2023-03-02", "expiry_date": "XXXXX", "issued_by_at": "AAST / ALEX." }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "ABDALLA MAHOMUD ABDOU MOHAMED",
+            "date_of_birth": "1978-03-22",
+            "marital_status": { "single": false, "married": true },
+            "nationality": "Egyptian",
+            "height_cm": "180", "weight_kg": "90",
+            "place_of_birth": "Port Said",
+            "overall_size": "", "shirt_size": "XL", "nearest_port": "Port Said Port", "trouser_size": "36", "shoes_size": "43"
+        },
+        "2_education": {
+            "college_school": "",
+            "marline_test": { "issued_date": "2025-11-14", "result_percentage": "94%", "issued_by_authority": "Marlins", "issued_at": "Port Said" },
+            "english_language": { "fluent": true, "good": false, "average": false, "poor": false },
+            "german_language": { "fluent": false, "good": false, "average": false, "poor": false }
+        },
+        "3_contact_details": {
+            "home_address_city": "Port Said",
+            "e_mail": "abdalla.maritime@gmail.com",
+            "mobile_tel": "01067891234"
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

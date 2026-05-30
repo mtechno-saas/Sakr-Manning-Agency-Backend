@@ -1,0 +1,139 @@
+{
+    "id": 79,
+    "user": 127,
+    "user_name": "ABDELBARY HAMMAD ABDELGHANY AHMED ELKEBER",
+    "user_email_display": "abdelbary.elkeber@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/79/download-cv/",
+    "cover_letter": null,
+    "experience_years": 16,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T00:05:22.102450Z",
+    "updated_at": "2026-05-31T00:05:22.102450Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.007",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.007",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A22641589",
+            "issue_date": "2021-05-18",
+            "expiry_date": "2028-05-17",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Alexandria",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00018562",
+            "issue_date": "2022-02-10",
+            "expiry_date": "2027-02-09",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC- MASTER (UNLIMITED)",
+            "certificate_number": "8124",
+            "issue_date": "2022-03-15",
+            "expiry_date": "2027-02-09",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": "GOC-7412",
+            "issue_date": "2022-01-20",
+            "expiry_date": "2027-01-19",
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "03814",
+            "issue_date": "2025-06-11",
+            "expiry_date": "2027-06-10",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "03814",
+            "international_medical_issue_date": "2025-06-11",
+            "international_medical_expiry_date": "2027-06-10",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "Arab Shipping Co.", "rank": "Ch. Off", "vessel_name": "Al-Amal", "signed_on": "2014-03-10", "signed_off": "2014-09-15", "period": "6.2", "vessel_type": "G.C", "dwt": "6500" },
+            { "company_name": "Arab Shipping Co.", "rank": "Ch. Off", "vessel_name": "Al-Amal", "signed_on": "2015-05-20", "signed_off": "2015-12-01", "period": "6.4", "vessel_type": "G.C", "dwt": "6500" },
+            { "company_name": "Middle East Shipping", "rank": "Master", "vessel_name": "Red Sea 1", "signed_on": "2018-02-11", "signed_off": "2018-09-05", "period": "6.8", "vessel_type": "Container", "dwt": "12500" },
+            { "company_name": "Middle East Shipping", "rank": "Master", "vessel_name": "Red Sea 1", "signed_on": "2020-04-15", "signed_off": "2020-11-10", "period": "6.8", "vessel_type": "Container", "dwt": "12500" },
+            { "company_name": "Sakr Shipping Lines", "rank": "Master", "vessel_name": "Sakr 2", "signed_on": "2023-01-15", "signed_off": "2023-08-20", "period": "7.2", "vessel_type": "Bulk carrier", "dwt": "28400" }
+        ],
+        "marine_courses": [
+            { "course_name": "Proficiency In Personal Survival Techniques", "number": "L 594112", "issue_date": "2022-01-10", "expiry_date": "2027-01-09", "issued_by_at": "IHNS / ALEX." },
+            { "course_name": "Advanced Fire Prevention and Fire Fighting", "number": "L 594863", "issue_date": "2022-01-14", "expiry_date": "2027-01-13", "issued_by_at": "IHNS / ALEX." },
+            { "course_name": "ECDIS Advanced Simulator (Management Level)", "number": "L 595210", "issue_date": "2022-02-01", "expiry_date": "2027-01-31", "issued_by_at": "IHNS / ALEX." }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "ABDELBARY HAMMAD ABDELGHANY AHMED ELKEBER",
+            "date_of_birth": "1977-10-15",
+            "marital_status": { "single": false, "married": true },
+            "nationality": "Egyptian",
+            "height_cm": "176", "weight_kg": "80",
+            "place_of_birth": "Alexandria",
+            "overall_size": "", "shirt_size": "L", "nearest_port": "Alexandria Port", "trouser_size": "34", "shoes_size": "41"
+        },
+        "2_education": {
+            "college_school": "",
+            "marline_test": { "issued_date": "", "result_percentage": "90%", "issued_by_authority": "", "issued_at": "" },
+            "english_language": { "fluent": false, "good": true, "average": false, "poor": false },
+            "german_language": { "fluent": false, "good": false, "average": false, "poor": false }
+        },
+        "3_contact_details": {
+            "home_address_city": "Alexandria",
+            "e_mail": "abdelbary.elkeber@gmail.com",
+            "mobile_tel": "01114589632"
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

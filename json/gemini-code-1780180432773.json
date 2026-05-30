@@ -1,0 +1,157 @@
+{
+    "id": 105,
+    "user": 153,
+    "user_name": "KHALED MOHAMED ABDEL-FATTAH ABDEL-RAHMAN",
+    "user_email_display": "",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/105/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-01-04",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:30:00.000000Z",
+    "updated_at": "2026-05-31T01:30:00.000000Z",
+    "generated_id": null,
+    "salary_display": "7000-7500USD",
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.019",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.019",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "HAMBURG", "rank": "MASTER", "vessel_name": "MITO", "signed_on": "2011-11-03", "signed_off": "2012-03-11", "period": "4M", "vessel_type": "Master", "dwt": "9910" },
+            { "company_name": "Elhurya", "rank": "MASTER", "vessel_name": "GMEAA-2", "signed_on": "2010-07-17", "signed_off": "2010-12-12", "period": "5M", "vessel_type": "Master", "dwt": "8000T" },
+            { "company_name": "ASM Amman", "rank": "MASTER", "vessel_name": "Sara-3", "signed_on": "2008-02-07", "signed_off": "2008-07-28", "period": "5M 21D", "vessel_type": "Master", "dwt": "11177 t" },
+            { "company_name": "Naggar", "rank": "MASTER", "vessel_name": "Egyptian pride", "signed_on": "2007-03-04", "signed_off": "2007-06-01", "period": "3M", "vessel_type": "Master", "dwt": "5200" },
+            { "company_name": "Naggar", "rank": "MASTER", "vessel_name": "Egyptian dignity", "signed_on": "2006-10-07", "signed_off": "2007-01-26", "period": "3M 16D", "vessel_type": "Master", "dwt": "5200" },
+            { "company_name": "Naggar", "rank": "MASTER", "vessel_name": "Egyptian Pride", "signed_on": "2006-06-12", "signed_off": "2006-09-14", "period": "3M 6D", "vessel_type": "Master", "dwt": "5200" },
+            { "company_name": "Naggar", "rank": "MASTER", "vessel_name": "Egyptian dignity", "signed_on": "2005-12-12", "signed_off": "2006-05-24", "period": "5M 12D", "vessel_type": "Master", "dwt": "5200" }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "KHALED MOHAMED ABDEL-FATTAH ABDEL-RAHMAN",
+            "date_of_birth": "1961-09-30",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egyptian",
+            "height_cm": "179",
+            "weight_kg": "95",
+            "place_of_birth": "Cairo",
+            "overall_size": "3XL",
+            "shirt_size": "3x",
+            "nearest_port": "",
+            "trouser_size": "44",
+            "shoes_size": "44"
+        },
+        "2_education": {
+            "college_school": "Arab Academy for Science and Technology and maritime transport",
+            "marline_test": {
+                "issued_date": "1994",
+                "result_percentage": "Very good",
+                "issued_by_authority": "Arab Academy for science and technology",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": true,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "",
+            "e_mail": "",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

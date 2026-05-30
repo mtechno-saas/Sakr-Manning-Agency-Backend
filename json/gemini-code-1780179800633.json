@@ -1,0 +1,160 @@
+{
+    "id": 86,
+    "user": 134,
+    "user_name": "HANY ABELRAHIM KHALIL HUSSEIN",
+    "user_email_display": "5A MOH. ROSHDEY ST. AGOUZA-GIZA",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/86/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-01-01",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:15:00.000000Z",
+    "updated_at": "2026-05-31T01:15:00.000000Z",
+    "generated_id": null,
+    "salary_display": "AS PER COMPANY",
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.012",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.012",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "AASTMT",
+            "issued_at": "AASTMT",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "international_medical_number": null,
+            "international_medical_issue_date": null,
+            "international_medical_expiry_date": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "LEMAR SHIPPING CO.", "rank": "MASTER", "vessel_name": "LILIAN", "signed_on": "2018-12-10", "signed_off": "2019-06-30", "period": "6.5 MONTHS", "vessel_type": "BULK CARRIER", "dwt": "24838" },
+            { "company_name": "MAHONEY SHIPPING", "rank": "MASTER", "vessel_name": "EGY GLORY", "signed_on": "2017-11-06", "signed_off": "2018-04-15", "period": "5.5 MONTHS", "vessel_type": "CONTAINER", "dwt": "22900" },
+            { "company_name": "RED SEA SHIPPING", "rank": "MASTER", "vessel_name": "DORRAT JEDDAH", "signed_on": "2017-03-10", "signed_off": "2017-08-25", "period": "5.4 MONTHS", "vessel_type": "RO-RO / CONTAINER", "dwt": "4700" },
+            { "company_name": "INTERORIENT MARINE SERVICES", "rank": "MASTER", "vessel_name": "EMERALD STRAIT", "signed_on": "2016-08-29", "signed_off": "2016-12-28", "period": "4 MONTHS", "vessel_type": "BULK", "dwt": "56830" },
+            { "company_name": "RED SEA SHIPPING", "rank": "MASTER", "vessel_name": "DORRAT JEDDAH", "signed_on": "2015-09-15", "signed_off": "2020-02-20", "period": "5.1 MONTHS", "vessel_type": "RO-RO / CONTAINER", "dwt": "4700" },
+            { "company_name": "RED SEA SHIPPING", "rank": "MASTER", "vessel_name": "DORRAT JEDDAH", "signed_on": "2015-03-20", "signed_off": "2015-07-27", "period": "4.1 MONTHS", "vessel_type": "RO-RO / CONTAINER", "dwt": "4700" },
+            { "company_name": "FORCE SHIPPING LINE", "rank": "MASTER", "vessel_name": "FORCE ONE", "signed_on": "2014-01-03", "signed_off": "2014-11-22", "period": "", "vessel_type": "", "dwt": "" }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "HANY ABELRAHIM KHALIL HUSSEIN",
+            "date_of_birth": "1963-12-23",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "EGYPTAIN",
+            "height_cm": "186",
+            "weight_kg": "82 KG",
+            "place_of_birth": "QENA",
+            "overall_size": "XL",
+            "shirt_size": "L",
+            "nearest_port": "",
+            "trouser_size": "XL",
+            "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "AASTMT",
+            "marline_test": {
+                "issued_date": "2016-01-17",
+                "result_percentage": "70%",
+                "issued_by_authority": "AASTMT",
+                "issued_at": "AASTMT"
+            },
+            "english_language": {
+                "fluent": true,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "5A MOH. ROSHDEY ST. AGOUZA-GIZA",
+            "e_mail": "",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

@@ -1,0 +1,157 @@
+{
+    "id": 109,
+    "user": 157,
+    "user_name": "Maged Abdelalim Kamel Abdelhafez",
+    "user_email_display": "Mego_cabten@hotmail.co.uk",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/109/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:34:00.000000Z",
+    "updated_at": "2026-05-31T01:34:00.000000Z",
+    "generated_id": null,
+    "salary_display": "More 6000 $",
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.035",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.035",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "U.A.S.C", "rank": "2nd off", "vessel_name": "Almariyah", "signed_on": "2010-01-27", "signed_off": "2010-07-30", "period": "6", "vessel_type": "CON TAINER", "dwt": "32534" },
+            { "company_name": "U.A.S.C", "rank": "2nd off", "vessel_name": "Dubai", "signed_on": "2010-11-05", "signed_off": "2011-01-13", "period": "3", "vessel_type": "CON TAINER", "dwt": "32534" },
+            { "company_name": "U.A.S.C", "rank": "2nd off", "vessel_name": "Hammurabi", "signed_on": "2011-05-24", "signed_off": "2011-07-05", "period": "2", "vessel_type": "CON TAINER", "dwt": "32534" },
+            { "company_name": "U.A.S.C", "rank": "2nd off", "vessel_name": "ALwajba", "signed_on": "2011-10-31", "signed_off": "2012-03-21", "period": "5", "vessel_type": "CON TAINER", "dwt": "32534" },
+            { "company_name": "DIORYX MARITIME", "rank": "2nd off", "vessel_name": "STX PAGASITIKOS", "signed_on": "2012-06-19", "signed_off": "2012-12-08", "period": "6", "vessel_type": "CON TAINER", "dwt": "46320" },
+            { "company_name": "DIORYX MARITIME", "rank": "CHoff", "vessel_name": "DORIKOS", "signed_on": "2013-07-23", "signed_off": "2014-01-31", "period": "6", "vessel_type": "CON TAINER", "dwt": "19147" },
+            { "company_name": "DIORYX MARITIME", "rank": "MASTER", "vessel_name": "THERMAIKOS", "signed_on": "2014-07-23", "signed_off": "2015-03-19", "period": "8", "vessel_type": "CON TAINER", "dwt": "19147" }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Maged Abdelalim Kamel Abdelhafez",
+            "date_of_birth": "1968-09-03",
+            "marital_status": {
+                "single": false,
+                "married": false
+            },
+            "nationality": "Egyption",
+            "height_cm": "186 cm",
+            "weight_kg": "94 Kg",
+            "place_of_birth": "Alex",
+            "overall_size": "XXL",
+            "shirt_size": "XL",
+            "nearest_port": "",
+            "trouser_size": "38",
+            "shoes_size": "45"
+        },
+        "2_education": {
+            "college_school": "",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "15 OSMAN GALAL St Moharmbek  Alex",
+            "e_mail": "Mego_cabten@hotmail.co.uk",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

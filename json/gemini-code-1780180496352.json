@@ -1,0 +1,161 @@
+{
+    "id": 106,
+    "user": 154,
+    "user_name": "Khaled Mohamed Elsayed Elbellasy",
+    "user_email_display": "Kh_elbellasy@yahoo.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/106/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:34:00.000000Z",
+    "updated_at": "2026-05-31T01:34:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": null,
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": null,
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A2741659",
+            "issue_date": "2021-01-27",
+            "expiry_date": "2028-01-26",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Suez",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00020006",
+            "issue_date": "2021-01-14",
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "The Arab academy for maritime transport",
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "", "rank": "Master", "vessel_name": "Argomar", "signed_on": "2000-11-08", "signed_off": "2001-02-08", "period": "", "vessel_type": "Refer Ship", "dwt": "" },
+            { "company_name": "", "rank": "Master", "vessel_name": "Sweet Orange", "signed_on": "2001-02-10", "signed_off": "2001-05-31", "period": "", "vessel_type": "Refer Ship", "dwt": "" },
+            { "company_name": "", "rank": "Master", "vessel_name": "Marwa M", "signed_on": "2001-11-17", "signed_off": "2002-12-16", "period": "", "vessel_type": "Bulk Carrier", "dwt": "" },
+            { "company_name": "", "rank": "Master", "vessel_name": "Karla", "signed_on": "2003-06-30", "signed_off": "2003-12-12", "period": "", "vessel_type": "Bulk Carrier", "dwt": "" },
+            { "company_name": "", "rank": "Master", "vessel_name": "Aqua", "signed_on": "2004-03-29", "signed_off": "2004-11-11", "period": "", "vessel_type": "Bulk Carrier", "dwt": "" },
+            { "company_name": "", "rank": "Master", "vessel_name": "Fenland", "signed_on": "2005-02-01", "signed_off": "2005-07-31", "period": "", "vessel_type": "Supply Boot", "dwt": "" },
+            { "company_name": "Vamva Shipping Co.", "rank": "Master", "vessel_name": "PANTANASSA", "signed_on": "2008-06-24", "signed_off": "2009-06-07", "period": "", "vessel_type": "Bulk Carrier", "dwt": "" },
+            { "company_name": "ARAB BREDGE CO", "rank": "Master", "vessel_name": "black iris – shahrazad – bila – amman –bridge – sinaa", "signed_on": "2009-08-02", "signed_off": "2015-07-31", "period": "", "vessel_type": "Ro-Ro. Pass. & Containerships", "dwt": "" },
+            { "company_name": "Tylos Shipping Co.", "rank": "Master", "vessel_name": "SANAD", "signed_on": "2015-12-28", "signed_off": "2017-01-07", "period": "", "vessel_type": "Containership", "dwt": "" },
+            { "company_name": "Tylos Shipping Co.", "rank": "Master", "vessel_name": "AMAN", "signed_on": "2017-07-26", "signed_off": "2018-03-21", "period": "", "vessel_type": "Containership", "dwt": "" },
+            { "company_name": "", "rank": "Master", "vessel_name": "SUKHOOR ALKHALEEJ", "signed_on": "2019-10-06", "signed_off": "", "period": "", "vessel_type": "", "dwt": "" }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Khaled Mohamed Elsayed Elbellasy",
+            "date_of_birth": "1963-05-07",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egyptian",
+            "height_cm": "172",
+            "weight_kg": "103",
+            "place_of_birth": "Suez, Egypt",
+            "overall_size": "3XL",
+            "shirt_size": "45",
+            "nearest_port": "",
+            "trouser_size": "52",
+            "shoes_size": "43"
+        },
+        "2_education": {
+            "college_school": "The Arab academy for maritime transport",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": true,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "Alsalam 1 villa 1724 Suez, Egypt",
+            "e_mail": "Kh_elbellasy@yahoo.com",
+            "mobile_tel": "01143137121"
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

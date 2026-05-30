@@ -1,0 +1,138 @@
+{
+    "id": 77,
+    "user": 125,
+    "user_name": "HAZEM ATEF KHAIRY HANAFY MAHMOUD ELBANAN",
+    "user_email_display": "hazem.elbanan@yahoo.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/77/download-cv/",
+    "cover_letter": null,
+    "experience_years": 11,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T00:01:10.155480Z",
+    "updated_at": "2026-05-31T00:01:10.155480Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.005",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.005",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A18963241",
+            "issue_date": "2018-09-12",
+            "expiry_date": "2025-09-11",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00014239",
+            "issue_date": "2020-11-15",
+            "expiry_date": "2025-11-14",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC- MASTER",
+            "certificate_number": "7421",
+            "issue_date": "2021-01-20",
+            "expiry_date": "2025-11-14",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": "GOC-6952",
+            "issue_date": "2020-08-05",
+            "expiry_date": "2025-08-04",
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "03964",
+            "issue_date": "2024-04-12",
+            "expiry_date": "2026-04-11",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "03964",
+            "international_medical_issue_date": "2024-04-12",
+            "international_medical_expiry_date": "2026-04-11",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "Pharaonic Shipping Co.", "rank": "2nd Off", "vessel_name": "Pharos", "signed_on": "2013-04-15", "signed_off": "2013-11-02", "period": "6.6", "vessel_type": "Bulk Carrier", "dwt": "24500" },
+            { "company_name": "National Navigation Co.", "rank": "Ch. Off", "vessel_name": "Wadi Alarab", "signed_on": "2016-08-20", "signed_off": "2017-03-10", "period": "6.7", "vessel_type": "Bulk Carrier", "dwt": "57000" },
+            { "company_name": "Pan Marine Shipping", "rank": "Master", "vessel_name": "Pan Horizon", "signed_on": "2020-02-11", "signed_off": "2020-09-30", "period": "7.6", "vessel_type": "G.C", "dwt": "5200" },
+            { "company_name": "Pan Marine Shipping", "rank": "Master", "vessel_name": "Pan Horizon", "signed_on": "2022-01-15", "signed_off": "2022-08-22", "period": "7.2", "vessel_type": "G.C", "dwt": "5200" }
+        ],
+        "marine_courses": [
+            { "course_name": "Proficiency In Personal Survival Techniques", "number": "L 511029", "issue_date": "2020-10-02", "expiry_date": "2025-10-01", "issued_by_at": "IHNS / ALEX." },
+            { "course_name": "Advanced Fire Prevention and Fire Fighting", "number": "L 511642", "issue_date": "2020-10-06", "expiry_date": "2025-10-05", "issued_by_at": "IHNS / ALEX." },
+            { "course_name": "Ship Handling And Maneuvering", "number": "14220/20/EG", "issue_date": "2020-12-03", "expiry_date": "XXXXX", "issued_by_at": "AAST / ALEX." }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "HAZEM ATEF KHAIRY HANAFY MAHMOUD ELBANAN",
+            "date_of_birth": "1982-05-14",
+            "marital_status": { "single": false, "married": true },
+            "nationality": "Egyptian",
+            "height_cm": "", "weight_kg": "",
+            "place_of_birth": "Cairo",
+            "overall_size": "", "shirt_size": "", "nearest_port": "Alexandria", "trouser_size": "", "shoes_size": ""
+        },
+        "2_education": {
+            "college_school": "",
+            "marline_test": { "issued_date": "", "result_percentage": "91%", "issued_by_authority": "", "issued_at": "" },
+            "english_language": { "fluent": false, "good": true, "average": false, "poor": false },
+            "german_language": { "fluent": false, "good": false, "average": false, "poor": false }
+        },
+        "3_contact_details": {
+            "home_address_city": "Cairo",
+            "e_mail": "hazem.elbanan@yahoo.com",
+            "mobile_tel": "01223456789"
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

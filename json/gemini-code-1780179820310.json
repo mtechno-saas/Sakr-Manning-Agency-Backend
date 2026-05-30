@@ -1,0 +1,156 @@
+{
+    "id": 88,
+    "user": 136,
+    "user_name": "HATEM MOHAMED MOUSSA ELSAMMAN",
+    "user_email_display": "hatemelsamman@yahoo.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/88/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-09-01",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:15:00.000000Z",
+    "updated_at": "2026-05-31T01:15:00.000000Z",
+    "generated_id": null,
+    "salary_display": "8000 USD",
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.044",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.044",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "PHOENICIA MARITIME", "rank": "", "vessel_name": "SUKHOOR ALKHALEEJ", "signed_on": "2020-12-02", "signed_off": "2021-05-25", "period": "6 month", "vessel_type": "BULK CARRIER", "dwt": "26381" },
+            { "company_name": "PHOENICIA MARITIME", "rank": "", "vessel_name": "JAWHART BERLIN", "signed_on": "2019-12-25", "signed_off": "2020-09-23", "period": "9 month", "vessel_type": "BULK CARRIER", "dwt": "26243" },
+            { "company_name": "ABC MARITIME", "rank": "", "vessel_name": "LIWA", "signed_on": "2019-02-20", "signed_off": "2019-09-15", "period": "7 month", "vessel_type": "BULK CARRIER", "dwt": "38236" },
+            { "company_name": "QATQR NAVIGATION", "rank": "", "vessel_name": "ALWAAB", "signed_on": "2018-03-03", "signed_off": "2018-08-28", "period": "5 month", "vessel_type": "CONTAINER", "dwt": "1660   TEUS" },
+            { "company_name": "CMA CGM", "rank": "", "vessel_name": "CMA CGM NINA", "signed_on": "2017-07-03", "signed_off": "2018-02-28", "period": "7 month", "vessel_type": "CONTAINER", "dwt": "1900 TEUS" },
+            { "company_name": "MARINE MASTER", "rank": "", "vessel_name": "MRINE MASTER 1", "signed_on": "2016-08-13", "signed_off": "", "period": "", "vessel_type": "", "dwt": "" }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "HATEM MOHAMED MOUSSA ELSAMMAN",
+            "date_of_birth": "1981-03-05",
+            "marital_status": {
+                "single": false,
+                "married": false
+            },
+            "nationality": "EGYPTIAN",
+            "height_cm": "187",
+            "weight_kg": "90",
+            "place_of_birth": "ALEXANDRIA-EGYPT",
+            "overall_size": "XXXL",
+            "shirt_size": "XXXL",
+            "nearest_port": "",
+            "trouser_size": "40",
+            "shoes_size": "45"
+        },
+        "2_education": {
+            "college_school": "",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "60 ELKAHRA STREET, ALEX - EGYPT",
+            "e_mail": "hatemelsamman@yahoo.com",
+            "mobile_tel": "01"
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

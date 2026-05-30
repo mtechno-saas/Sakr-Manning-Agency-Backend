@@ -1,0 +1,113 @@
+{
+    "id": 84,
+    "user": 132,
+    "user_name": "AHMED IBRAHIM ABDELAZIZ IBRAHIM MAHMOUD ISSA",
+    "user_email_display": "AHMEDIBR1014@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 5,
+    "position_name": "3rd or 2nd Officer",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/84/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2025-12-24",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T00:10:05.150Z",
+    "updated_at": "2026-05-31T00:10:05.150Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.092",
+            "rank_code": "DO-1.000",
+            "rank_name": "3rd or 2nd Officer"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.092",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A27709198",
+            "issue_date": "2021-01-05",
+            "expiry_date": "2028-01-04",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "43 (PORTSAID)",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S000058169",
+            "issue_date": "2025-09-29",
+            "expiry_date": "2030-08-20",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "088493",
+            "issue_date": "2024-10-22",
+            "expiry_date": "2029-10-22",
+            "issued_by": "Republic of Honduras",
+            "place_of_issue": "Honduras",
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank) …2nd officer..",
+            "certificate_number": "10299",
+            "issue_date": "2025-09-28",
+            "expiry_date": "2030-08-20",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": "24F2627",
+            "issue_date": "2024-10-22",
+            "expiry_date": "2029-10-22",
+            "issued_by": "Republic of Honduras",
+            "issued_at": "Piraeus",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "52163",
+            "issue_date": "2025-10-28",
+            "expiry_date": "2027-10-27",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "52163",
+            "international_medical_issue_date": "2025-10-28",
+            "international_medical_expiry_date": "2027-10-27",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "FARAH SHIPPING", "rank": "D.CADET", "vessel_name": "FARAH / 7126102", "signed_on": "2014-08-28", "signed_off": "2015-12-20", "period": "15 M", "vessel_type": "G.C", "dwt": "6341" },
+            { "company_name": "BLACK SEA MARINE S.A.", "rank": "2ND OFF", "vessel_name": "AK PIONEER / 9189718", "signed_on": "2017-03-17", "signed_off": "2018-05-25", "period": "14 M", "vessel_type": "G.C", "dwt": "7224" },
+            { "company_name": "BLACK SEA SHIP MANAGEMENT S.A.", "rank": "2ND OFF", "vessel_name": "HARMONY LIVESTOCK / 7349871", "signed_on": "2018-12-02", "signed_off": "2020-07-08", "period": "19 M", "vessel_type": "LIVESTOCK", "dwt": "2062" },
+            { "company_name": "BLACK SEA SHIP MANAGEMENT S.A.", "rank": "2ND OFF", "vessel_name": "SEASTAR LIVESTOCK / 6422303", "signed_on": "2020-08-05", "signed_off": "2020-11-27", "period": "3 M", "vessel_type": "LIVESTOCK", "dwt": "2140" },
+            { "company_name": "BLACK SEA SHIP MANAGEMENT S.A.", "rank": "CH.OFF", "vessel_name": "SEASTAR LIVESTOCK / 6422303", "signed_on": "2021-01-12", "signed_off": "2022-07-09", "period": "18 M", "vessel_type": "LIVESTOCK", "dwt": "2140" },
+            { "company_name": "BLACK SEA MARINE S.A.", "rank": "CH.OFF", "vessel_name": "SEA EXPLORER / 8603547", "signed_on": "2022-11-09", "signed_off": "2024-11-28", "period": "24 M", "vessel_type": "G.C", "dwt": "5528" },
+            { "company_name": "BLACK SEA MARINE S.A.", "rank": "MASTER", "vessel_name": "SEA EXPLORER / 8603547", "signed_on": "2024-11-29", "signed_off": "2025-03-27", "period": "4 M", "vessel_type": "G.C", "dwt": "5528" }
+        ],
+        "marine_courses": [
+            { "course_name": "Proficiency In Personal Survival Techniques", "number": "38866/25/EG", "issue_date": "2025-09-18", "expiry_date": "2030-09-14", "issued_by_at": "EAMS / AAST" },
+            { "course_name": "Advanced Fire Prevention and Fire Fighting", "number": "38883/25/EG", "issue_date": "2025-09-18", "expiry_date": "2030-09-14", "issued_by_at": "EAMS / AAST" },
+            { "course_name": "Elementary First Aid", "number": "39307/25/EG", "issue_date": "2025-09-23", "expiry_date": "2030-09-17", "issued_by_at": "EAMS / AAST" },
+            { "course_name": "Medical Care Studies", "number": "24F2632", "issue_date": "2024-09-24", "expiry_date": "2029-09-23", "issued_by_at": "Republic of Honduras" },
+            { "course_name": "Personal Safety and Social Responsibilities", "number": "39412/25/EG", "issue_date": "2025-09-24", "expiry_date": "2030-09-17", "issued_by_at": "EAMS / AAST" },
+            { "course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "39708/25/EG", "issue_date": "2025-09-24", "expiry_date": "2030-

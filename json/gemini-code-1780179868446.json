@@ -1,0 +1,154 @@
+{
+    "id": 96,
+    "user": 144,
+    "user_name": "HAYTHAM ESSA IBRAHIM ELRIDY",
+    "user_email_display": "",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/96/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:20:00.000000Z",
+    "updated_at": "2026-05-31T01:20:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.051",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.051",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "ELREEDY SHIPPING AGENCY", "rank": "MASTER", "vessel_name": "MAR BIANCO", "signed_on": "2017-03-25", "signed_off": "2017-06-28", "period": "00Y 03M 02D", "vessel_type": "GENERAL CARGO", "dwt": "6574.5 M/T" },
+            { "company_name": "ELREEDY SHIPPING AGENCY", "rank": "MASTER", "vessel_name": "ELREEDY STAR", "signed_on": "2017-07-13", "signed_off": "2017-12-04", "period": "00Y 04M 20D", "vessel_type": "CONTAINER", "dwt": "20565 M/T" },
+            { "company_name": "ELREEDY SHIPPING AGENCY", "rank": "MASTER", "vessel_name": "SC1I", "signed_on": "2016-12-06", "signed_off": "2019-05-04", "period": "01Y 04M 28D", "vessel_type": "CEMENT CARRIER", "dwt": "5500 M/T" },
+            { "company_name": "ELREEDY SHIPPING AGENCY", "rank": "MASTER", "vessel_name": "ELREEDY STAR", "signed_on": "2019-05-22", "signed_off": "2019-08-09", "period": "00Y 02M 16D", "vessel_type": "CONTAINER", "dwt": "20565 M/T" }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "HAYTHAM ESSA IBRAHIM ELRIDY",
+            "date_of_birth": "1979-08-01",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "EGYPTIAN",
+            "height_cm": "165",
+            "weight_kg": "75",
+            "place_of_birth": "DAMIETTA - EGYPT",
+            "overall_size": "XL",
+            "shirt_size": "XL",
+            "nearest_port": "",
+            "trouser_size": "34",
+            "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "ARAB ACADEMY FOR SCIENCE AND TECHNOLOGY AND MARITIME TRANSPORT (AASTMT).",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": true,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "VILLA NO 07 STREET 47 RAS ELBAR-DAMIETTA- EGYPT",
+            "e_mail": "",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

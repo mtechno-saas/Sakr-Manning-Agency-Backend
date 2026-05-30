@@ -1,0 +1,155 @@
+{
+    "id": 107,
+    "user": 155,
+    "user_name": "Loay Hossam eldin elbeshouty",
+    "user_email_display": "Captin_loay88@yahoo.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2,
+    "position_name": "Master / Captain",
+    "cv_file": "https://backend.sakrshipping.com/api/cv-submissions/107/download-cv/",
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T01:34:00.000000Z",
+    "updated_at": "2026-05-31T01:34:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DO-1.007",
+            "rank_code": "DO-1.000",
+            "rank_name": "Master / Captain"
+        }
+    ],
+    "rank_code": "DO-1.000",
+    "assigned_code": "DO-1.007",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "Arab Academy for Science, Technology & Maritime Transport",
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            { "company_name": "UNIMAR S.C.", "rank": "CH. OFF.", "vessel_name": "DELTA NORTH", "signed_on": "2017-11-04", "signed_off": "2018-04-01", "period": "", "vessel_type": "CONTAINER SHIP", "dwt": "6850T" },
+            { "company_name": "UME Co.", "rank": "2ND OFF.", "vessel_name": "Poseidon express", "signed_on": "2018-07-07", "signed_off": "2018-10-01", "period": "", "vessel_type": "RORO PAX", "dwt": "10996 T" },
+            { "company_name": "UME Co.", "rank": "2ND OFF", "vessel_name": "Poseidon express", "signed_on": "2018-11-17", "signed_off": "2019-02-16", "period": "", "vessel_type": "RORO PAX", "dwt": "10996 T" },
+            { "company_name": "UME Co.", "rank": "2ND OFF", "vessel_name": "Poseidon express", "signed_on": "2019-03-30", "signed_off": "2019-07-01", "period": "", "vessel_type": "RORO PAX", "dwt": "10996 T" },
+            { "company_name": "UME Co.", "rank": "CH. OFF.", "vessel_name": "Poseidon express", "signed_on": "2019-07-28", "signed_off": "2019-11-29", "period": "", "vessel_type": "RORO PAX", "dwt": "10996 T" }
+        ],
+        "marine_courses": [],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Loay Hossam eldin elbeshouty",
+            "date_of_birth": "1988-08-03",
+            "marital_status": {
+                "single": true,
+                "married": false
+            },
+            "nationality": "Egyptian",
+            "height_cm": "175 cm",
+            "weight_kg": "95 kg",
+            "place_of_birth": "Alexandria",
+            "overall_size": "xl",
+            "shirt_size": "xl",
+            "nearest_port": "",
+            "trouser_size": "40",
+            "shoes_size": "45"
+        },
+        "2_education": {
+            "college_school": "Arab Academy for Science, Technology & Maritime Transport",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "18 ST. HEREDUT ELSHTEBY, ALEXANDRIA, EGYPT",
+            "e_mail": "Captin_loay88@yahoo.com",
+            "mobile_tel": ""
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}
