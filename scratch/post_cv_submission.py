@@ -18,128 +18,11 @@ django.setup()
 from api.models import Users, CVSubmission, Rank, UserRank, SeaService, Certificate
 from api.serializer import CVSubmissionSerializer
 
-def run_ingestion():
-    # The full raw JSON from the AI CV Extractor
-    # You can also load this from a file: json.load(open('data.json'))
-    ai_data = {
-        "user_name": "MOHAMED HASSAN ALI ABDOU ELSHAHAT",
-        "user_email_display": "elshahatm97@yahoo.com",
-        "position_name": "Master / Captain",
-        "status": "Pending",
-        "notes": "Auto-submitted via AI CV Extractor",
-        "coded_rank": [
-            {
-                "assigned_code": "DO-1.002",
-                "rank_code": "DO-1.000",
-                "rank_name": "Master / Captain"
-            }
-        ],
-        "user_documents": {
-            "passport": {
-                "passport_no": "A16531381",
-                "issue_date": "2015-10-28",
-                "expiry_date": "2022-10-27",
-                "issued_by": "Egyptian Authority",
-                "place_of_issue": "Damietta"
-            },
-            "seaman_book": {
-                "seaman_book_no": "S00016399",
-                "issue_date": "2021-07-11",
-                "expiry_date": "2026-05-06",
-                "issued_by": "EAMS",
-                "place_of_issue": "Alex."
-            },
-            "other_seaman_book": {},
-            "coc": {
-                "certificate_name": "COC- MASTER",
-                "certificate_number": "6661",
-                "issue_date": "2021-07-07",
-                "expiry_date": "2026-05-06",
-                "issued_by": "EAMS",
-                "issued_at": "Alex."
-            },
-            "goc": {
-                "certificate_number": "",
-                "issue_date": "",
-                "expiry_date": "",
-                "issued_by": "NTRA",
-                "issued_at": "Cairo"
-            },
-            "sea_service": [],
-            "marine_courses": []
-        },
-        "seafarer_application": {
-            "1_personal_details": {
-                "full_name": "MOHAMED HASSAN ALI ABDOU ELSHAHAT",
-                "date_of_birth": "1975-09-12",
-                "marital_status": {"single": False, "married": True},
-                "nationality": "Egyptian",
-                "place_of_birth": "Damietta",
-            },
-            "3_contact_details": {
-                "home_address_city": "Damietta",
-                "e_mail": "elshahatm97@yahoo.com",
-                "mobile_tel": "01008450855"
-            },
-            "7_health_certificates_and_vaccinations": {
-                "certificates": [
-                    {
-                        "type": "International Medical",
-                        "number": "02734",
-                        "issue_date": "2021-08-05",
-                        "expiry_date": "2023-08-04",
-                        "issued_by": "EAMS",
-                        "issued_at": "Alex."
-                    }
-                ]
-            },
-            "8_marine_courses": [
-                {
-                    "course_name": "Proficiency In Personal Survival Techniques",
-                    "number": "L 574096",
-                    "issue_date": "2021-05-06",
-                    "expiry_date": "2026-05-05",
-                    "issued_by_at": "IHNS / ALEX."
-                },
-                {
-                    "course_name": "Advanced Fire Prevention and Fire Fighting",
-                    "number": "L 574509",
-                    "issue_date": "2021-05-11",
-                    "expiry_date": "2026-05-10",
-                    "issued_by_at": "IHNS / ALEX."
-                }
-            ],
-            "9_complete_sea_service_details": {
-                "service_records": [
-                    {
-                        "company_name": "Successors shipping s.a",
-                        "rank": "2nd off",
-                        "vessel_name": "Arbalest",
-                        "signed_on": "2011-06-03",
-                        "signed_off": "2012-02-02",
-                        "period": "7.29",
-                        "vessel_type": "G.C",
-                        "dwt": "6788"
-                    },
-                    {
-                        "company_name": "Hydar shipping",
-                        "rank": "Master",
-                        "vessel_name": "AZZA H",
-                        "signed_on": "2019-04-21",
-                        "signed_off": "2020-03-23",
-                        "period": "11.2",
-                        "vessel_type": "G.C",
-                        "dwt": "1955"
-                    }
-                ]
-            }
-        }
-    }
-
+def run_ingestion(ai_data, file_name=""):
     email = ai_data.get("user_email_display")
     if not email:
-        print("Error: No email provided in data.")
-        return
+        print(f"[{file_name}] Error: No email provided in data.")
+        return False
 
     # 1. FIND OR CREATE THE USER
     user, created = Users.objects.get_or_create(
@@ -233,10 +116,10 @@ def run_ingestion():
 
     if serializer.is_valid():
         submission = serializer.save(user=user)
-        print(f"Successfully ingested CV Submission ID: {submission.id} via DRF Service Layer.")
+        print(f"[{file_name}] Successfully ingested CV Submission ID: {submission.id} via DRF Service Layer.")
     else:
-        print("Serializer validation failed:", json.dumps(serializer.errors, indent=2))
-        return
+        print(f"[{file_name}] Serializer validation failed:", json.dumps(serializer.errors, indent=2))
+        return False
 
     # 3. MANUALLY INGEST SEA SERVICES via ORM
     # Try user_documents first, fallback to seafarer_application
@@ -247,8 +130,17 @@ def run_ingestion():
     if sea_services_data:
         count = 0
         for ss_data in sea_services_data:
-            ss_signed_on = ss_data.get("signed_on") or None
-            ss_signed_off = ss_data.get("signed_off") or None
+            ss_signed_on = ss_data.get("signed_on")
+            if ss_signed_on and (ss_signed_on == "XXXXX" or ss_signed_on == "UNLIMITED"):
+                ss_signed_on = None
+            else:
+                ss_signed_on = ss_signed_on or None
+
+            ss_signed_off = ss_data.get("signed_off")
+            if ss_signed_off and (ss_signed_off == "XXXXX" or ss_signed_off == "UNLIMITED"):
+                ss_signed_off = None
+            else:
+                ss_signed_off = ss_signed_off or None
             
             if SeaService.objects.filter(
                 user=user, 
@@ -296,12 +188,20 @@ def run_ingestion():
                 elif issued_by_at:
                     issued_by = issued_by_at
                     
+                issue_date = course_data.get("issue_date")
+                if issue_date and (issue_date == "XXXXX" or issue_date == "UNLIMITED"):
+                    issue_date = None
+                    
+                expiry_date = course_data.get("expiry_date")
+                if expiry_date and (expiry_date == "XXXXX" or expiry_date == "UNLIMITED"):
+                    expiry_date = None
+
                 Course.objects.create(
                     user=user,
                     course_name=course_data.get("course_name"),
                     course_number=course_data.get("number"),
-                    issue_date=course_data.get("issue_date") or None,
-                    expiry_date=course_data.get("expiry_date") or None,
+                    issue_date=issue_date or None,
+                    expiry_date=expiry_date or None,
                     issued_by=issued_by,
                     issued_at=issued_at
                 )
@@ -309,6 +209,47 @@ def run_ingestion():
             print(f"Ingested {count} new Marine Course records.")
         except ImportError:
             print("Warning: courses.models.Course not found.")
+
+    return True
+
+def process_folder(folder_path="json"):
+    import shutil
+    
+    # Ensure folder paths exist
+    folder_path = os.path.join(project_root, folder_path)
+    processed_folder = os.path.join(project_root, f"{folder_path}_processed")
+    os.makedirs(processed_folder, exist_ok=True)
+    
+    if not os.path.exists(folder_path):
+        print(f"Folder not found: {folder_path}")
+        return
+
+    json_files = [f for f in os.listdir(folder_path) if f.endswith('.json')]
+    print(f"Found {len(json_files)} JSON files in {folder_path}. Starting batch processing...\n")
+
+    success_count = 0
+    fail_count = 0
+
+    for filename in json_files:
+        file_path = os.path.join(folder_path, filename)
+        print(f"--- Processing {filename} ---")
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                ai_data = json.load(f)
+            
+            success = run_ingestion(ai_data, file_name=filename)
+            
+            if success:
+                # Move to processed folder
+                shutil.move(file_path, os.path.join(processed_folder, filename))
+                success_count += 1
+            else:
+                fail_count += 1
+        except Exception as e:
+            print(f"[{filename}] Error reading or processing file: {e}")
+            fail_count += 1
+
+    print(f"\nBatch processing complete! Success: {success_count}, Failed: {fail_count}")
 
 def cleanup_duplicates():
     from django.db.models import Count
@@ -333,5 +274,6 @@ def cleanup_duplicates():
             print(f"Cleaned up {deleted_count} duplicate CV Submissions for User ID {user_id}.")
 
 if __name__ == "__main__":
-    run_ingestion()
+    process_folder("json")
+    print("Running duplicate cleanup just in case...")
     cleanup_duplicates()
