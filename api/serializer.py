@@ -399,7 +399,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
         Returns all assigned rank codes for the user.
         Each entry contains: assigned_code, rank_code, rank_name.
         """
-        user_ranks = obj.user.user_ranks.select_related('rank').all()
+        user_ranks = obj.user.user_ranks.select_related('rank').order_by('-id')[:1]
         return [
             {
                 'assigned_code': ur.assigned_code,
@@ -1084,7 +1084,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         Returns all assigned rank codes for the user.
         Each entry contains: assigned_code, rank_code, rank_name.
         """
-        user_ranks = obj.user.user_ranks.select_related('rank').all()
+        user_ranks = obj.user.user_ranks.select_related('rank').order_by('-id')[:1]
         return [
             {
                 'assigned_code': ur.assigned_code,
@@ -1558,7 +1558,7 @@ class ContractSerializer(serializers.ModelSerializer):
 
     def get_coded_rank(self, obj):
         if not obj.user: return []
-        user_ranks = obj.user.user_ranks.select_related('rank').all()
+        user_ranks = obj.user.user_ranks.select_related('rank').order_by('-id')[:1]
         return [
             {
                 'assigned_code': ur.assigned_code,
@@ -2336,7 +2336,7 @@ class UsersSerializer(serializers.ModelSerializer):
         Returns all assigned rank codes for the user.
         Each entry contains: assigned_code, rank_code, rank_name.
         """
-        user_ranks = obj.user_ranks.select_related('rank').all()
+        user_ranks = obj.user_ranks.select_related('rank').order_by('-id')[:1]
         return [
             {
                 'assigned_code': ur.assigned_code,
