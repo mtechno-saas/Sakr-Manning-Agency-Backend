@@ -2,9 +2,11 @@ import streamlit as st
 import pandas as pd
 import json
 import time
+import os
 import requests
 import google.generativeai as genai
 import PyPDF2
+import docx
 from io import BytesIO
 
 # --- AI Extraction Logic ---
@@ -17,7 +19,22 @@ def extract_text_from_pdf(pdf_file):
             text += extracted + "\n"
     return text
 
-def parse_cv_with_ai(pdf_bytes, cv_text, api_key, target_rank="All Ranks", filename=""):
+def extract_text_from_docx(docx_file):
+    """Extract text from a DOCX file using python-docx."""
+    doc = docx.Document(docx_file)
+    text = ""
+    for paragraph in doc.paragraphs:
+        if paragraph.text.strip():
+            text += paragraph.text + "\n"
+    # Also extract text from tables (CVs often use tables for layout)
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                if cell.text.strip():
+                    text += cell.text + "\n"
+    return text
+
+def parse_cv_with_ai(file_bytes, cv_text, api_key, target_rank="All Ranks", filename="", is_docx=False):
     genai.configure(api_key=api_key)
     model_name = None
     try:
@@ -38,25 +55,31 @@ def parse_cv_with_ai(pdf_bytes, cv_text, api_key, target_rank="All Ranks", filen
     You are an AI assistant that extracts structured information from resumes/CVs.
     
     Target Rank to look for: {target_rank}
-    PDF Filename (use as a hint if the CV text is incomplete): {filename}
+    Filename (use as a hint if the CV text is incomplete): {filename}
     
-    Extract the following details from the attached PDF document.
+    Extract the following details from the {'document text below' if is_docx else 'attached PDF document'}.
     - Full Name (IMPORTANT: If the name is not clearly found in the document, try to infer it from the filename above. The filename often contains the rank and full name, e.g. "OILER John Smith.pdf")
     - Email Address (IMPORTANT: Look for any email address. It may be labeled as "Email", "E-mail", "Gmail", "GMAIL", "Mail", "E-Mail Address", or similar. Extract the full email address like example@gmail.com)
     - Phone Number (may be labeled as "Phone", "Mobile", "Tel", "Mob", "Cell", "WhatsApp", or similar)
     - Rank (IMPORTANT: Infer the most recent rank from the document. If not found, infer from the filename. If the candidate's rank clearly matches or is equivalent to the Target Rank '{target_rank}', output exactly '{target_rank}'. Otherwise, output their actual inferred rank.)
     
-    CRITICAL: Never return empty strings if you can infer the information from either the PDF OR the filename. Try your best to fill every field.
+    CRITICAL: Never return empty strings if you can infer the information from either the document OR the filename. Try your best to fill every field.
     
     Return ONLY a valid JSON object with the following exact keys:
     {{"full_name": "", "email": "", "phone": "", "rank": ""}}
     """
     
     try:
-        response = model.generate_content([
-            {"mime_type": "application/pdf", "data": pdf_bytes},
-            prompt
-        ])
+        if is_docx:
+            # For DOCX files, send extracted text as part of the prompt
+            docx_prompt = prompt + f"\n\n--- DOCUMENT TEXT ---\n{cv_text}\n--- END OF DOCUMENT ---"
+            response = model.generate_content(docx_prompt)
+        else:
+            # For PDF files, send the raw binary directly to Gemini
+            response = model.generate_content([
+                {"mime_type": "application/pdf", "data": file_bytes},
+                prompt
+            ])
         text_resp = response.text.strip()
         
         if text_resp.startswith("```json"):
@@ -79,8 +102,15 @@ def send_to_django(extracted_data, file_obj, django_url, auth_token=""):
     
     # We send the data as multipart/form-data so we can include the physical file
     # Ensure the key 'file' matches what your Django serializer expects for the document!
+    # Determine correct mime type based on file extension
+    file_ext = os.path.splitext(file_obj.name)[1].lower()
+    if file_ext == '.docx':
+        mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    else:
+        mime_type = 'application/pdf'
+    
     files = {
-        'file': (file_obj.name, file_obj, 'application/pdf')
+        'file': (file_obj.name, file_obj, mime_type)
     }
     
     # The extracted JSON data is sent as form fields. 
@@ -154,7 +184,7 @@ ranks = [
 ]
 target_rank = st.selectbox("Filter by Target Rank", options=ranks)
 
-uploaded_files = st.file_uploader("Drop PDF files here", type=["pdf"], accept_multiple_files=True)
+uploaded_files = st.file_uploader("Drop PDF or DOCX files here", type=["pdf", "docx"], accept_multiple_files=True)
 
 if uploaded_files:
     if not api_key:
@@ -171,14 +201,21 @@ if uploaded_files:
             for i, file in enumerate(uploaded_files):
                 status_text.text(f"Processing {file.name} ({i+1}/{len(uploaded_files)})...")
                 
-                # Step A: Read raw bytes and extract text (for debugging)
+                # Step A: Read raw bytes and extract text
                 file.seek(0)
-                pdf_bytes = file.read()
+                file_bytes = file.read()
                 file.seek(0)
-                cv_text = extract_text_from_pdf(file)
                 
-                # Step B: AI Parse directly using PDF bytes
-                result = parse_cv_with_ai(pdf_bytes, cv_text, api_key, target_rank, filename=file.name)
+                file_ext = os.path.splitext(file.name)[1].lower()
+                is_docx = file_ext == '.docx'
+                
+                if is_docx:
+                    cv_text = extract_text_from_docx(file)
+                else:
+                    cv_text = extract_text_from_pdf(file)
+                
+                # Step B: AI Parse (PDF sent as binary, DOCX sent as extracted text)
+                result = parse_cv_with_ai(file_bytes, cv_text, api_key, target_rank, filename=file.name, is_docx=is_docx)
                 
                 if "error" in result:
                     st.error(f"❌ Failed to parse {file.name}: {result['error']}")
@@ -187,7 +224,7 @@ if uploaded_files:
                     # Fallback: If AI couldn't extract the name, extract it from the filename
                     if not result.get("full_name"):
                         # Remove .pdf, numbers, and common suffixes
-                        clean_name = re.sub(r'\.pdf$', '', file.name, flags=re.IGNORECASE)
+                        clean_name = re.sub(r'\.(pdf|docx)$', '', file.name, flags=re.IGNORECASE)
                         clean_name = re.sub(r'_Application|_CV|\d+', '', clean_name, flags=re.IGNORECASE)
                         clean_name = clean_name.replace('_', ' ').strip()
                         
