@@ -1359,13 +1359,14 @@ class DocumentViewSet(viewsets.ModelViewSet):
         if document.phone_number:
             user.phone_number = document.phone_number
             
-        # Update new fields
-        if document.title:
-            user.title = document.title
-        if document.file:
-            user.file = document.file
-        if document.position:
-            user.position = document.position
+        # Only sync position/title/file for Employee users (not admins)
+        if user.role == 'Employee':
+            if document.title:
+                user.title = document.title
+            if document.file:
+                user.file = document.file
+            if document.position:
+                user.position = document.position
             
         user.save()
 
