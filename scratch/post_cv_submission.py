@@ -212,12 +212,12 @@ def run_ingestion(ai_data, file_name=""):
 
     return True
 
-def process_folder(folder_path="json"):
+def process_folder(folder_path="all_json_files"):
     import shutil
     
     # Ensure folder paths exist
     folder_path = os.path.join(project_root, folder_path)
-    processed_folder = os.path.join(project_root, f"{folder_path}_processed")
+    processed_folder = os.path.join(project_root, f"{os.path.basename(folder_path)}_processed")
     os.makedirs(processed_folder, exist_ok=True)
     
     if not os.path.exists(folder_path):
@@ -274,6 +274,6 @@ def cleanup_duplicates():
             print(f"Cleaned up {deleted_count} duplicate CV Submissions for User ID {user_id}.")
 
 if __name__ == "__main__":
-    process_folder("json")
+    process_folder("all_json_files")
     print("Running duplicate cleanup just in case...")
     cleanup_duplicates()
