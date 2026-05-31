@@ -83,7 +83,6 @@ def run_ingestion(ai_data, file_name=""):
         "position": ai_data.get("position_name"),
         "status": ai_data.get("status"),
         "notes": ai_data.get("notes"),
-        "coded_rank_input": ai_data.get("coded_rank"),
         "passport_update": ai_data["user_documents"].get("passport"),
         "seaman_book_update": ai_data["user_documents"].get("seaman_book"),
         "coc_update": ai_data["user_documents"].get("coc"),
