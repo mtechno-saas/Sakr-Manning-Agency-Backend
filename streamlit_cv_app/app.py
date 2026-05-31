@@ -22,17 +22,21 @@ def extract_text_from_pdf(pdf_file):
 
 def extract_text_from_docx(docx_file):
     """Extract text from a DOCX file using python-docx."""
-    doc = docx.Document(docx_file)
-    text = ""
-    for paragraph in doc.paragraphs:
-        if paragraph.text.strip():
-            text += paragraph.text + "\n"
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                if cell.text.strip():
-                    text += cell.text + "\n"
-    return text
+    try:
+        doc = docx.Document(docx_file)
+        text = ""
+        for paragraph in doc.paragraphs:
+            if paragraph.text.strip():
+                text += paragraph.text + "\n"
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    if cell.text.strip():
+                        text += cell.text + "\n"
+        return text
+    except Exception as e:
+        print(f"Warning: Failed to extract text from DOCX using python-docx: {e}")
+        return f"[Error: Could not extract text from DOCX file. File may be corrupted or contain invalid media: {e}]"
 
 def parse_cv_with_ai(file_bytes, cv_text, api_key, filename="", is_docx=False):
     genai.configure(api_key=api_key)
