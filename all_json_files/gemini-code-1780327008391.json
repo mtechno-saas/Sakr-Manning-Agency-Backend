@@ -1,0 +1,144 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "AHMED MAHDY MOHAMED ETOUM YAAKOUB",
+    "user_email_display": "BVARA9090@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "A.B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-10-10",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": null,
+    "generated_id": "DR-2.154",
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.154",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A31854288",
+            "issue_date": "2022-10-19",
+            "expiry_date": "2029-10-18",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "DAMIETTA",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00027341",
+            "issue_date": "2022-12-06",
+            "expiry_date": "2027-12-04",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "09214",
+            "issue_date": "2022-12-15",
+            "expiry_date": "2024-12-14",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "09214",
+            "international_medical_issue_date": "2022-12-15",
+            "international_medical_expiry_date": "2024-12-14",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {"vessel_name": "M/V NADER", "rank": "A.B", "vessel_type": "RO-RO LIVE STOCK CARRIER", "flag": "ZANZIBAR", "signed_on": "2018-05-30", "signed_off": "2018-12-26"},
+            {"vessel_name": "M/V NADER", "rank": "A.B", "vessel_type": "RO-RO LIVE STOCK CARRIER", "flag": "ZANZIBAR", "signed_on": "2019-01-18", "signed_off": "2019-05-29"},
+            {"vessel_name": "M/V NADER", "rank": "A.B", "vessel_type": "RO-RO LIVE STOCK CARRIER", "flag": "ZANZIBAR", "signed_on": "2019-06-29", "signed_off": "2020-06-10"},
+            {"vessel_name": "ALBADRI 1", "rank": "A.B", "vessel_type": "LIVE STOCK", "flag": "ZANZIBAR", "signed_on": "2020-12-24", "signed_off": "2021-09-28"},
+            {"vessel_name": "ALBADRI 1", "rank": "A.B", "vessel_type": "LIVE STOCK", "flag": "ZANZIBAR", "signed_on": "2021-12-08", "signed_off": "2022-07-30"},
+            {"vessel_name": "AF CLAUDIA", "rank": "A.B", "vessel_type": "RO-RO PASSENGER", "flag": "NAPOLI", "signed_on": "2023-02-10", "signed_off": "2023-09-10"}
+        ],
+        "marine_courses": [
+            {"course_name": "Personal Survival Techniques", "number": "27780/22/EG", "issue_date": "2022-09-18", "expiry_date": "2027-09-07"},
+            {"course_name": "Fire Prevention and Fire Fighting", "number": "27780/22/EG", "issue_date": "2022-09-18", "expiry_date": "2027-09-07"},
+            {"course_name": "Medical Care Studies", "number": "27780/22/EG", "issue_date": "2022-09-18", "expiry_date": "2027-09-07"},
+            {"course_name": "Personal Safety and Social Responsibilities", "number": "27780/22/EG", "issue_date": "2022-09-18", "expiry_date": "2027-09-07"},
+            {"course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "XNA1128", "issue_date": "2022-11-16", "expiry_date": "2027-11-14"},
+            {"course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "21726/20/EG", "issue_date": "2020-09-07", "expiry_date": "2025-02-02"},
+            {"course_name": "Navigational Watch keeping", "number": "622/23/EG", "issue_date": "2023-01-11", "expiry_date": null},
+            {"course_name": "Proficiency for Rating forming part of Navigational watch (II/4)", "number": "01222", "issue_date": "2023-01-17", "expiry_date": null},
+            {"course_name": "Passenger Safety Cargo Safety and Hull integrity", "number": "20262/22/EG", "issue_date": "2022-12-18", "expiry_date": "2027-12-14"},
+            {"course_name": "Crowd Management Training", "number": "20247/22/EG", "issue_date": "2022-12-18", "expiry_date": "2027-12-13"},
+            {"course_name": "Crisis Management and Human Behavior Training", "number": "20231/22/EG", "issue_date": "2022-12-18", "expiry_date": "2027-12-12"},
+            {"course_name": "Safety training for Personal Prov. Direct Passengers", "number": "20216/22/EG", "issue_date": "2022-12-18", "expiry_date": "2027-12-11"}
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "AHMED MAHDY MOHAMED ETOUM YAAKOUB",
+            "date_of_birth": "1992-04-01",
+            "marital_status": {"single": false, "married": false},
+            "nationality": "EGYPTIAN",
+            "height_cm": "179",
+            "weight_kg": "68",
+            "place_of_birth": "DAMIETTA",
+            "overall_size": "xl",
+            "shirt_size": "xl",
+            "nearest_port": "",
+            "trouser_size": "32",
+            "shoes_size": "45"
+        },
+        "2_education": {
+            "college_school": "Obtain a marine diploma",
+            "marline_test": {"issued_date": "", "result_percentage": "", "issued_by_authority": "", "issued_at": ""},
+            "english_language": {"fluent": false, "good": false, "average": false, "poor": false}
+        },
+        "3_contact_details": {
+            "home_address_city": "EGYPT – DAMIETTA -  EZBET ELBORG",
+            "e_mail": "Bvara9090@gmail.com",
+            "mobile_tel": "+201221617306"
+        }
+    }
+}

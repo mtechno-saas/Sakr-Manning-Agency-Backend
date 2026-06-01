@@ -1,0 +1,89 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mahmoud Ahmed Abdelghany Elsisi",
+    "user_email_display": "mahmod20202018@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "Third Officer",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": "1000$",
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-03-13",
+    "notes": "Auto-submitted via AI CV Extractor",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.037",
+            "rank_code": null,
+            "rank_name": ""
+        }
+    ],
+    "assigned_code": "DR-2.037",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A22359059",
+            "issue_date": "2018-04-12",
+            "expiry_date": "2025-04-11",
+            "issued_by": "Egyptian Authority"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00029421",
+            "issue_date": "2023-03-05",
+            "expiry_date": "2028-01-03",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex."
+        },
+        "sea_service": [
+            {
+                "vessel_name": "Ras-Mohamed",
+                "rank": "Seaman OS",
+                "vessel_type": "RO-RO Ship",
+                "signed_on": "2018-05-21",
+                "signed_off": "2018-07-12"
+            },
+            {
+                "vessel_name": "Flower of Sea",
+                "rank": "Seaman OS",
+                "vessel_type": "General Cargo",
+                "signed_on": "2019-09-14",
+                "signed_off": "2021-04-01"
+            },
+            {
+                "vessel_name": "Copernico",
+                "rank": "Seaman AB",
+                "vessel_type": "General Cargo",
+                "signed_on": "2021-07-08",
+                "signed_off": "2022-06-06"
+            }
+        ],
+        "marine_courses": [
+            {
+                "course_name": "Proficiency In Personal Survival Techniques",
+                "number": "Table A-VI/1-1",
+                "issue_date": "2023-02-22",
+                "expiry_date": "2028-02-20",
+                "issued_by": "AASTMT"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mahmoud Ahmed Abdelghany Elsisi",
+            "date_of_birth": "1995-09-25",
+            "nationality": "Egyption",
+            "height_cm": "172",
+            "weight_kg": "69",
+            "place_of_birth": "Sanaded,Tanta,elgharbia,Egypt"
+        },
+        "3_contact_details": {
+            "home_address_city": "Sanded,Tanta,elgarbia,Egypt",
+            "e_mail": "mahmod20202018@gmail.com",
+            "mobile_tel": "01206208005"
+        }
+    }
+}

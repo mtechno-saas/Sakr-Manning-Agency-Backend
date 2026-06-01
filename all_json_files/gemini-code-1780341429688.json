@@ -1,0 +1,59 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mahmoud Mohamed Mohamed Gaballa",
+    "user_email_display": "Mahmoudgaballh83@gmail.com",
+    "position_name": "ABLE SEAFARER DECK",
+    "expected_salary": "1400 USD",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.072"
+        }
+    ],
+    "assigned_code": "DR-2.072",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A28280453",
+            "issue_date": "2021-05-26",
+            "expiry_date": "2028-05-25",
+            "issued_by": "Egyptian Authority"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00004470",
+            "issue_date": "2019-11-06",
+            "expiry_date": "2024-09-25",
+            "issued_by": "EAMS"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "AIPP GOLD",
+                "rank": "A.B",
+                "vessel_type": "container",
+                "signed_on": "2022-04-22",
+                "signed_off": "2022-11-11"
+            },
+            {
+                "vessel_name": "ALASA",
+                "rank": "A.B",
+                "vessel_type": "container",
+                "signed_on": "2021-07-27",
+                "signed_off": "2022-02-11"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mahmoud Mohamed Mohamed Gaballa",
+            "date_of_birth": "1983-08-06",
+            "nationality": "Egyptian",
+            "height_cm": "175",
+            "weight_kg": "80",
+            "place_of_birth": "K.ELSKIEKH"
+        },
+        "3_contact_details": {
+            "home_address_city": "K.ELSKIEKH",
+            "e_mail": "Mahmoudgaballh83@gmail.com",
+            "mobile_tel": "+201001279953"
+        }
+    }
+}

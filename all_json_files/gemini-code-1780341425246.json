@@ -1,0 +1,74 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mahmoud Mohamed Mohamed attia abo sheta",
+    "user_email_display": "aboshetamahmoud4@gmail.com",
+    "position_name": "AB",
+    "expected_salary": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.144"
+        }
+    ],
+    "assigned_code": "DR-2.144",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A23539469",
+            "issue_date": "2018-10-17",
+            "expiry_date": "2025-10-16",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Damietta"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00024056",
+            "issue_date": "2022-07-25",
+            "expiry_date": "2027-07-20",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex."
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "Cy259954",
+            "issue_date": "2016-11-18",
+            "expiry_date": "2026-11-17",
+            "issued_by": "Cyprus"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "Sirios",
+                "rank": "Seaman",
+                "vessel_type": "Genral cargo",
+                "signed_on": "2000-03-12",
+                "signed_off": "2001-11-11"
+            },
+            {
+                "vessel_name": "M/V Eltsin",
+                "rank": "AB",
+                "vessel_type": "Genral cargo",
+                "signed_on": "2007-08-27",
+                "signed_off": "2009-09-01"
+            }
+        ],
+        "marine_courses": [
+            {
+                "course_name": "Personal Survival Techniques",
+                "number": "19379/22/EG",
+                "issue_date": "2022-06-28",
+                "expiry_date": "2022-06-22"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mahmoud Mohamed Mohamed attia abo sheta",
+            "date_of_birth": "1979-08-28",
+            "nationality": "Egypt",
+            "height_cm": "173",
+            "weight_kg": "70"
+        },
+        "3_contact_details": {
+            "home_address_city": "Egypt damietta ezbet elborg",
+            "e_mail": "aboshetamahmoud4@gmail.com",
+            "mobile_tel": "00201284342306"
+        }
+    }
+}

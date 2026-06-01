@@ -1,0 +1,135 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Hesham Mahmoud Mohamed Hassan Farag Azzam",
+    "user_email_display": "HESHAMAZZAM678@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "A.B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": "1000$",
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-06-04",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": null,
+    "generated_id": "DR-2.0103",
+    "salary_display": "1000$",
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.0103",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A22682429",
+            "issue_date": "2018-05-10",
+            "expiry_date": "2025-05-09",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "KafrEl-Shikh - Egypt",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "209372",
+            "issue_date": "2018-04-11",
+            "expiry_date": "2023-03-31",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alexandria - Egypt",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "07475",
+            "issue_date": "2022-10-30",
+            "expiry_date": "2022-10-29",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "07475",
+            "international_medical_issue_date": "2022-10-30",
+            "international_medical_expiry_date": "2022-10-29",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [],
+        "marine_courses": [
+            {"course_name": "Personal Survival Techniques", "number": "32945/22/EG", "issue_date": "2022-11-01", "expiry_date": "2027-10-19"},
+            {"course_name": "Fire Prevention and Fire Fighting", "number": "32945/22/EG", "issue_date": "2022-11-01", "expiry_date": "2027-10-19"},
+            {"course_name": "Elementary First Aid", "number": "32945/22/EG", "issue_date": "2022-11-01", "expiry_date": "2027-10-19"},
+            {"course_name": "Medical Care Studies", "number": "32945/22/EG", "issue_date": "2022-11-01", "expiry_date": "2027-10-19"},
+            {"course_name": "Personal Safety and Social Responsibilities", "number": "32945/22/EG", "issue_date": "2022-11-01", "expiry_date": "2027-10-19"},
+            {"course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "XNA825", "issue_date": "2022-10-14", "expiry_date": "2027-10-12"},
+            {"course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "NC4", "issue_date": "2019-01-10", "expiry_date": "2024-01-01"},
+            {"course_name": "Passenger Safety Cargo Safety and Hull integrity", "number": "X 613 / 2018", "issue_date": "2018-12-30", "expiry_date": "2023-12-26"},
+            {"course_name": "Crowd Management Training", "number": "X 610 / 2018", "issue_date": "2018-12-30", "expiry_date": "2023-12-19"},
+            {"course_name": "Crisis Management and Human Behavior Training", "number": "X 611 / 2018", "issue_date": "2018-12-30", "expiry_date": "2023-12-22"},
+            {"course_name": "Safety training for Personal Prov. Direct Passengers", "number": "X 612 /  2018", "issue_date": "2018-12-30", "expiry_date": "2023-12-24"}
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Hesham Mahmoud Mohamed Hassan Farag Azzam",
+            "date_of_birth": "1998-03-07",
+            "marital_status": {"single": true, "married": false},
+            "nationality": "Egypt",
+            "height_cm": "184 Cm",
+            "weight_kg": "80 Kg",
+            "place_of_birth": "KafrEl-Shikh - Egypt",
+            "overall_size": "2XL",
+            "shirt_size": "XL",
+            "nearest_port": "",
+            "trouser_size": "XL",
+            "shoes_size": "44"
+        },
+        "2_education": {
+            "college_school": "",
+            "english_language": {"fluent": false, "good": false, "average": false, "poor": false}
+        },
+        "3_contact_details": {
+            "home_address_city": "KafrEl-Shikh - Egypt",
+            "e_mail": "heshamazzam678@gmail.com",
+            "mobile_tel": "+201017703310"
+        }
+    }
+}

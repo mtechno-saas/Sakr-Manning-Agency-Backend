@@ -1,0 +1,110 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mahmoud Abd elatty Mahmoud Elzeky",
+    "user_email_display": "Elzekym2@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "A\\B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": "1500",
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": null,
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": null,
+    "generated_id": null,
+    "salary_display": "1500",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.135",
+            "rank_code": null,
+            "rank_name": ""
+        }
+    ],
+    "rank_code": null,
+    "assigned_code": "DR-2.135",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A23810550",
+            "issue_date": "2018-12-11",
+            "expiry_date": "2025-12-10",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "damitta",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00024482",
+            "issue_date": "2022-08-17",
+            "expiry_date": "2027-08-13",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {},
+        "coc": {
+            "certificate_name": "COC( Rank)",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+        },
+        "goc": {
+            "issued_by": "NTRA",
+            "issued_at": "Cairo"
+        },
+        "health_certificate": {
+            "number": "05163",
+            "issue_date": "2022-08-24",
+            "expiry_date": "2024-08-23",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+        },
+        "sea_service": [],
+        "marine_courses": [
+            {
+                "course_name": "Proficiency In Personal Survival Techniques",
+                "number": "8599\\21\\EG",
+                "issue_date": "2021-03-09",
+                "expiry_date": "2026-02-28"
+            },
+            {
+                "course_name": "Fire Prevention and Fire Fighting",
+                "number": "8608\\21\\EG",
+                "issue_date": "2021-03-09",
+                "expiry_date": "2026-02-27"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mahmoud Abd elatty Mahmoud Elzeky",
+            "date_of_birth": "1978-02-02",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "EGYPTION",
+            "height_cm": "178",
+            "weight_kg": "93",
+            "place_of_birth": "damitta"
+        },
+        "2_education": {
+            "college_school": "Bachelor Of Law"
+        },
+        "3_contact_details": {
+            "home_address_city": "Damitta Ezbet alborg",
+            "e_mail": "Elzekym2@gmail.com",
+            "mobile_tel": "01094928735"
+        }
+    }
+}

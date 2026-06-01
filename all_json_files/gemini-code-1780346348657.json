@@ -1,0 +1,486 @@
+{
+    "id": 1004,
+    "user": 2004,
+    "user_name": "ABOU ZID MOUSSA ABDELSALAM ZAHRAN",
+    "user_email_display": "ABOZEDOMR8@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 15,
+    "position_name": "ABLE SEAFARER DECK",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 5,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-08-11",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2024-08-11T12:00:00.000000Z",
+    "updated_at": "2024-08-11T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.259",
+            "rank_code": "DR-2.000",
+            "rank_name": "ABLE SEAFARER DECK"
+        }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.259",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A36043654",
+            "issue_date": "2023-12-24",
+            "expiry_date": "2030-12-23",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Sharkia",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00023751",
+            "issue_date": "2022-07-03",
+            "expiry_date": "2027-06-26",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "22168",
+            "issue_date": "2023-12-13",
+            "expiry_date": "2025-12-12",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "22168",
+            "international_medical_issue_date": "2023-12-13",
+            "international_medical_expiry_date": "2025-12-12",
+            "file_url": null,
+            "download_url": null,
+            "records": [
+                {
+                    "type": "Yellow Fever",
+                    "number": "4732",
+                    "issue_date": "2017-07-21",
+                    "expiry_date": "forever",
+                    "issued_by": "Ministry of Health",
+                    "issued_at": "alex"
+                }
+            ]
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "id": 5013,
+                "vessel_name": "M.V WADI ALBOSTAN",
+                "rank": "DECK WELDER",
+                "vessel_type": "Bulk carrier",
+                "flag": "Egypt",
+                "signed_on": "2024-02-24",
+                "signed_off": "2024-07-30",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5014,
+                "vessel_name": "M.V WAD ALRAYAN",
+                "rank": "A.B",
+                "vessel_type": "CONTINER",
+                "flag": "Egypt",
+                "signed_on": "2023-05-16",
+                "signed_off": "2023-11-23",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5015,
+                "vessel_name": "M.V WADI ALBOSTAN",
+                "rank": "A.B",
+                "vessel_type": "Bulk carrier",
+                "flag": "Egypt",
+                "signed_on": "2022-07-03",
+                "signed_off": "2023-04-23",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5016,
+                "vessel_name": "M.V WADI FERAN",
+                "rank": "A.B",
+                "vessel_type": "Bulk carrier",
+                "flag": "Egypt",
+                "signed_on": "2019-12-04",
+                "signed_off": "2020-10-02",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "marine_courses": [
+            {
+                "id": 6025,
+                "course_name": "Personal Survival Techniques",
+                "issue_date": "2022-06-23",
+                "expiry_date": "2027-06-18",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6026,
+                "course_name": "Fire Prevention and Fire Fighting",
+                "issue_date": "2022-06-23",
+                "expiry_date": "2027-06-18",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6027,
+                "course_name": "Elementary First Aid",
+                "issue_date": "2022-06-26",
+                "expiry_date": "2027-06-20",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6028,
+                "course_name": "Personal Safety and Social Responsibilities",
+                "issue_date": "2022-06-27",
+                "expiry_date": "2027-06-20",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6029,
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "issue_date": "2022-06-18",
+                "expiry_date": "2027-06-15",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6030,
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "issue_date": "2023-05-08",
+                "expiry_date": "2028-05-03",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "ABOU ZID MOUSSA ABDELSALAM ZAHRAN",
+            "date_of_birth": "1973-09-23",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "EGYPTIAN",
+            "height_cm": "173",
+            "weight_kg": "85",
+            "place_of_birth": "SHARKIA",
+            "overall_size": "",
+            "shirt_size": "2X",
+            "nearest_port": "ALEXANDRIA",
+            "trouser_size": "42",
+            "shoes_size": "44"
+        },
+        "2_education": {
+            "college_school": "Holder of Wireless Institute",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": true,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "KafrAl-Arab,MinyatAl-Qamh,Sharqiya Egypt",
+            "e_mail": "ABOZEDOMR8@GMAIL.COM",
+            "mobile_tel": "01025266637"
+        },
+        "4_travel_documents": [
+            {
+                "type": "Passport",
+                "document_no": "A36043654",
+                "iss_date": "2023-12-24",
+                "exp_date": "2030-12-23",
+                "iss_by_authority": "Egyptian Authority",
+                "place_of_issue": "Sharkia",
+                "file_url": null
+            },
+            {
+                "type": "Seaman Book",
+                "document_no": "S00023751",
+                "iss_date": "2022-07-03",
+                "exp_date": "2027-06-26",
+                "iss_by_authority": "EAMS",
+                "place_of_issue": "Alex.",
+                "file_url": null
+            }
+        ],
+        "5_professional_qualification_certificate_of_competency": [
+            {
+                "certificate_name": "COC (Rank)",
+                "number": "",
+                "issue_date": "",
+                "expiry_date": "",
+                "issued_by": "EAMS",
+                "issued_at": "Alex."
+            },
+            {
+                "certificate_name": "GOC",
+                "number": "",
+                "issue_date": "",
+                "expiry_date": "",
+                "issued_by": "NTRA",
+                "issued_at": "Cairo"
+            }
+        ],
+        "6_next_of_kin_emergency_contact": {
+            "full_name": "MUKHTAR MOUSSA ABDELSALAM ZAHRAN ABDELSALAM ZAHRAN",
+            "address_country": "KafrAl-Arab,MinyatAl-Qamh,Sharqiya Egypt",
+            "tel_no_mobile": "01067750113",
+            "relationship": "my brother",
+            "email": "no"
+        },
+        "7_health_certificates_and_vaccinations": {
+            "certificates": [
+                {
+                    "name": "International Medical",
+                    "number": "22168",
+                    "issue_date": "2023-12-13",
+                    "expiry_date": "2025-12-12",
+                    "issued_by": "EAMS",
+                    "issued_at": "Alex."
+                },
+                {
+                    "name": "Yellow Fever",
+                    "number": "4732",
+                    "issue_date": "2017-07-21",
+                    "expiry_date": "forever",
+                    "issued_by": "Ministry of Health",
+                    "issued_at": "alex"
+                }
+            ],
+            "covid_19": {
+                "vaccination_name": "AstraZeneca",
+                "first_dose": "2021-11-25",
+                "second_dose": "2022-07-27",
+                "other_does_or_remarks": ""
+            }
+        },
+        "8_marine_courses": [
+            {
+                "course_name": "Personal Survival Techniques",
+                "number": "NPST 5324",
+                "issue_date": "2022-06-23",
+                "expiry_date": "2027-06-18",
+                "issued_by": "NPGSIC",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Fire Prevention and Fire Fighting",
+                "number": "NFF 4221",
+                "issue_date": "2022-06-23",
+                "expiry_date": "2027-06-18",
+                "issued_by": "NPGSIC",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Elementary First Aid",
+                "number": "NFA 5499",
+                "issue_date": "2022-06-26",
+                "expiry_date": "2027-06-20",
+                "issued_by": "NPGSIC",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Personal Safety and Social Responsibilities",
+                "number": "NPS 4297",
+                "issue_date": "2022-06-27",
+                "expiry_date": "2027-06-20",
+                "issued_by": "NPGSIC",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "NA 7762",
+                "issue_date": "2022-06-18",
+                "expiry_date": "2027-06-15",
+                "issued_by": "NPGSIC",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "XNC 1728",
+                "issue_date": "2023-05-08",
+                "expiry_date": "2028-05-03",
+                "issued_by": "NPGSIC",
+                "issued_at": ""
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "applicant_info": {
+                "name": "ABOU ZID MOUSSA ABDELSALAM ZAHRAN",
+                "rank": "",
+                "register_code": ""
+            },
+            "service_records": [
+                {
+                    "company_name": "NATIOMAL NAVIGATION COMPANY",
+                    "rank": "DECK WELDER",
+                    "rank_name": "DECK WELDER",
+                    "vessel_name_imo_number": "M.V WADI ALBOSTAN / 9460722",
+                    "flag": "Egypt",
+                    "flag_name": "Egypt",
+                    "signed_on": "2024-02-24",
+                    "signed_off": "2024-07-30",
+                    "period": "5M",
+                    "vessel_type": "Bulk carrier",
+                    "vessel_type_name": "Bulk carrier",
+                    "dwt_grt": "33232",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "REST"
+                },
+                {
+                    "company_name": "NATIOMAL NAVIGATION COMPANY",
+                    "rank": "A.B",
+                    "rank_name": "A.B",
+                    "vessel_name_imo_number": "M.V WAD ALRAYAN / 9206873",
+                    "flag": "Egypt",
+                    "flag_name": "Egypt",
+                    "signed_on": "2023-05-16",
+                    "signed_off": "2023-11-23",
+                    "period": "6M",
+                    "vessel_type": "CONTINER",
+                    "vessel_type_name": "CONTINER",
+                    "dwt_grt": "40301",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "REST"
+                },
+                {
+                    "company_name": "NATIOMAL NAVIGATION COMPANY",
+                    "rank": "A.B",
+                    "rank_name": "A.B",
+                    "vessel_name_imo_number": "M.V WADI ALBOSTAN / 9460722",
+                    "flag": "Egypt",
+                    "flag_name": "Egypt",
+                    "signed_on": "2022-07-03",
+                    "signed_off": "2023-04-23",
+                    "period": "9M",
+                    "vessel_type": "Bulk carrier",
+                    "vessel_type_name": "Bulk carrier",
+                    "dwt_grt": "33232",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "REST"
+                },
+                {
+                    "company_name": "NATIOMAL NAVIGATION COMPANY",
+                    "rank": "A.B",
+                    "rank_name": "A.B",
+                    "vessel_name_imo_number": "M.V WADI FERAN / 9460083",
+                    "flag": "Egypt",
+                    "flag_name": "Egypt",
+                    "signed_on": "2019-12-04",
+                    "signed_off": "2020-10-02",
+                    "period": "10M",
+                    "vessel_type": "Bulk carrier",
+                    "vessel_type_name": "Bulk carrier",
+                    "dwt_grt": "33232",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "REST"
+                }
+            ]
+        },
+        "10_references": [],
+        "11_declaration": {
+            "questions": {
+                "suffer_disease_unfit_for_sea": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "addicted_to_alcohol_or_drugs": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "suffer_accident_disabled": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "undergo_psychiatric_treatment": {
+                    "answer": "NO",
+                    "details": ""
+                }
+            },
+            "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+            "place": "",
+            "date": "",
+            "signature": ""
+        },
+        "12_for_office_use_only": {
+            "initial_assessment_of_applicant": "",
+            "comments": "",
+            "responsible_person": {
+                "name_signature": "",
+                "date": ""
+            }
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

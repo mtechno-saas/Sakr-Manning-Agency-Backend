@@ -1,0 +1,143 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "AHMED MOHAMED FAROUK ELDOMIATY",
+    "user_email_display": "AHMEDELDOMIATY051@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "Able Seafarer Deck",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-08-10",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": "2023-08-01",
+    "generated_id": "DR-2.130",
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.130",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A21994073",
+            "issue_date": "2018-02-24",
+            "expiry_date": "2025-02-23",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "EGYPT",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00032414",
+            "issue_date": "2023-07-09",
+            "expiry_date": "2028-07-05",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "PA0253068",
+            "issue_date": "2022-07-01",
+            "expiry_date": "2027-05-01",
+            "issued_by": null,
+            "place_of_issue": "PANAMA",
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "16486",
+            "issue_date": "2023-07-16",
+            "expiry_date": "2025-07-15",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "16486",
+            "international_medical_issue_date": "2023-07-16",
+            "international_medical_expiry_date": "2025-07-15",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {"vessel_name": "M/V OMNIAH", "rank": "A. B", "vessel_type": "GENERAL CARGO", "flag": "BARBADOS", "signed_on": "2012-04-23", "signed_off": "2013-06-10"},
+            {"vessel_name": "M/V IRIS OF SEA", "rank": "A. B", "vessel_type": "GENERAL CARGO", "flag": "PANAMA", "signed_on": "2017-05-29", "signed_off": "2018-01-04"},
+            {"vessel_name": "M/V COPERNICO", "rank": "A. B", "vessel_type": "GENERAL CARGO", "flag": "PALAU", "signed_on": "2019-12-24", "signed_off": "2020-12-31"},
+            {"vessel_name": "M/V HAJE HESEN", "rank": "A. B", "vessel_type": "GENERAL CARGO", "flag": "TOGO", "signed_on": "2021-01-14", "signed_off": "2021-04-29"},
+            {"vessel_name": "M/V ZAM ZAM", "rank": "A. B", "vessel_type": "GENERAL CARGO", "flag": "ST KITTS NEVIS", "signed_on": "2021-09-06", "signed_off": "2022-02-15"},
+            {"vessel_name": "M/V UMS-ALBEDO", "rank": "A. B", "vessel_type": "GENERAL CARGO", "flag": "PANAMA", "signed_on": "2022-04-25", "signed_off": "2023-06-01"}
+        ],
+        "marine_courses": [
+            {"course_name": "Basic Safety Training Fire Prevention and Fire Fighting Elementary First Aid Personal Survival Techniques Personal Safety and Social Responsibilities", "number": "20973/21/EG", "issue_date": "2021-06-21", "expiry_date": "2026-06-16"},
+            {"course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "XNA 3332", "issue_date": "2023-06-13", "expiry_date": "2027-06-07"},
+            {"course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "XNC 2087", "issue_date": "2023-06-21", "expiry_date": "2028-06-14"},
+            {"course_name": "Navigational Watch keeping", "number": "NV 1482", "issue_date": "2021-06-28", "expiry_date": "2026-06-21"},
+            {"course_name": "Passenger Safety Cargo Safety and Hull integrity", "number": "XNXD 663", "issue_date": "2023-06-20", "expiry_date": "2028-06-14"},
+            {"course_name": "Crowd Management Training", "number": "XNXA 692", "issue_date": "2023-06-17", "expiry_date": "2028-06-09"},
+            {"course_name": "Crisis Management and Human Behavior Training", "number": "XNXB 709", "issue_date": "2023-06-19", "expiry_date": "2028-06-11"},
+            {"course_name": "Safety training for Personal Prov. Direct Passengers", "number": "XNXC 718", "issue_date": "2023-06-19", "expiry_date": "2028-06-12"},
+            {"course_name": "Abel Seafarer Deck", "number": "18040/23/EG", "issue_date": "2023-06-13", "expiry_date": null},
+            {"course_name": "Proficiency for Abel Seafarer Deck ( II/5 )", "number": "05017", "issue_date": "2023-07-16", "expiry_date": "2028-06-14"},
+            {"course_name": "Proficiency in Survival Crafts and Rescue Boats", "number": "05017", "issue_date": "2023-07-16", "expiry_date": "2028-06-14"}
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "AHMED MOHAMED FAROUK ELDOMIATY",
+            "date_of_birth": "1990-18-11",
+            "marital_status": {"single": false, "married": false},
+            "nationality": "EGYPTIAN",
+            "height_cm": "170",
+            "weight_kg": "55",
+            "place_of_birth": "DAMIETTA",
+            "overall_size": "Large",
+            "shirt_size": "Large",
+            "nearest_port": "",
+            "trouser_size": "",
+            "shoes_size": "43"
+        },
+        "2_education": {
+            "college_school": "Maritime diploma",
+            "marline_test": {"issued_date": "2009", "result_percentage": "60", "issued_by_authority": "", "issued_at": ""},
+            "english_language": {"fluent": false, "good": true, "average": false, "poor": false}
+        },
+        "3_contact_details": {
+            "home_address_city": "Al Fanar ST , Ezbet Elborg , Damietta",
+            "e_mail": "ahmedeldomiaty051@gmail.com",
+            "mobile_tel": "+201284657763"
+        }
+    }
+}

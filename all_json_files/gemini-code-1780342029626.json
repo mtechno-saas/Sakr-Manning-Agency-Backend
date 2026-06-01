@@ -1,0 +1,57 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mohamed Sayed Ismaeil Mansour",
+    "user_email_display": "Mamadohabeby@gmail.com",
+    "position_name": "A.B",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.127"
+        }
+    ],
+    "assigned_code": "DR-2.127",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A27547967",
+            "issue_date": "2021-01-25",
+            "expiry_date": "2028-01-24",
+            "place_of_issue": "Aswan"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00016797",
+            "issue_date": "2021-08-01",
+            "expiry_date": "2024-07-07"
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "CY311767",
+            "issue_date": "2020-01-23",
+            "expiry_date": "2030-01-22",
+            "issued_by": "REPUPLEC OF CYPRUS"
+        },
+        "sea_service": [
+            { "vessel_name": "Adriatica", "rank": "A.B", "vessel_type": "Passengers", "signed_on": "2010-06-09", "signed_off": "2013-06-05" },
+            { "vessel_name": "Alyosefeyah", "rank": "A.B", "vessel_type": "Passengers", "signed_on": "2013-07-14", "signed_off": "2014-07-13" },
+            { "vessel_name": "Sinaa", "rank": "A.B", "vessel_type": "Passengers", "signed_on": "2016-10-16", "signed_off": "2017-02-11" },
+            { "vessel_name": "Amman", "rank": "A.B", "vessel_type": "Passengers", "signed_on": "2017-03-31", "signed_off": "2018-02-12" },
+            { "vessel_name": "NAMMA EXPRESS", "rank": "A.B", "vessel_type": "RORO - CARGO", "signed_on": "2019-09-04", "signed_off": "2019-10-23" },
+            { "vessel_name": "DALEELA", "rank": "A.B", "vessel_type": "RO - PAX", "signed_on": "2019-11-14", "signed_off": "2021-01-01" },
+            { "vessel_name": "MYKONOS MAGIC", "rank": "A.B", "vessel_type": "PASSENGER", "signed_on": "2023-08-01", "signed_off": "2024-05-25" },
+            { "vessel_name": "VIDANTA ELEGANT", "rank": "A.B", "vessel_type": "PASSENGER", "signed_on": "2024-10-05", "signed_off": "2025-01-14" }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mohamed Sayed Ismaeil Mansour",
+            "date_of_birth": "1989-12-09",
+            "nationality": "Egyptian",
+            "place_of_birth": "Aswan",
+            "overall_size": "XXl",
+            "shirt_size": "XL"
+        },
+        "3_contact_details": {
+            "home_address_city": "Egypt – Aswan – West Aswan",
+            "e_mail": "Mamadohabeby@gmail.com",
+            "mobile_tel": "+201069008148"
+        }
+    }
+}

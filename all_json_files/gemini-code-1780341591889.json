@@ -1,0 +1,49 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mohamed Ali Gomaa Mohamed Mattar",
+    "user_email_display": "gomaamatar77@gmail.com",
+    "position_name": "AB",
+    "expected_salary": "1300 USD",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.015"
+        }
+    ],
+    "assigned_code": "DR-2.015",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A24194875",
+            "issue_date": "2019-03-24",
+            "expiry_date": "2026-03-23"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00004921",
+            "issue_date": "2020-01-12",
+            "expiry_date": "2025-01-11"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "OCEAN TRADER",
+                "rank": "AB",
+                "vessel_type": "Bulk Carrier",
+                "signed_on": "2021-05-10",
+                "signed_off": "2022-04-18"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mohamed Ali Gomaa Mohamed Mattar",
+            "date_of_birth": "1991-07-15",
+            "nationality": "Egyptian",
+            "height_cm": "172",
+            "weight_kg": "74"
+        },
+        "3_contact_details": {
+            "home_address_city": "Baltim, Kafr El Sheikh",
+            "e_mail": "gomaamatar77@gmail.com",
+            "mobile_tel": "01004958123"
+        }
+    }
+}

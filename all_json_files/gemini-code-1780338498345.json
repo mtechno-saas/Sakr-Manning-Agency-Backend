@@ -1,0 +1,262 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "HASSAN TAHA MAHMOUD FARRAG",
+    "user_email_display": "HASSANTAHA7718@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "3RD OFFICER",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-02-02",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": null,
+    "generated_id": "DR-2.499",
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.499",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A43972130",
+            "issue_date": "2025-12-17",
+            "expiry_date": "2032-12-16",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00059161",
+            "issue_date": "2025-11-02",
+            "expiry_date": "2030-07-30",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "A30761186",
+            "issue_date": "2023-01-11",
+            "expiry_date": "2027-11-14",
+            "issued_by": "Panama",
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "52567",
+            "issue_date": "2025-09-09",
+            "expiry_date": "2027-11-08",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "52567",
+            "international_medical_issue_date": "2025-09-09",
+            "international_medical_expiry_date": "2027-11-08",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "vessel_name": "M/V FISKILLA",
+                "rank": "A. B",
+                "vessel_type": "GENERAL CARGO",
+                "flag": "PALAU",
+                "signed_on": "2010-07-15",
+                "signed_off": "2011-03-06"
+            },
+            {
+                "vessel_name": "M/V LADY ANASTASIYA",
+                "rank": "A. B",
+                "vessel_type": "GENERAL CARGO",
+                "flag": "PANAMA",
+                "signed_on": "2011-10-02",
+                "signed_off": "2014-10-02"
+            },
+            {
+                "vessel_name": "M/V LADY ANASTASIYA",
+                "rank": "A. B",
+                "vessel_type": "GENERAL CARGO",
+                "flag": "PANAMA",
+                "signed_on": "2014-11-27",
+                "signed_off": "2016-03-02"
+            },
+            {
+                "vessel_name": "M/V LADY ANASTASIYA",
+                "rank": "A. B",
+                "vessel_type": "GENERAL CARGO",
+                "flag": "PANAMA",
+                "signed_on": "2016-05-17",
+                "signed_off": "2017-03-08"
+            },
+            {
+                "vessel_name": "M/V UNI-K",
+                "rank": "A. B",
+                "vessel_type": "GENERAL CARGO",
+                "flag": "TOGO",
+                "signed_on": "2020-11-29",
+                "signed_off": "2020-12-16"
+            },
+            {
+                "vessel_name": "M/V DUBREKA",
+                "rank": "A. B",
+                "vessel_type": "GENERAL CARGO",
+                "flag": "DOMINICA",
+                "signed_on": "2021-03-01",
+                "signed_off": "2021-12-16"
+            },
+            {
+                "vessel_name": "M/V SIROCO",
+                "rank": "A. B",
+                "vessel_type": "GENERAL CARGO",
+                "flag": "PANAMA",
+                "signed_on": "2022-11-22",
+                "signed_off": "2023-11-04"
+            },
+            {
+                "vessel_name": "M/V SIROCO",
+                "rank": "A. B",
+                "vessel_type": "GENERAL CARGO",
+                "flag": "PANAMA",
+                "signed_on": "2024-01-31",
+                "signed_off": "2024-10-26"
+            }
+        ],
+        "marine_courses": [
+            {
+                "course_name": "Personal Survival Techniques",
+                "number": "36202/25/EG",
+                "issue_date": "2025-08-26",
+                "expiry_date": "2030-08-24"
+            },
+            {
+                "course_name": "Fire Prevention and Fire Fighting",
+                "number": "35531/25/EG",
+                "issue_date": "2025-08-24",
+                "expiry_date": "2030-08-20"
+            },
+            {
+                "course_name": "Elementary First Aid",
+                "number": "35633/25/EG",
+                "issue_date": "2025-08-24",
+                "expiry_date": "2030-08-20"
+            },
+            {
+                "course_name": "Personal Safety and Social Responsibilities",
+                "number": "36848/25/EG",
+                "issue_date": "2025-08-31",
+                "expiry_date": "2030-08-27"
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "36060/25/EG",
+                "issue_date": "2025-08-26",
+                "expiry_date": "2030-08-20"
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "36775/25/EG",
+                "issue_date": "2025-08-31",
+                "expiry_date": "2030-08-27"
+            },
+            {
+                "course_name": "G.M.D.S.S",
+                "number": "NG 313",
+                "issue_date": "2025-08-16",
+                "expiry_date": "2030-08-05"
+            },
+            {
+                "course_name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "NXD 1306",
+                "issue_date": "2022-05-08",
+                "expiry_date": "2027-04-26"
+            },
+            {
+                "course_name": "Crowd Management Training",
+                "number": "NXA 1296",
+                "issue_date": "2022-05-08",
+                "expiry_date": "2027-04-19"
+            },
+            {
+                "course_name": "Crisis Management and Human Behavior Training",
+                "number": "NXB 1304",
+                "issue_date": "2022-05-08",
+                "expiry_date": "2027-04-22"
+            },
+            {
+                "course_name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "NXC 1311",
+                "issue_date": "2022-05-08",
+                "expiry_date": "2023-04-23"
+            }
+        ]
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "HASSAN TAHA MAHMOUD FARRAG",
+            "date_of_birth": "1992-09-19",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egyptian",
+            "height_cm": "167",
+            "weight_kg": "85",
+            "place_of_birth": "Damietta",
+            "overall_size": "XXL",
+            "shirt_size": "XXL",
+            "nearest_port": "Damietta",
+            "trouser_size": "",
+            "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "",
+            "english_language": {
+                "fluent": false,
+                "good": true,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "Al Fanar ST, Ezbet Elborg , Damietta",
+            "e_mail": "HASSANTAHA7718@GMAIL.COM",
+            "mobile_tel": "+201070285838"
+        }
+    }
+}

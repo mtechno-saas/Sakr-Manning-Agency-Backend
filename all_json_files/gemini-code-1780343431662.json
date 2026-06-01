@@ -1,0 +1,281 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Yasser Shawky Mohamed Ibrahem",
+    "user_email_display": "Shawkyy827@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-12-11",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2023-12-11T00:00:00Z",
+    "updated_at": "2023-12-11T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.191",
+            "rank_code": null,
+            "rank_name": ""
+        }
+    ],
+    "rank_code": null,
+    "assigned_code": "DR-2.191",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A28691668",
+            "issue_date": "2021-07-31",
+            "expiry_date": "2028-07-30",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Giza",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00016673",
+            "issue_date": "2021-07-26",
+            "expiry_date": "2026-03-28",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "1623087",
+            "issue_date": null,
+            "expiry_date": "2026-08-26",
+            "issued_by": "Liberty",
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "24556",
+            "issue_date": "2024-02-06",
+            "expiry_date": "2026-02-05",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": null,
+            "international_medical_issue_date": null,
+            "international_medical_expiry_date": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "id": null,
+                "vessel_name": "MASARAH",
+                "rank": "O.S",
+                "vessel_type": "RORO PASSENGER",
+                "flag": "S.A",
+                "signed_on": "2017-06-06",
+                "signed_off": "2017-11-26",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "marine_courses": [
+            {
+                "id": null,
+                "course_name": "Personal Survival Techniques",
+                "issue_date": "2021-06-09",
+                "expiry_date": "2026-05-19",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Yasser Shawky Mohamed Ibrahem",
+            "date_of_birth": "1988-05-01",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egyption",
+            "height_cm": "170 cm",
+            "weight_kg": "70 Kg",
+            "place_of_birth": "Giza",
+            "overall_size": "L",
+            "shirt_size": "L",
+            "nearest_port": "",
+            "trouser_size": "29-32",
+            "shoes_size": "43"
+        },
+        "2_education": {
+            "college_school": "Wireless Communications Institute",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": true,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "3 Gad Al-Karim Street - Boulaq Al-Dakrour - Giza",
+            "e_mail": "Shawkyy827@gmail.com",
+            "mobile_tel": "01145521096"
+        },
+        "4_travel_documents": [
+            {
+                "type": "Passport",
+                "document_no": "A28691668",
+                "iss_date": "2021-07-31",
+                "exp_date": "2028-07-30",
+                "iss_by_authority": "Egyptian Authority",
+                "place_of_issue": "Giza",
+                "file_url": null
+            },
+            {
+                "type": "Seaman Book",
+                "document_no": "S00016673",
+                "iss_date": "2021-07-26",
+                "exp_date": "2026-03-28",
+                "iss_by_authority": "EAMS",
+                "place_of_issue": "Alex.",
+                "file_url": null
+            }
+        ],
+        "5_professional_qualification_certificate_of_competency": [
+            {
+                "certificate_name": "COC (Rank)",
+                "number": "",
+                "issue_date": "",
+                "expiry_date": "",
+                "issued_by": "EAMS",
+                "issued_at": "Alex."
+            }
+        ],
+        "6_next_of_kin_emergency_contact": {
+            "full_name": "Karem Shawky Mohamed Ibrahem",
+            "address_country": "3 Gad Al-Karim Street - Boulaq Al-Dakrour - Giza",
+            "tel_no_mobile": "01150066217",
+            "relationship": "Brother",
+            "email": ""
+        },
+        "7_health_certificates_and_vaccinations": {
+            "certificates": [
+                {
+                    "type": "International Medical",
+                    "number": "24556",
+                    "issue_date": "2024-02-06",
+                    "expiry_date": "2026-02-05",
+                    "issued_by": "EAMS",
+                    "issued_at": "Alex."
+                }
+            ],
+            "covid_19": {
+                "vaccination_name": "Jontson",
+                "first_dose": "2022-07-06",
+                "second_dose": "",
+                "other_does_or_remarks": ""
+            }
+        },
+        "9_complete_sea_service_details": {
+            "applicant_info": {
+                "name": "",
+                "rank": "",
+                "register_code": ""
+            },
+            "service_records": [
+                {
+                    "company_name": "NAMA SHIPING",
+                    "rank": "O.S",
+                    "rank_name": "O.S",
+                    "vessel_name_imo_number": "MASARAH",
+                    "flag": "S.A",
+                    "flag_name": "S.A",
+                    "signed_on": "2017-06-06",
+                    "signed_off": "2017-11-26",
+                    "period": "F.G",
+                    "vessel_type": "RORO PASSENGER",
+                    "vessel_type_name": "RORO PASSENGER",
+                    "dwt_grt": "",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": ""
+                }
+            ]
+        },
+        "10_references": [],
+        "11_declaration": {
+            "questions": {
+                "suffer_disease_unfit_for_sea": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "addicted_to_alcohol_or_drugs": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "suffer_accident_disabled": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "undergo_psychiatric_treatment": {
+                    "answer": "NO",
+                    "details": ""
+                }
+            },
+            "consent_statement": "I declare that the information I have given is, to the best of my knowledge, true and complete...",
+            "place": "",
+            "date": "",
+            "signature": ""
+        },
+        "12_for_office_use_only": {
+            "initial_assessment_of_applicant": "",
+            "comments": "",
+            "responsible_person": {
+                "name_signature": "",
+                "date": ""
+            }
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

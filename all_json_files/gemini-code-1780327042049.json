@@ -1,0 +1,140 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "AHMED MOHAMED HABASHI SOLIMAN",
+    "user_email_display": "AHMED2020MUHAMMED@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "AB",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-03-20",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": "2023-03-15",
+    "generated_id": "DR-2.041",
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.041",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A31592540",
+            "issue_date": "2022-09-13",
+            "expiry_date": "2029-09-12",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Qalyoubia",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00024855",
+            "issue_date": "2022-08-30",
+            "expiry_date": "2027-08-23",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "05585",
+            "issue_date": "2022-09-05",
+            "expiry_date": "2024-09-04",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "05585",
+            "international_medical_issue_date": "2022-09-05",
+            "international_medical_expiry_date": "2024-09-04",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {"vessel_name": "STAR K", "rank": "AB", "vessel_type": "SUPPLY", "flag": "", "signed_on": "2023-02-15", "signed_off": "2023-03-15"},
+            {"vessel_name": "MARIMAR-GAS", "rank": "AB", "vessel_type": "TANKER", "flag": "", "signed_on": "2022-09-26", "signed_off": "2023-02-01"},
+            {"vessel_name": "SEA PRAZZA 40", "rank": "AB", "vessel_type": "SUPPLY", "flag": "", "signed_on": "2020-09-01", "signed_off": "2020-12-27"},
+            {"vessel_name": "SEA PRAZZA 25", "rank": "AB", "vessel_type": "SUPPLY", "flag": "", "signed_on": "2020-05-10", "signed_off": "2020-08-06"},
+            {"vessel_name": "SEA PRAZZA 22", "rank": "AB", "vessel_type": "SUPPLY", "flag": "", "signed_on": "2020-02-12", "signed_off": "2020-04-05"},
+            {"vessel_name": "SEA PRAZZA 20", "rank": "AB", "vessel_type": "SUPPLY", "flag": "", "signed_on": "2019-12-19", "signed_off": "2020-01-15"}
+        ],
+        "marine_courses": [
+            {"course_name": "Personal Survival Techniques", "number": "23605/22/EG", "issue_date": "2022-08-14", "expiry_date": "2027-08-03"},
+            {"course_name": "Fire Prevention and Fire Fighting", "number": "23605/22/EG", "issue_date": "2022-08-14", "expiry_date": "2027-08-03"},
+            {"course_name": "Elementary First Aid", "number": "23605/22/EG", "issue_date": "2022-08-14", "expiry_date": "2027-08-03"},
+            {"course_name": "Personal Safety and Social Responsibilities", "number": "23605/22/EG", "issue_date": "2022-08-14", "expiry_date": "2027-08-03"},
+            {"course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "22894/22/EG", "issue_date": "2022-08-10", "expiry_date": "2027-08-07"},
+            {"course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "91146/22/EG", "issue_date": "2022-10-16", "expiry_date": "2027-10-10"},
+            {"course_name": "Navigational Watch keeping", "number": "34140/22/EG", "issue_date": "2022-11-09", "expiry_date": null},
+            {"course_name": "Basic Training Oil and Chemical Tankers Cargo Operation", "number": "91314/22/EG", "issue_date": "2022-11-17", "expiry_date": "2027-11-09"}
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "AHMED MOHAMED HABASHI SOLIMAN",
+            "date_of_birth": "2002-02-04",
+            "marital_status": {"single": true, "married": false},
+            "nationality": "Egyptian",
+            "height_cm": "170 CM",
+            "weight_kg": "63,5 KG",
+            "place_of_birth": "Qalyoubia – Egypt",
+            "overall_size": "M",
+            "shirt_size": "M",
+            "nearest_port": "",
+            "trouser_size": "39",
+            "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "German Art High School",
+            "marline_test": {"issued_date": "", "result_percentage": "", "issued_by_authority": "", "issued_at": ""},
+            "english_language": {"fluent": false, "good": false, "average": false, "poor": false}
+        },
+        "3_contact_details": {
+            "home_address_city": "Qalyoubia – Egypt",
+            "e_mail": "Ahmed2020Muhammed@gmail.com",
+            "mobile_tel": "+2 01067147564"
+        }
+    }
+}

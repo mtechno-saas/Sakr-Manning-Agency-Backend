@@ -1,0 +1,281 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "YASSER MOHAMED AWAD FOUDA",
+    "user_email_display": "Eljokerstore055@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "A.B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-12-03",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2023-12-03T00:00:00Z",
+    "updated_at": "2025-04-12T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.183",
+            "rank_code": null,
+            "rank_name": "A.B"
+        }
+    ],
+    "rank_code": null,
+    "assigned_code": "DR-2.183",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A23030623",
+            "issue_date": "2018-06-28",
+            "expiry_date": "2025-06-27",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "DAMIETTA",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00024961",
+            "issue_date": "2022-09-04",
+            "expiry_date": "2027-08-28",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "06372",
+            "issue_date": "2022-09-27",
+            "expiry_date": "2024-09-26",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": null,
+            "international_medical_issue_date": null,
+            "international_medical_expiry_date": null,
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "id": null,
+                "vessel_name": "M/V TANGA",
+                "rank": "A.B",
+                "vessel_type": "BULK",
+                "flag": "PANAMA",
+                "signed_on": "1998-11-16",
+                "signed_off": "1999-04-29",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "marine_courses": [
+            {
+                "id": null,
+                "course_name": "Personal Survival Techniques",
+                "issue_date": "2022-07-28",
+                "expiry_date": "2027-07-24",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "YASSER MOHAMED AWAD FOUDA",
+            "date_of_birth": "1967-06-03",
+            "marital_status": {
+                "single": false,
+                "married": false
+            },
+            "nationality": "EGYPTIAN",
+            "height_cm": "182",
+            "weight_kg": "95",
+            "place_of_birth": "DAMIETTA",
+            "overall_size": "2X",
+            "shirt_size": "2X",
+            "nearest_port": "",
+            "trouser_size": "46",
+            "shoes_size": "43"
+        },
+        "2_education": {
+            "college_school": "Obtained a marine diploma",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "Egypt – Damietta – ezbet elborg",
+            "e_mail": "Eljokerstore055@gmail.com",
+            "mobile_tel": "+201033260389"
+        },
+        "4_travel_documents": [
+            {
+                "type": "Passport",
+                "document_no": "A23030623",
+                "iss_date": "2018-06-28",
+                "exp_date": "2025-06-27",
+                "iss_by_authority": "Egyptian Authority",
+                "place_of_issue": "DAMIETTA",
+                "file_url": null
+            },
+            {
+                "type": "Seaman Book",
+                "document_no": "S00024961",
+                "iss_date": "2022-09-04",
+                "exp_date": "2027-08-28",
+                "iss_by_authority": "EAMS",
+                "place_of_issue": "Alex.",
+                "file_url": null
+            }
+        ],
+        "5_professional_qualification_certificate_of_competency": [
+            {
+                "certificate_name": "COC (Rank)",
+                "number": "",
+                "issue_date": "",
+                "expiry_date": "",
+                "issued_by": "EAMS",
+                "issued_at": "Alex."
+            }
+        ],
+        "6_next_of_kin_emergency_contact": {
+            "full_name": "",
+            "address_country": "",
+            "tel_no_mobile": "",
+            "relationship": "",
+            "email": ""
+        },
+        "7_health_certificates_and_vaccinations": {
+            "certificates": [
+                {
+                    "type": "International Medical",
+                    "number": "06372",
+                    "issue_date": "2022-09-27",
+                    "expiry_date": "2024-09-26",
+                    "issued_by": "EAMS",
+                    "issued_at": "Alex."
+                }
+            ],
+            "covid_19": {
+                "vaccination_name": "JOHNSON",
+                "first_dose": "2022-08-10",
+                "second_dose": "",
+                "other_does_or_remarks": ""
+            }
+        },
+        "9_complete_sea_service_details": {
+            "applicant_info": {
+                "name": "",
+                "rank": "",
+                "register_code": ""
+            },
+            "service_records": [
+                {
+                    "company_name": "CAPALAS",
+                    "rank": "A.B",
+                    "rank_name": "A.B",
+                    "vessel_name_imo_number": "M/V TANGA",
+                    "flag": "PANAMA",
+                    "flag_name": "PANAMA",
+                    "signed_on": "1998-11-16",
+                    "signed_off": "1999-04-29",
+                    "period": "",
+                    "vessel_type": "BULK",
+                    "vessel_type_name": "BULK",
+                    "dwt_grt": "",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": ""
+                }
+            ]
+        },
+        "10_references": [],
+        "11_declaration": {
+            "questions": {
+                "suffer_disease_unfit_for_sea": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "addicted_to_alcohol_or_drugs": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "suffer_accident_disabled": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "undergo_psychiatric_treatment": {
+                    "answer": "NO",
+                    "details": ""
+                }
+            },
+            "consent_statement": "I declare that the information I have given is, to the best of my knowledge, true and complete...",
+            "place": "",
+            "date": "",
+            "signature": ""
+        },
+        "12_for_office_use_only": {
+            "initial_assessment_of_applicant": "",
+            "comments": "",
+            "responsible_person": {
+                "name_signature": "",
+                "date": ""
+            }
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

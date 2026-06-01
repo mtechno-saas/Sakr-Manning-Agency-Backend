@@ -1,0 +1,3155 @@
+[
+  {
+    "id": 1,
+    "user": 1001,
+    "user_name": "ABDELWAHED GOMAA AHMED ELFAR",
+    "user_email_display": "ABDELWAHEDGOMAA87@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2299,
+    "position_name": "ABLE SEAFARER DECK",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 4,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-11-11",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2024-11-11T12:00:00.000000Z",
+    "updated_at": "2024-11-11T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.299",
+        "rank_code": "DR-2.000",
+        "rank_name": "ABLE SEAFARER DECK"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.299",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A37778380",
+        "issue_date": "2024-05-26",
+        "expiry_date": "2031-05-25",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "Behira",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00035454",
+        "issue_date": "2023-10-10",
+        "expiry_date": "2028-10-07",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": null,
+        "issue_date": "2023-10-23",
+        "expiry_date": "2025-10-22",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": null,
+        "international_medical_issue_date": "2023-10-23",
+        "international_medical_expiry_date": "2025-10-22",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "M.V ESNA",
+          "rank": "AB",
+          "vessel_type": "Bulk Carrier",
+          "flag": "Egyptian",
+          "signed_on": "2018-04-16",
+          "signed_off": "2018-10-23",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "M.V ESNA",
+          "rank": "AB",
+          "vessel_type": "Bulk Carrier",
+          "flag": "Egyptian",
+          "signed_on": "2019-02-05",
+          "signed_off": "2019-08-21",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "vessel_name": "M.V WADI ALARISH",
+          "rank": "AB",
+          "vessel_type": "Bulk Carrier",
+          "flag": "Egyptian",
+          "signed_on": "2019-11-19",
+          "signed_off": "2022-07-28",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "vessel_name": "M.V EDFU",
+          "rank": "AB",
+          "vessel_type": "Bulk Carrier",
+          "flag": "Egyptian",
+          "signed_on": "2020-12-24",
+          "signed_off": "2021-09-06",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "vessel_name": "M.V WADI ALARAB",
+          "rank": "AB",
+          "vessel_type": "Bulk Carrier",
+          "flag": "Egyptian",
+          "signed_on": "2022-06-10",
+          "signed_off": "2022-11-16",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Personal Safety and Social Responsibilities",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "ABDELWAHED GOMAA AHMED ELFAR",
+        "date_of_birth": "1987-09-22",
+        "marital_status": {
+          "single": false,
+          "married": true
+        },
+        "nationality": "EGYPTIAN",
+        "height_cm": "170",
+        "weight_kg": "74",
+        "place_of_birth": "BEHIRA",
+        "overall_size": "2X",
+        "shirt_size": "2X",
+        "nearest_port": "ALEXANDRIA PORT",
+        "trouser_size": "2X",
+        "shoes_size": "43"
+      },
+      "2_education": {
+        "college_school": "Salah Salem High School",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": true,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "BEHIRA – KAFELDAWAR - ELHAMRA",
+        "e_mail": "ABDELWAHEDGOMAA87@GMAIL.COM",
+        "mobile_tel": "01117066760"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A37778380",
+          "iss_date": "2024-05-26",
+          "exp_date": "2031-05-25",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "Behira",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00035454",
+          "iss_date": "2023-10-10",
+          "exp_date": "2028-10-07",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "Fawzia Ali Mohammed Hassan Radwan",
+        "address_country": "Egypt – Behira - Kafreldawar",
+        "tel_no_mobile": "01277329840",
+        "relationship": "Wife",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "issue_date": "2023-10-23",
+            "expiry_date": "2025-10-22",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+          },
+          {
+            "name": "Yellow Fever",
+            "number": "5565",
+            "issue_date": "2018-02-12",
+            "expiry_date": "Forever",
+            "issued_by": "Ministry of Health",
+            "issued_at": "Alex."
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "Fyzer",
+          "first_dose": "2021-11-24",
+          "second_dose": "2021-02-15",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "27214/23/EG",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "issued_by": "The Arab Academy For Science, Technology & Maritime Transport",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "27214/23/EG",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "issued_by": "The Arab Academy For Science, Technology & Maritime Transport",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "27214/23/EG",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "issued_by": "The Arab Academy For Science, Technology & Maritime Transport",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Personal Safety and Social Responsibilities",
+          "number": "27214/23/EG",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "issued_by": "The Arab Academy For Science, Technology & Maritime Transport",
+          "issued_at": ""
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "ABDELWAHED GOMAA AHMED ELFAR",
+          "rank": "ABLE SEAFARER DECK",
+          "register_code": "DR-2.299"
+        },
+        "service_records": [
+          {
+            "company_name": "National navigation Company",
+            "rank": "AB",
+            "rank_name": "AB",
+            "vessel_name_imo_number": "M.V ESNA",
+            "flag": "Egyptian",
+            "flag_name": "Egyptian",
+            "signed_on": "2018-04-16",
+            "signed_off": "2018-10-23",
+            "period": "6 Months and 7 Days",
+            "vessel_type": "Bulk Carrier",
+            "vessel_type_name": "Bulk Carrier",
+            "dwt_grt": "37794 MT",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "Behira - Egypt",
+        "date": "2024-06-15",
+        "signature": "Abdelwahed Gomma Ahmed ElFar"
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "Abdelwahed Gomma Ahmed ElFar",
+          "date": "2024-06-15"
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 2,
+    "user": 1002,
+    "user_name": "ABDULLAH MOHAMED ABDULLAH MOHAMED ELSAYD",
+    "user_email_display": "ABDALLAHMIDO233@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2380,
+    "position_name": "A.B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 1,
+    "expected_salary": "650$",
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2025-05-23",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2025-05-23T12:00:00.000000Z",
+    "updated_at": "2025-05-23T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": "650$",
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.380",
+        "rank_code": "DR-2.000",
+        "rank_name": "A.B"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.380",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A32298306",
+        "issue_date": "2022-12-03",
+        "expiry_date": "2029-12-03",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "Alexandria",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00040021",
+        "issue_date": "2024-02-28",
+        "expiry_date": "2029-02-25",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "26463",
+        "issue_date": "2024-03-19",
+        "expiry_date": "2026-03-18",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "26463",
+        "international_medical_issue_date": "2024-03-19",
+        "international_medical_expiry_date": "2026-03-18",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "8918722",
+          "rank": "A.B",
+          "vessel_type": "General cargo",
+          "flag": "Togo",
+          "signed_on": "2024-08-25",
+          "signed_off": "2025-02-25",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2024-03-12",
+          "expiry_date": "2029-02-21",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2024-03-12",
+          "expiry_date": "2029-02-21",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2024-03-12",
+          "expiry_date": "2029-02-21",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "ABDULLAH MOHAMED ABDULLAH MOHAMED ELSAYD",
+        "date_of_birth": "1998-12-21",
+        "marital_status": {
+          "single": true,
+          "married": false
+        },
+        "nationality": "Egyptian",
+        "height_cm": "182",
+        "weight_kg": "184",
+        "place_of_birth": "Alexandria",
+        "overall_size": "",
+        "shirt_size": "L",
+        "nearest_port": "Alexandria",
+        "trouser_size": "xl",
+        "shoes_size": "42"
+      },
+      "2_education": {
+        "college_school": "Faculty of Arts, Alexandria University",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": true,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "Muharram Bak- Alexandria",
+        "e_mail": "Abdallahmido233@gmail.com",
+        "mobile_tel": "01206267518"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A32298306",
+          "iss_date": "2022-12-03",
+          "exp_date": "2029-12-03",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "Alexandria",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00040021",
+          "iss_date": "2024-02-28",
+          "exp_date": "2029-02-25",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "Mohamed Abdullah",
+        "address_country": "Muharram Bak- Alexandria",
+        "tel_no_mobile": "01206267431",
+        "relationship": "My father",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "number": "26463",
+            "issue_date": "2024-03-19",
+            "expiry_date": "2026-03-18",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+          },
+          {
+            "name": "Yellow Fever",
+            "number": "002571",
+            "issue_date": "2024-03-19",
+            "expiry_date": "",
+            "issued_by": "Ministry of Health",
+            "issued_at": ""
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "sinovac",
+          "first_dose": "2022-01-22",
+          "second_dose": "2022-02-12",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "9449/24/EG",
+          "issue_date": "2024-03-12",
+          "expiry_date": "2029-02-21",
+          "issued_by": "Alexandria",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "9449/24/EG",
+          "issue_date": "2024-03-12",
+          "expiry_date": "2029-02-21",
+          "issued_by": "Alexandria",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "9449/24/EG",
+          "issue_date": "2024-03-12",
+          "expiry_date": "2029-02-21",
+          "issued_by": "Alexandria",
+          "issued_at": ""
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "ABDULLAH MOHAMED ABDULLAH MOHAMED ELSAYD",
+          "rank": "A.B",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "BOB",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "8918722",
+            "flag": "Togo",
+            "flag_name": "Togo",
+            "signed_on": "2024-08-25",
+            "signed_off": "2025-02-25",
+            "period": "6 months",
+            "vessel_type": "General cargo",
+            "vessel_type_name": "General cargo",
+            "dwt_grt": "5659",
+            "engine_type": "Tow- stroke",
+            "bh_kw": "3360",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 3,
+    "user": 1003,
+    "user_name": "ABOU BAKR MOHAMED MOSAAD SELIM",
+    "user_email_display": "945ADODKR@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2415,
+    "position_name": "ABLE SEAMAN",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 3,
+    "expected_salary": "2000 EURO",
+    "availability_date": "from now",
+    "status": "Pending",
+    "submitted_date": "2025-04-14",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2025-04-14T12:00:00.000000Z",
+    "updated_at": "2025-04-14T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": "2000 EURO",
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.415",
+        "rank_code": "DR-2.000",
+        "rank_name": "ABLE SEAMAN"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.415",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A24697827",
+        "issue_date": "2019-04-23",
+        "expiry_date": "2026-04-22",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "DAMIETTA",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00044046",
+        "issue_date": "2024-07-21",
+        "expiry_date": "2029-07-17",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "42968",
+        "issue_date": "2025-04-14",
+        "expiry_date": "2027-04-13",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "42968",
+        "international_medical_issue_date": "2025-04-14",
+        "international_medical_expiry_date": "2027-04-13",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "AF FRANCESCA / NAPOLI",
+          "rank": "Cabin boy",
+          "vessel_type": "RORO PAX",
+          "flag": "ITALY",
+          "signed_on": "2022-07-24",
+          "signed_off": "2022-10-29",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "AF MARINA / NAPOLI",
+          "rank": "Able seaman",
+          "vessel_type": "RORO PAX",
+          "flag": "ITALY",
+          "signed_on": "2022-10-29",
+          "signed_off": "2023-05-20",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "vessel_name": "AF MIA / NAPOLI",
+          "rank": "Able seaman",
+          "vessel_type": "RORO PAX",
+          "flag": "ITALY",
+          "signed_on": "2023-10-01",
+          "signed_off": "2024-06-14",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Proficiency In Personal Survival Techniques",
+          "issue_date": "2023-06-08",
+          "expiry_date": "2028-06-03",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2023-06-11",
+          "expiry_date": "2028-06-03",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2023-06-10",
+          "expiry_date": "2028-06-05",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "ABOU BAKR MOHAMED MOSAAD SELIM",
+        "date_of_birth": "1999-09-23",
+        "marital_status": {
+          "single": true,
+          "married": false
+        },
+        "nationality": "EGYPTIAN",
+        "height_cm": "176",
+        "weight_kg": "70",
+        "place_of_birth": "DAMIETTA",
+        "overall_size": "48",
+        "shirt_size": "M",
+        "nearest_port": "NEW DAMIETTA",
+        "trouser_size": "34",
+        "shoes_size": "42"
+      },
+      "2_education": {
+        "college_school": "NAVY HIGH SCHOOL",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "EYGPT – DAMIETTA – ELSHIKH DORGHAM",
+        "e_mail": "945ADODKR@GMAIL.COM",
+        "mobile_tel": "00201151752038"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A24697827",
+          "iss_date": "2019-04-23",
+          "exp_date": "2026-04-22",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "DAMIETTA",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00044046",
+          "iss_date": "2024-07-21",
+          "exp_date": "2029-07-17",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "HAGAR MOHAMED MOSAAD SELIM",
+        "address_country": "EYGPT – DAMIETTA – ELSHIKH DORGHAM",
+        "tel_no_mobile": "00201069845260",
+        "relationship": "SISTER",
+        "email": "HAGARSELEEM@YAHOO.COM"
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "number": "42968",
+            "issue_date": "2025-04-14",
+            "expiry_date": "2027-04-13",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+          },
+          {
+            "name": "Yellow Fever",
+            "number": "7911",
+            "issue_date": "2019-04-08",
+            "expiry_date": "-",
+            "issued_by": "Ministry of Health",
+            "issued_at": ""
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "Astrazeneca short interval",
+          "first_dose": "2021-12-14",
+          "second_dose": "2022-01-12",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Proficiency In Personal Survival Techniques",
+          "number": "XNPST1851",
+          "issue_date": "2023-06-08",
+          "expiry_date": "2028-06-03",
+          "issued_by": "EGYPT",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "XNFF1533",
+          "issue_date": "2023-06-11",
+          "expiry_date": "2028-06-03",
+          "issued_by": "EGYPT",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "XNFA1851",
+          "issue_date": "2023-06-10",
+          "expiry_date": "2028-06-05",
+          "issued_by": "EGYPT",
+          "issued_at": ""
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "ABOU BAKR MOHAMED MOSAAD SELIM",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "ADRIA  FERRIES",
+            "rank": "Able seaman",
+            "rank_name": "Able seaman",
+            "vessel_name_imo_number": "AF MARINA / NAPOLI",
+            "flag": "ITALY",
+            "flag_name": "ITALY",
+            "signed_on": "2022-10-29",
+            "signed_off": "2023-05-20",
+            "period": "7 MONTH",
+            "vessel_type": "RORO PAX",
+            "vessel_type_name": "RORO PAX",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": "from now"
+  },
+  {
+    "id": 4,
+    "user": 1004,
+    "user_name": "ABOU ZID MOUSSA ABDELSALAM ZAHRAN",
+    "user_email_display": "ABOZEDOMR8@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2259,
+    "position_name": "ABLE SEAFARER DECK",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 5,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-08-11",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2024-08-11T12:00:00.000000Z",
+    "updated_at": "2024-08-11T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.259",
+        "rank_code": "DR-2.000",
+        "rank_name": "ABLE SEAFARER DECK"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.259",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A36043654",
+        "issue_date": "2023-12-24",
+        "expiry_date": "2030-12-23",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "Sharkia",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00023751",
+        "issue_date": "2022-07-03",
+        "expiry_date": "2027-06-26",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "22168",
+        "issue_date": "2023-12-13",
+        "expiry_date": "2025-12-12",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "22168",
+        "international_medical_issue_date": "2023-12-13",
+        "international_medical_expiry_date": "2025-12-12",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "M.V WADI ALBOSTAN\n9460722",
+          "rank": "DECK WELDER",
+          "vessel_type": "Bulk carrier",
+          "flag": "Egypt",
+          "signed_on": "2024-02-24",
+          "signed_off": "2024-07-30",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "M.V  WAD ALRAYAN \n9206873",
+          "rank": "A.B",
+          "vessel_type": "CONTINER",
+          "flag": "Egypt",
+          "signed_on": "2023-05-16",
+          "signed_off": "2023-11-23",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2022-06-23",
+          "expiry_date": "2027-06-18",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "ABOU ZID MOUSSA ABDELSALAM ZAHRAN",
+        "date_of_birth": "1973-09-23",
+        "marital_status": {
+          "single": false,
+          "married": true
+        },
+        "nationality": "EGYPTIAN",
+        "height_cm": "173",
+        "weight_kg": "85",
+        "place_of_birth": "SHARKIA",
+        "overall_size": "",
+        "shirt_size": "2X",
+        "nearest_port": "ALEXANDRIA",
+        "trouser_size": "42",
+        "shoes_size": "44"
+      },
+      "2_education": {
+        "college_school": "Holder of Wireless Institute",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": true,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "KafrAl-Arab,MinyatAl-Qamh,Sharqiya Egypt",
+        "e_mail": "ABOZEDOMR8@GMAIL.COM",
+        "mobile_tel": "01025266637"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A36043654",
+          "iss_date": "2023-12-24",
+          "exp_date": "2030-12-23",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "Sharkia",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00023751",
+          "iss_date": "2022-07-03",
+          "exp_date": "2027-06-26",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "MUKHTAR  MOUSSA ABDELSALAM ZAHRAN ABDELSALAM ZAHRAN",
+        "address_country": "KafrAl-Arab,MinyatAl-Qamh,Sharqiya Egypt",
+        "tel_no_mobile": "01067750113",
+        "relationship": "my brother",
+        "email": "no"
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "number": "22168",
+            "issue_date": "2023-12-13",
+            "expiry_date": "2025-12-12",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+          },
+          {
+            "name": "Yellow Fever",
+            "number": "4732",
+            "issue_date": "2017-07-21",
+            "expiry_date": "forever",
+            "issued_by": "Ministry of Health",
+            "issued_at": "alex"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "AstraZeneca",
+          "first_dose": "2021-11-25",
+          "second_dose": "2022-07-27",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "NPST 5324",
+          "issue_date": "2022-06-23",
+          "expiry_date": "2027-06-18",
+          "issued_by": "NPGSIC",
+          "issued_at": ""
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "ABOU ZID MOUSSA ABDELSALAM ZAHRAN",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "NATIOMAL NAVIGATION COMPANY",
+            "rank": "DECK WELDER",
+            "rank_name": "DECK WELDER",
+            "vessel_name_imo_number": "M.V WADI ALBOSTAN\n9460722",
+            "flag": "Egypt",
+            "flag_name": "Egypt",
+            "signed_on": "2024-02-24",
+            "signed_off": "2024-07-30",
+            "period": "5M",
+            "vessel_type": "Bulk carrier",
+            "vessel_type_name": "Bulk carrier",
+            "dwt_grt": "33232",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": "REST"
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 5,
+    "user": 1005,
+    "user_name": "Ahmed abdallah basyouni nagi",
+    "user_email_display": "",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 114,
+    "position_name": "3rd off",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 6,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-07-17",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2023-07-17T12:00:00.000000Z",
+    "updated_at": "2023-07-17T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.114",
+        "rank_code": "DR-2.000",
+        "rank_name": "3rd off"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.114",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A24326091",
+        "issue_date": "2019-02-18",
+        "expiry_date": "2026-02-17",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00028513",
+        "issue_date": "2023-02-02",
+        "expiry_date": "2027-09-10",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank) …3rd off………..",
+        "certificate_number": "2009",
+        "issue_date": "2023-01-31",
+        "expiry_date": "2027-09-10",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": null,
+        "issue_date": "2023-02-16",
+        "expiry_date": "2025-02-15",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": null,
+        "international_medical_issue_date": "2023-02-16",
+        "international_medical_expiry_date": "2025-02-15",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "Alkioni",
+          "rank": "A.B",
+          "vessel_type": "Passenger",
+          "flag": "Panama",
+          "signed_on": "2007-01-14",
+          "signed_off": "2010-05-20",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "Sea wind",
+          "rank": "A.B",
+          "vessel_type": "Supply",
+          "flag": "Seralion",
+          "signed_on": "2014-05-29",
+          "signed_off": "2015-05-15",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2022-09-19",
+          "expiry_date": "2027-09-10",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "Ahmed abdallah basyouni nagi",
+        "date_of_birth": "1988-01-21",
+        "marital_status": {
+          "single": true,
+          "married": false
+        },
+        "nationality": "Egyptian",
+        "height_cm": "178",
+        "weight_kg": "77",
+        "place_of_birth": "Jordon",
+        "overall_size": "2xl",
+        "shirt_size": "2xl",
+        "nearest_port": "",
+        "trouser_size": "",
+        "shoes_size": "43"
+      },
+      "2_education": {
+        "college_school": "Arab academy for science technology & maritime transport",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": true,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "Alexandria / egypt",
+        "e_mail": "",
+        "mobile_tel": "+201121808347"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A24326091",
+          "iss_date": "18/02/2019",
+          "exp_date": "17/02/2026",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00028513",
+          "iss_date": "02/02/2023",
+          "exp_date": "10/09/2027",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC ( Rank) …3rd off………..",
+          "number": "2009",
+          "issue_date": "31/01/2023",
+          "expiry_date": "10/09/2027",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "Dina abdallah basyouni nagi",
+        "address_country": "Alexandria /Egypt",
+        "tel_no_mobile": "+201282650951",
+        "relationship": "Sister",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "number": "",
+            "issue_date": "16/02/2023",
+            "expiry_date": "15/02/2025",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "Johnson",
+          "first_dose": "22/12/2022",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "XNPST354",
+          "issue_date": "19/09/2022",
+          "expiry_date": "10/09/2027",
+          "issued_by": "",
+          "issued_at": ""
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "Fortune maritime",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "Alkioni",
+            "flag": "Panama",
+            "flag_name": "Panama",
+            "signed_on": "14/01/2007",
+            "signed_off": "20/05/2010",
+            "period": "3 years",
+            "vessel_type": "Passenger",
+            "vessel_type_name": "Passenger",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I declare that the information I have given is, to the best of my knowledge, true and complete...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 6,
+    "user": 1006,
+    "user_name": "AHMED ABDEL-ALIM ABDEL-RADI EL-SAYED",
+    "user_email_display": "AHMEDALIM15101988@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2416,
+    "position_name": "Seaman A.B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 10,
+    "expected_salary": "1200 $",
+    "availability_date": "15days after confirmation",
+    "status": "Pending",
+    "submitted_date": "2025-09-05",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2025-09-05T12:00:00.000000Z",
+    "updated_at": "2025-09-05T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": "1200 $",
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.416",
+        "rank_code": "DR-2.000",
+        "rank_name": "Seaman A.B"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.416",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A34218292",
+        "issue_date": "2023-06-18",
+        "expiry_date": "2030-06-17",
+        "issued_by": "Alexandria/Egypt",
+        "place_of_issue": "Alexandria",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00023785",
+        "issue_date": "2022-07-04",
+        "expiry_date": "2027-06-28",
+        "issued_by": "Alexandria/Egypt",
+        "place_of_issue": "Alexandria",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "issued_at": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "issued_at": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "40669",
+        "issue_date": "2025-02-18",
+        "expiry_date": "2025-02-17",
+        "issued_by": "EAMS / Alex",
+        "issued_at": "EAMS / Alex",
+        "international_medical_number": "40669",
+        "international_medical_issue_date": "2025-02-18",
+        "international_medical_expiry_date": "2025-02-17",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "Al-Salam 1",
+          "rank": "A.B",
+          "vessel_type": "Tug Boat",
+          "flag": "EGYPT",
+          "signed_on": "2015-08-09",
+          "signed_off": "Present",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "Portsaid",
+          "rank": "A.B",
+          "vessel_type": "Tug Boat",
+          "flag": "EGYPT",
+          "signed_on": "2014-05-01",
+          "signed_off": "2015-08-01",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2025-02-13",
+          "expiry_date": "2030-01-08",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED ABDEL-ALIM ABDEL-RADI EL-SAYED",
+        "date_of_birth": "1988-10-15",
+        "marital_status": {
+          "single": false,
+          "married": false
+        },
+        "nationality": "Egyptian",
+        "height_cm": "",
+        "weight_kg": "",
+        "place_of_birth": "PortSaid",
+        "overall_size": "",
+        "shirt_size": "",
+        "nearest_port": "Cairo international airport",
+        "trouser_size": "",
+        "shoes_size": ""
+      },
+      "2_education": {
+        "college_school": "",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "Portfouad - Portsaid, Egypt",
+        "e_mail": "AHMEDALIM15101988@GMAIL.COM",
+        "mobile_tel": "00201090201963"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A34218292",
+          "iss_date": "18/6/2023",
+          "exp_date": "17/6/2030",
+          "iss_by_authority": "Alexandria/Egypt",
+          "place_of_issue": "Alexandria",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00023785",
+          "iss_date": "4/7/2022",
+          "exp_date": "28/6/2027",
+          "iss_by_authority": "Alexandria/Egypt",
+          "place_of_issue": "Alexandria",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "",
+          "issued_at": ""
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "Nada Hussein el-atma",
+        "address_country": "",
+        "tel_no_mobile": "0120 0260811",
+        "relationship": "wife",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "number": "40669",
+            "issue_date": "18/02/2025",
+            "expiry_date": "17/02/2025",
+            "issued_by": "EAMS / Alex",
+            "issued_at": "EAMS / Alex"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "",
+          "first_dose": "",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "3939/25/EG",
+          "issue_date": "13/02/2025",
+          "expiry_date": "08/01/2030",
+          "issued_by": "AASTMT/ALEX",
+          "issued_at": ""
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "General Authority For PortSaid Ports",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "Al-Salam 1",
+            "flag": "EGYPT",
+            "flag_name": "EGYPT",
+            "signed_on": "09 Aug 2015",
+            "signed_off": "Present",
+            "period": "",
+            "vessel_type": "Tug Boat",
+            "vessel_type_name": "Tug Boat",
+            "dwt_grt": "396",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": "15days after confirmation"
+  },
+  {
+    "id": 7,
+    "user": 1007,
+    "user_name": "AHMED ABDELFATTAH HASSAN MOSTAFA",
+    "user_email_display": "AHMEDABDO123.COM@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2233,
+    "position_name": "A. B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 4,
+    "expected_salary": "$1425",
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-05-14",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2024-05-14T12:00:00.000000Z",
+    "updated_at": "2024-05-14T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": "$1425",
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.233",
+        "rank_code": "DR-2.000",
+        "rank_name": "A. B"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.233",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A25337329",
+        "issue_date": "2019-07-27",
+        "expiry_date": "2026-07-26",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00042645",
+        "issue_date": "2024-06-02",
+        "expiry_date": "2029-05-28",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": "PA0180381",
+        "issue_date": "2022-01-10",
+        "expiry_date": "2028-08-11",
+        "issued_by": "PANAMA",
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "12460",
+        "issue_date": "2024-06-09",
+        "expiry_date": "2026-06-08",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "12460",
+        "international_medical_issue_date": "2024-06-09",
+        "international_medical_expiry_date": "2026-06-08",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "M/V LINDA CEM",
+          "rank": "O. S",
+          "vessel_type": "BULK CARRIER",
+          "flag": "PANAMA",
+          "signed_on": "2020-07-21",
+          "signed_off": "2021-05-15",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "M/V LINDA CEM",
+          "rank": "A. B",
+          "vessel_type": "BULK CARRIER",
+          "flag": "PANAMA",
+          "signed_on": "2021-08-09",
+          "signed_off": "2022-05-11",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED ABDELFATTAH HASSAN MOSTAFA",
+        "date_of_birth": "1996-12-01",
+        "marital_status": {
+          "single": false,
+          "married": true
+        },
+        "nationality": "Egyptian",
+        "height_cm": "176",
+        "weight_kg": "79",
+        "place_of_birth": "Damietta",
+        "overall_size": "XL",
+        "shirt_size": "XL",
+        "nearest_port": "CAIRO",
+        "trouser_size": "36",
+        "shoes_size": "44"
+      },
+      "2_education": {
+        "college_school": "Marine high school",
+        "marline_test": {
+          "issued_date": "2014",
+          "result_percentage": "65",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": true,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "Al Fanar ST, Ezbet Elborg , Damietta",
+        "e_mail": "ahmedabdo123.com@gmail.com",
+        "mobile_tel": "+201285415496"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A25337329",
+          "iss_date": "27/07/2019",
+          "exp_date": "26/07/2026",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00042645",
+          "iss_date": "02/06/2024",
+          "exp_date": "28/05/2029",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "ABDELFATTAH MOSTAFA",
+        "address_country": "Al Fanar ST, Ezbet Elborg , Damietta",
+        "tel_no_mobile": "+201202994592",
+        "relationship": "FATHER",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "number": "12460",
+            "issue_date": "09/06/2024",
+            "expiry_date": "08/06/2026",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "Pfizer",
+          "first_dose": "",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "ELREEDY",
+            "rank": "O. S",
+            "rank_name": "O. S",
+            "vessel_name_imo_number": "M/V LINDA CEM",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "21/07/2020",
+            "signed_off": "15/05/2021",
+            "period": "",
+            "vessel_type": "BULK CARRIER",
+            "vessel_type_name": "BULK CARRIER",
+            "dwt_grt": "34196",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": "Expiration of the contract"
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "26/10/2024",
+        "signature": "AHMED ABDELFATTAH HASSAN MOSTAFA"
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 8,
+    "user": 1008,
+    "user_name": "AHMED ABD-ELHAMID ABD-ELHADY ABD-ELHAMID GHANEM",
+    "user_email_display": "A.GHANEM007@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2381,
+    "position_name": "Third officer",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 9,
+    "expected_salary": null,
+    "availability_date": "04-05-2025",
+    "status": "Pending",
+    "submitted_date": "2025-05-23",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2025-05-23T12:00:00.000000Z",
+    "updated_at": "2025-05-23T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.381",
+        "rank_code": "DR-2.000",
+        "rank_name": "Third officer"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.381",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A40978218",
+        "issue_date": "2025-03-26",
+        "expiry_date": "2032-03-25",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "18",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00051876",
+        "issue_date": "2025-03-16",
+        "expiry_date": "2030-01-12",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "third officer",
+        "certificate_number": "2452",
+        "issue_date": "2025-03-13",
+        "expiry_date": "2030-01-12",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "42932",
+        "issue_date": "2025-04-13",
+        "expiry_date": "2027-04-12",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "42932",
+        "international_medical_issue_date": "2025-04-13",
+        "international_medical_expiry_date": "2027-04-12",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "MY LADY DINA 1",
+          "rank": "A/B",
+          "vessel_type": "G-CARGO",
+          "flag": "TOGO",
+          "signed_on": "2015-05-19",
+          "signed_off": "2015-11-08",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "NAWRAS",
+          "rank": "A/B",
+          "vessel_type": "LIVE STOCK",
+          "flag": "TANZANIA",
+          "signed_on": "2016-05-25",
+          "signed_off": "2016-10-03",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED ABD-ELHAMID ABD-ELHADY ABD-ELHAMID GHANEM",
+        "date_of_birth": "1988-03-25",
+        "marital_status": {
+          "single": true,
+          "married": false
+        },
+        "nationality": "Egyptian",
+        "height_cm": "5.1`",
+        "weight_kg": "98",
+        "place_of_birth": "Alexandria Egypt",
+        "overall_size": "XXXL",
+        "shirt_size": "XXXL",
+        "nearest_port": "Borg-Elarab Airport Or Cairo Airport",
+        "trouser_size": "XXL",
+        "shoes_size": "45"
+      },
+      "2_education": {
+        "college_school": "Victory College Alexandria",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": true,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "21 Fleb Galad Street Victoria Alexandria Egypt",
+        "e_mail": "a.ghanem007@gmail.com",
+        "mobile_tel": "00201000945478"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A40978218",
+          "iss_date": "26-03-2025",
+          "exp_date": "25-03-2032",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "18",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00051876",
+          "iss_date": "16-03-2025",
+          "exp_date": "12-01-2030",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "third officer",
+          "number": "2452",
+          "issue_date": "13-03-2025",
+          "expiry_date": "12-01-2030",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "ABDELHAMID GHANEM",
+        "address_country": "21 FLEB GALAD STREET ALEXANDRIA VICTORIA",
+        "tel_no_mobile": "00201007854230",
+        "relationship": "FATHER",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "number": "42932",
+            "issue_date": "13-04-2025",
+            "expiry_date": "12-04-2027",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "Pfizer",
+          "first_dose": "02-11-2021",
+          "second_dose": "23-11-2022",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "G.M.Z CO. S.A",
+            "rank": "A/B",
+            "rank_name": "A/B",
+            "vessel_name_imo_number": "MY LADY DINA 1",
+            "flag": "TOGO",
+            "flag_name": "TOGO",
+            "signed_on": "19-05-2015",
+            "signed_off": "8-11-2015",
+            "period": "6 MONTHS",
+            "vessel_type": "G-CARGO",
+            "vessel_type_name": "G-CARGO",
+            "dwt_grt": "3447",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": "END OF CONTRACT"
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "AHMED ABD-ELHAMID ABD-ELHAMDY ABD-ELHAMID GHANEM",
+          "date": "04-04-2025"
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": "04-05-2025"
+  },
+  {
+    "id": 9,
+    "user": 1009,
+    "user_name": "AHMED ABDELMONEM MOHAMED OSMAN",
+    "user_email_display": "AHMEDABDELMONAEM54@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2363,
+    "position_name": "A/B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 15,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2025-04-09",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2025-04-09T12:00:00.000000Z",
+    "updated_at": "2025-04-09T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.363",
+        "rank_code": "DR-2.000",
+        "rank_name": "A/B"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.363",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A28461781",
+        "issue_date": "2021-06-30",
+        "expiry_date": "2028-06-29",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "18",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00015457",
+        "issue_date": "2021-06-03",
+        "expiry_date": "2026-06-01",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "40751",
+        "issue_date": "2025-02-20",
+        "expiry_date": "2026-06-01",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "40751",
+        "international_medical_issue_date": "2025-02-20",
+        "international_medical_expiry_date": "2026-06-01",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "CRER 4",
+          "rank": "A/B",
+          "vessel_type": "Supply",
+          "flag": "EGYPT",
+          "signed_on": "2007-04-16",
+          "signed_off": "2007-08-23",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "ABURDEES",
+          "rank": "A/B",
+          "vessel_type": "General cargo",
+          "flag": "EGYPT",
+          "signed_on": "2007-10-17",
+          "signed_off": "2008-06-08",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED ABDELMONEM MOHAMED OSMAN",
+        "date_of_birth": "1982-07-12",
+        "marital_status": {
+          "single": false,
+          "married": false
+        },
+        "nationality": "Egypt",
+        "height_cm": "180",
+        "weight_kg": "90",
+        "place_of_birth": "Alexandria",
+        "overall_size": "XL",
+        "shirt_size": "XL",
+        "nearest_port": "Borg EL Arab",
+        "trouser_size": "36",
+        "shoes_size": "43"
+      },
+      "2_education": {
+        "college_school": "Al-Salam Industrial Secondary School",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "29 Erfan Moharram Bek Street - Alexandria",
+        "e_mail": "AHMEDABDELMONAEM54@GMAIL.COM",
+        "mobile_tel": "+201001846877"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A28461781",
+          "iss_date": "30/06/2021",
+          "exp_date": "29/06/2028",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "18",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00015457",
+          "iss_date": "03/06/2021",
+          "exp_date": "01/06/2026",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "Sara Essam Hassan",
+        "address_country": "29 Erfan Moharram Bek Street - Alexandria",
+        "tel_no_mobile": "+201096523760",
+        "relationship": "Wife",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "number": "40751",
+            "issue_date": "20/02/2025",
+            "expiry_date": "01/06/2026",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "Sinovac",
+          "first_dose": "15/08/2021",
+          "second_dose": "05/09/2021",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "Maridive",
+            "rank": "A/B",
+            "rank_name": "A/B",
+            "vessel_name_imo_number": "CRER 4",
+            "flag": "EGYPT",
+            "flag_name": "EGYPT",
+            "signed_on": "16/04/2007",
+            "signed_off": "23/08/2007",
+            "period": "",
+            "vessel_type": "Supply",
+            "vessel_type_name": "Supply",
+            "dwt_grt": "/",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": "EOC"
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "Alexandria",
+        "date": "03/04/205",
+        "signature": "Ahmed Abd-Elmonem"
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 10,
+    "user": 1010,
+    "user_name": "AHMED ABDELSLAM MOHAMED ABOU-ELKHIR",
+    "user_email_display": "AHMEDABORAYN31@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2417,
+    "position_name": "AB",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 4,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2025-09-05",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2025-09-05T12:00:00.000000Z",
+    "updated_at": "2025-09-05T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.417",
+        "rank_code": "DR-2.000",
+        "rank_name": "AB"
+      }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.417",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A26348111",
+        "issue_date": "2019-12-16",
+        "expiry_date": "2026-12-15",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "Damanhour",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00054856",
+        "issue_date": "2025-06-29",
+        "expiry_date": "2030-06-23",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "32850",
+        "issue_date": "2024-08-25",
+        "expiry_date": "2024-08-26",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "32850",
+        "international_medical_issue_date": "2024-08-25",
+        "international_medical_expiry_date": "2024-08-26",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "403136000",
+          "rank": "O.S",
+          "vessel_type": "Ro –Ro passenger",
+          "flag": "SAUDI ARABIB",
+          "signed_on": "2020-06-06",
+          "signed_off": "2020-08-30",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED ABDELSLAM MOHAMED ABOU-ELKHIR",
+        "date_of_birth": "1995-09-01",
+        "marital_status": {
+          "single": false,
+          "married": false
+        },
+        "nationality": "Egyptian",
+        "height_cm": "",
+        "weight_kg": "",
+        "place_of_birth": "Behira",
+        "overall_size": "",
+        "shirt_size": "",
+        "nearest_port": "Alexandria",
+        "trouser_size": "",
+        "shoes_size": ""
+      },
+      "2_education": {
+        "college_school": "",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "Kom Hamada",
+        "e_mail": "AHMEDABORAYN31@GMAIL.COM",
+        "mobile_tel": "01066863191"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A26348111",
+          "iss_date": "16/12/2019",
+          "exp_date": "15/12/2026",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "Damanhour",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00054856",
+          "iss_date": "29/06/2025",
+          "exp_date": "23/06/2030",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "AHMED ABDELSLAM MOHAMED ABOU-ELKHIR",
+        "address_country": "Kom Hamada, Egypt",
+        "tel_no_mobile": "+20102758136",
+        "relationship": "Brother",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "International Medical",
+            "number": "32850",
+            "issue_date": "25/08/2024",
+            "expiry_date": "24/08/2026",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "",
+          "first_dose": "",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "AMANAH",
+            "rank": "O.S",
+            "rank_name": "O.S",
+            "vessel_name_imo_number": "403136000",
+            "flag": "SAUDI ARABIB",
+            "flag_name": "SAUDI ARABIB",
+            "signed_on": "06/06/2020",
+            "signed_off": "30/08/2020",
+            "period": "",
+            "vessel_type": "Ro –Ro passenger",
+            "vessel_type_name": "Ro –Ro passenger",
+            "dwt_grt": "19009",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  }
+]

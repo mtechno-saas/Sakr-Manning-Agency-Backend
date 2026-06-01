@@ -1,0 +1,55 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mohamed said Mohamed Mohamed",
+    "user_email_display": "Maradonaeltawel2@gmail.com",
+    "position_name": "A/B",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.051"
+        }
+    ],
+    "assigned_code": "DR-2.051",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A29946490",
+            "issue_date": "2022-02-20",
+            "expiry_date": "2029-02-19",
+            "place_of_issue": "ALEX"
+        },
+        "seaman_book": {
+            "seaman_book_no": "11172",
+            "issue_date": "2020-11-12",
+            "expiry_date": "2025-11-09"
+        },
+        "sea_service": [
+            { "vessel_name": "AIDA 4", "rank": "O/S", "vessel_type": "PASSENGER", "signed_on": "2014-03-15", "signed_off": "2014-06-29" },
+            { "vessel_name": "ALKAHERA", "rank": "O/S", "vessel_type": "RORO/PASSENGER", "signed_on": "2015-06-25", "signed_off": "2017-05-31" },
+            { "vessel_name": "BLUE POWER", "rank": "A/B", "vessel_type": "RORO/PASSENGER", "signed_on": "2017-07-08", "signed_off": "2017-09-12" },
+            { "vessel_name": "DUBA BRIDGE", "rank": "A/B", "vessel_type": "RORO/PASSENGER", "signed_on": "2018-01-21", "signed_off": "2018-04-05" },
+            { "vessel_name": "ALRIYADH", "rank": "A/B", "vessel_type": "RORO/PASSENGER", "signed_on": "2018-08-14", "signed_off": "2022-08-30" }
+        ],
+        "marine_courses": [
+            { "course_name": "Proficiency In Personal Survival Techniques", "number": "38708/21/EG", "issue_date": "2021-11-10", "expiry_date": "2026-10-24" },
+            { "course_name": "Fire Prevention and Fire Fighting", "number": "38714/21/EG", "issue_date": "2021-11-10", "expiry_date": "2026-10-23" },
+            { "course_name": "Elementary First Aid", "number": "38711/21/EG", "issue_date": "2021-11-10", "expiry_date": "2026-10-27" },
+            { "course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "01307", "issue_date": "2020-12-10", "expiry_date": "2025-08-26" },
+            { "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )", "number": "00145", "issue_date": "2020-12-10", "issued_by": "EAMS" }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mohamed said Mohamed Mohamed",
+            "date_of_birth": "1987-02-06",
+            "nationality": "EGYPTION",
+            "place_of_birth": "Alexandria",
+            "overall_size": "56",
+            "shirt_size": "XL"
+        },
+        "3_contact_details": {
+            "home_address_city": "13 STREET ALSIUF/ GAMILA BO-HARED/ ALEX/ EGYPT",
+            "e_mail": "Maradonaeltawel2@gmail.com",
+            "mobile_tel": "+201288076361"
+        }
+    }
+}

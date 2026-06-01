@@ -1,0 +1,47 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mahmoud said Eid Mousa EMARA",
+    "user_email_display": "Sea.man.2013378@gmail.com",
+    "position_name": "A.B",
+    "expected_salary": "1400",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.076"
+        }
+    ],
+    "assigned_code": "DR-2.076",
+    "user_documents": {
+        "passport": {
+            "passport_no": "a33068841",
+            "issue_date": "2023-02-08",
+            "expiry_date": "2030-02-07"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00019016",
+            "issue_date": "2022-11-03",
+            "expiry_date": "2026-10-30"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "Vantage sword",
+                "rank": "A.B",
+                "vessel_type": "BULK CARRIER",
+                "signed_on": "2022-02-24",
+                "signed_off": "2022-08-29"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mahmoud said Eid Mousa EMARA",
+            "date_of_birth": "1986-07-10",
+            "nationality": "Egyptian"
+        },
+        "3_contact_details": {
+            "home_address_city": "BEHIND EL ESAWY TOWER,QOHAFA,TANTA,EGYPT",
+            "e_mail": "Sea.man.2013378@gmail.com",
+            "mobile_tel": "01007653488"
+        }
+    }
+}

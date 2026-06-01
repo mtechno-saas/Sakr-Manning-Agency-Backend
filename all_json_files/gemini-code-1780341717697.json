@@ -1,0 +1,47 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "MOHAMED MOUSTAFA DARWISH ELFAR",
+    "user_email_display": "mo_elfar1984@gmail.com",
+    "position_name": "A.B",
+    "expected_salary": "1450 USD",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.074"
+        }
+    ],
+    "assigned_code": "DR-2.074",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A21849526",
+            "issue_date": "2018-02-11",
+            "expiry_date": "2025-02-10"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00009485",
+            "issue_date": "2020-03-15",
+            "expiry_date": "2025-03-14"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "MED VOYAGER",
+                "rank": "A.B",
+                "vessel_type": "Ro-Ro",
+                "signed_on": "2021-06-18",
+                "signed_off": "2022-04-05"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "MOHAMED MOUSTAFA DARWISH ELFAR",
+            "date_of_birth": "1984-11-03",
+            "nationality": "Egyptian"
+        },
+        "3_contact_details": {
+            "home_address_city": "Damietta, Ezbet elborg",
+            "e_mail": "mo_elfar1984@gmail.com",
+            "mobile_tel": "01001495821"
+        }
+    }
+}

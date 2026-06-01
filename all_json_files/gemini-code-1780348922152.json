@@ -1,0 +1,616 @@
+{
+    "id": 1,
+    "user": 1001,
+    "user_name": "AHMED MOHAMED HASSAN ELTAWARGY",
+    "user_email_display": "haba12983@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 2264,
+    "position_name": "Able Seafarer Deck",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-08-27",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2024-08-27T00:00:00Z",
+    "updated_at": "2024-08-27T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.264",
+            "rank_code": "DR-2.000",
+            "rank_name": "Able Seafarer Deck"
+        }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.264",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A34484363",
+            "issue_date": "2023-07-22",
+            "expiry_date": "2030-07-21",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00033957",
+            "issue_date": "2023-08-23",
+            "expiry_date": "2028-08-19",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "32463",
+            "issue_date": "2024-08-15",
+            "expiry_date": "2026-08-14",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "32463",
+            "international_medical_issue_date": "2024-08-15",
+            "international_medical_expiry_date": "2026-08-14",
+            "file_url": null,
+            "download_url": null,
+            "records": [
+                {
+                    "type": "Yellow Fever",
+                    "number": null,
+                    "issue_date": "2014-12-09",
+                    "expiry_date": "Valid for life long",
+                    "issued_by": "Ministry of Health",
+                    "issued_at": null
+                }
+            ]
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "id": 101,
+                "vessel_name": "F/B RIGEL III",
+                "rank": "A. B",
+                "vessel_type": "RORO-PAX",
+                "flag": "CYPRUS",
+                "signed_on": "2017-07-22",
+                "signed_off": "2018-01-15",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 102,
+                "vessel_name": "F/B RIGEL III",
+                "rank": "A. B",
+                "vessel_type": "RORO-PAX",
+                "flag": "CYPRUS",
+                "signed_on": "2018-05-17",
+                "signed_off": "2019-02-18",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 103,
+                "vessel_name": "F/B RIGEL III",
+                "rank": "A. B",
+                "vessel_type": "RORO-PAX",
+                "flag": "CYPRUS",
+                "signed_on": "2019-03-10",
+                "signed_off": "2019-12-03",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 104,
+                "vessel_name": "F/B RIGEL III",
+                "rank": "A. B",
+                "vessel_type": "RORO-PAX",
+                "flag": "CYPRUS",
+                "signed_on": "2021-12-09",
+                "signed_off": "2022-09-29",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 105,
+                "vessel_name": "F/B RIGEL III",
+                "rank": "A. B",
+                "vessel_type": "RORO-PAX",
+                "flag": "CYPRUS",
+                "signed_on": "2022-09-30",
+                "signed_off": "2023-06-20",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 106,
+                "vessel_name": "F/B RIGEL III",
+                "rank": "A. B",
+                "vessel_type": "RORO-PAX",
+                "flag": "CYPRUS",
+                "signed_on": "2023-09-08",
+                "signed_off": "2024-06-12",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "marine_courses": [
+            {
+                "id": 1001,
+                "course_name": "Basic Safety Training",
+                "issue_date": "2021-11-10",
+                "expiry_date": "2026-10-20",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1002,
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "issue_date": "2021-11-03",
+                "expiry_date": "2026-10-27",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1003,
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "issue_date": "2024-07-17",
+                "expiry_date": "2029-07-09",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1004,
+                "course_name": "Navigational Watch keeping",
+                "issue_date": "2024-08-01",
+                "expiry_date": null,
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1005,
+                "course_name": "Passenger Safety Cargo Safety and Hull integrity",
+                "issue_date": "2024-07-16",
+                "expiry_date": "2029-07-08",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1006,
+                "course_name": "Crowd Management Training",
+                "issue_date": "2024-07-16",
+                "expiry_date": "2029-07-02",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1007,
+                "course_name": "Crisis Management and Human Behavior Training",
+                "issue_date": "2024-07-16",
+                "expiry_date": "2029-07-05",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1008,
+                "course_name": "Safety training for Personal Prov. Direct Passengers",
+                "issue_date": "2024-07-17",
+                "expiry_date": "2029-07-06",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1009,
+                "course_name": "Abel Seafarer Deck",
+                "issue_date": "2023-08-02",
+                "expiry_date": null,
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1010,
+                "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+                "issue_date": "2023-08-29",
+                "expiry_date": null,
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 1011,
+                "course_name": "Certificate of Proficiency in Survival Crafts and Rescue Boats",
+                "issue_date": "2024-07-16",
+                "expiry_date": "2028-08-19",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "AHMED MOHAMED HASSAN ELTAWARGY",
+            "date_of_birth": "1990-07-26",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "EGYPTIAN",
+            "height_cm": "180",
+            "weight_kg": "95",
+            "place_of_birth": "DAMIETTA",
+            "overall_size": "M",
+            "shirt_size": "L",
+            "nearest_port": "CAIRO",
+            "trouser_size": "",
+            "shoes_size": "43"
+        },
+        "2_education": {
+            "college_school": "Bachelor of Arts",
+            "marline_test": {
+                "issued_date": "2011",
+                "result_percentage": "65",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": true,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "Al Fanar ST, Ezbet Elborg, Damietta",
+            "e_mail": "haba12983@gmail.com",
+            "mobile_tel": "+201204976002"
+        },
+        "4_travel_documents": [
+            {
+                "type": "Passport",
+                "document_no": "A34484363",
+                "iss_date": "2023-07-22",
+                "exp_date": "2030-07-21",
+                "iss_by_authority": "Egyptian Authority",
+                "place_of_issue": "",
+                "file_url": null
+            },
+            {
+                "type": "Seaman Book",
+                "document_no": "S00033957",
+                "iss_date": "2023-08-23",
+                "exp_date": "2028-08-19",
+                "iss_by_authority": "EAMS",
+                "place_of_issue": "Alex.",
+                "file_url": null
+            }
+        ],
+        "5_professional_qualification_certificate_of_competency": [
+            {
+                "certificate_name": "COC",
+                "number": "",
+                "issue_date": "",
+                "expiry_date": "",
+                "issued_by": "EAMS",
+                "issued_at": "Alex."
+            },
+            {
+                "certificate_name": "GOC",
+                "number": "",
+                "issue_date": "",
+                "expiry_date": "",
+                "issued_by": "NTRA",
+                "issued_at": "Cairo"
+            }
+        ],
+        "6_next_of_kin_emergency_contact": {
+            "full_name": "MOHAMED ELTAWARGY",
+            "address_country": "Al Fanar ST, Ezbet Elborg, Damietta",
+            "tel_no_mobile": "+201005541288",
+            "relationship": "FATHER",
+            "email": ""
+        },
+        "7_health_certificates_and_vaccinations": {
+            "certificates": [
+                {
+                    "type": "International Medical",
+                    "number": "32463",
+                    "issue_date": "2024-08-15",
+                    "expiry_date": "2026-08-14",
+                    "issued_by": "EAMS",
+                    "issued_at": "Alex."
+                },
+                {
+                    "type": "Yellow Fever",
+                    "number": "",
+                    "issue_date": "2014-12-09",
+                    "expiry_date": "Valid for life long",
+                    "issued_by": "Ministry of Health",
+                    "issued_at": ""
+                }
+            ],
+            "covid_19": {
+                "vaccination_name": "",
+                "first_dose": "",
+                "second_dose": "",
+                "other_does_or_remarks": ""
+            }
+        },
+        "8_marine_courses": [
+            {
+                "course_name": "Basic Safety Training",
+                "number": "38757/21/EG",
+                "issue_date": "2021-11-10",
+                "expiry_date": "2026-10-20",
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "NA 6092",
+                "issue_date": "2021-11-03",
+                "expiry_date": "2026-10-27",
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "XNC 4983",
+                "issue_date": "2024-07-17",
+                "expiry_date": "2029-07-09",
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Navigational Watch keeping",
+                "number": "XNV 2205",
+                "issue_date": "2024-08-01",
+                "expiry_date": "",
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "XNXD 1833",
+                "issue_date": "2024-07-16",
+                "expiry_date": "2029-07-08",
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Crowd Management Training",
+                "number": "XNXA 1894",
+                "issue_date": "2024-07-16",
+                "expiry_date": "2029-07-02",
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Crisis Management and Human Behavior Training",
+                "number": "XNXB 1906",
+                "issue_date": "2024-07-16",
+                "expiry_date": "2029-07-05",
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "XNXC 1885",
+                "issue_date": "2024-07-17",
+                "expiry_date": "2029-07-06",
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Abel Seafarer Deck",
+                "number": "24093/22/EG",
+                "issue_date": "2023-08-02",
+                "expiry_date": "",
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+                "number": "00773",
+                "issue_date": "2023-08-29",
+                "expiry_date": "",
+                "issued_by": "EAMS",
+                "issued_at": "Alex."
+            },
+            {
+                "course_name": "Certificate of Proficiency in Survival Crafts and Rescue Boats",
+                "number": "06908",
+                "issue_date": "2024-07-16",
+                "expiry_date": "2028-08-19",
+                "issued_by": "",
+                "issued_at": ""
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "applicant_info": {
+                "name": "AHMED MOHAMED HASSAN ELTAWARGY",
+                "rank": "A. B",
+                "register_code": "DR-2.264"
+            },
+            "service_records": [
+                {
+                    "company_name": "VENTOURIS",
+                    "rank": "A. B",
+                    "rank_name": "A. B",
+                    "vessel_name_imo_number": "F/B RIGEL III",
+                    "flag": "CYPRUS",
+                    "flag_name": "CYPRUS",
+                    "signed_on": "2017-07-22",
+                    "signed_off": "2018-01-15",
+                    "period": "",
+                    "vessel_type": "RORO-PAX",
+                    "vessel_type_name": "RORO-PAX",
+                    "dwt_grt": "",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": ""
+                },
+                {
+                    "company_name": "VENTOURIS",
+                    "rank": "A. B",
+                    "rank_name": "A. B",
+                    "vessel_name_imo_number": "F/B RIGEL III",
+                    "flag": "CYPRUS",
+                    "flag_name": "CYPRUS",
+                    "signed_on": "2018-05-17",
+                    "signed_off": "2019-02-18",
+                    "period": "",
+                    "vessel_type": "RORO-PAX",
+                    "vessel_type_name": "RORO-PAX",
+                    "dwt_grt": "",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": ""
+                },
+                {
+                    "company_name": "VENTOURIS",
+                    "rank": "A. B",
+                    "rank_name": "A. B",
+                    "vessel_name_imo_number": "F/B RIGEL III",
+                    "flag": "CYPRUS",
+                    "flag_name": "CYPRUS",
+                    "signed_on": "2019-03-10",
+                    "signed_off": "2019-12-03",
+                    "period": "",
+                    "vessel_type": "RORO-PAX",
+                    "vessel_type_name": "RORO-PAX",
+                    "dwt_grt": "",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": ""
+                },
+                {
+                    "company_name": "VENTOURIS",
+                    "rank": "A. B",
+                    "rank_name": "A. B",
+                    "vessel_name_imo_number": "F/B RIGEL III",
+                    "flag": "CYPRUS",
+                    "flag_name": "CYPRUS",
+                    "signed_on": "2021-12-09",
+                    "signed_off": "2022-09-29",
+                    "period": "",
+                    "vessel_type": "RORO-PAX",
+                    "vessel_type_name": "RORO-PAX",
+                    "dwt_grt": "",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": ""
+                },
+                {
+                    "company_name": "VENTOURIS",
+                    "rank": "A. B",
+                    "rank_name": "A. B",
+                    "vessel_name_imo_number": "F/B RIGEL III",
+                    "flag": "CYPRUS",
+                    "flag_name": "CYPRUS",
+                    "signed_on": "2022-09-30",
+                    "signed_off": "2023-06-20",
+                    "period": "",
+                    "vessel_type": "RORO-PAX",
+                    "vessel_type_name": "RORO-PAX",
+                    "dwt_grt": "",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": ""
+                },
+                {
+                    "company_name": "VENTOURIS",
+                    "rank": "A. B",
+                    "rank_name": "A. B",
+                    "vessel_name_imo_number": "F/B RIGEL III",
+                    "flag": "CYPRUS",
+                    "flag_name": "CYPRUS",
+                    "signed_on": "2023-09-08",
+                    "signed_off": "2024-06-12",
+                    "period": "",
+                    "vessel_type": "RORO-PAX",
+                    "vessel_type_name": "RORO-PAX",
+                    "dwt_grt": "",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": ""
+                }
+            ]
+        },
+        "10_references": [],
+        "11_declaration": {
+            "questions": {
+                "suffer_disease_unfit_for_sea": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "addicted_to_alcohol_or_drugs": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "suffer_accident_disabled": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "undergo_psychiatric_treatment": {
+                    "answer": "NO",
+                    "details": ""
+                }
+            },
+            "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+            "place": "",
+            "date": "2024-08-21",
+            "signature": "AHMED MOHAMED ELTAWARGY"
+        },
+        "12_for_office_use_only": {
+            "initial_assessment_of_applicant": "",
+            "comments": "",
+            "responsible_person": {
+                "name_signature": "",
+                "date": ""
+            }
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

@@ -1,0 +1,256 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Ahmed Gaber Ahmed Abdullah",
+    "user_email_display": "AHMEDGABER6628062@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": null,
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-05-31",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-05-31T22:51:35.894303Z",
+    "updated_at": "2026-05-31T22:51:35.911012Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.378",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A28629735",
+            "issue_date": "2021-07-27",
+            "expiry_date": "2028-07-26",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Alexandria",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00041738",
+            "issue_date": "2024-05-08",
+            "expiry_date": "2029-05-01",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC ( Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "international_medical_number": "31681",
+            "international_medical_issue_date": "2024-07-29",
+            "international_medical_expiry_date": "2026-07-28",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "id": null,
+                "vessel_name": "Kareem R",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2020-03-07",
+                "signed_off": "2020-09-12",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "vessel_name": "AmrR",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2019-06-27",
+                "signed_off": "2019-08-28",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "vessel_name": "Amr R",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2018-08-16",
+                "signed_off": "2018-10-05",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "vessel_name": "Amr R",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2015-11-18",
+                "signed_off": "2018-05-31",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "vessel_name": "Kareem R",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2015-07-11",
+                "signed_off": "2015-08-30",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "vessel_name": "Ayat",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2015-05-24",
+                "signed_off": "2015-07-11",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "vessel_name": "Amr R",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2013-11-20",
+                "signed_off": "2014-11-11",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "vessel_name": "Amr R",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2012-07-29",
+                "signed_off": "2012-10-31",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "vessel_name": "Amr R",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2011-09-21",
+                "signed_off": "2012-05-25",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "vessel_name": "Amr R",
+                "rank": "AB",
+                "vessel_type": "General cargo",
+                "flag": "Tanzania",
+                "signed_on": "2010-03-07",
+                "signed_off": "2011-07-23",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "marine_courses": [
+            {
+                "id": null,
+                "course_name": "Personal Survival Techniques",
+                "issue_date": "2021-11-18",
+                "expiry_date": "2026-10-31",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "course_name": "Proficiency In Personal Survival Techniques",
+                "issue_date": "2021-11-18",
+                "expiry_date": "2026-10-30",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "course_name": "Fire Prevention and Fire Fighting",
+                "issue_date": "2021-11-18",
+                "expiry_date": "2026-11-03",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "course_name": "Personal Safety and Social Responsibilities",
+                "issue_date": "2023-06-10",
+                "expiry_date": "2028-06-05",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "issue_date": "2023-06-07",
+                "expiry_date": "2028-05-31",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "issue_date": "2021-11-10",
+                "expiry_date": "2026-10-25",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": null,
+                "course_name": "Navigational Watch keeping",
+                "issue_date": "202

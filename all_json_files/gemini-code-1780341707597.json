@@ -1,0 +1,47 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mohamed Mohamed Mohamed Ahmed Mazliem",
+    "user_email_display": "mo_mazliem1991@gmail.com",
+    "position_name": "AB",
+    "expected_salary": "1400 USD",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.062"
+        }
+    ],
+    "assigned_code": "DR-2.062",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A24159842",
+            "issue_date": "2019-04-05",
+            "expiry_date": "2026-04-04"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00019432",
+            "issue_date": "2021-11-12",
+            "expiry_date": "2026-11-11"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "DESERT HORIZON",
+                "rank": "AB",
+                "vessel_type": "General Cargo",
+                "signed_on": "2022-02-20",
+                "signed_off": "2022-12-18"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mohamed Mohamed Mohamed Ahmed Mazliem",
+            "date_of_birth": "1991-10-14",
+            "nationality": "Egyptian"
+        },
+        "3_contact_details": {
+            "home_address_city": "Damietta, Ezbet elborg",
+            "e_mail": "mo_mazliem1991@gmail.com",
+            "mobile_tel": "01201495862"
+        }
+    }
+}

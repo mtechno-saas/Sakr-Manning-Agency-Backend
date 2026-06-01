@@ -1,0 +1,135 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "IBRAHIM KHALED ALY ISMAIL",
+    "user_email_display": "IBRAHIMKHALED3355@ICLOUD.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "AB",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-10-10",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": "2023-09-28",
+    "generated_id": "DR-2.162",
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.162",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A22271763",
+            "issue_date": "2018-04-14",
+            "expiry_date": "2025-04-13",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00026889",
+            "issue_date": "2022-11-16",
+            "expiry_date": "2027-11-13",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Alex",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "15319",
+            "issue_date": "2023-06-12",
+            "expiry_date": "2025-06-11",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "15319",
+            "international_medical_issue_date": "2023-06-12",
+            "international_medical_expiry_date": "2025-06-11",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {"vessel_name": "OTS YEOMAN DP", "rank": "AB", "vessel_type": "Diving support vessel", "flag": "", "signed_on": "2018-11-08", "signed_off": "2019-05-09"},
+            {"vessel_name": "EAST PRINCE", "rank": "AB", "vessel_type": "CADPILLAR", "flag": "", "signed_on": "2019-06-07", "signed_off": "2019-12-05"},
+            {"vessel_name": "TITANIA", "rank": "AB", "vessel_type": "Bulk & General cargo", "flag": "", "signed_on": "2022-08-04", "signed_off": "2022-10-05"},
+            {"vessel_name": "SCORPION", "rank": "AB", "vessel_type": "Bulk & General cargo", "flag": "", "signed_on": "2022-11-16", "signed_off": "2023-05-21"}
+        ],
+        "marine_courses": [
+            {"course_name": "Personal Survival Techniques", "number": "9412/22/EG", "issue_date": "2022-03-17", "expiry_date": "XXXXX"},
+            {"course_name": "Advanced Fire Prevention and Fire Fighting", "number": "36489/22/EG", "issue_date": "2022-11-28", "expiry_date": "2027-11-16"},
+            {"course_name": "Personal Safety and Social Responsibilities", "number": "36489/22/EG", "issue_date": "2022-11-28", "expiry_date": "2027-11-16"},
+            {"course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "20625/23/EG", "issue_date": "2022-11-28", "expiry_date": "2027-11-16"},
+            {"course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "11501/22/EG", "issue_date": "2022-04-07", "expiry_date": "2027-03-16"},
+            {"course_name": "GMDSS General Operator Certificate", "number": "0028651", "issue_date": "2017-06-08", "expiry_date": "XXXXX"}
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "IBRAHIM KHALED ALY ISMAIL",
+            "date_of_birth": "1996-04-01",
+            "marital_status": {"single": true, "married": false},
+            "nationality": "Egyptian",
+            "height_cm": "172 cm",
+            "weight_kg": "73 kg",
+            "place_of_birth": "Dakahlia - Egypt",
+            "overall_size": "Xl",
+            "shirt_size": "xl",
+            "nearest_port": "",
+            "trouser_size": "38",
+            "shoes_size": "45"
+        },
+        "2_education": {
+            "college_school": "",
+            "english_language": {"fluent": false, "good": false, "average": false, "poor": false}
+        },
+        "3_contact_details": {
+            "home_address_city": "Dakahlia - Egypt",
+            "e_mail": "Ibrahimkhaled3355@icloud.com",
+            "mobile_tel": "+2 01069141115"
+        }
+    }
+}

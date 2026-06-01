@@ -1,0 +1,434 @@
+{
+    "id": 1006,
+    "user": 2006,
+    "user_name": "AHMED ABDEL-ALIM ABDEL-RADI EL-SAYED",
+    "user_email_display": "AHMEDALIM15101988@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 16,
+    "position_name": "Seaman A.B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 10,
+    "expected_salary": "1200 $",
+    "availability_date": "15days after confirmation",
+    "status": "Pending",
+    "submitted_date": "2025-09-05",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2025-09-05T12:00:00.000000Z",
+    "updated_at": "2025-09-05T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": "1200 $",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.416",
+            "rank_code": "DR-2.000",
+            "rank_name": "Seaman A.B"
+        }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.416",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A34218292",
+            "issue_date": "2023-06-18",
+            "expiry_date": "2030-06-17",
+            "issued_by": "Alexandria/Egypt",
+            "place_of_issue": "Alexandria",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00023785",
+            "issue_date": "2022-07-04",
+            "expiry_date": "2027-06-28",
+            "issued_by": "Alexandria/Egypt",
+            "place_of_issue": "Alexandria",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "40669",
+            "issue_date": "2025-02-18",
+            "expiry_date": "2025-02-17",
+            "issued_by": "EAMS / Alex",
+            "issued_at": "EAMS / Alex",
+            "international_medical_number": "40669",
+            "international_medical_issue_date": "2025-02-18",
+            "international_medical_expiry_date": "2025-02-17",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "id": 5022,
+                "vessel_name": "Al-Salam 1",
+                "rank": "A.B",
+                "vessel_type": "Tug Boat",
+                "flag": "EGYPT",
+                "signed_on": "2015-08-09",
+                "signed_off": "Present",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5023,
+                "vessel_name": "Portsaid",
+                "rank": "A.B",
+                "vessel_type": "Tug Boat",
+                "flag": "EGYPT",
+                "signed_on": "2014-05-01",
+                "signed_off": "2015-08-01",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5024,
+                "vessel_name": "Masarra",
+                "rank": "A.B",
+                "vessel_type": "Passenger",
+                "flag": "SAUDI ARABIA",
+                "signed_on": "2014-04-13",
+                "signed_off": "2014-04-24",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5025,
+                "vessel_name": "Portsaid",
+                "rank": "A.B",
+                "vessel_type": "Tug Boat",
+                "flag": "EGYPT",
+                "signed_on": "2013-09-10",
+                "signed_off": "2014-04-01",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "marine_courses": [
+            {
+                "id": 6038,
+                "course_name": "Personal Survival Techniques",
+                "issue_date": "2025-02-13",
+                "expiry_date": "2030-01-08",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6039,
+                "course_name": "Fire Prevention and Fire Fighting",
+                "issue_date": "2025-02-13",
+                "expiry_date": "2030-01-08",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6040,
+                "course_name": "Elementary First Aid",
+                "issue_date": "2025-02-13",
+                "expiry_date": "2030-01-08",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6041,
+                "course_name": "Personal Safety and Social Responsibilities",
+                "issue_date": "2025-02-13",
+                "expiry_date": "2030-01-08",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6042,
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "issue_date": "2023-07-09",
+                "expiry_date": "2028-07-05",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6043,
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "issue_date": "2023-08-02",
+                "expiry_date": "2028-07-17",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6044,
+                "course_name": "Navigational Watch keeping",
+                "issue_date": "2023-08-01",
+                "expiry_date": null,
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6045,
+                "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+                "issue_date": "2025-02-23",
+                "expiry_date": null,
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "AHMED ABDEL-ALIM ABDEL-RADI EL-SAYED",
+            "date_of_birth": "1988-10-15",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egyptian",
+            "height_cm": "",
+            "weight_kg": "",
+            "place_of_birth": "PortSaid",
+            "overall_size": "",
+            "shirt_size": "",
+            "nearest_port": "Cairo international airport",
+            "trouser_size": "",
+            "shoes_size": ""
+        },
+        "2_education": {
+            "college_school": "",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "Portfouad - Portsaid, Egypt",
+            "e_mail": "AHMEDALIM15101988@GMAIL.COM",
+            "mobile_tel": "00201090201963"
+        },
+        "4_travel_documents": [
+            {
+                "type": "Passport",
+                "document_no": "A34218292",
+                "iss_date": "2023-06-18",
+                "exp_date": "2030-06-17",
+                "iss_by_authority": "Alexandria/Egypt",
+                "place_of_issue": "Alexandria",
+                "file_url": null
+            },
+            {
+                "type": "Seaman Book",
+                "document_no": "S00023785",
+                "iss_date": "2022-07-04",
+                "exp_date": "2027-06-28",
+                "iss_by_authority": "Alexandria/Egypt",
+                "place_of_issue": "Alexandria",
+                "file_url": null
+            }
+        ],
+        "5_professional_qualification_certificate_of_competency": [],
+        "6_next_of_kin_emergency_contact": {
+            "full_name": "Nada Hussein el-atma",
+            "address_country": "",
+            "tel_no_mobile": "0120 0260811",
+            "relationship": "wife",
+            "email": ""
+        },
+        "7_health_certificates_and_vaccinations": {
+            "certificates": [
+                {
+                    "name": "International Medical",
+                    "number": "40669",
+                    "issue_date": "2025-02-18",
+                    "expiry_date": "2025-02-17",
+                    "issued_by": "EAMS / Alex",
+                    "issued_at": "EAMS / Alex"
+                }
+            ],
+            "covid_19": {
+                "vaccination_name": "",
+                "first_dose": "",
+                "second_dose": "",
+                "other_does_or_remarks": ""
+            }
+        },
+        "8_marine_courses": [
+            {
+                "course_name": "Personal Survival Techniques",
+                "number": "3939/25/EG",
+                "issue_date": "2025-02-13",
+                "expiry_date": "2030-01-08",
+                "issued_by": "AASTMT/ALEX",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Fire Prevention and Fire Fighting",
+                "number": "3939/25/EG",
+                "issue_date": "2025-02-13",
+                "expiry_date": "2030-01-08",
+                "issued_by": "AASTMT/ALEX",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Elementary First Aid",
+                "number": "3939/25/EG",
+                "issue_date": "2025-02-13",
+                "expiry_date": "2030-01-08",
+                "issued_by": "AASTMT/ALEX",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Personal Safety and Social Responsibilities",
+                "number": "3939/25/EG",
+                "issue_date": "2025-02-13",
+                "expiry_date": "2030-01-08",
+                "issued_by": "AASTMT/ALEX",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "20631/23/EG",
+                "issue_date": "2023-07-09",
+                "expiry_date": "2028-07-05",
+                "issued_by": "AASTMT/ALEX",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "24115/23/EG",
+                "issue_date": "2023-08-02",
+                "expiry_date": "2027-07-17",
+                "issued_by": "AASTMT/ALEX",
+                "issued_at": ""
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "applicant_info": {
+                "name": "AHMED ABDEL-ALIM ABDEL-RADI EL-SAYED",
+                "rank": "Seaman A.B",
+                "register_code": "DR-2.416"
+            },
+            "service_records": [
+                {
+                    "company_name": "General Authority For PortSaid Ports",
+                    "rank": "A.B",
+                    "rank_name": "A.B",
+                    "vessel_name_imo_number": "Al-Salam 1",
+                    "flag": "EGYPT",
+                    "flag_name": "EGYPT",
+                    "signed_on": "2015-08-09",
+                    "signed_off": "Present",
+                    "period": "",
+                    "vessel_type": "Tug Boat",
+                    "vessel_type_name": "Tug Boat",
+                    "dwt_grt": "396",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": ""
+                },
+                {
+                    "company_name": "Suez Canal Authority",
+                    "rank": "A.B",
+                    "rank_name": "A.B",
+                    "vessel_name_imo_number": "Portsaid",
+                    "flag": "EGYPT",
+                    "flag_name": "EGYPT",
+                    "signed_on": "2014-05-01",
+                    "signed_off": "2015-08-01",
+                    "period": "",
+                    "vessel_type": "Tug Boat",
+                    "vessel_type_name": "Tug Boat",
+                    "dwt_grt": "1000",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "END OF THE CONTRACT"
+                }
+            ]
+        },
+        "10_references": [],
+        "11_declaration": {
+            "questions": {
+                "suffer_disease_unfit_for_sea": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "addicted_to_alcohol_or_drugs": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "suffer_accident_disabled": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "undergo_psychiatric_treatment": {
+                    "answer": "NO",
+                    "details": ""
+                }
+            },
+            "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+            "place": "",
+            "date": "",
+            "signature": ""
+        },
+        "12_for_office_use_only": {
+            "initial_assessment_of_applicant": "",
+            "comments": "",
+            "responsible_person": {
+                "name_signature": "",
+                "date": ""
+            }
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

@@ -1,0 +1,47 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "MOHAMED BASYOUNI SAAD ISMAEL",
+    "user_email_display": "M_basyouni1990@gmail.com",
+    "position_name": "AB",
+    "expected_salary": "1500 USD",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.112"
+        }
+    ],
+    "assigned_code": "DR-2.112",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A23948512",
+            "issue_date": "2018-11-14",
+            "expiry_date": "2025-11-13"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00009412",
+            "issue_date": "2020-06-18",
+            "expiry_date": "2025-06-17"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "DESERT RUNNER",
+                "rank": "AB",
+                "vessel_type": "Bulk Carrier",
+                "signed_on": "2021-09-05",
+                "signed_off": "2022-08-14"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "MOHAMED BASYOUNI SAAD ISMAEL",
+            "date_of_birth": "1990-05-25",
+            "nationality": "Egyptian"
+        },
+        "3_contact_details": {
+            "home_address_city": "Alexandria, El Max",
+            "e_mail": "M_basyouni1990@gmail.com",
+            "mobile_tel": "01551489234"
+        }
+    }
+}

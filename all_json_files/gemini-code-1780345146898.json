@@ -1,0 +1,522 @@
+{
+    "id": 1008,
+    "user": 2008,
+    "user_name": "AHMED ABD-ELHAMID ABD-ELHADY ABD-ELHAMID GHANEM",
+    "user_email_display": "A.GHANEM007@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": 3,
+    "position_name": "Third officer",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 8,
+    "expected_salary": "AVALAIBLE FROM 04-05-2025",
+    "availability_date": "2025-05-04",
+    "status": "Pending",
+    "submitted_date": "2025-05-23",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2025-05-23T12:00:00.000000Z",
+    "updated_at": "2025-05-23T12:00:00.000000Z",
+    "generated_id": null,
+    "salary_display": "AVALAIBLE FROM 04-05-2025",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.381",
+            "rank_code": "DR-2.000",
+            "rank_name": "Third officer"
+        }
+    ],
+    "rank_code": "DR-2.000",
+    "assigned_code": "DR-2.381",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A40978218",
+            "issue_date": "2025-03-26",
+            "expiry_date": "2032-03-25",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "18",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00051876",
+            "issue_date": "2025-03-16",
+            "expiry_date": "2030-01-12",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank) third officer",
+            "certificate_number": "2452",
+            "issue_date": "2025-03-13",
+            "expiry_date": "2030-01-12",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "42932",
+            "issue_date": "2025-04-13",
+            "expiry_date": "2027-04-12",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "42932",
+            "international_medical_issue_date": "2025-04-13",
+            "international_medical_expiry_date": "2027-04-12",
+            "file_url": null,
+            "download_url": null,
+            "records": [
+                {
+                    "type": "Yellow Fever",
+                    "number": "16381",
+                    "issue_date": "2015-02-19",
+                    "expiry_date": "xxxxx",
+                    "issued_by": "Ministry of Health",
+                    "issued_at": ""
+                }
+            ]
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "id": 5031,
+                "vessel_name": "MY LADY DINA 1",
+                "rank": "A/B",
+                "vessel_type": "G-CARGO",
+                "flag": "TOGO",
+                "signed_on": "2015-05-19",
+                "signed_off": "2015-11-08",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5032,
+                "vessel_name": "NAWRAS",
+                "rank": "A/B",
+                "vessel_type": "LIVE STOCK",
+                "flag": "TANZANIA",
+                "signed_on": "2016-05-25",
+                "signed_off": "2016-10-03",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5033,
+                "vessel_name": "LADY SAFIA 1",
+                "rank": "A/B",
+                "vessel_type": "G-CARGO",
+                "flag": "TOGO",
+                "signed_on": "2016-11-01",
+                "signed_off": "2017-02-23",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5034,
+                "vessel_name": "MV SUNSHINE",
+                "rank": "A/B",
+                "vessel_type": "G-CARGO",
+                "flag": "TOGO",
+                "signed_on": "2017-03-05",
+                "signed_off": "2017-09-24",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 5035,
+                "vessel_name": "MV SUNSHINE",
+                "rank": "A/B",
+                "vessel_type": "G-CARGO",
+                "flag": "TOGO",
+                "signed_on": "2017-12-01",
+                "signed_off": "2018-05-27",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "marine_courses": [
+            {
+                "id": 6051,
+                "course_name": "Proficiency In Personal Survival Techniques",
+                "issue_date": "2025-01-15",
+                "expiry_date": "2030-01-12",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6052,
+                "course_name": "Advanced Fire Prevention and Fire Fighting",
+                "issue_date": "2025-01-23",
+                "expiry_date": "2030-01-22",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6053,
+                "course_name": "Elementary First Aid",
+                "issue_date": "2025-01-23",
+                "expiry_date": "2030-01-22",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6054,
+                "course_name": "Personal Safety and Social Responsibilities",
+                "issue_date": "2025-01-20",
+                "expiry_date": "2030-01-15",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6055,
+                "course_name": "Proficiency as a ship Security officer (PSSO)",
+                "issue_date": "2025-01-09",
+                "expiry_date": "2030-01-08",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6056,
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "issue_date": "2025-01-20",
+                "expiry_date": "2030-01-15",
+                "file_url": null,
+                "download_url": null
+            },
+            {
+                "id": 6057,
+                "course_name": "Communications",
+                "issue_date": "2025-02-09",
+                "expiry_date": "XXXXXXX",
+                "file_url": null,
+                "download_url": null
+            }
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "AHMED ABD-ELHAMID ABD-ELHADY ABD-ELHAMID GHANEM",
+            "date_of_birth": "1988-03-25",
+            "marital_status": {
+                "single": true,
+                "married": false
+            },
+            "nationality": "Egyptian",
+            "height_cm": "5.1`",
+            "weight_kg": "98",
+            "place_of_birth": "Alexandria Egypt",
+            "overall_size": "XXXL",
+            "shirt_size": "XXXL",
+            "nearest_port": "Borg-Elarab Airport Or Cairo Airport",
+            "trouser_size": "XXL",
+            "shoes_size": "45"
+        },
+        "2_education": {
+            "college_school": "Victory College Alexandria",
+            "marline_test": {
+                "issued_date": "",
+                "result_percentage": "",
+                "issued_by_authority": "",
+                "issued_at": ""
+            },
+            "english_language": {
+                "fluent": true,
+                "good": false,
+                "average": false,
+                "poor": false
+            },
+            "german_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "21 Fleb Galad Street Victoria Alexandria Egypt",
+            "e_mail": "a.ghanem007@gmail.com",
+            "mobile_tel": "00201000945478"
+        },
+        "4_travel_documents": [
+            {
+                "type": "Passport",
+                "document_no": "A40978218",
+                "iss_date": "2025-03-26",
+                "exp_date": "2032-03-25",
+                "iss_by_authority": "Egyptian Authority",
+                "place_of_issue": "18",
+                "file_url": null
+            },
+            {
+                "type": "Seaman Book",
+                "document_no": "S00051876",
+                "iss_date": "2025-03-16",
+                "exp_date": "2030-01-12",
+                "iss_by_authority": "EAMS",
+                "place_of_issue": "Alex.",
+                "file_url": null
+            }
+        ],
+        "5_professional_qualification_certificate_of_competency": [
+            {
+                "certificate_name": "COC (Rank) third officer",
+                "number": "2452",
+                "issue_date": "2025-03-13",
+                "expiry_date": "2030-01-12",
+                "issued_by": "EAMS",
+                "issued_at": "Alex."
+            },
+            {
+                "certificate_name": "GOC",
+                "number": "",
+                "issue_date": "",
+                "expiry_date": "",
+                "issued_by": "NTRA",
+                "issued_at": "Cairo"
+            }
+        ],
+        "6_next_of_kin_emergency_contact": {
+            "full_name": "ABDELHAMID GHANEM",
+            "address_country": "21 FLEB GALAD STREET ALEXANDRIA VICTORIA",
+            "tel_no_mobile": "00201007854230",
+            "relationship": "FATHER",
+            "email": ""
+        },
+        "7_health_certificates_and_vaccinations": {
+            "certificates": [
+                {
+                    "name": "International Medical",
+                    "number": "42932",
+                    "issue_date": "2025-04-13",
+                    "expiry_date": "2027-04-12",
+                    "issued_by": "EAMS",
+                    "issued_at": "Alex."
+                },
+                {
+                    "name": "Yellow Fever",
+                    "number": "16381",
+                    "issue_date": "2015-02-19",
+                    "expiry_date": "xxxxx",
+                    "issued_by": "Ministry of Health",
+                    "issued_at": ""
+                }
+            ],
+            "covid_19": {
+                "vaccination_name": "Pfizer",
+                "first_dose": "2021-11-02",
+                "second_dose": "2022-11-23",
+                "other_does_or_remarks": ""
+            }
+        },
+        "8_marine_courses": [
+            {
+                "course_name": "Proficiency In Personal Survival Techniques",
+                "number": "L799093",
+                "issue_date": "2025-01-15",
+                "expiry_date": "2030-01-12",
+                "issued_by": "AASTMT",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Advanced Fire Prevention and Fire Fighting",
+                "number": "L800411",
+                "issue_date": "2025-01-23",
+                "expiry_date": "2030-01-22",
+                "issued_by": "AASTMT",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Elementary First Aid",
+                "number": "L800634",
+                "issue_date": "2025-01-23",
+                "expiry_date": "2030-01-22",
+                "issued_by": "AASTMT",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Personal Safety and Social Responsibilities",
+                "number": "L799643",
+                "issue_date": "2025-01-20",
+                "expiry_date": "2030-01-15",
+                "issued_by": "AASTMT",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Proficiency as a ship Security officer (PSSO)",
+                "number": "L798284",
+                "issue_date": "2025-01-09",
+                "expiry_date": "2030-01-08",
+                "issued_by": "AASTMT",
+                "issued_at": ""
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "L799611",
+                "issue_date": "2025-01-20",
+                "expiry_date": "2030-01-15",
+                "issued_by": "AASTMT",
+                "issued_at": ""
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "applicant_info": {
+                "name": "",
+                "rank": "",
+                "register_code": ""
+            },
+            "service_records": [
+                {
+                    "company_name": "G.M.Z CO. S.A",
+                    "rank": "A/B",
+                    "rank_name": "A/B",
+                    "vessel_name_imo_number": "MY LADY DINA 1",
+                    "flag": "TOGO",
+                    "flag_name": "TOGO",
+                    "signed_on": "2015-05-19",
+                    "signed_off": "2015-11-08",
+                    "period": "6 MONTHS",
+                    "vessel_type": "G-CARGO",
+                    "vessel_type_name": "G-CARGO",
+                    "dwt_grt": "3447",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "END OF CONTRACT"
+                },
+                {
+                    "company_name": "M.A CO.",
+                    "rank": "A/B",
+                    "rank_name": "A/B",
+                    "vessel_name_imo_number": "NAWRAS",
+                    "flag": "TANZANIA",
+                    "flag_name": "TANZANIA",
+                    "signed_on": "2016-05-25",
+                    "signed_off": "2016-10-03",
+                    "period": "5 MONTHS",
+                    "vessel_type": "LIVE STOCK",
+                    "vessel_type_name": "LIVE STOCK",
+                    "dwt_grt": "3210",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "END OF CONTRACT"
+                },
+                {
+                    "company_name": "G.M.Z CO. S.A",
+                    "rank": "A/B",
+                    "rank_name": "A/B",
+                    "vessel_name_imo_number": "LADY SAFIA 1",
+                    "flag": "TOGO",
+                    "flag_name": "TOGO",
+                    "signed_on": "2016-11-01",
+                    "signed_off": "2017-02-23",
+                    "period": "4 MONTHS",
+                    "vessel_type": "G-CARGO",
+                    "vessel_type_name": "G-CARGO",
+                    "dwt_grt": "5900",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "END OF CONTRACT"
+                },
+                {
+                    "company_name": "FAROS SHIPPING COMPANY S.A.R.L",
+                    "rank": "A/B",
+                    "rank_name": "A/B",
+                    "vessel_name_imo_number": "MV SUNSHINE",
+                    "flag": "TOGO",
+                    "flag_name": "TOGO",
+                    "signed_on": "2017-03-05",
+                    "signed_off": "2017-09-24",
+                    "period": "7 MONTHS",
+                    "vessel_type": "G-CARGO",
+                    "vessel_type_name": "G-CARGO",
+                    "dwt_grt": "5025",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "END OF CONTRACT"
+                },
+                {
+                    "company_name": "FAROS SHIPPING COMPANY S.A.R.L",
+                    "rank": "A/B",
+                    "rank_name": "A/B",
+                    "vessel_name_imo_number": "MV SUNSHINE",
+                    "flag": "TOGO",
+                    "flag_name": "TOGO",
+                    "signed_on": "2017-12-01",
+                    "signed_off": "2018-05-27",
+                    "period": "6 MONTHS",
+                    "vessel_type": "G-CARGO",
+                    "vessel_type_name": "G-CARGO",
+                    "dwt_grt": "5025",
+                    "engine_type": "",
+                    "bh_kw": "",
+                    "reason_for_sign_off": "END OF CONTRACT"
+                }
+            ]
+        },
+        "10_references": [],
+        "11_declaration": {
+            "questions": {
+                "suffer_disease_unfit_for_sea": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "addicted_to_alcohol_or_drugs": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "suffer_accident_disabled": {
+                    "answer": "NO",
+                    "details": ""
+                },
+                "undergo_psychiatric_treatment": {
+                    "answer": "NO",
+                    "details": ""
+                }
+            },
+            "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+            "place": "",
+            "date": "",
+            "signature": ""
+        },
+        "12_for_office_use_only": {
+            "initial_assessment_of_applicant": "",
+            "comments": "",
+            "responsible_person": {
+                "name_signature": "AHMED ABD-ELHAMID ABD-ELHAMDY ABD-ELHAMID GHANEM",
+                "date": "2025-04-04"
+            }
+        }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+}

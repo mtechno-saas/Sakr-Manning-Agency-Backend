@@ -1,0 +1,75 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "MOHAMWD ELSAYED RAMADAN IBRAHIM",
+    "user_email_display": "Mohamed4521.rM@gmail.com",
+    "position_name": "AB SEAMAN",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.507"
+        }
+    ],
+    "assigned_code": "DR-2.507",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A37281705",
+            "issue_date": "2024-04-04",
+            "expiry_date": "2031-04-03"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00039688",
+            "issue_date": "2024-02-22",
+            "expiry_date": "2029-02-18"
+        },
+        "coc": {
+            "certificate_name": "COC ( Rank) AB SEAMAN",
+            "certificate_number": "XNC 4441",
+            "issue_date": "2024-05-20",
+            "expiry_date": "2029-05-01",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+        },
+        "goc": {
+            "certificate_number": "H0048052",
+            "issue_date": "2024-05-20",
+            "expiry_date": "2029-05-01",
+            "issued_by": "NTRA",
+            "issued_at": "Cairo"
+        },
+        "health_certificate": {
+            "number": "26383",
+            "issue_date": "2025-11-05",
+            "expiry_date": "2027-11-04"
+        },
+        "sea_service": [
+            { "vessel_name": "MARADIVE ZOHR I", "rank": "AB", "vessel_type": "PSV-DP2", "signed_on": "2024-08-08", "signed_off": "2024-12-18" },
+            { "vessel_name": "MARADIVE 232", "rank": "AB", "vessel_type": "OSV-DP2", "signed_on": "2025-01-25", "signed_off": "2025-02-22" },
+            { "vessel_name": "MARADIVE 601", "rank": "AB", "vessel_type": "OSV-DP2", "signed_on": "2025-05-11", "signed_off": "2025-08-28" }
+        ],
+        "marine_courses": [
+            { "course_name": "Proficiency In Personal Survival Techniques", "number": "9462/24/EG(A-VI-1-1)", "issue_date": "2024-03-13", "expiry_date": "2024-02-21" },
+            { "course_name": "Fire Prevention and Fire Fighting", "number": "9462/24/EG(A-VI-1-2)", "issue_date": "2024-03-13", "expiry_date": "2024-02-21" },
+            { "course_name": "Elementary First Aid", "number": "9462/24/EG(A-VI-1-3)", "issue_date": "2024-03-13", "expiry_date": "2024-02-21" },
+            { "course_name": "Personal Safety and Social Responsibilities", "number": "9462/24/EG(A-VI-1-4)", "issue_date": "2024-03-13", "expiry_date": "2024-02-21" },
+            { "course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "12750/24/EG", "issue_date": "2024-04-02", "expiry_date": "2029-03-27" },
+            { "course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "XNC 4441", "issue_date": "2024-05-20", "expiry_date": "2029-05-01" },
+            { "course_name": "Navigational Watch keeping", "number": "NV333", "issue_date": "2025-04-14" },
+            { "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)", "number": "02753", "issue_date": "2025-11-13" }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "MOHAMWD ELSAYED RAMADAN IBRAHIM",
+            "date_of_birth": "1993-06-19",
+            "nationality": "EGYTIAN",
+            "place_of_birth": "ALEXANDRIA",
+            "overall_size": "xl",
+            "shirt_size": "XL"
+        },
+        "3_contact_details": {
+            "home_address_city": "Elseyouf , Mustafa Kamel Street , behind Dar Al-Ilaj Hospital ",
+            "e_mail": "Mohamed4521.rM@gmail.com",
+            "mobile_tel": "+20 15 52132973"
+        }
+    }
+}

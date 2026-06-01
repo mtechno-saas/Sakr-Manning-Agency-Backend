@@ -1,0 +1,46 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "MOATAZ ABDELRAZEK ALY MOHAMED ELSAYED",
+    "user_email_display": "moatazabomoamen@gmail.com",
+    "position_name": "Able seafarer deck",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.171"
+        }
+    ],
+    "assigned_code": "DR-2.171",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A31745021",
+            "issue_date": "2022-10-15",
+            "expiry_date": "2029-10-14"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00024549",
+            "issue_date": "2022-08-21",
+            "expiry_date": "2027-08-14"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "North prince",
+                "rank": "O.S",
+                "vessel_type": "General cargo",
+                "signed_on": "2007-02-20",
+                "signed_off": "2007-11-02"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "MOATAZ ABDELRAZEK ALY MOHAMED ELSAYED",
+            "date_of_birth": "1980-09-02",
+            "nationality": "Egyptian"
+        },
+        "3_contact_details": {
+            "home_address_city": "40 Fourth Region elmanakh Port Said",
+            "e_mail": "moatazabomoamen@gmail.com",
+            "mobile_tel": "01276226274"
+        }
+    }
+}

@@ -1,0 +1,258 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Fahd Ahmed Abd ELAziz Ali",
+    "user_email_display": "FAHDESSA5@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "AB",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-02-09",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": "2023-02-07",
+    "generated_id": "DR-2.028",
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.028",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A20385638",
+            "issue_date": "2017-05-23",
+            "expiry_date": "2024-05-22",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00011320",
+            "issue_date": "2020-11-25",
+            "expiry_date": "2025-10-16",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "06645",
+            "issue_date": "2021-12-01",
+            "expiry_date": "2023-11-30",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "06645",
+            "international_medical_issue_date": "2021-12-01",
+            "international_medical_expiry_date": "2023-11-30",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "vessel_name": "CAPITAON GEE",
+                "rank": "AB",
+                "vessel_type": "offshore DP2",
+                "flag": "",
+                "signed_on": "2021-05-01",
+                "signed_off": "2022-05-01"
+            },
+            {
+                "vessel_name": "VICTORIA",
+                "rank": "AB",
+                "vessel_type": "TUG",
+                "flag": "",
+                "signed_on": "2021-03-01",
+                "signed_off": "2021-06-01"
+            },
+            {
+                "vessel_name": "CAPITAON GEE",
+                "rank": "AB",
+                "vessel_type": "offshore DP2",
+                "flag": "",
+                "signed_on": "2020-07-01",
+                "signed_off": "2021-02-01"
+            },
+            {
+                "vessel_name": "CAPITAON GEE",
+                "rank": "AB",
+                "vessel_type": "offshore DP2",
+                "flag": "",
+                "signed_on": "2019-11-01",
+                "signed_off": "2020-06-01"
+            },
+            {
+                "vessel_name": "CAPO GEE",
+                "rank": "AB",
+                "vessel_type": "offshore DP2",
+                "flag": "",
+                "signed_on": "2019-05-01",
+                "signed_off": "2019-06-01"
+            },
+            {
+                "vessel_name": "CAPO GEE",
+                "rank": "AB",
+                "vessel_type": "offshore DP2",
+                "flag": "",
+                "signed_on": "2019-02-01",
+                "signed_off": "2019-04-01"
+            },
+            {
+                "vessel_name": "CAPO GEE",
+                "rank": "AB",
+                "vessel_type": "offshore DP2",
+                "flag": "",
+                "signed_on": "2019-12-01",
+                "signed_off": "2019-01-01"
+            },
+            {
+                "vessel_name": "CAPO GEE",
+                "rank": "AB",
+                "vessel_type": "offshore DP2",
+                "flag": "",
+                "signed_on": "2018-01-01",
+                "signed_off": "2018-12-01"
+            },
+            {
+                "vessel_name": "GOLDEN SEA",
+                "rank": "AB",
+                "vessel_type": "Bulk",
+                "flag": "",
+                "signed_on": "2017-09-01",
+                "signed_off": "2017-12-01"
+            }
+        ],
+        "marine_courses": [
+            {
+                "course_name": "Personal Survival Techniques",
+                "number": "NPST 5087",
+                "issue_date": "2022-05-08",
+                "expiry_date": "2027-04-19"
+            },
+            {
+                "course_name": "Fire Prevention and Fire Fighting",
+                "number": "NFF 4023",
+                "issue_date": "2022-05-08",
+                "expiry_date": "2027-04-22"
+            },
+            {
+                "course_name": "Elementary First Aid",
+                "number": "NFA 5258",
+                "issue_date": "2022-05-08",
+                "expiry_date": "2027-04-25"
+            },
+            {
+                "course_name": "Personal Safety and Social Responsibilities",
+                "number": "NPS 4041",
+                "issue_date": "2022-04-28",
+                "expiry_date": "2027-04-26"
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "27029/20/EG",
+                "issue_date": "2020-10-22",
+                "expiry_date": "2025-10-12"
+            },
+            {
+                "course_name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "NXD 1335",
+                "issue_date": "2022-05-22",
+                "expiry_date": "2027-05-18"
+            },
+            {
+                "course_name": "Crowd Management Training",
+                "number": "NXA 1326",
+                "issue_date": "2022-05-22",
+                "expiry_date": "2027-05-13"
+            },
+            {
+                "course_name": "Crisis Management and Human Behavior Training",
+                "number": "NXB 1334",
+                "issue_date": "2022-05-22",
+                "expiry_date": "2027-05-15"
+            },
+            {
+                "course_name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "NXC 1340",
+                "issue_date": "2022-05-22",
+                "expiry_date": "2027-05-16"
+            }
+        ]
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Fahd Ahmed Abd ELAziz Ali",
+            "date_of_birth": "1991-09-30",
+            "marital_status": {
+                "single": false,
+                "married": false
+            },
+            "nationality": "Egyptian",
+            "height_cm": "171cm",
+            "weight_kg": "69kg",
+            "place_of_birth": "Qena Gov , Egypt",
+            "overall_size": "xl",
+            "shirt_size": "44",
+            "nearest_port": "",
+            "trouser_size": "34",
+            "shoes_size": "41"
+        },
+        "2_education": {
+            "college_school": "",
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": false,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "Kom Yacoub , Abo Tesht , Qena Gov , Egypt",
+            "e_mail": "fahdessa5@gmail.com",
+            "mobile_tel": "+201152992554"
+        }
+    }
+}

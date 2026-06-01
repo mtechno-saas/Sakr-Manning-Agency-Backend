@@ -1,0 +1,150 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Ahmed Gad Osman Elsayed Fatoush",
+    "user_email_display": "GAD76227@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "O S",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-06-19",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": null,
+    "generated_id": "DR-2.0108",
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.0108",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A29391554",
+            "issue_date": "2022-01-04",
+            "expiry_date": "2029-01-03",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Port said",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00022692",
+            "issue_date": "2022-05-23",
+            "expiry_date": "2027-05-16",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "CY138094",
+            "issue_date": "2009-01-23",
+            "expiry_date": "2019-01-22",
+            "issued_by": "Cyprus",
+            "place_of_issue": "Limassol",
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "03445",
+            "issue_date": "2022-06-27",
+            "expiry_date": "2024-06-26",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "03445",
+            "international_medical_issue_date": "2022-06-27",
+            "international_medical_expiry_date": "2024-06-26",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {"vessel_name": "Notos", "rank": "AB", "vessel_type": "Ro Ro  passenger ship", "flag": "", "signed_on": "2008-09-23", "signed_off": "2009-04-14"},
+            {"vessel_name": "Pontos", "rank": "AB", "vessel_type": "Ro Ro   Passenger ship", "flag": "", "signed_on": "2011-02-02", "signed_off": "2013-10-01"},
+            {"vessel_name": "Salmis  filoxenia", "rank": "AB", "vessel_type": "Passenger", "flag": "", "signed_on": "2013-01-03", "signed_off": "2013-10-01"},
+            {"vessel_name": "Gagliardo", "rank": "AB", "vessel_type": "supply", "flag": "", "signed_on": "2014-01-13", "signed_off": "2014-11-05"},
+            {"vessel_name": "Mar  sigolo", "rank": "AB", "vessel_type": "supply", "flag": "", "signed_on": "2015-03-02", "signed_off": "2015-08-03"},
+            {"vessel_name": "Salmis  Golory", "rank": "AB", "vessel_type": "Passenger", "flag": "", "signed_on": "2016-02-01", "signed_off": "2016-07-03"},
+            {"vessel_name": "gagliardo", "rank": "AB", "vessel_type": "Supply ship", "flag": "", "signed_on": "2017-01-01", "signed_off": "2017-03-01"},
+            {"vessel_name": "Panama", "rank": "AB", "vessel_type": "Supply ship", "flag": "", "signed_on": "2012-01-05", "signed_off": "2012-07-05"},
+            {"vessel_name": "Galaxy", "rank": "AB", "vessel_type": "RORO", "flag": "", "signed_on": "2020-05-15", "signed_off": "2020-11-20"},
+            {"vessel_name": "Elgouna", "rank": "AB", "vessel_type": "RORO", "flag": "", "signed_on": "2020-05-15", "signed_off": "2020-11-20"},
+            {"vessel_name": "ECAN", "rank": "AB", "vessel_type": "TANKER", "flag": "", "signed_on": "2021-07-31", "signed_off": "2021-08-31"}
+        ],
+        "marine_courses": [
+            {"course_name": "Proficiency In Personal Survival Techniques", "number": "NR 4588", "issue_date": "2019-04-14", "expiry_date": "2024-04-08"},
+            {"course_name": "Advanced Fire Prevention and Fire Fighting", "number": "NR 4587", "issue_date": "2019-04-14", "expiry_date": "2024-06-04"},
+            {"course_name": "Elementary First Aid", "number": "NR 4586", "issue_date": "2019-04-14", "expiry_date": "2024-04-03"},
+            {"course_name": "Personal Safety and Social Responsibilities", "number": "NR 4649", "issue_date": "2019-04-14", "expiry_date": "2024-04-08"},
+            {"course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "NR 2500266", "issue_date": "2022-05-19", "expiry_date": "2027-05-17"},
+            {"course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "NR 2500442", "issue_date": "2022-05-21", "expiry_date": "2027-05-18"},
+            {"course_name": "Navigational Watch keeping", "number": "NR 2501085", "issue_date": "2022-06-05", "expiry_date": null},
+            {"course_name": "Proficiency for Rating forming part of Navigational watch (II/4)", "number": "00958", "issue_date": "2022-06-29", "expiry_date": null},
+            {"course_name": "Passenger Safety Cargo Safety and Hull integrity", "number": "NR 2501123", "issue_date": "2022-06-05", "expiry_date": "2027-05-30"},
+            {"course_name": "Crowd Management Training", "number": "NR 251055", "issue_date": "2022-06-04", "expiry_date": "2027-05-27"},
+            {"course_name": "Crisis Management and Human Behavior Training", "number": "NR 2501058", "issue_date": "2022-06-04", "expiry_date": "2027-05-29"},
+            {"course_name": "Safety training for Personal Prov. Direct Passengers", "number": "NR 2501171", "issue_date": "2022-06-05", "expiry_date": "2027-06-01"},
+            {"course_name": "Proficiency in Survival craft and rescue boats", "number": "3264", "issue_date": "2022-06-29", "expiry_date": "2027-05-16"}
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Ahmed Gad Osman Elsayed Fatoush",
+            "date_of_birth": "1981-01-23",
+            "marital_status": {"single": true, "married": false},
+            "nationality": "Egyptian",
+            "height_cm": "195",
+            "weight_kg": "75",
+            "place_of_birth": "Port said",
+            "overall_size": "3XL",
+            "shirt_size": "2XL",
+            "nearest_port": "",
+            "trouser_size": "36",
+            "shoes_size": "45"
+        },
+        "2_education": {
+            "college_school": "Port said industrial school",
+            "marline_test": {"issued_date": "", "result_percentage": "", "issued_by_authority": "", "issued_at": ""},
+            "english_language": {"fluent": false, "good": false, "average": true, "poor": false}
+        },
+        "3_contact_details": {
+            "home_address_city": "Port said , Egypt , heraffien el zohor",
+            "e_mail": "Gad76227@gmail.com",
+            "mobile_tel": "+201200886002"
+        }
+    }
+}

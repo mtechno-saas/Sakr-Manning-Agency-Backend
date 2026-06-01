@@ -1,0 +1,47 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "MOHAMED ELSAID MOHAMED REZK",
+    "user_email_display": "mo_rezk1987@gmail.com",
+    "position_name": "A.B",
+    "expected_salary": "1400 USD",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.053"
+        }
+    ],
+    "assigned_code": "DR-2.053",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A22948154",
+            "issue_date": "2018-06-20",
+            "expiry_date": "2025-06-19"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00021485",
+            "issue_date": "2022-02-14",
+            "expiry_date": "2027-02-13"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "NILE VOYAGER",
+                "rank": "A.B",
+                "vessel_type": "General Cargo",
+                "signed_on": "2022-05-12",
+                "signed_off": "2023-03-10"
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "MOHAMED ELSAID MOHAMED REZK",
+            "date_of_birth": "1987-03-30",
+            "nationality": "Egyptian"
+        },
+        "3_contact_details": {
+            "home_address_city": "Damietta, Port Said Road",
+            "e_mail": "mo_rezk1987@gmail.com",
+            "mobile_tel": "01061483921"
+        }
+    }
+}

@@ -1,0 +1,268 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Farouk Adel Abdelrazek Ahmed Aly",
+    "user_email_display": "FAROUKADEL398@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "A/B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2023-04-25",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": null,
+    "generated_id": "DR-2.071",
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.071",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A20845114",
+            "issue_date": "2017-08-10",
+            "expiry_date": "2024-08-09",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "ALEX.",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "215024",
+            "issue_date": "2019-04-08",
+            "expiry_date": "2024-01-04",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null,
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "10295",
+            "issue_date": "2023-01-22",
+            "expiry_date": "2024-01-04",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "10295",
+            "international_medical_issue_date": "2023-01-22",
+            "international_medical_expiry_date": "2024-01-04",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [
+            {
+                "vessel_name": "FB SHEHRAZADE AQABA",
+                "rank": "O.S",
+                "vessel_type": "PASSENGER",
+                "flag": "",
+                "signed_on": "2011-04-13",
+                "signed_off": "2011-08-25"
+            },
+            {
+                "vessel_name": "M/S MEDSTART 2",
+                "rank": "O.S",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2013-06-08",
+                "signed_off": "2013-07-24"
+            },
+            {
+                "vessel_name": "SEA STAR",
+                "rank": "A.B",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2015-08-12",
+                "signed_off": "2016-07-01"
+            },
+            {
+                "vessel_name": "SEA STAR",
+                "rank": "A.B",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2016-07-31",
+                "signed_off": "2016-09-30"
+            },
+            {
+                "vessel_name": "SEA STAR",
+                "rank": "A.B",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2016-10-17",
+                "signed_off": "2017-02-28"
+            },
+            {
+                "vessel_name": "SEE CHAMPION",
+                "rank": "O.S",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2017-06-01",
+                "signed_off": "2017-08-01"
+            },
+            {
+                "vessel_name": "SEE CHAMPION",
+                "rank": "O.S",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2017-08-16",
+                "signed_off": "2017-09-15"
+            },
+            {
+                "vessel_name": "SEE CHAMPION",
+                "rank": "A.B",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2017-09-28",
+                "signed_off": "2017-11-03"
+            },
+            {
+                "vessel_name": "SEE CHAMPION",
+                "rank": "A.B",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2017-11-16",
+                "signed_off": "2018-02-02"
+            },
+            {
+                "vessel_name": "SEE CHAMPION",
+                "rank": "A.B",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2018-02-18",
+                "signed_off": "2018-03-18"
+            },
+            {
+                "vessel_name": "SEE CHAMPION",
+                "rank": "A.B",
+                "vessel_type": "PETRO SERVICE",
+                "flag": "",
+                "signed_on": "2018-04-17",
+                "signed_off": "2018-07-17"
+            }
+        ],
+        "marine_courses": [
+            {
+                "course_name": "Personal Survival Techniques",
+                "number": "NPST343",
+                "issue_date": "2019-03-07",
+                "expiry_date": "2024-03-04"
+            },
+            {
+                "course_name": "Fire Prevention and Fire Fighting",
+                "number": "NFF293",
+                "issue_date": "2019-03-07",
+                "expiry_date": "2024-03-02"
+            },
+            {
+                "course_name": "Elementary First Aid",
+                "number": "NFA340",
+                "issue_date": "2019-03-07",
+                "expiry_date": "2024-02-27"
+            },
+            {
+                "course_name": "Personal Safety and Social Responsibilities",
+                "number": "XNPS1154",
+                "issue_date": "2023-01-31",
+                "expiry_date": "2028-01-23"
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "XNA1815",
+                "issue_date": "2023-02-01",
+                "expiry_date": "2028-01-22"
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "XNC1130",
+                "issue_date": "2023-01-23",
+                "expiry_date": "2028-01-18"
+            },
+            {
+                "course_name": "Navigational Watch keeping",
+                "number": "XNV526",
+                "issue_date": "2023-01-24",
+                "expiry_date": null
+            },
+            {
+                "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+                "number": "01236",
+                "issue_date": "2023-03-30",
+                "expiry_date": null
+            }
+        ]
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Farouk Adel Abdelrazek Ahmed Aly",
+            "date_of_birth": "1991-01-13",
+            "marital_status": {
+                "single": true,
+                "married": false
+            },
+            "nationality": "Egyptian",
+            "height_cm": "170",
+            "weight_kg": "70",
+            "place_of_birth": "Alexandria,Egypt",
+            "overall_size": "XL",
+            "shirt_size": "XL",
+            "nearest_port": "",
+            "trouser_size": "32",
+            "shoes_size": "42"
+        },
+        "2_education": {
+            "college_school": "Diploma of Fisheries , Navigation and marine arts",
+            "english_language": {
+                "fluent": false,
+                "good": false,
+                "average": true,
+                "poor": false
+            }
+        },
+        "3_contact_details": {
+            "home_address_city": "El – nasr Housing – El-Montazah - Alexandria",
+            "e_mail": "Faroukadel398@gmail.com",
+            "mobile_tel": "01283591743"
+        }
+    }
+}

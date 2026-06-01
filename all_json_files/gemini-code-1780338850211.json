@@ -1,0 +1,137 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "HOSSAM MOHAMED ABDOU GAAFAR",
+    "user_email_display": "HOSSAM.JAFARRRR@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "ABLE SEAFARER DECK",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 0,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-04-08",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": null,
+    "updated_at": null,
+    "generated_id": "DR-2.512",
+    "salary_display": null,
+    "coded_rank": [],
+    "rank_code": null,
+    "assigned_code": "DR-2.512",
+    "certificates": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A26788464",
+            "issue_date": "1998-05-11",
+            "expiry_date": "2027-02-24",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "DAMIETTA",
+            "file_url": null,
+            "download_url": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00058772",
+            "issue_date": "2025-10-20",
+            "expiry_date": "2030-10-11",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "CY356807",
+            "issue_date": "2023-01-31",
+            "expiry_date": "2033-01-30",
+            "issued_by": null,
+            "place_of_issue": "",
+            "file_url": null,
+            "download_url": null
+        },
+        "coc": {
+            "certificate_name": "COC (Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "file_url": null,
+            "download_url": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo",
+            "file_url": null,
+            "download_url": null
+        },
+        "health_certificate": {
+            "flag_state": null,
+            "number": "52324",
+            "issue_date": "2025-11-02",
+            "expiry_date": "2027-11-01",
+            "issued_by": "EAMS",
+            "issued_at": "Alex.",
+            "international_medical_number": "52324",
+            "international_medical_issue_date": "2025-11-02",
+            "international_medical_expiry_date": "2027-11-01",
+            "file_url": null,
+            "download_url": null,
+            "records": []
+        },
+        "licenses": [],
+        "sea_service": [],
+        "marine_courses": [
+            {"course_name": "Personal Survival Techniques", "number": "13921/22/EG", "issue_date": "2022-05-09", "expiry_date": "2027-04-20"},
+            {"course_name": "Fire Prevention and Fire Fighting", "number": "13921/22/EG", "issue_date": "2022-05-09", "expiry_date": "2027-04-20"},
+            {"course_name": "Elementary First Aid", "number": "13921/22/EG", "issue_date": "2022-05-09", "expiry_date": "2027-04-20"},
+            {"course_name": "Personal Safety and Social Responsibilities", "number": "13921/22/EG", "issue_date": "2022-05-09", "expiry_date": "2027-04-20"},
+            {"course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "NA7432", "issue_date": "2022-05-07", "expiry_date": "2027-04-27"},
+            {"course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "14000/22/EG", "issue_date": "2022-05-10", "expiry_date": "2027-04-27"},
+            {"course_name": "Navigational Watch keeping", "number": "XNV1172", "issue_date": "2023-10-03", "expiry_date": null},
+            {"course_name": "Passenger Safety Cargo Safety and Hull integrity", "number": "XNXD969", "issue_date": "2023-09-30", "expiry_date": "2028-09-20"},
+            {"course_name": "Crowd Management Training", "number": "XNXA1005", "issue_date": "2023-09-26", "expiry_date": "2028-09-15"},
+            {"course_name": "Crisis Management and Human Behavior Training", "number": "XNXB1005", "issue_date": "2023-09-26", "expiry_date": "2028-09-17"},
+            {"course_name": "Safety training for Personal Prov. Direct Passengers", "number": "XNXC1008", "issue_date": "2023-09-27", "expiry_date": "2028-09-18"},
+            {"course_name": "Abel Seafarer Deck", "number": "38422/25/EG", "issue_date": "2025-09-18", "expiry_date": null},
+            {"course_name": "Proficiency for Abel Seafarer Deck ( II/5 )", "number": "01333", "issue_date": "2025-10-27", "expiry_date": null}
+        ],
+        "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "HOSSAM MOHAMED ABDOU GAAFAR",
+            "date_of_birth": "1998-03-11",
+            "marital_status": {"single": true, "married": false},
+            "nationality": "EGYPTIAN",
+            "height_cm": "175",
+            "weight_kg": "80",
+            "place_of_birth": "DAMIETTA",
+            "overall_size": "XL",
+            "shirt_size": "XL",
+            "nearest_port": "DAMIETTA PORT",
+            "trouser_size": "XL",
+            "shoes_size": "44"
+        },
+        "2_education": {
+            "college_school": "",
+            "english_language": {"fluent": false, "good": false, "average": false, "poor": false}
+        },
+        "3_contact_details": {
+            "home_address_city": "EGYPT – DAMIETTA – EZBET ELBORG",
+            "e_mail": "HOSSAM.JAFARRRR@GMAIL.COM",
+            "mobile_tel": "+201272020750"
+        }
+    }
+}
