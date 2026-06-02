@@ -216,9 +216,18 @@ def run_ingestion(ai_data, file_name=""):
         print(f"[{file_name}] Error: No email provided in data.")
         return False
 
+    user_name = ai_data.get("user_name") or "Applicant"
+    parts = user_name.split(" ", 1)
+    user_first_name = parts[0] if parts[0].strip() else "Applicant"
+    user_middle_name = parts[1] if len(parts) > 1 and parts[1].strip() else "Unknown"
+
     user, created = Users.objects.get_or_create(
         email=email,
-        defaults={"first_name": ai_data.get("user_name", "Applicant").split(" ")[0], "role": "Employee"}
+        defaults={
+            "first_name": user_first_name, 
+            "role": "Employee",
+            "coc_issued_by": ""
+        }
     )
     
     app_data = ai_data.get("seafarer_application", {})
@@ -242,8 +251,8 @@ def run_ingestion(ai_data, file_name=""):
     user.save()
 
     payload = {
-        "user_first_name": ai_data["user_name"].split(" ", 1)[0],
-        "user_middle_name": ai_data["user_name"].split(" ", 1)[1] if len(ai_data["user_name"].split(" ", 1)) > 1 else "",
+        "user_first_name": user_first_name,
+        "user_middle_name": user_middle_name,
         "user_email": email,
         "position": ai_data.get("position_name"),
         "status": ai_data.get("status") or "Pending",
@@ -263,7 +272,16 @@ def run_ingestion(ai_data, file_name=""):
             payload.pop(key, None)
 
     position_name = payload.get("position")
-    rank_obj = Rank.objects.filter(name__iexact=position_name).first() if position_name else None
+    rank_obj = None
+    if position_name:
+        rank_obj = Rank.objects.filter(name__iexact=position_name).first()
+        if not rank_obj:
+            import uuid
+            for _ in range(10):
+                code = f"CUS-{str(uuid.uuid4())[:6].upper()}"
+                if not Rank.objects.filter(code=code).exists():
+                    rank_obj = Rank.objects.create(name=position_name, code=code)
+                    break
 
     if rank_obj:
         existing_submission = CVSubmission.objects.filter(user=user, position=rank_obj).first()
