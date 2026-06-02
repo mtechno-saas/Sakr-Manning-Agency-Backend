@@ -1,6 +1,8 @@
 import os
 import sys
 import json
+import re
+from datetime import datetime
 
 # Add the project root to the sys.path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,157 +20,281 @@ django.setup()
 from api.models import Users, CVSubmission, Rank, UserRank, SeaService, Certificate
 from api.serializer import CVSubmissionSerializer
 
+def clean_text(text):
+    if text is None: return ""
+    return str(text).strip().replace('\n', ' ')
+
+def safe_date(date_str):
+    if not date_str:
+        return None
+    date_str = clean_text(date_str).lower()
+    if date_str in ["none", "null", "n/a", "unlimited", "until now", "present", ""]:
+        return None
+    if "x" in date_str or "×" in date_str or "*" in date_str:
+        return None
+        
+    # Try multiple formats
+    patterns = [
+        r'^(\d{2})[-/](\d{2})[-/](\d{4})$',  # DD-MM-YYYY
+        r'^(\d{4})[-/](\d{2})[-/](\d{2})$',  # YYYY-MM-DD
+    ]
+    for p in patterns:
+        match = re.match(p, date_str)
+        if match:
+            # Reformat to YYYY-MM-DD
+            if len(match.group(1)) == 4:
+                return f"{match.group(1)}-{match.group(2)}-{match.group(3)}"
+            else:
+                return f"{match.group(3)}-{match.group(2)}-{match.group(1)}"
+    return None
+
+def extract_from_docx(file_path):
+    import docx
+    try:
+        doc = docx.Document(file_path)
+    except Exception as e:
+        print(f"Error reading docx: {e}")
+        return None
+
+    data = {
+        "user_name": "",
+        "user_email_display": "",
+        "position_name": "Other",
+        "status": "Pending",
+        "notes": "Auto-submitted via local DOCX parser",
+        "seafarer_application": {
+            "1_personal_details": {"full_name": "", "date_of_birth": None, "nationality": "", "place_of_birth": "", "marital_status": {"single": False, "married": False}},
+            "3_contact_details": {"home_address_city": "", "e_mail": "", "mobile_tel": ""},
+            "4_travel_documents": [],
+            "5_professional_qualification_certificate_of_competency": [],
+            "8_marine_courses": [],
+            "9_complete_sea_service_details": {"applicant_info": {}, "service_records": []}
+        },
+        "user_documents": {
+            "passport": {}, "seaman_book": {}, "coc": {}, "goc": {}, "health_certificate": {}, "sea_service": [], "marine_courses": []
+        }
+    }
+
+    # Helper to deduplicate row cells (due to merged cells in word)
+    def get_row_cells(row):
+        cells = []
+        for cell in row.cells:
+            t = clean_text(cell.text)
+            if not cells or cells[-1] != t:
+                cells.append(t)
+        return cells
+
+    for table in doc.tables:
+        text_content = " ".join([clean_text(c.text) for r in table.rows for c in r.cells])
+        
+        # 1. Position and Register Code
+        if "Application For Position" in text_content:
+            for row in table.rows:
+                cells = get_row_cells(row)
+                if len(cells) >= 2:
+                    if "Application For Position" in cells[0]:
+                        data["position_name"] = cells[1]
+                    if "Register Code" in cells[0]:
+                        data["register_code"] = cells[1]
+
+        # 2. Personal Details
+        if "PERSONAL DETAILS" in text_content and "Full Name" in text_content:
+            for row in table.rows:
+                cells = get_row_cells(row)
+                for i, c in enumerate(cells):
+                    if c.startswith("Full Name") and i+1 < len(cells) and not data["user_name"]:
+                        data["user_name"] = cells[i+1]
+                        data["seafarer_application"]["1_personal_details"]["full_name"] = cells[i+1]
+                    if c.startswith("Date Of Birth") and i+1 < len(cells):
+                        data["seafarer_application"]["1_personal_details"]["date_of_birth"] = safe_date(cells[i+1])
+                    if "Single" in c and "✓" in c:
+                        data["seafarer_application"]["1_personal_details"]["marital_status"]["single"] = True
+                    if "Married" in c and "✓" in c:
+                        data["seafarer_application"]["1_personal_details"]["marital_status"]["married"] = True
+                    if "Nationality" in c and i+1 < len(cells):
+                        data["seafarer_application"]["1_personal_details"]["nationality"] = cells[i+1]
+        
+        # 3. Contact Details
+        if "CONTACT DETAILS" in text_content:
+            # We want to avoid matching "Next of Kin" mobile, which appears later in the same table.
+            # So we only set the mobile_tel if it's not already set, or if we specifically match "Mobile / Tel"
+            for row in table.rows:
+                cells = get_row_cells(row)
+                for i, c in enumerate(cells):
+                    if "e-mail" in c.lower() and i+1 < len(cells) and "@" in cells[i+1]:
+                        data["user_email_display"] = cells[i+1]
+                        data["seafarer_application"]["3_contact_details"]["e_mail"] = cells[i+1]
+                    elif "mobile" in c.lower() and i+1 < len(cells):
+                        # only set if it hasn't been set yet, since candidate mobile is above Next of Kin
+                        if not data["seafarer_application"]["3_contact_details"].get("mobile_tel"):
+                            data["seafarer_application"]["3_contact_details"]["mobile_tel"] = cells[i+1]
+
+        # 4. Travel Documents
+        if "TRAVEL DOCUMENTS" in text_content and "Passport" in text_content:
+            for row in table.rows:
+                cells = get_row_cells(row)
+                if len(cells) >= 4:
+                    doc_type = cells[0].lower()
+                    if "passport" in doc_type:
+                        data["user_documents"]["passport"] = {
+                            "passport_no": cells[1], "issue_date": safe_date(cells[2]), "expiry_date": safe_date(cells[3])
+                        }
+                    elif "seaman" in doc_type:
+                        data["user_documents"]["seaman_book"] = {
+                            "seaman_book_no": cells[1], "issue_date": safe_date(cells[2]), "expiry_date": safe_date(cells[3])
+                        }
+
+        # 5. COC / GOC
+        if "CERTIFICATE OF COMPETENCY" in text_content:
+            for row in table.rows:
+                cells = get_row_cells(row)
+                if len(cells) >= 4:
+                    if "COC" in cells[0].upper():
+                        data["user_documents"]["coc"] = {
+                            "certificate_name": cells[0], "certificate_number": cells[1], 
+                            "issue_date": safe_date(cells[2]), "expiry_date": safe_date(cells[3])
+                        }
+                    elif "GOC" in cells[0].upper():
+                        data["user_documents"]["goc"] = {
+                            "certificate_number": cells[1], "issue_date": safe_date(cells[2]), "expiry_date": safe_date(cells[3])
+                        }
+
+        # 8. Marine Courses
+        if "MARINE COURSES" in text_content:
+            for row in table.rows:
+                cells = get_row_cells(row)
+                if len(cells) >= 3 and cells[0] and cells[0] != "Course Name":
+                    if "EAMS / Alex" not in cells[0]: # filter out noisy headers
+                        data["user_documents"]["marine_courses"].append({
+                            "course_name": cells[0],
+                            "number": cells[1] if len(cells)>1 else "",
+                            "issue_date": safe_date(cells[2]) if len(cells)>2 else None,
+                            "expiry_date": safe_date(cells[3]) if len(cells)>3 else None
+                        })
+
+        # 9. Sea Service
+        if "COMPLETE SEA" in text_content:
+            for row in table.rows:
+                cells = get_row_cells(row)
+                if len(cells) >= 5 and cells[0] and "Company Name" not in cells[0]:
+                    # Ignore rows that look like contact info (references)
+                    if "@" in cells[4] or re.search(r'\d{10}', cells[3]):
+                        continue
+                        
+                    data["user_documents"]["sea_service"].append({
+                        "company_name": cells[0],
+                        "rank": cells[1] if len(cells)>1 else "",
+                        "vessel_name": cells[2] if len(cells)>2 else "",
+                        "signed_on": safe_date(cells[3]) if len(cells)>3 else None,
+                        "signed_off": safe_date(cells[4]) if len(cells)>4 else None,
+                        "vessel_type": cells[5] if len(cells)>5 else "",
+                        "dwt": cells[6] if len(cells)>6 else ""
+                    })
+
+    # Regex fallback for email
+    if not data["user_email_display"]:
+        for p in doc.paragraphs:
+            match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', p.text)
+            if match:
+                data["user_email_display"] = match.group(0)
+
+    # If STILL no email, generate a fallback so it doesn't crash the ingestor
+    if not data["user_email_display"]:
+        import uuid
+        safe_name = re.sub(r'[^a-zA-Z0-9]', '', data["user_name"]).lower() or "applicant"
+        data["user_email_display"] = f"missing_{safe_name}_{str(uuid.uuid4())[:8]}@example.com"
+        data["seafarer_application"]["3_contact_details"]["e_mail"] = data["user_email_display"]
+
+    return data
+
 def run_ingestion(ai_data, file_name=""):
     email = ai_data.get("user_email_display")
     if not email:
         print(f"[{file_name}] Error: No email provided in data.")
         return False
 
-    # 1. FIND OR CREATE THE USER
     user, created = Users.objects.get_or_create(
         email=email,
-        defaults={
-            "first_name": ai_data.get("user_name", "Applicant").split(" ")[0],
-            "role": "Employee"
-        }
+        defaults={"first_name": ai_data.get("user_name", "Applicant").split(" ")[0], "role": "Employee"}
     )
-    if created:
-        print(f"Created new user: {email}")
-    else:
-        print(f"Found existing user: {email}")
-
-    # --- Manually map additional personal details to User profile ---
+    
     app_data = ai_data.get("seafarer_application", {})
     personal_details = app_data.get("1_personal_details", {})
     contact_details = app_data.get("3_contact_details", {})
 
-    if personal_details.get("date_of_birth"):
-        user.date_of_birth = personal_details.get("date_of_birth")
-    if personal_details.get("nationality"):
-        user.nationality = personal_details.get("nationality")
-    if personal_details.get("place_of_birth"):
-        user.Place_Of_Birth = personal_details.get("place_of_birth")
+    if personal_details.get("date_of_birth"): user.date_of_birth = personal_details.get("date_of_birth")
+    if personal_details.get("nationality"): user.nationality = personal_details.get("nationality")
+    if personal_details.get("place_of_birth"): user.Place_Of_Birth = personal_details.get("place_of_birth")
     
     marital = personal_details.get("marital_status", {})
-    if marital.get("married"):
-        user.marital_status = "Married"
-    elif marital.get("single"):
-        user.marital_status = "Single"
+    if marital.get("married"): user.marital_status = "Married"
+    elif marital.get("single"): user.marital_status = "Single"
 
-    if contact_details.get("home_address_city"):
-        user.city = contact_details.get("home_address_city")
-    if contact_details.get("mobile_tel"):
-        user.phone_number = contact_details.get("mobile_tel")
+    if contact_details.get("home_address_city"): user.city = contact_details.get("home_address_city")
+    if contact_details.get("mobile_tel"): user.phone_number = contact_details.get("mobile_tel")
 
-    # Map Medical Certificate to User fields
-    health_certs = app_data.get("7_health_certificates_and_vaccinations", {}).get("certificates", [])
-    for cert in health_certs:
-        if cert.get("type") == "International Medical":
-            user.international_medical_number = cert.get("number")
-            user.international_medical_issue_date = cert.get("issue_date") or None
-            user.international_medical_expiry_date = cert.get("expiry_date") or None
+    if not getattr(user, 'coc_issued_by', "fallback"):
+        user.coc_issued_by = ""
 
     user.save()
-    print("User personal details and contact info synced.")
-
-    # 2. TRANSFORM DATA FOR THE CV SUBMISSION SERIALIZER (Passports, Seaman Book, COCs)
-    name_parts = ai_data["user_name"].split(" ", 1)
-    first_name = name_parts[0]
-    middle_name = name_parts[1] if len(name_parts) > 1 else ""
 
     payload = {
-        "user_first_name": first_name,
-        "user_middle_name": middle_name,
+        "user_first_name": ai_data["user_name"].split(" ", 1)[0],
+        "user_middle_name": ai_data["user_name"].split(" ", 1)[1] if len(ai_data["user_name"].split(" ", 1)) > 1 else "",
         "user_email": email,
         "position": ai_data.get("position_name"),
-        "status": ai_data.get("status"),
-        "notes": ai_data.get("notes"),
+        "status": ai_data.get("status") or "Pending",
+        "notes": ai_data.get("notes") or "",
         "passport_update": ai_data["user_documents"].get("passport"),
         "seaman_book_update": ai_data["user_documents"].get("seaman_book"),
         "coc_update": ai_data["user_documents"].get("coc"),
         "goc_update": ai_data["user_documents"].get("goc"),
     }
 
-    # Remove empty/null dates so serializer doesn't choke on ""
     for key in ['passport_update', 'seaman_book_update', 'coc_update', 'goc_update']:
         if payload.get(key):
             for subkey in ['issue_date', 'expiry_date']:
                 if subkey in payload[key] and not payload[key][subkey]:
                     payload[key][subkey] = None
+        else:
+            payload.pop(key, None)
 
-    # Determine the requested position ID/Rank
     position_name = payload.get("position")
     rank_obj = Rank.objects.filter(name__iexact=position_name).first() if position_name else None
 
-    # Look for an existing CV Submission for this user (and position)
     if rank_obj:
         existing_submission = CVSubmission.objects.filter(user=user, position=rank_obj).first()
     else:
         existing_submission = CVSubmission.objects.filter(user=user).first()
 
     if existing_submission:
-        print(f"Found existing CV Submission (ID: {existing_submission.id}). Updating it...")
         serializer = CVSubmissionSerializer(instance=existing_submission, data=payload, partial=True)
     else:
-        print("No existing CV Submission found. Creating a new one...")
         serializer = CVSubmissionSerializer(data=payload)
 
     if serializer.is_valid():
         submission = serializer.save(user=user)
-        print(f"[{file_name}] Successfully ingested CV Submission ID: {submission.id} via DRF Service Layer.")
+        print(f"[{file_name}] Successfully ingested CV Submission ID: {submission.id}")
     else:
         print(f"[{file_name}] Serializer validation failed:", json.dumps(serializer.errors, indent=2))
         return False
 
-    # 3. MANUALLY INGEST SEA SERVICES via ORM
-    # Try user_documents first, fallback to seafarer_application
     sea_services_data = ai_data.get("user_documents", {}).get("sea_service", [])
-    if not sea_services_data:
-        sea_services_data = app_data.get("9_complete_sea_service_details", {}).get("service_records", [])
-
     if sea_services_data:
         count = 0
         for ss_data in sea_services_data:
-            ss_signed_on = ss_data.get("signed_on")
-            if ss_signed_on and (ss_signed_on == "XXXXX" or ss_signed_on == "UNLIMITED"):
-                ss_signed_on = None
-            else:
-                ss_signed_on = ss_signed_on or None
-
-            ss_signed_off = ss_data.get("signed_off")
-            if ss_signed_off and (ss_signed_off == "XXXXX" or ss_signed_off == "UNLIMITED"):
-                ss_signed_off = None
-            else:
-                ss_signed_off = ss_signed_off or None
-            
-            if SeaService.objects.filter(
-                user=user, 
-                company_name=ss_data.get("company_name", ""),
-                vessel_name=ss_data.get("vessel_name", ""),
-                signed_on=ss_signed_on
-            ).exists():
+            ss_signed_on = safe_date(ss_data.get("signed_on"))
+            ss_signed_off = safe_date(ss_data.get("signed_off"))
+            if SeaService.objects.filter(user=user, company_name=ss_data.get("company_name", ""), vessel_name=ss_data.get("vessel_name", ""), signed_on=ss_signed_on).exists():
                 continue
-                
             SeaService.objects.create(
-                user=user,
-                company_name=ss_data.get("company_name", ""),
-                rank=ss_data.get("rank", ""),
-                vessel_name=ss_data.get("vessel_name", ""),
-                signed_on=ss_signed_on,
-                signed_off=ss_signed_off,
-                period=ss_data.get("period", ""),
-                vessel_type=ss_data.get("vessel_type", ""),
-                dwt=ss_data.get("dwt", "")
+                user=user, company_name=ss_data.get("company_name", ""), rank=ss_data.get("rank", ""), vessel_name=ss_data.get("vessel_name", ""),
+                signed_on=ss_signed_on, signed_off=ss_signed_off, vessel_type=ss_data.get("vessel_type", ""), dwt=ss_data.get("dwt", "")
             )
             count += 1
         print(f"Ingested {count} new Sea Service records.")
 
-    # 4. MANUALLY INGEST MARINE COURSES via ORM
-    # Try user_documents first, fallback to seafarer_application
     courses_data = ai_data.get("user_documents", {}).get("marine_courses", [])
-    if not courses_data:
-        courses_data = app_data.get("8_marine_courses", [])
-
     if courses_data:
         try:
             from courses.models import Course
@@ -176,79 +302,54 @@ def run_ingestion(ai_data, file_name=""):
             for course_data in courses_data:
                 if Course.objects.filter(user=user, course_name=course_data.get("course_name")).exists():
                     continue
-
-                issued_by_at = course_data.get("issued_by_at", "")
-                issued_by = ""
-                issued_at = ""
-                if issued_by_at and "/" in issued_by_at:
-                    parts = issued_by_at.split("/", 1)
-                    issued_by = parts[0].strip()
-                    issued_at = parts[1].strip()
-                elif issued_by_at:
-                    issued_by = issued_by_at
-                    
-                issue_date = course_data.get("issue_date")
-                if issue_date and (issue_date == "XXXXX" or issue_date == "UNLIMITED"):
-                    issue_date = None
-                    
-                expiry_date = course_data.get("expiry_date")
-                if expiry_date and (expiry_date == "XXXXX" or expiry_date == "UNLIMITED"):
-                    expiry_date = None
-
                 Course.objects.create(
-                    user=user,
-                    course_name=course_data.get("course_name"),
-                    course_number=course_data.get("number"),
-                    issue_date=issue_date or None,
-                    expiry_date=expiry_date or None,
-                    issued_by=issued_by,
-                    issued_at=issued_at
+                    user=user, course_name=course_data.get("course_name"), course_number=course_data.get("number", ""),
+                    issue_date=safe_date(course_data.get("issue_date")), expiry_date=safe_date(course_data.get("expiry_date"))
                 )
                 count += 1
             print(f"Ingested {count} new Marine Course records.")
         except ImportError:
-            print("Warning: courses.models.Course not found.")
+            pass
 
     return True
 
 def process_folder(folder_path="all_json_files"):
     import shutil
-    
-    # Ensure folder paths exist
     folder_path = os.path.join(project_root, folder_path)
     processed_folder = os.path.join(project_root, f"{os.path.basename(folder_path)}_processed")
     os.makedirs(processed_folder, exist_ok=True)
     
-    if not os.path.exists(folder_path):
-        print(f"Folder not found: {folder_path}")
-        return
+    files = [f for f in os.listdir(folder_path) if f.endswith(('.json', '.docx'))]
+    print(f"Found {len(files)} files in {folder_path}. Starting processing...\n")
 
-    json_files = [f for f in os.listdir(folder_path) if f.endswith('.json')]
-    print(f"Found {len(json_files)} JSON files in {folder_path}. Starting batch processing...\n")
+    success_count = fail_count = 0
 
-    success_count = 0
-    fail_count = 0
-
-    for filename in json_files:
+    for filename in files:
         file_path = os.path.join(folder_path, filename)
+        file_ext = os.path.splitext(filename)[1].lower()
         print(f"--- Processing {filename} ---")
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                ai_data = json.load(f)
+            if file_ext == '.json':
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            else:
+                data = extract_from_docx(file_path)
             
-            success = run_ingestion(ai_data, file_name=filename)
-            
-            if success:
-                # Move to processed folder
+            if not data:
+                print(f"[{filename}] Error: Data extraction returned None.")
+                fail_count += 1
+                continue
+                
+            if run_ingestion(data, file_name=filename):
                 shutil.move(file_path, os.path.join(processed_folder, filename))
                 success_count += 1
             else:
                 fail_count += 1
         except Exception as e:
-            print(f"[{filename}] Error reading or processing file: {e}")
+            print(f"[{filename}] Error: {e}")
             fail_count += 1
 
-    print(f"\nBatch processing complete! Success: {success_count}, Failed: {fail_count}")
+    print(f"\nBatch complete! Success: {success_count}, Failed: {fail_count}")
 
 def cleanup_duplicates():
     from django.db.models import Count
@@ -273,6 +374,7 @@ def cleanup_duplicates():
             print(f"Cleaned up {deleted_count} duplicate CV Submissions for User ID {user_id}.")
 
 if __name__ == "__main__":
-    process_folder("all_json_files")
+    folder = sys.argv[1] if len(sys.argv) > 1 else "all_json_files"
+    process_folder(folder)
     print("Running duplicate cleanup just in case...")
     cleanup_duplicates()
