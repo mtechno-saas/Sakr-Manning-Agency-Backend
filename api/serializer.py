@@ -275,7 +275,7 @@ class InterviewSerializer(serializers.ModelSerializer):
                     if not code:
                         import uuid
                         code = f"CUS-{str(uuid.uuid4())[:6].upper()}"
-                    rank = Rank.objects.create(code=code, name=pos_val)
+                    rank, _ = Rank.objects.get_or_create(code=code, defaults={'name': pos_val})
                     
                 if hasattr(data, 'copy'):
                     data = data.copy()
@@ -569,7 +569,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                         if c == code:
                             rank_name = n
                             break
-                    rank = Rank.objects.create(code=code, name=rank_name)
+                    rank, _ = Rank.objects.get_or_create(code=code, defaults={'name': rank_name})
 
                 if hasattr(data, 'copy'):
                     data = data.copy()
