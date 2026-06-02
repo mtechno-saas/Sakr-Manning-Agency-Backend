@@ -10,7 +10,7 @@ import os
 logger = logging.getLogger(__name__)
 
 # Use the same model as in agent.py
-model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=os.environ.get("GOOGLE_API_KEY", ""))
+model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=os.environ.get("GOOGLE_API_KEY", "missing_key_please_add_to_env"))
 
 SQL_GENERATION_PROMPT = """You are a highly skilled SQL data analyst.
 Your task is to generate a valid SQLite SQL query based on the provided user question and database schema.
