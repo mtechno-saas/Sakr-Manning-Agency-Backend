@@ -177,3 +177,27 @@ class ConversationContext(models.Model):
     
     def __str__(self):
         return f"Context for {self.session}"
+
+class QueryCache(models.Model):
+    """
+    Cache for Text-to-SQL RAG queries.
+    """
+    question = models.TextField(unique=True)
+    sql_query = models.TextField()
+    final_answer = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Cached Query: {self.question[:50]}"
+
+class FailedQueryLog(models.Model):
+    """
+    Log for failed Text-to-SQL queries to improve the system.
+    """
+    question = models.TextField()
+    generated_sql = models.TextField()
+    error_message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Failed Query: {self.question[:50]}"

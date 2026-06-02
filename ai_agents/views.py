@@ -104,11 +104,15 @@ class ChatSearchView(APIView):
                 history = session.messages.order_by('timestamp')[:10]
 
                 # Get AI response using the agent
-                response_content = get_agent_response(
-                    query=message,
-                    conversation_history=history,
-                    session_id=session_id
-                )
+                if search_type == "database":
+                    from .sql_agent import process_database_question
+                    response_content = process_database_question(message)
+                else:
+                    response_content = get_agent_response(
+                        query=message,
+                        conversation_history=history,
+                        session_id=session_id
+                    )
 
                 # Save assistant response
                 response_time = time.time() - start_time
@@ -244,7 +248,8 @@ class SearchCapabilitiesView(APIView):
                 "news": "Recent news and current events",
                 "research": "Academic and research information",
                 "fact_check": "Fact-checking and verification",
-                "conversational": "Context-aware search for follow-ups"
+                "conversational": "Context-aware search for follow-ups",
+                "database": "Text-to-SQL RAG for querying internal data"
             },
             "available_tools": [
                 "WebSearch - Real-time web search",

@@ -17,9 +17,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env in the project root (if present).
 # This is a no-op when .env does not exist, so production environments that
 # inject variables through the OS environment are unaffected.
-load_dotenv('/opt/sakr/Sakr-Manning-Agency-Backend/.env', override=True)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env in the project root
+load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -300,6 +302,14 @@ EMAIL_HOST_PASSWORD = 'udnw dixo vjsq yuqw'
 DEFAULT_FROM_EMAIL = 'Sakr Manning Agency <crew@sakrshipping.com>'
 
 # Logging configuration - captures Django errors to a file
+import os
+
+log_dir = '/var/log/gunicorn'
+if not os.path.exists(log_dir):
+    log_file_path = os.path.join(BASE_DIR, 'django_errors.log')
+else:
+    log_file_path = os.path.join(log_dir, 'django_errors.log')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -307,7 +317,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': '/var/log/gunicorn/django_errors.log',
+            'filename': log_file_path,
         },
         'console': {
             'level': 'ERROR',

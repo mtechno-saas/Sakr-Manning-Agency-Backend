@@ -15,12 +15,13 @@
 
 # ai_agents/agent.py
 from langgraph.prebuilt import create_react_agent
-from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from .tools import tools
+import os
 
-# Use Gemma 3 1B model
-model = ChatOllama(model="llama3.1:8b")
+# Use Google Gemini
+model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=os.environ.get("GOOGLE_API_KEY", ""))
 
 # System prompt for the chat agent
 SYSTEM_PROMPT = """You are a conversational AI Search Agent designed to help users find information through natural dialogue.
