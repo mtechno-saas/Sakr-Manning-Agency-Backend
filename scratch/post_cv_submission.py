@@ -191,19 +191,22 @@ def extract_from_docx(file_path):
                         "dwt": cells[6] if len(cells)>6 else ""
                     })
 
-    # Regex fallback for email
+    # Robust Regex fallback for email: scan ALL text in the document
     if not data["user_email_display"]:
+        full_text = []
         for p in doc.paragraphs:
-            match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', p.text)
-            if match:
-                data["user_email_display"] = match.group(0)
-
-    # If STILL no email, generate a fallback so it doesn't crash the ingestor
-    if not data["user_email_display"]:
-        import uuid
-        safe_name = re.sub(r'[^a-zA-Z0-9]', '', data["user_name"]).lower() or "applicant"
-        data["user_email_display"] = f"missing_{safe_name}_{str(uuid.uuid4())[:8]}@example.com"
-        data["seafarer_application"]["3_contact_details"]["e_mail"] = data["user_email_display"]
+            if p.text.strip(): full_text.append(p.text)
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    if cell.text.strip(): full_text.append(cell.text)
+        
+        combined_text = " ".join(full_text)
+        match = re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', combined_text)
+        if match:
+            extracted_email = match.group(0).lower()
+            data["user_email_display"] = extracted_email
+            data["seafarer_application"]["3_contact_details"]["e_mail"] = extracted_email
 
     return data
 
