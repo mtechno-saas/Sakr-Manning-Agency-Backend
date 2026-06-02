@@ -262,14 +262,16 @@ def run_ingestion(ai_data, file_name=""):
         "position": ai_data.get("position_name"),
         "status": ai_data.get("status") or "Pending",
         "experience_years": ai_data.get("experience_years", 0),
-        "passport_update": clean_doc(ai_data.get("user_documents", {}).get("passport")),
-        "seaman_book_update": clean_doc(ai_data.get("user_documents", {}).get("seaman_book")),
-        "other_seaman_book_update": clean_doc(ai_data.get("user_documents", {}).get("other_seaman_book")),
-        "coc_update": clean_doc(ai_data.get("user_documents", {}).get("coc")),
-        "goc_update": clean_doc(ai_data.get("user_documents", {}).get("goc")),
     }
 
-    for key in ['passport_update', 'seaman_book_update', 'coc_update', 'goc_update']:
+    user_docs = ai_data.get("user_documents", {})
+    if clean_doc(user_docs.get("passport")): payload["passport_update"] = clean_doc(user_docs.get("passport"))
+    if clean_doc(user_docs.get("seaman_book")): payload["seaman_book_update"] = clean_doc(user_docs.get("seaman_book"))
+    if clean_doc(user_docs.get("other_seaman_book")): payload["other_seaman_book_update"] = clean_doc(user_docs.get("other_seaman_book"))
+    if clean_doc(user_docs.get("coc")): payload["coc_update"] = clean_doc(user_docs.get("coc"))
+    if clean_doc(user_docs.get("goc")): payload["goc_update"] = clean_doc(user_docs.get("goc"))
+
+    for key in ['passport_update', 'seaman_book_update', 'coc_update', 'goc_update', 'other_seaman_book_update']:
         if payload.get(key):
             for subkey in ['issue_date', 'expiry_date']:
                 if subkey in payload[key] and not payload[key][subkey]:
