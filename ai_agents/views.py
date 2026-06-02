@@ -104,7 +104,7 @@ class ChatSearchView(APIView):
                 history = session.messages.order_by('timestamp')[:10]
 
                 # Get AI response using the agent
-                if search_type == "database":
+                if search_type in ["database", "general"]:
                     from .sql_agent import process_database_question
                     response_content = process_database_question(message)
                 else:
