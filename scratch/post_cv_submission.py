@@ -194,12 +194,16 @@ def extract_from_docx(file_path):
     # Regex fallback for email
     if not data["user_email_display"]:
         for p in doc.paragraphs:
-            match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', p.text)
+            match = re.search(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', p.text)
             if match:
-                data["user_email_display"] = match.group(0)
+                data["user_email_display"] = match.group(0).lower()
 
-    # If STILL no email, generate a fallback so it doesn't crash the ingestor
-    if not data["user_email_display"]:
+    # Validate email strictly before proceeding
+    email_to_check = data.get("user_email_display", "")
+    is_valid_email = bool(re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email_to_check))
+    
+    # If STILL no email or invalid email, generate a fallback so it doesn't crash the ingestor
+    if not is_valid_email:
         import uuid
         safe_name = re.sub(r'[^a-zA-Z0-9]', '', data["user_name"]).lower() or "applicant"
         data["user_email_display"] = f"missing_{safe_name}_{str(uuid.uuid4())[:8]}@example.com"
