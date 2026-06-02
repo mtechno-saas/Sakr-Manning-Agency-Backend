@@ -250,17 +250,23 @@ def run_ingestion(ai_data, file_name=""):
 
     user.save()
 
+    def clean_doc(d):
+        if not isinstance(d, dict):
+            return d
+        return {k: v if v is not None else "" for k, v in d.items()}
+
     payload = {
         "user_first_name": user_first_name,
         "user_middle_name": user_middle_name,
         "user_email": email,
         "position": ai_data.get("position_name"),
         "status": ai_data.get("status") or "Pending",
-        "notes": ai_data.get("notes") or "",
-        "passport_update": ai_data["user_documents"].get("passport"),
-        "seaman_book_update": ai_data["user_documents"].get("seaman_book"),
-        "coc_update": ai_data["user_documents"].get("coc"),
-        "goc_update": ai_data["user_documents"].get("goc"),
+        "experience_years": ai_data.get("experience_years", 0),
+        "passport_update": clean_doc(ai_data.get("user_documents", {}).get("passport")),
+        "seaman_book_update": clean_doc(ai_data.get("user_documents", {}).get("seaman_book")),
+        "other_seaman_book_update": clean_doc(ai_data.get("user_documents", {}).get("other_seaman_book")),
+        "coc_update": clean_doc(ai_data.get("user_documents", {}).get("coc")),
+        "goc_update": clean_doc(ai_data.get("user_documents", {}).get("goc")),
     }
 
     for key in ['passport_update', 'seaman_book_update', 'coc_update', 'goc_update']:
