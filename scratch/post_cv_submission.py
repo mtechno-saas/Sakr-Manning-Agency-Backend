@@ -211,9 +211,9 @@ def extract_from_docx(file_path):
     return data
 
 def run_ingestion(ai_data, file_name=""):
-    email_to_check = ai_data.get("user_email_display", "")
+    email_to_check = ai_data.get("user_email_display") or ""
     import re
-    is_valid_email = bool(re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email_to_check))
+    is_valid_email = bool(re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", str(email_to_check)))
     
     if not email_to_check or not is_valid_email:
         print(f"[{file_name}] Error: No email provided in data or email is invalid.")
@@ -328,14 +328,17 @@ def run_ingestion(ai_data, file_name=""):
             v_type_obj, _ = VesselType.objects.get_or_create(name=v_type_str)
             
             flag_str = ss.get("flag")
-            flag_obj = None
-            if flag_str:
-                flag_obj, _ = Flag.objects.get_or_create(name=flag_str)
+            if not flag_str:
+                flag_str = "Unknown"
+            flag_obj, _ = Flag.objects.get_or_create(name=flag_str)
                 
             rank_str = ss.get("rank")
-            rank_obj = None
-            if rank_str:
-                rank_obj = Rank.objects.filter(name__iexact=rank_str).first()
+            if not rank_str:
+                rank_str = "Unknown"
+            rank_obj = Rank.objects.filter(name__iexact=rank_str).first()
+            if not rank_obj:
+                import uuid
+                rank_obj = Rank.objects.create(code=f"UNK-{str(uuid.uuid4())[:4].upper()}", name=rank_str)
             
             try:
                 SeaService.objects.get_or_create(
