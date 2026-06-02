@@ -211,10 +211,15 @@ def extract_from_docx(file_path):
     return data
 
 def run_ingestion(ai_data, file_name=""):
-    email = ai_data.get("user_email_display")
-    if not email:
-        print(f"[{file_name}] Error: No email provided in data.")
+    email_to_check = ai_data.get("user_email_display", "")
+    import re
+    is_valid_email = bool(re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email_to_check))
+    
+    if not email_to_check or not is_valid_email:
+        print(f"[{file_name}] Error: No email provided in data or email is invalid.")
         return False
+
+    email = email_to_check
 
     user_name = ai_data.get("user_name") or "Applicant"
     parts = user_name.split(" ", 1)
@@ -308,35 +313,70 @@ def run_ingestion(ai_data, file_name=""):
         print(f"[{file_name}] Serializer validation failed:", json.dumps(serializer.errors, indent=2))
         return False
 
-    sea_services_data = ai_data.get("user_documents", {}).get("sea_service", [])
-    if sea_services_data:
-        count = 0
-        for ss_data in sea_services_data:
-            ss_signed_on = safe_date(ss_data.get("signed_on"))
-            ss_signed_off = safe_date(ss_data.get("signed_off"))
-            if SeaService.objects.filter(user=user, company_name=ss_data.get("company_name", ""), vessel_name=ss_data.get("vessel_name", ""), signed_on=ss_signed_on).exists():
+    sea_service_list = ai_data.get("user_documents", {}).get("sea_service", [])
+    if sea_service_list and isinstance(sea_service_list, list):
+        from api.models import SeaService
+        from core.models import VesselType
+        from core.models import Flag
+        sea_service_count = 0
+        for ss in sea_service_list:
+            if not isinstance(ss, dict):
                 continue
-            SeaService.objects.create(
-                user=user, company_name=ss_data.get("company_name", ""), rank=ss_data.get("rank", ""), vessel_name=ss_data.get("vessel_name", ""),
-                signed_on=ss_signed_on, signed_off=ss_signed_off, vessel_type=ss_data.get("vessel_type", ""), dwt=ss_data.get("dwt", "")
-            )
-            count += 1
-        print(f"Ingested {count} new Sea Service records.")
+            v_type_str = ss.get("vessel_type")
+            if not v_type_str:
+                v_type_str = "Unknown"
+            v_type_obj, _ = VesselType.objects.get_or_create(name=v_type_str)
+            
+            flag_str = ss.get("flag")
+            flag_obj = None
+            if flag_str:
+                flag_obj, _ = Flag.objects.get_or_create(name=flag_str)
+                
+            rank_str = ss.get("rank")
+            rank_obj = None
+            if rank_str:
+                rank_obj = Rank.objects.filter(name__iexact=rank_str).first()
+            
+            try:
+                SeaService.objects.get_or_create(
+                    user=user,
+                    vessel_name=ss.get("vessel_name") or "Unknown",
+                    rank=rank_obj,
+                    vessel_type=v_type_obj,
+                    flag=flag_obj,
+                    defaults={
+                        "signed_on": ss.get("signed_on") if ss.get("signed_on") else None,
+                        "signed_off": ss.get("signed_off") if ss.get("signed_off") else None,
+                    }
+                )
+                sea_service_count += 1
+            except Exception as e:
+                print(f"[{file_name}] Warning: Could not save sea service due to {e}")
+        print(f"Ingested {sea_service_count} new Sea Service records.")
 
-    courses_data = ai_data.get("user_documents", {}).get("marine_courses", [])
-    if courses_data:
+    marine_courses_list = ai_data.get("user_documents", {}).get("marine_courses", [])
+    if marine_courses_list and isinstance(marine_courses_list, list):
         try:
             from courses.models import Course
-            count = 0
-            for course_data in courses_data:
-                if Course.objects.filter(user=user, course_name=course_data.get("course_name")).exists():
+            marine_course_count = 0
+            for c in marine_courses_list:
+                if not isinstance(c, dict):
                     continue
-                Course.objects.create(
-                    user=user, course_name=course_data.get("course_name"), course_number=course_data.get("number", ""),
-                    issue_date=safe_date(course_data.get("issue_date")), expiry_date=safe_date(course_data.get("expiry_date"))
-                )
-                count += 1
-            print(f"Ingested {count} new Marine Course records.")
+                course_name = c.get("course_name")
+                if course_name:
+                    try:
+                        Course.objects.get_or_create(
+                            user=user,
+                            course_name=course_name,
+                            defaults={
+                                "issue_date": c.get("issue_date") if c.get("issue_date") else None,
+                                "expiry_date": c.get("expiry_date") if c.get("expiry_date") else None,
+                            }
+                        )
+                        marine_course_count += 1
+                    except Exception as e:
+                        print(f"[{file_name}] Warning: Could not save marine course due to {e}")
+            print(f"Ingested {marine_course_count} new Marine Course records.")
         except ImportError:
             pass
 
