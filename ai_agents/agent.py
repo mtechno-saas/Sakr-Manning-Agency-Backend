@@ -21,7 +21,7 @@ from .tools import tools
 import os
 
 # Use Google Gemini
-model = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", google_api_key=os.environ.get("GOOGLE_API_KEY", "missing_key_please_add_to_env"))
+model = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=os.environ.get("GOOGLE_API_KEY", "missing_key_please_add_to_env"))
 
 # System prompt for the chat agent
 SYSTEM_PROMPT = """You are a conversational AI Search Agent designed to help users find information through natural dialogue.
