@@ -6,7 +6,7 @@ Usage:
     cd /opt/sakr/Sakr-Manning-Agency-Backend
     python scratch/clear_rank_codes.py
 """
-import os, sys
+import os, sys, uuid
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
@@ -25,11 +25,22 @@ ur_count = UserRank.objects.exclude(assigned_code="").update(assigned_code="")
 print(f"Cleared assigned_code on {ur_count} UserRank records.")
 
 # 2. Clear rank codes that start with "CUS-" (auto-generated during ingestion)
-rank_count = Rank.objects.filter(code__startswith="CUS-").update(code="")
-print(f"Cleared rank_code on {rank_count} Rank records (CUS-* codes).")
+#    Since Rank.code has a UNIQUE constraint, we replace each with a unique placeholder
+cus_ranks = Rank.objects.filter(code__startswith="CUS-")
+cus_count = 0
+for rank in cus_ranks:
+    rank.code = f"CLR-{uuid.uuid4().hex[:8].upper()}"
+    rank.save(update_fields=['code'])
+    cus_count += 1
+print(f"Cleared rank_code on {cus_count} Rank records (CUS-* codes).")
 
 # 3. Also clear UNK- codes (auto-generated for unknown sea service ranks)
-unk_count = Rank.objects.filter(code__startswith="UNK-").update(code="")
+unk_ranks = Rank.objects.filter(code__startswith="UNK-")
+unk_count = 0
+for rank in unk_ranks:
+    rank.code = f"CLR-{uuid.uuid4().hex[:8].upper()}"
+    rank.save(update_fields=['code'])
+    unk_count += 1
 print(f"Cleared rank_code on {unk_count} Rank records (UNK-* codes).")
 
-print("\nDone! The API will now return empty values for assigned_code and rank_code.")
+print(f"\nDone! Cleared {ur_count} assigned_codes, {cus_count + unk_count} rank_codes.")
