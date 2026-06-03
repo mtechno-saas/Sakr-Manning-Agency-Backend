@@ -1,12 +1,12 @@
 """
-Run on server to clear assigned_code from UserRank records
-and rank_code (Rank.code) for all custom-generated (CUS-*) ranks.
+Run on server to DELETE UserRank records and custom Rank records
+(CUS-*, CLR-*, UNK-*) that were auto-generated during CV ingestion.
 
 Usage:
     cd /opt/sakr/Sakr-Manning-Agency-Backend
     python scratch/clear_rank_codes.py
 """
-import os, sys, uuid
+import os, sys
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
@@ -20,27 +20,18 @@ django.setup()
 
 from api.models import UserRank, Rank
 
-# 1. Clear all assigned_code values on UserRank
-ur_count = UserRank.objects.exclude(assigned_code="").update(assigned_code="")
-print(f"Cleared assigned_code on {ur_count} UserRank records.")
+# 1. Delete ALL UserRank records (these hold assigned_code)
+ur_count, _ = UserRank.objects.all().delete()
+print(f"Deleted {ur_count} UserRank records.")
 
-# 2. Clear rank codes that start with "CUS-" (auto-generated during ingestion)
-#    Since Rank.code has a UNIQUE constraint, we replace each with a unique placeholder
-cus_ranks = Rank.objects.filter(code__startswith="CUS-")
-cus_count = 0
-for rank in cus_ranks:
-    rank.code = f"CLR-{uuid.uuid4().hex[:8].upper()}"
-    rank.save(update_fields=['code'])
-    cus_count += 1
-print(f"Cleared rank_code on {cus_count} Rank records (CUS-* codes).")
+# 2. Delete custom Rank records (CUS-*, CLR-*, UNK-*)
+cus_count, _ = Rank.objects.filter(code__startswith="CUS-").delete()
+print(f"Deleted {cus_count} custom Rank records (CUS-*).")
 
-# 3. Also clear UNK- codes (auto-generated for unknown sea service ranks)
-unk_ranks = Rank.objects.filter(code__startswith="UNK-")
-unk_count = 0
-for rank in unk_ranks:
-    rank.code = f"CLR-{uuid.uuid4().hex[:8].upper()}"
-    rank.save(update_fields=['code'])
-    unk_count += 1
-print(f"Cleared rank_code on {unk_count} Rank records (UNK-* codes).")
+clr_count, _ = Rank.objects.filter(code__startswith="CLR-").delete()
+print(f"Deleted {clr_count} custom Rank records (CLR-*).")
 
-print(f"\nDone! Cleared {ur_count} assigned_codes, {cus_count + unk_count} rank_codes.")
+unk_count, _ = Rank.objects.filter(code__startswith="UNK-").delete()
+print(f"Deleted {unk_count} custom Rank records (UNK-*).")
+
+print(f"\nDone! All custom rank entries have been removed.")
