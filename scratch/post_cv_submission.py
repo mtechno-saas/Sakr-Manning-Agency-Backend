@@ -389,7 +389,9 @@ def process_folder(folder_path="all_json_files"):
     import shutil
     folder_path = os.path.join(project_root, folder_path)
     processed_folder = os.path.join(project_root, f"{os.path.basename(folder_path)}_processed")
+    failed_folder = os.path.join(project_root, f"{os.path.basename(folder_path)}_failed")
     os.makedirs(processed_folder, exist_ok=True)
+    os.makedirs(failed_folder, exist_ok=True)
     
     files = [f for f in os.listdir(folder_path) if f.endswith(('.json', '.docx'))]
     print(f"Found {len(files)} files in {folder_path}. Starting processing...\n")
@@ -412,6 +414,7 @@ def process_folder(folder_path="all_json_files"):
                 print(f"[{filename}] Error: Data extraction returned None.")
                 fail_count += 1
                 failed_files_list.append(f"{filename} (Extraction returned None)")
+                shutil.move(file_path, os.path.join(failed_folder, filename))
                 continue
                 
             if run_ingestion(data, file_name=filename):
@@ -420,10 +423,12 @@ def process_folder(folder_path="all_json_files"):
             else:
                 fail_count += 1
                 failed_files_list.append(f"{filename} (Ingestion failed)")
+                shutil.move(file_path, os.path.join(failed_folder, filename))
         except Exception as e:
             print(f"[{filename}] Error: {e}")
             fail_count += 1
             failed_files_list.append(f"{filename} (Exception: {e})")
+            shutil.move(file_path, os.path.join(failed_folder, filename))
 
     print(f"\nBatch complete! Success: {success_count}, Failed: {fail_count}")
     
