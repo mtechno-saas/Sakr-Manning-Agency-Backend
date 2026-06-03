@@ -16,6 +16,4 @@ __pycache__/
 server_logs.txt
 json/
 json_processed/
-all_json_files/
 all_json_files_processed/
-*.docx
