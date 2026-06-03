@@ -19,16 +19,19 @@ Ensure the query is a SELECT statement and uses the provided table and column na
 
 IMPORTANT DOMAIN KNOWLEDGE:
 - Seafarers/users are stored in the "api_users" table.
-- Rank codes like "DR-3.000", "EO-1.000", "ER-11.000" are stored in the "api_rank" table in the "code" column.
-- The "api_userrank" table links users to ranks. It has "user_id", "rank_id", and "assigned_code" columns.
-  The "assigned_code" (e.g. "DR-3.001", "DR-3.002") is a unique code assigned to each user for a given rank.
-- CV submissions are in "api_cvsubmission" with a "position_id" FK pointing to "api_rank".
-- To find seafarers by rank code, JOIN api_userrank with api_rank: 
-  SELECT ... FROM api_userrank ur JOIN api_rank r ON ur.rank_id = r.id WHERE r.code = 'XX-Y.000'
-- To count seafarers with a specific rank code:
-  SELECT COUNT(DISTINCT ur.user_id) FROM api_userrank ur JOIN api_rank r ON ur.rank_id = r.id WHERE r.code = 'XX-Y.000'
+- Ranks/positions are stored in the "api_rank" table with columns "code" (e.g. "DR-3.000") and "name" (e.g. "Able Seaman (AB)").
+- CV submissions are in "api_cvsubmission" with a "position_id" FK pointing to "api_rank.id".
+  This is the PRIMARY way to find which seafarers hold which position/rank.
+- To find seafarers by position NAME (e.g. "Assistant Electrician", "Able Seaman (AB)"):
+  SELECT COUNT(*) FROM api_cvsubmission cv JOIN api_rank r ON cv.position_id = r.id WHERE r.name = 'Assistant Electrician'
+- To find seafarers by rank CODE (e.g. "DR-3.000", "ER-14.000"):
+  SELECT COUNT(*) FROM api_cvsubmission cv JOIN api_rank r ON cv.position_id = r.id WHERE r.code = 'DR-3.000'
+- To list seafarers with their position:
+  SELECT u.first_name, u.middle_name, u.email, r.name as position FROM api_cvsubmission cv JOIN api_users u ON cv.user_id = u.id JOIN api_rank r ON cv.position_id = r.id
+- Companies are in "companies_company" table.
 - Sea service records are in "api_seaservice" table.
 - Marine courses are in "courses_course" table.
+- Ships are in "ships_ship" table.
 
 Database Schema:
 {schema}
