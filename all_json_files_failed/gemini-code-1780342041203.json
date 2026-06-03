@@ -1,0 +1,73 @@
+{
+    "id": null,
+    "user": null,
+    "user_name": "Mosaab Ebrahim mohmed ebrahim",
+    "user_email_display": "mousabelsmbo@.com",
+    "position_name": "AB",
+    "coded_rank": [
+        {
+            "assigned_code": "DR-2.0015"
+        }
+    ],
+    "assigned_code": "DR-2.0015",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A29943556",
+            "issue_date": "2022-02-17",
+            "expiry_date": "2029-02-16",
+            "place_of_issue": "ALEX"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00012616",
+            "issue_date": "2021-01-20",
+            "expiry_date": "2026-01-16"
+        },
+        "other_seaman_book": {
+            "seaman_book_no": "CY343793",
+            "issue_date": "2022-04-07",
+            "expiry_date": "2032-04-06",
+            "issued_by": "CYPRIOT Authority",
+            "place_of_issue": "LIMASOOL"
+        },
+        "sea_service": [
+            { "vessel_name": "MASRAH", "rank": "OS", "vessel_type": "RORO PASSENGER", "signed_on": "2017-03-11", "signed_off": "2017-10-04" },
+            { "vessel_name": "MASRAH", "rank": "AB", "vessel_type": "RORO PASSNEGER", "signed_on": "2017-11-19", "signed_off": "2018-05-06" },
+            { "vessel_name": "MASRAH", "rank": "AB", "vessel_type": "RORO PASSENGER", "signed_on": "2018-06-26", "signed_off": "2018-10-06" },
+            { "vessel_name": "MASRAH", "rank": "AB", "vessel_type": "RORO PASSENGER", "signed_on": "2018-11-20", "signed_off": "2019-04-02" },
+            { "vessel_name": "MASRAH", "rank": "AB", "vessel_type": "RORO PASSENGER", "signed_on": "2019-06-20", "signed_off": "2019-10-25" },
+            { "vessel_name": "ALNAWA", "rank": "AB", "vessel_type": "RORO", "signed_on": "2019-10-26", "signed_off": "2019-11-28" },
+            { "vessel_name": "ALNAWA", "rank": "AB", "vessel_type": "RORO", "signed_on": "2019-12-26", "signed_off": "2022-08-11" },
+            { "vessel_name": "DALEELA", "rank": "AB", "vessel_type": "RORO PASSNEGER", "signed_on": "2021-01-27", "signed_off": "2021-12-15" },
+            { "vessel_name": "VASSLIOS", "rank": "AB", "vessel_type": "RORO", "signed_on": "2022-03-02", "signed_off": "2022-10-07" }
+        ],
+        "marine_courses": [
+            { "course_name": "Personal Survival Techniques", "number": "446\\22\\EG", "issue_date": "2022-01-03", "expiry_date": "2026-12-22" },
+            { "course_name": "Fire Prevention and Fire Fighting", "number": "446\\22\\EG", "issue_date": "2022-01-03", "expiry_date": "2026-12-22" },
+            { "course_name": "Advanced Fire Prevention and Fire Fighting", "number": "446\\22\\EG", "issue_date": "2022-01-03", "expiry_date": "2026-12-22" },
+            { "course_name": "Personal Safety and Social Responsibilities", "number": "446\\22\\EG", "issue_date": "2022-01-03", "expiry_date": "2026-12-22" },
+            { "course_name": "Proficiency Of Security Awareness Training Seafarers", "number": "584\\22\\EG", "issue_date": "2022-01-04", "expiry_date": "2027-01-02" },
+            { "course_name": "Proficiency In Survival Craft & Rescue Boats", "number": "7270\\22\\EG", "issue_date": "2022-02-27", "expiry_date": "2027-02-16" },
+            { "course_name": "Navigational Watch keeping", "number": "37474\17\\EG", "issue_date": "2017-10-26" },
+            { "course_name": "Passenger Safety Cargo Safety and Hull integrity", "number": "925\\22\\EG", "issue_date": "2022-01-10", "expiry_date": "2026-12-18" },
+            { "course_name": "Crowd Management Training", "number": "850\\22\\EG", "issue_date": "2022-01-10", "expiry_date": "2026-12-25" },
+            { "course_name": "Crisis Management and Human Behavior Training", "number": "900\\22\\EG", "issue_date": "2022-01-10", "expiry_date": "2026-12-29" },
+            { "course_name": "Safety training for Personal Prov. Direct Passengers", "number": "875\\22\\EG", "issue_date": "2022-01-10", "expiry_date": "2026-12-27" },
+            { "course_name": "Abel Seafarer Deck", "number": "13527\\20\\EG", "issue_date": "2020-06-24" }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Mosaab Ebrahim mohmed ebrahim",
+            "date_of_birth": "1995-09-04",
+            "nationality": "egypt",
+            "place_of_birth": "ALexndria",
+            "overall_size": "Larg",
+            "shirt_size": "larg"
+        },
+        "3_contact_details": {
+            "home_address_city": "108 akoan elsfa street\\mhrmbk",
+            "e_mail": "mousabelsmbo@.com",
+            "mobile_tel": "01211302806"
+        }
+    }
+}

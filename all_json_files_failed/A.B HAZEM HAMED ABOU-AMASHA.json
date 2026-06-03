@@ -1,0 +1,325 @@
+{
+    "user_name": "HAZEM HAMED ABOU-AMASHA",
+    "user_email_display": null,
+    "position_name": "A. B",
+    "status": "Pending",
+    "notes": "Auto-submitted via AI CV Extractor",
+    "coded_rank": [
+        {
+            "assigned_code": "A. B",
+            "rank_code": null,
+            "rank_name": "A. B"
+        }
+    ],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A34005276",
+            "issue_date": "2023-05-31",
+            "expiry_date": "2030-05-30",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00030804",
+            "issue_date": "2023-05-09",
+            "expiry_date": "2028-05-06",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex."
+        },
+        "coc": {
+            "certificate_name": "COC ( Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo"
+        },
+        "health_certificate": {
+            "number": "14514",
+            "issue_date": "2023-05-22",
+            "expiry_date": "2025-05-21",
+            "international_medical_number": "14514",
+            "international_medical_issue_date": "2023-05-22",
+            "international_medical_expiry_date": "2025-05-21"
+        },
+        "sea_service": [],
+        "marine_courses": []
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "HAZEM HAMED ABOU-AMASHA",
+            "date_of_birth": "1967-12-31",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "EGYPTIAN",
+            "place_of_birth": "DAMIETTA"
+        },
+        "3_contact_details": {
+            "home_address_city": "EGYPT \u2013 DAMIETTA \u2013 EZBET ELBORG",
+            "e_mail": null,
+            "mobile_tel": "+201001920704"
+        },
+        "8_marine_courses": [
+            {
+                "course_name": "Proficiency In Personal Survival Techniques",
+                "certificate_number": "XNPST1389",
+                "issue_date": "2023-03-21",
+                "expiry_date": "2028-03-18",
+                "issued_by": "EAMS / Alex."
+            },
+            {
+                "course_name": "Fire Prevention and Fire Fighting",
+                "certificate_number": "XNFF1177",
+                "issue_date": "2023-03-21",
+                "expiry_date": "2028-03-18",
+                "issued_by": "EAMS / Alex."
+            },
+            {
+                "course_name": "Elementary First Aid",
+                "certificate_number": "XNFA1420",
+                "issue_date": "2023-03-22",
+                "expiry_date": "2028-03-20",
+                "issued_by": "EAMS / Alex."
+            },
+            {
+                "course_name": "Personal Safety and Social Responsibilities",
+                "certificate_number": "XNPS1499",
+                "issue_date": "2023-03-25",
+                "expiry_date": "2028-03-20",
+                "issued_by": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "certificate_number": "XNA2399",
+                "issue_date": "2023-03-19",
+                "expiry_date": "2028-03-15",
+                "issued_by": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "certificate_number": "XNC1528",
+                "issue_date": "2023-03-28",
+                "expiry_date": "2028-03-22",
+                "issued_by": "EAMS / Alex."
+            },
+            {
+                "course_name": "Navigational Watch keeping",
+                "certificate_number": "XNV694",
+                "issue_date": "2023-04-02",
+                "expiry_date": null,
+                "issued_by": "EAMS / Alex."
+            },
+            {
+                "course_name": "Passenger Safety Cargo Safety and Hull integrity",
+                "certificate_number": "XNXD 838",
+                "issue_date": "2023-08-21",
+                "expiry_date": "2028-08-09",
+                "issued_by": null
+            },
+            {
+                "course_name": "Crowd Management Training",
+                "certificate_number": "XNXA 874",
+                "issue_date": "2023-08-20",
+                "expiry_date": "2028-08-04",
+                "issued_by": null
+            },
+            {
+                "course_name": "Crisis Management and Human Behavior Training",
+                "certificate_number": "XNXB 872",
+                "issue_date": "2023-08-21",
+                "expiry_date": "2028-08-06",
+                "issued_by": null
+            },
+            {
+                "course_name": "Safety training for Personal Prov. Direct Passengers",
+                "certificate_number": "XNXC 876",
+                "issue_date": "2023-08-21",
+                "expiry_date": "2028-08-07",
+                "issued_by": null
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "service_records": [
+                {
+                    "company_name": null,
+                    "rank": "A.B",
+                    "vessel_name_imo_number": "M/V NADA",
+                    "signed_on": "1990-12-20",
+                    "signed_off": "1992-02-21",
+                    "period": "2 YEARS",
+                    "vessel_type": "SANLORENZO",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "A.B",
+                    "vessel_name_imo_number": "M/V NADA",
+                    "signed_on": "1992-11-20",
+                    "signed_off": "1993-06-16",
+                    "period": "7 MONTHS",
+                    "vessel_type": "SANLORENZO",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "A.B",
+                    "vessel_name_imo_number": "M/V SEAFAYE",
+                    "signed_on": "1995-05-15",
+                    "signed_off": "1996-06-04",
+                    "period": "1 YEAR",
+                    "vessel_type": "LIMASSOL",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "A.B",
+                    "vessel_name_imo_number": "ASPIDOFOROS",
+                    "signed_on": "1997-10-09",
+                    "signed_off": "1999-04-01",
+                    "period": "2 YEARS",
+                    "vessel_type": "NASSAU",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "BOSUN",
+                    "vessel_name_imo_number": "NASSERELSAAM",
+                    "signed_on": "1999-06-20",
+                    "signed_off": "2000-07-14",
+                    "period": "1 YEAR",
+                    "vessel_type": "HONDURAS",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "BOSUN",
+                    "vessel_name_imo_number": "NASSERELSAAM",
+                    "signed_on": "2000-08-07",
+                    "signed_off": "2001-03-04",
+                    "period": "1 YEAR",
+                    "vessel_type": "HONDURAS",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "A.B",
+                    "vessel_name_imo_number": "M/V ELNIM",
+                    "signed_on": "2001-04-12",
+                    "signed_off": "2001-12-12",
+                    "period": "8 MONTHS",
+                    "vessel_type": "LIMASSOL",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "BOSUN",
+                    "vessel_name_imo_number": "M/V BURG",
+                    "signed_on": "2003-02-20",
+                    "signed_off": "2003-10-26",
+                    "period": "8 MONTHS",
+                    "vessel_type": "PANAMA",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "A.B",
+                    "vessel_name_imo_number": "ADAMSTOS",
+                    "signed_on": "2007-08-01",
+                    "signed_off": "2008-06-01",
+                    "period": "10 MONTHS",
+                    "vessel_type": "PIERUS",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "BOSUN",
+                    "vessel_name_imo_number": "ADAMSTOS",
+                    "signed_on": "2007-08-01",
+                    "signed_off": "2008-07-14",
+                    "period": "11 MONTHS",
+                    "vessel_type": "PIERUS",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "BOSUN",
+                    "vessel_name_imo_number": "ALITIS",
+                    "signed_on": "2009-01-06",
+                    "signed_off": "2009-07-10",
+                    "period": "6 MONTHS",
+                    "vessel_type": "VALLETTA",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "A.B",
+                    "vessel_name_imo_number": "ANASSAIDANA",
+                    "signed_on": "2011-04-08",
+                    "signed_off": "2011-10-13",
+                    "period": "6 MONTHS",
+                    "vessel_type": "PIREUS",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "BOSUN",
+                    "vessel_name_imo_number": "ALITIS",
+                    "signed_on": "2012-02-14",
+                    "signed_off": "2012-11-08",
+                    "period": "9 MONTHS",
+                    "vessel_type": "VALLETTA",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "BOSUN",
+                    "vessel_name_imo_number": "ANASSA",
+                    "signed_on": "2014-02-06",
+                    "signed_off": "2015-04-10",
+                    "period": "1 YEAR",
+                    "vessel_type": "PIREUS",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": "ADRIA",
+                    "rank": "STORKEEPER DECK &FURNITURE",
+                    "vessel_name_imo_number": "AF MARINA",
+                    "signed_on": "2016-02-02",
+                    "signed_off": "2016-08-15",
+                    "period": null,
+                    "vessel_type": "ITALY",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": "ADRIA",
+                    "rank": "STORKEEPER DECK &FURNITURE",
+                    "vessel_name_imo_number": "AF FRANCESCA",
+                    "signed_on": "2017-03-07",
+                    "signed_off": "2017-09-20",
+                    "period": null,
+                    "vessel_type": "ITALY",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": "ADRIA",
+                    "rank": "STORKEEPER DECK &FURNITURE",
+                    "vessel_name_imo_number": "AF MARINA",
+                    "signed_on": "2018-05-01",
+                    "signed_off": "2018-11-20",
+                    "period": null,
+                    "vessel_type": "ITALY",
+                    "dwt_grt": null
+                }
+            ]
+        }
+    }
+}

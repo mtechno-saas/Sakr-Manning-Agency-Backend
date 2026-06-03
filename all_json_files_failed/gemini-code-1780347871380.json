@@ -1,0 +1,5254 @@
+[
+  {
+    "id": 1,
+    "user": null,
+    "user_name": "AHMED MAGDY SADIQ TRAPIEA",
+    "user_email_display": "AHMEDMAGDII112@ICLOUD.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "O.S",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 1,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-06-24",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.242",
+        "rank_code": "DR-2.242",
+        "rank_name": "O.S"
+      }
+    ],
+    "rank_code": "DR-2.242",
+    "assigned_code": "DR-2.242",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A32017764",
+        "issue_date": "2022-11-10",
+        "expiry_date": "2029-11-09",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00025644",
+        "issue_date": "2022-09-27",
+        "expiry_date": "2027-09-25",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "26849",
+        "issue_date": "2024-03-31",
+        "expiry_date": "2026-03-30",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "26849",
+        "international_medical_issue_date": "2024-03-31",
+        "international_medical_expiry_date": "2026-03-30",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "M/V CELESTYAL JOURNY",
+          "rank": "A.B",
+          "vessel_type": "PASSENGER",
+          "flag": "BERMUDA",
+          "signed_on": "2023-03-25",
+          "signed_off": "2024-03-02",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Basic Safety Training",
+          "issue_date": "2022-10-23",
+          "expiry_date": "2027-10-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "issue_date": "2022-10-22",
+          "expiry_date": "2027-10-18",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "issue_date": "2022-10-25",
+          "expiry_date": "2027-10-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Navigational Watch keeping",
+          "issue_date": "2022-10-15",
+          "expiry_date": null,
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+          "issue_date": "2024-04-01",
+          "expiry_date": null,
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MAGDY SADIQ TRAPIEA",
+        "date_of_birth": "1995-09-25",
+        "marital_status": {
+          "single": true,
+          "married": false
+        },
+        "nationality": "Egyptian",
+        "height_cm": "186",
+        "weight_kg": "80",
+        "place_of_birth": "Damietta",
+        "overall_size": "L",
+        "shirt_size": "L",
+        "nearest_port": "CAIRO",
+        "trouser_size": "",
+        "shoes_size": "42"
+      },
+      "2_education": {
+        "college_school": "Marine diploma",
+        "marline_test": {
+          "issued_date": "2013",
+          "result_percentage": "60",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": true,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "Damietta, Ezbet Elborg",
+        "e_mail": "AHMEDMAGDII112@ICLOUD.COM",
+        "mobile_tel": "+201023156695"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A32017764",
+          "iss_date": "2022-11-10",
+          "exp_date": "2029-11-09",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00025644",
+          "iss_date": "2022-09-27",
+          "exp_date": "2027-09-25",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "MOHAMED MAGDY",
+        "address_country": "Damietta, Ezbet Elborg",
+        "tel_no_mobile": "+201063141902",
+        "relationship": "BROTHER",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2022-10-03",
+            "expiry_date": "XXXX",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "SINOPHARM",
+          "first_dose": "2022-10-23",
+          "second_dose": "2022-12-05",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Basic Safety Training",
+          "number": "XBST 269",
+          "issue_date": "2022-10-23",
+          "expiry_date": "2027-10-17",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "number": "XNA 887",
+          "issue_date": "2022-10-22",
+          "expiry_date": "2027-10-18",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "XNC 568",
+          "issue_date": "2022-10-25",
+          "expiry_date": "2027-10-17",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Navigational Watch keeping",
+          "number": "XNV 223",
+          "issue_date": "2022-10-15",
+          "expiry_date": "XXXXX",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+          "number": "01772",
+          "issue_date": "2024-04-01",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "AHMED MAGDY SADIQ TRAPIEA",
+          "rank": "O.S",
+          "register_code": "DR-2.242"
+        },
+        "service_records": [
+          {
+            "company_name": "CELESTYAL CRYSTAL",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V CELESTYAL JOURNY",
+            "flag": "BERMUDA",
+            "flag_name": "BERMUDA",
+            "signed_on": "2023-03-25",
+            "signed_off": "2024-03-02",
+            "period": "",
+            "vessel_type": "PASSENGER",
+            "vessel_type_name": "PASSENGER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "2024-06-24",
+        "signature": "AHMED MAGDY SADIQ TRAPIEA"
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 2,
+    "user": null,
+    "user_name": "AHMED MAHMOUD MOHAMED RAKHA",
+    "user_email_display": "RAKHA2048369@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "Abel Seafarer Deck",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 4,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2025-07-20",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.420",
+        "rank_code": "DR-2.420",
+        "rank_name": "Abel Seafarer Deck"
+      }
+    ],
+    "rank_code": "DR-2.420",
+    "assigned_code": "DR-2.420",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A26778687",
+        "issue_date": "2020-03-05",
+        "expiry_date": "2027-03-04",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "45140",
+        "issue_date": "2025-05-28",
+        "expiry_date": "2027-05-27",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "45140",
+        "international_medical_issue_date": "2025-05-28",
+        "international_medical_expiry_date": "2027-05-27",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "M/V ARROWS",
+          "rank": "A. B",
+          "vessel_type": "GENERAL CARGO",
+          "flag": "TOGO",
+          "signed_on": "2020-10-26",
+          "signed_off": "2021-08-14",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "M/V HAJ YEHIA",
+          "rank": "A. B",
+          "vessel_type": "GENERAL CARGO",
+          "flag": "PALAU",
+          "signed_on": "2022-07-21",
+          "signed_off": "2023-08-02",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "vessel_name": "M/V OCEAN STAR",
+          "rank": "A. B",
+          "vessel_type": "GENERAL CARGO",
+          "flag": "PALAU",
+          "signed_on": "2024-01-06",
+          "signed_off": "2024-07-04",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "vessel_name": "M/V SEA GLORY",
+          "rank": "A. B",
+          "vessel_type": "GENERAL CARGO",
+          "flag": "PALAU",
+          "signed_on": "2024-08-08",
+          "signed_off": "2025-05-03",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2024-08-25",
+          "expiry_date": "2029-08-19",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2024-08-21",
+          "expiry_date": "2029-08-19",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2024-08-21",
+          "expiry_date": "2029-08-19",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Personal Safety and Social Responsibilities",
+          "issue_date": "2024-08-24",
+          "expiry_date": "2029-08-19",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "issue_date": "2024-08-26",
+          "expiry_date": "2029-08-21",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+          "issue_date": "2025-05-28",
+          "expiry_date": null,
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MAHMOUD MOHAMED RAKHA",
+        "date_of_birth": "1996-02-18",
+        "marital_status": {
+          "single": false,
+          "married": false
+        },
+        "nationality": "EGYPTIAN",
+        "height_cm": "178",
+        "weight_kg": "100",
+        "place_of_birth": "DAMIETTA",
+        "overall_size": "58",
+        "shirt_size": "XXL",
+        "nearest_port": "DAMIETTA",
+        "trouser_size": "",
+        "shoes_size": "45"
+      },
+      "2_education": {
+        "college_school": "",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "Al Fanar ST, Ezbet Elborg, Damietta",
+        "e_mail": "RAKHA2048369@GMAIL.COM",
+        "mobile_tel": "+201272048369"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A26778687",
+          "iss_date": "2020-03-05",
+          "exp_date": "2027-03-04",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "",
+          "iss_date": "",
+          "exp_date": "",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "MOHAMED RAKHA",
+        "address_country": "Al Fanar ST, Ezbet Elborg, Damietta",
+        "tel_no_mobile": "+201207023984",
+        "relationship": "BROTHER",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2017-12-19",
+            "expiry_date": "",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "",
+          "first_dose": "",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "XNPST 5364",
+          "issue_date": "2024-08-25",
+          "expiry_date": "2029-08-19",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "XNFF 4633",
+          "issue_date": "2024-08-21",
+          "expiry_date": "2029-08-19",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "XNFA 5332",
+          "issue_date": "2024-08-21",
+          "expiry_date": "2029-08-19",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Personal Safety and Social Responsibilities",
+          "number": "XNPS 5686",
+          "issue_date": "2024-08-24",
+          "expiry_date": "2029-08-19",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "number": "XNA 9274",
+          "issue_date": "2024-08-26",
+          "expiry_date": "2029-08-21",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "25516/25/EG",
+          "issue_date": "2025-06-26",
+          "expiry_date": "2030-05-26",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Navigational Watch keeping",
+          "number": "17656/20/EG",
+          "issue_date": "2020-07-27",
+          "expiry_date": "",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+          "number": "01221",
+          "issue_date": "2025-05-28",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "AHMED MAHMOUD MOHAMED RAKHA",
+          "rank": "Abel Seafarer Deck",
+          "register_code": "DR-2.420"
+        },
+        "service_records": [
+          {
+            "company_name": "ARROW SHIPPING",
+            "rank": "A. B",
+            "rank_name": "A. B",
+            "vessel_name_imo_number": "M/V ARROWS",
+            "flag": "TOGO",
+            "flag_name": "TOGO",
+            "signed_on": "2020-10-26",
+            "signed_off": "2021-08-14",
+            "period": "",
+            "vessel_type": "GENERAL CARGO",
+            "vessel_type_name": "GENERAL CARGO",
+            "dwt_grt": "4650",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ELREEDY SHIPPING",
+            "rank": "A. B",
+            "rank_name": "A. B",
+            "vessel_name_imo_number": "M/V HAJ YEHIA",
+            "flag": "PALAU",
+            "flag_name": "PALAU",
+            "signed_on": "2022-07-21",
+            "signed_off": "2023-08-02",
+            "period": "",
+            "vessel_type": "GENERAL CARGO",
+            "vessel_type_name": "GENERAL CARGO",
+            "dwt_grt": "4419",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "STAR GROUP",
+            "rank": "A. B",
+            "rank_name": "A. B",
+            "vessel_name_imo_number": "M/V OCEAN STAR",
+            "flag": "PALAU",
+            "flag_name": "PALAU",
+            "signed_on": "2024-01-06",
+            "signed_off": "2024-07-04",
+            "period": "",
+            "vessel_type": "GENERAL CARGO",
+            "vessel_type_name": "GENERAL CARGO",
+            "dwt_grt": "6150",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "SEA SCANNER FOR SHIPPING",
+            "rank": "A. B",
+            "rank_name": "A. B",
+            "vessel_name_imo_number": "M/V SEA GLORY",
+            "flag": "PALAU",
+            "flag_name": "PALAU",
+            "signed_on": "2024-08-08",
+            "signed_off": "2025-05-03",
+            "period": "",
+            "vessel_type": "GENERAL CARGO",
+            "vessel_type_name": "GENERAL CARGO",
+            "dwt_grt": "8000",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "20/07/2025",
+        "signature": "AHMED MAHMOUD MOHAMED RAKHA"
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 3,
+    "user": null,
+    "user_name": "AHMED MOANES ABOU ELMAHASEN SHERWIDA",
+    "user_email_display": "AHMED.SHARWEDA97@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "( OS ) ORDINARY SEAMAN",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 1,
+    "expected_salary": "600$ : 800$",
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2025-03-19",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": "600$ : 800$",
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.365",
+        "rank_code": "DR-2.365",
+        "rank_name": "( OS ) ORDINARY SEAMAN"
+      }
+    ],
+    "rank_code": "DR-2.365",
+    "assigned_code": "DR-2.365",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A37595863",
+        "issue_date": "2024-05-12",
+        "expiry_date": "2031-05-11",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "( 33 ) MAYT GHAMAR",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00042529",
+        "issue_date": "2024-05-28",
+        "expiry_date": "2028-11-21",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": "---",
+        "issue_date": "---",
+        "expiry_date": "---",
+        "issued_by": "---",
+        "place_of_issue": "---",
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": "---",
+        "issue_date": "---",
+        "expiry_date": "---",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": "NT 43371",
+        "issue_date": "2024-04-02",
+        "expiry_date": "2028-11-21",
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "29448",
+        "issue_date": "2024-06-03",
+        "expiry_date": "2026-06-02",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "29448",
+        "international_medical_issue_date": "2024-06-03",
+        "international_medical_expiry_date": "2026-06-02",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "9001150",
+          "rank": "AB",
+          "vessel_type": "GENERAL CARGO",
+          "flag": "TOGO",
+          "signed_on": "2024-08-17",
+          "signed_off": "2025-03-09",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-08-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-08-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-08-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Personal Safety and Social Responsibilities",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-08-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "issue_date": "2024-02-29",
+          "expiry_date": "2027-09-04",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-02-22",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "course_name": "G.M.D.S.S",
+          "issue_date": "2024-04-02",
+          "expiry_date": "2028-11-21",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 8,
+          "course_name": "Navigational Watch keeping",
+          "issue_date": "2024-02-28",
+          "expiry_date": "FOR EVER",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MOANES ABOU ELMAHASEN SHERWIDA",
+        "date_of_birth": "1997-05-26",
+        "marital_status": {
+          "single": true,
+          "married": false
+        },
+        "nationality": "EGYPTIAN",
+        "height_cm": "174",
+        "weight_kg": "80",
+        "place_of_birth": "ZEFTA - ELGHARBIA - EGYPT",
+        "overall_size": "L",
+        "shirt_size": "L ( 40 )",
+        "nearest_port": "ALEXANDRIA",
+        "trouser_size": "L ( 38 )",
+        "shoes_size": "43"
+      },
+      "2_education": {
+        "college_school": "OXFORD",
+        "marline_test": {
+          "issued_date": "22/11/2018",
+          "result_percentage": "76.8 %",
+          "issued_by_authority": "NTRA",
+          "issued_at": "NTRA"
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "ZEFTA – ELGHARBIA - EGYPT",
+        "e_mail": "AHMED.SHARWEDA97@GMAIL.COM",
+        "mobile_tel": "0201009195321"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A37595863",
+          "iss_date": "2024-05-12",
+          "exp_date": "2031-05-11",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "( 33 ) MAYT GHAMAR",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00042529",
+          "iss_date": "2024-05-28",
+          "exp_date": "2028-11-21",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        },
+        {
+          "type": "Other Seaman Book",
+          "document_no": "---",
+          "iss_date": "---",
+          "exp_date": "---",
+          "iss_by_authority": "---",
+          "place_of_issue": "---",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (COC (Rank))",
+          "number": "---",
+          "issue_date": "---",
+          "expiry_date": "---",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "NT 43371",
+          "issue_date": "2024-04-02",
+          "expiry_date": "2028-11-21",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "MAHMOUD MOANES SHERWIDA",
+        "address_country": "ALEXANDRIA",
+        "tel_no_mobile": "01099940401",
+        "relationship": "BROTHER",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2022-08-24",
+            "expiry_date": "VALID FOR LIFE LONG",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "SINOPHARM",
+          "first_dose": "19/10/2021",
+          "second_dose": "09/11/2021",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "25766/22/EG",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-08-17",
+          "issued_by": "AASTMT",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "25766/22/EG",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-08-17",
+          "issued_by": "AASTMT",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "25766/22/EG",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-08-17",
+          "issued_by": "AASTMT",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Personal Safety and Social Responsibilities",
+          "number": "25766/22/EG",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-08-17",
+          "issued_by": "AASTMT",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "number": "26501/22/EG",
+          "issue_date": "2024-02-29",
+          "expiry_date": "2027-09-04",
+          "issued_by": "AASTMT",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "26353/22/EG",
+          "issue_date": "2024-02-28",
+          "expiry_date": "2027-02-22",
+          "issued_by": "AASTMT",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "G.M.D.S.S",
+          "number": "NT 43371",
+          "issue_date": "2024-04-02",
+          "expiry_date": "2028-11-21",
+          "issued_by": "NTRA",
+          "issued_at": "EGYPT"
+        },
+        {
+          "course_name": "Navigational Watch keeping",
+          "number": "25326/22/EG",
+          "issue_date": "2024-02-28",
+          "expiry_date": "FOR EVER",
+          "issued_by": "AASTMT",
+          "issued_at": "ALEX"
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "AHMED MOANES SHERWIDA",
+          "rank": "AB",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "G.M.Z.SHIP MANGEMENT",
+            "rank": "AB",
+            "rank_name": "AB",
+            "vessel_name_imo_number": "9001150",
+            "flag": "TOGO",
+            "flag_name": "TOGO",
+            "signed_on": "2024-08-17",
+            "signed_off": "2025-03-09",
+            "period": "6 M & 22 D",
+            "vessel_type": "GENERAL CARGO",
+            "vessel_type_name": "GENERAL CARGO",
+            "dwt_grt": "8380/4968",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": "FIND A BETTER COMPANY"
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "ZEFTA GHARBIA EGYPT",
+        "date": "19/3/2025",
+        "signature": "AHMED MOANES SHERWIDA"
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 4,
+    "user": null,
+    "user_name": "AHMED MOHAMED ABD-ELHALIM MOHAMED",
+    "user_email_display": "AHMEDAHLIM6271493@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "Able seafarer Deck",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 8,
+    "expected_salary": "1500$/1700$",
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2025-02-28",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": "1500$/1700$",
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.346",
+        "rank_code": "DR-2.346",
+        "rank_name": "Able seafarer Deck"
+      }
+    ],
+    "rank_code": "DR-2.346",
+    "assigned_code": "DR-2.346",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A25955686",
+        "issue_date": "2019-10-09",
+        "expiry_date": "2026-10-08",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00017564",
+        "issue_date": "2021-09-01",
+        "expiry_date": "2026-06-22",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": "MH10092488",
+        "issue_date": "2024-06-23",
+        "expiry_date": "2029-06-22",
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "38993",
+        "issue_date": "2025-01-09",
+        "expiry_date": "2026-08-29",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "38993",
+        "international_medical_issue_date": "2025-01-09",
+        "international_medical_expiry_date": "2026-08-29",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "GUPCO1/7428316",
+          "rank": "A.B",
+          "vessel_type": "TUG BOAT",
+          "flag": "PANAMA",
+          "signed_on": "2016-06-13",
+          "signed_off": "2016-12-30",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "GUPCO1/7428316",
+          "rank": "A.B",
+          "vessel_type": "TUG BOAT",
+          "flag": "PANAMA",
+          "signed_on": "2017-02-01",
+          "signed_off": "2017-04-01",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "vessel_name": "PETRO  MARINE",
+          "rank": "A.B",
+          "vessel_type": "PLATFORM",
+          "flag": "COMOROS",
+          "signed_on": "2017-07-22",
+          "signed_off": "2017-10-26",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "vessel_name": "DORRAT JEDDAH/7203912",
+          "rank": "A.B",
+          "vessel_type": "RORO/G.C",
+          "flag": "SAUDIA ARABIA",
+          "signed_on": "2018-01-20",
+          "signed_off": "2018-10-16",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "vessel_name": "SEA SERV503/709004",
+          "rank": "A.B",
+          "vessel_type": "PLATFORMSUPPLY",
+          "flag": "LIMASSOL",
+          "signed_on": "2018-10-12",
+          "signed_off": "2019-02-11",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "vessel_name": "MARADIVE232",
+          "rank": "A.B",
+          "vessel_type": "DP2",
+          "flag": "BELIZE",
+          "signed_on": "2019-02-17",
+          "signed_off": "2019-03-16",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "vessel_name": "RAWABI 3/965383",
+          "rank": "A.B",
+          "vessel_type": "DP2",
+          "flag": "TUVALU",
+          "signed_on": "2019-12-07",
+          "signed_off": "2020-10-19",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 8,
+          "vessel_name": "RAWABI 28/304441414",
+          "rank": "",
+          "vessel_type": "DP2",
+          "flag": "TUVALU",
+          "signed_on": "2021-02-06",
+          "signed_off": "2021-06-25",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 9,
+          "vessel_name": "VASSILIKO/",
+          "rank": "A.B",
+          "vessel_type": "PULLK",
+          "flag": "LIMASSOL",
+          "signed_on": "2021-08-22",
+          "signed_off": "2022-04-25",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 10,
+          "vessel_name": "HADI21",
+          "rank": "A.B",
+          "vessel_type": "TOWINJ",
+          "flag": "BAHARIN",
+          "signed_on": "2022-07-21",
+          "signed_off": "2023-02-02",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 11,
+          "vessel_name": "P/V ELYSIUM",
+          "rank": "A.B",
+          "vessel_type": "PASSENGER",
+          "flag": "LIMASSOL",
+          "signed_on": "2023-08-21",
+          "signed_off": "2023-12-12",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 12,
+          "vessel_name": "CAPE SANDRE/9446980",
+          "rank": "A.B",
+          "vessel_type": "BULK",
+          "flag": "MARSHALL ISLANDS",
+          "signed_on": "2024-01-15",
+          "signed_off": "2024-05-05",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 13,
+          "vessel_name": "RAWABI 3",
+          "rank": "A.B",
+          "vessel_type": "DP2",
+          "flag": "TUVALU",
+          "signed_on": "2024-06-10",
+          "signed_off": "2024-12-11",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2021-09-28",
+          "expiry_date": "2026-04-15",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2021-09-28",
+          "expiry_date": "2026-04-15",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2021-09-28",
+          "expiry_date": "2026-04-15",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Personal Safety and Social Responsibilities",
+          "issue_date": "2021-09-28",
+          "expiry_date": "2026-04-15",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "issue_date": "2021-09-15",
+          "expiry_date": "2026-09-08",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "issue_date": "2021-09-09",
+          "expiry_date": "2026-09-01",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "course_name": "Abel Seafarer Deck",
+          "issue_date": "2021-01-05",
+          "expiry_date": "XXXXXXX",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 8,
+          "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+          "issue_date": "2021-07-02",
+          "expiry_date": "XXXXXXX",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MOHAMED ABD-ELHALIM MOHAMED",
+        "date_of_birth": "1991-09-01",
+        "marital_status": {
+          "single": false,
+          "married": false
+        },
+        "nationality": "EGYPTAIN",
+        "height_cm": "172",
+        "weight_kg": "82",
+        "place_of_birth": "ALEXANDRIA",
+        "overall_size": "xl",
+        "shirt_size": "xl",
+        "nearest_port": "BORG ELARAB AIR PORT",
+        "trouser_size": "36",
+        "shoes_size": "44"
+      },
+      "2_education": {
+        "college_school": "DIPLOMA IN MARINE OASIS FISHERIES",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "ALEX,TABIA RASHID EZBET AL HAJJ MOHAMED STREET,SANAD PHARMACY STREET",
+        "e_mail": "AHMEDAHLIM6271493@GMAIL.COM",
+        "mobile_tel": "01025703909"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A25955686",
+          "iss_date": "2019-10-09",
+          "exp_date": "2026-10-08",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00017564",
+          "iss_date": "2021-09-01",
+          "exp_date": "2026-06-22",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        },
+        {
+          "type": "Other Seaman Book",
+          "document_no": "MH10092488",
+          "iss_date": "2024-06-23",
+          "exp_date": "2029-06-22",
+          "iss_by_authority": "",
+          "place_of_issue": "",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "MOHAMED ABD-ELHALIM MOHAMED",
+        "address_country": "ALEX,TABIA RASHID EZBET AL HAJJ MOHAMED STREET,SANAD PHARMACY STREET",
+        "tel_no_mobile": "01022788239",
+        "relationship": "FATHER",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2013-08-25",
+            "expiry_date": "XXXXXXX",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "JOHNSON",
+          "first_dose": "09/09/202",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "33033/21/EG",
+          "issue_date": "2021-09-28",
+          "expiry_date": "2026-04-15",
+          "issued_by": "ASTMT",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "33033/21/EG",
+          "issue_date": "2021-09-28",
+          "expiry_date": "2026-04-15",
+          "issued_by": "ASTMT",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "33033/21/EG",
+          "issue_date": "2021-09-28",
+          "expiry_date": "2026-04-15",
+          "issued_by": "ASTMT",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Personal Safety and Social Responsibilities",
+          "number": "33033/21/EG",
+          "issue_date": "2021-09-28",
+          "expiry_date": "2026-04-15",
+          "issued_by": "ASTMT",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "number": "NA5765",
+          "issue_date": "2021-09-15",
+          "expiry_date": "2026-08-09",
+          "issued_by": "NPS",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "30857/21/EG",
+          "issue_date": "2021-09-09",
+          "expiry_date": "2026-09-01",
+          "issued_by": "ASTMT",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Abel Seafarer Deck",
+          "number": "427/21/EG",
+          "issue_date": "2021-01-05",
+          "expiry_date": "XXXXXXX",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+          "number": "0023",
+          "issue_date": "2021-07-02",
+          "expiry_date": "XXXXXXX",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "MERJO MARINE EGYPT",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "GUPCO1/7428316",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2016-06-13",
+            "signed_off": "2016-12-30",
+            "period": "5M17D",
+            "vessel_type": "TUG BOAT",
+            "vessel_type_name": "TUG BOAT",
+            "dwt_grt": "151/278",
+            "engine_type": "",
+            "bh_kw": "280",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "MERJO MARINE EGYPT",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "GUPCO1/7428316",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2017-02-01",
+            "signed_off": "2017-04-01",
+            "period": "2M",
+            "vessel_type": "TUG BOAT",
+            "vessel_type_name": "TUG BOAT",
+            "dwt_grt": "151/278",
+            "engine_type": "",
+            "bh_kw": "280",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "PETRO MARINE",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "PETRO  MARINE",
+            "flag": "COMOROS",
+            "flag_name": "COMOROS",
+            "signed_on": "2017-07-22",
+            "signed_off": "2017-10-26",
+            "period": "3M 4D",
+            "vessel_type": "PLATFORM",
+            "vessel_type_name": "PLATFORM",
+            "dwt_grt": "1048",
+            "engine_type": "DAIHATSU6DSM-32",
+            "bh_kw": "4200",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ABOUD SHIPING",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "DORRAT JEDDAH/7203912",
+            "flag": "SAUDIA ARABIA",
+            "flag_name": "SAUDIA ARABIA",
+            "signed_on": "2018-01-20",
+            "signed_off": "2018-10-16",
+            "period": "8M26D",
+            "vessel_type": "RORO/G.C",
+            "vessel_type_name": "RORO/G.C",
+            "dwt_grt": "6712",
+            "engine_type": "MAK",
+            "bh_kw": "3800",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "PETRO MARINE",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "SEA SERV503/709004",
+            "flag": "LIMASSOL",
+            "flag_name": "LIMASSOL",
+            "signed_on": "2018-10-12",
+            "signed_off": "2019-02-11",
+            "period": "2M1D",
+            "vessel_type": "PLATFORMSUPPLY",
+            "vessel_type_name": "PLATFORMSUPPLY",
+            "dwt_grt": "287",
+            "engine_type": "DAIHATSU6DSM",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "MARADIVE",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "MARADIVE232",
+            "flag": "BELIZE",
+            "flag_name": "BELIZE",
+            "signed_on": "2019-02-17",
+            "signed_off": "2019-03-16",
+            "period": "29D",
+            "vessel_type": "DP2",
+            "vessel_type_name": "DP2",
+            "dwt_grt": "3787",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "RAWABI",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "RAWABI 3/965383",
+            "flag": "TUVALU",
+            "flag_name": "TUVALU",
+            "signed_on": "2019-12-07",
+            "signed_off": "2020-10-19",
+            "period": "10M12D",
+            "vessel_type": "DP2",
+            "vessel_type_name": "DP2",
+            "dwt_grt": "1678",
+            "engine_type": "CATERPILLAR",
+            "bh_kw": "2*1920",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "RAWABI",
+            "rank": "",
+            "rank_name": "",
+            "vessel_name_imo_number": "RAWABI 28/304441414",
+            "flag": "TUVALU",
+            "flag_name": "TUVALU",
+            "signed_on": "2021-02-06",
+            "signed_off": "2021-06-25",
+            "period": "4M19D",
+            "vessel_type": "DP2",
+            "vessel_type_name": "DP2",
+            "dwt_grt": "1714",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "HAIFA MARINE",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "VASSILIKO/",
+            "flag": "LIMASSOL",
+            "flag_name": "LIMASSOL",
+            "signed_on": "2021-08-22",
+            "signed_off": "2022-04-25",
+            "period": "8M3D",
+            "vessel_type": "PULLK",
+            "vessel_type_name": "PULLK",
+            "dwt_grt": "5953",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "HADI HAMAM",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "HADI21",
+            "flag": "BAHARIN",
+            "flag_name": "BAHARIN",
+            "signed_on": "2022-07-21",
+            "signed_off": "2023-02-02",
+            "period": "5M2D",
+            "vessel_type": "TOWINJ",
+            "vessel_type_name": "TOWINJ",
+            "dwt_grt": "1260",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ELIXIR",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "P/V ELYSIUM",
+            "flag": "LIMASSOL",
+            "flag_name": "LIMASSOL",
+            "signed_on": "2023-08-21",
+            "signed_off": "2023-12-12",
+            "period": "2M17D",
+            "vessel_type": "PASSENGER",
+            "vessel_type_name": "PASSENGER",
+            "dwt_grt": "1610",
+            "engine_type": "",
+            "bh_kw": "2X1175",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "VIRONO",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "CAPE SANDRE/9446980",
+            "flag": "MARSHALL ISLANDS",
+            "flag_name": "MARSHALL ISLANDS",
+            "signed_on": "2024-01-15",
+            "signed_off": "2024-05-05",
+            "period": "3M20D",
+            "vessel_type": "BULK",
+            "vessel_type_name": "BULK",
+            "dwt_grt": "91.910",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "RAWABI",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "RAWABI 3",
+            "flag": "TUVALU",
+            "flag_name": "TUVALU",
+            "signed_on": "2024-06-10",
+            "signed_off": "2024-12-11",
+            "period": "5M2D",
+            "vessel_type": "DP2",
+            "vessel_type_name": "DP2",
+            "dwt_grt": "1678",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "2025-02-28",
+        "signature": "AHMED MOHAMED ABD-ELHALIM MOHAMED"
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "AHMED MOHAMED ABD-ELHALIM MOHAMED",
+          "date": "28/02/2025"
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 5,
+    "user": null,
+    "user_name": "AHMED MOHAMED ABDELMAKSOUD ELFAR",
+    "user_email_display": "ELFARAHMED707@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "O. S",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 3,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-10-26",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.295",
+        "rank_code": "DR-2.295",
+        "rank_name": "O. S"
+      }
+    ],
+    "rank_code": "DR-2.295",
+    "assigned_code": "DR-2.295",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A28215872",
+        "issue_date": "2021-06-28",
+        "expiry_date": "2028-06-27",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00031342",
+        "issue_date": "2023-05-29",
+        "expiry_date": "2028-05-21",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "15179",
+        "issue_date": "2023-06-07",
+        "expiry_date": "2025-06-06",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "15179",
+        "international_medical_issue_date": "2023-06-07",
+        "international_medical_expiry_date": "2025-06-06",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "M/V TOUMEH",
+          "rank": "A. B",
+          "vessel_type": "GENERAL CARGO",
+          "flag": "PANAMA",
+          "signed_on": "2009-02-05",
+          "signed_off": "2009-07-29",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "M/V LOUIS OLYMPIA",
+          "rank": "ASST CARPENTER",
+          "vessel_type": "PASSENGER",
+          "flag": "CYPRUS",
+          "signed_on": "2014-08-30",
+          "signed_off": "2014-11-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "vessel_name": "M/V CELESTYAL OLYMPIA",
+          "rank": "ASST CARPENTER",
+          "vessel_type": "PASSENGER",
+          "flag": "CYPRUS",
+          "signed_on": "2015-02-20",
+          "signed_off": "2015-10-30",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "vessel_name": "M/V CELESTYAL CRYSTYAL",
+          "rank": "ASST CARPENTER",
+          "vessel_type": "PASSENGER",
+          "flag": "CYPRUS",
+          "signed_on": "2015-10-30",
+          "signed_off": "2015-11-27",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "vessel_name": "F/B PRINCE",
+          "rank": "CARPENTER",
+          "vessel_type": "RO/RO PASSENGER",
+          "flag": "PANAMA",
+          "signed_on": "2018-06-26",
+          "signed_off": "2018-09-15",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "vessel_name": "F/B RIGEL VII",
+          "rank": "A. B",
+          "vessel_type": "RO/RO PASSENGER",
+          "flag": "PANAMA",
+          "signed_on": "2019-02-27",
+          "signed_off": "2019-07-04",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "vessel_name": "M/V LADY FARIDA",
+          "rank": "A. B",
+          "vessel_type": "GENERAL CARGO",
+          "flag": "PANAMA",
+          "signed_on": "2019-09-30",
+          "signed_off": "2020-01-19",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Basic Safety Training",
+          "issue_date": "2022-06-15",
+          "expiry_date": "2027-06-13",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "issue_date": "2022-06-16",
+          "expiry_date": "2027-06-14",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "issue_date": "2024-01-08",
+          "expiry_date": "2028-12-20",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+          "issue_date": "2024-07-14",
+          "expiry_date": null,
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MOHAMED ABDELMAKSOUD ELFAR",
+        "date_of_birth": "1984-05-04",
+        "marital_status": {
+          "single": false,
+          "married": true
+        },
+        "nationality": "EGYPTIAN",
+        "height_cm": "178",
+        "weight_kg": "95",
+        "place_of_birth": "DAMIETTA",
+        "overall_size": "XL",
+        "shirt_size": "XL",
+        "nearest_port": "CAIRO",
+        "trouser_size": "",
+        "shoes_size": "44"
+      },
+      "2_education": {
+        "college_school": "INDUST.DIPLOMA",
+        "marline_test": {
+          "issued_date": "2002",
+          "result_percentage": "60",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": true,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "Al Fanar ST, Ezbet Elborg, Damietta",
+        "e_mail": "ELFARAHMED707@GMAIL.COM",
+        "mobile_tel": "+201002022614"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A28215872",
+          "iss_date": "2021-06-28",
+          "exp_date": "2028-06-27",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00031342",
+          "iss_date": "2023-05-29",
+          "exp_date": "2028-05-21",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "MOHAMED ELFAR",
+        "address_country": "Al Fanar ST, Ezbet Elborg, Damietta",
+        "tel_no_mobile": "+201281054760",
+        "relationship": "FATHER",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2019-10-01",
+            "expiry_date": "Valid for life long",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "JOHNSON AND JOHNSON",
+          "first_dose": "2022-06-07",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Basic Safety Training",
+          "number": "BST 770",
+          "issue_date": "2022-06-15",
+          "expiry_date": "2027-06-13",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "number": "NA 7756",
+          "issue_date": "2022-06-16",
+          "expiry_date": "2027-06-14",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "XNC 3399",
+          "issue_date": "2024-01-08",
+          "expiry_date": "2028-12-20",
+          "issued_by": "",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+          "number": "01244",
+          "issue_date": "2024-07-14",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "CYRIAN",
+            "rank": "A. B",
+            "rank_name": "A. B",
+            "vessel_name_imo_number": "M/V TOUMEH",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2009-02-05",
+            "signed_off": "2009-07-29",
+            "period": "",
+            "vessel_type": "GENERAL CARGO",
+            "vessel_type_name": "GENERAL CARGO",
+            "dwt_grt": "17000",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "CELESTYAL CRUISES",
+            "rank": "ASST CARPENTER",
+            "rank_name": "ASST CARPENTER",
+            "vessel_name_imo_number": "M/V LOUIS OLYMPIA",
+            "flag": "CYPRUS",
+            "flag_name": "CYPRUS",
+            "signed_on": "2014-08-30",
+            "signed_off": "2014-11-17",
+            "period": "",
+            "vessel_type": "PASSENGER",
+            "vessel_type_name": "PASSENGER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "CELESTYAL CRUISES",
+            "rank": "ASST CARPENTER",
+            "rank_name": "ASST CARPENTER",
+            "vessel_name_imo_number": "M/V CELESTYAL OLYMPIA",
+            "flag": "CYPRUS",
+            "flag_name": "CYPRUS",
+            "signed_on": "2015-02-20",
+            "signed_off": "2015-10-30",
+            "period": "",
+            "vessel_type": "PASSENGER",
+            "vessel_type_name": "PASSENGER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "CELESTYAL CRUISES",
+            "rank": "ASST CARPENTER",
+            "rank_name": "ASST CARPENTER",
+            "vessel_name_imo_number": "M/V CELESTYAL CRYSTYAL",
+            "flag": "CYPRUS",
+            "flag_name": "CYPRUS",
+            "signed_on": "2015-10-30",
+            "signed_off": "2015-11-27",
+            "period": "",
+            "vessel_type": "PASSENGER",
+            "vessel_type_name": "PASSENGER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ELARKOMANY",
+            "rank": "CARPENTER",
+            "rank_name": "CARPENTER",
+            "vessel_name_imo_number": "F/B PRINCE",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2018-06-26",
+            "signed_off": "2018-09-15",
+            "period": "",
+            "vessel_type": "RO/RO PASSENGER",
+            "vessel_type_name": "RO/RO PASSENGER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "VANTOURIS",
+            "rank": "A. B",
+            "rank_name": "A. B",
+            "vessel_name_imo_number": "F/B RIGEL VII",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2019-02-27",
+            "signed_off": "2019-07-04",
+            "period": "",
+            "vessel_type": "RO/RO PASSENGER",
+            "vessel_type_name": "RO/RO PASSENGER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ELREEDY SHIPPING",
+            "rank": "A. B",
+            "rank_name": "A. B",
+            "vessel_name_imo_number": "M/V LADY FARIDA",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2019-09-30",
+            "signed_off": "2020-01-19",
+            "period": "",
+            "vessel_type": "GENERAL CARGO",
+            "vessel_type_name": "GENERAL CARGO",
+            "dwt_grt": "7000",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "26/10/2024",
+        "signature": "AHMED MOHAMED ABDELMAKDOUD ELFAR"
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 6,
+    "user": null,
+    "user_name": "AHMED MOHAMED AHMED SHATA",
+    "user_email_display": "",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "AB",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 9,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-03-14",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.217",
+        "rank_code": "DR-2.217",
+        "rank_name": "AB"
+      }
+    ],
+    "rank_code": "DR-2.217",
+    "assigned_code": "DR-2.217",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A27727690",
+        "issue_date": "2020-12-08",
+        "expiry_date": "2027-12-07",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "DAMIETTA",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00025911",
+        "issue_date": "2022-10-11",
+        "expiry_date": "2027-10-04",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "07050",
+        "issue_date": "2022-10-17",
+        "expiry_date": "2024-10-16",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "07050",
+        "international_medical_issue_date": "2022-10-17",
+        "international_medical_expiry_date": "2024-10-16",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "M/V JASY",
+          "rank": "A.B",
+          "vessel_type": "GENERAL CARGO",
+          "flag": "TOGO",
+          "signed_on": "2014-03-24",
+          "signed_off": "2015-01-08",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "M/V VOYAGER   K",
+          "rank": "A.B",
+          "vessel_type": "BULK CARRIER",
+          "flag": "CAMPODIA",
+          "signed_on": "2015-07-14",
+          "signed_off": "2016-01-19",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "vessel_name": "M/V SC1",
+          "rank": "A.B",
+          "vessel_type": "CEMENT CARRIER",
+          "flag": "PANAMA",
+          "signed_on": "2018-08-25",
+          "signed_off": "2019-09-29",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "vessel_name": "M/V REK KING",
+          "rank": "A.B",
+          "vessel_type": "BULK CARRIER",
+          "flag": "PANAMA",
+          "signed_on": "2020-03-10",
+          "signed_off": "2020-11-21",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "vessel_name": "M/V SC1",
+          "rank": "A.B",
+          "vessel_type": "CEMENT CARRIER",
+          "flag": "PANAMA",
+          "signed_on": "2021-06-24",
+          "signed_off": "2021-12-12",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "vessel_name": "M/V SIROCO",
+          "rank": "A.B",
+          "vessel_type": "GENERAL CARGO",
+          "flag": "PANAMA",
+          "signed_on": "2021-12-08",
+          "signed_off": "2022-08-16",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "vessel_name": "M/V SC1",
+          "rank": "A.B",
+          "vessel_type": "CEMENT CARRIER",
+          "flag": "PANAMA",
+          "signed_on": "2022-11-21",
+          "signed_off": "2023-01-22",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 8,
+          "vessel_name": "LOTUS",
+          "rank": "A.B",
+          "vessel_type": "CONTAINER",
+          "flag": "EGYPT",
+          "signed_on": "2023-01-29",
+          "signed_off": "2023-09-11",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2023-08-19",
+          "expiry_date": "2028-08-07",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Proficiency In Personal Survival Techniques",
+          "issue_date": "2023-08-19",
+          "expiry_date": "2028-08-07",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Advanced Fire Prevention and Fire Fighting",
+          "issue_date": "2023-08-19",
+          "expiry_date": "2028-08-05",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Medical Care Studies",
+          "issue_date": "2023-08-21",
+          "expiry_date": "2028-08-05",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "course_name": "Personal Safety and Social Responsibilities",
+          "issue_date": "2019-10-17",
+          "expiry_date": "2024-10-14",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "course_name": "Ships Cook Certificate (MLC 2006)",
+          "issue_date": "2022-09-21",
+          "expiry_date": "XXXX",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 8,
+          "course_name": "Abel Seafarer Deck",
+          "issue_date": "2022-10-25",
+          "expiry_date": "XXXX",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MOHAMED AHMED SHATA",
+        "date_of_birth": "1991-01-01",
+        "marital_status": {
+          "single": false,
+          "married": false
+        },
+        "nationality": "Egyptian",
+        "height_cm": "",
+        "weight_kg": "",
+        "place_of_birth": "Damietta",
+        "overall_size": "XL",
+        "shirt_size": "XL",
+        "nearest_port": "",
+        "trouser_size": "34",
+        "shoes_size": "44"
+      },
+      "2_education": {
+        "college_school": "",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "EGYPT – DAMIETTA – EZBET ELBORG",
+        "e_mail": "",
+        "mobile_tel": "+201032673072"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A27727690",
+          "iss_date": "2020-12-08",
+          "exp_date": "2027-12-07",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "DAMIETTA",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00025911",
+          "iss_date": "2022-10-11",
+          "exp_date": "2027-10-04",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "",
+        "address_country": "",
+        "tel_no_mobile": "",
+        "relationship": "",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2015-04-11",
+            "expiry_date": "LIFE LONG",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "",
+          "first_dose": "",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "XNPST2281",
+          "issue_date": "2023-08-19",
+          "expiry_date": "2028-08-07",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Proficiency In Personal Survival Techniques",
+          "number": "XNFF1916",
+          "issue_date": "2023-08-19",
+          "expiry_date": "2028-08-07",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Advanced Fire Prevention and Fire Fighting",
+          "number": "XNFA2290",
+          "issue_date": "2023-08-19",
+          "expiry_date": "2028-08-05",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Medical Care Studies",
+          "number": "XNPS2363",
+          "issue_date": "2023-08-21",
+          "expiry_date": "2028-08-05",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Personal Safety and Social Responsibilities",
+          "number": "NA2011",
+          "issue_date": "2019-10-17",
+          "expiry_date": "2024-10-14",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "XNC2440",
+          "issue_date": "2023-08-22",
+          "expiry_date": "2028-08-09",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Ships Cook Certificate (MLC 2006)",
+          "number": "28313/22/EG",
+          "issue_date": "2022-09-21",
+          "expiry_date": "XXXX",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Abel Seafarer Deck",
+          "number": "00549",
+          "issue_date": "2022-10-25",
+          "expiry_date": "XXXX",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "G.M.Z SHIP MANAGEMENT",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V JASY",
+            "flag": "TOGO",
+            "flag_name": "TOGO",
+            "signed_on": "2014-03-24",
+            "signed_off": "2015-01-08",
+            "period": "",
+            "vessel_type": "GENERAL CARGO",
+            "vessel_type_name": "GENERAL CARGO",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "UNIFLEET MANAGEMENT",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V VOYAGER   K",
+            "flag": "CAMPODIA",
+            "flag_name": "CAMPODIA",
+            "signed_on": "2015-07-14",
+            "signed_off": "2016-01-19",
+            "period": "",
+            "vessel_type": "BULK CARRIER",
+            "vessel_type_name": "BULK CARRIER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ELREEDY SHIPPING",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V SC1",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2018-08-25",
+            "signed_off": "2019-09-29",
+            "period": "",
+            "vessel_type": "CEMENT CARRIER",
+            "vessel_type_name": "CEMENT CARRIER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "REK NAV MANAGEMENT",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V REK KING",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2020-03-10",
+            "signed_off": "2020-11-21",
+            "period": "",
+            "vessel_type": "BULK CARRIER",
+            "vessel_type_name": "BULK CARRIER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ELREEDY SHIPPING",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V SC1",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2021-06-24",
+            "signed_off": "2021-12-02",
+            "period": "",
+            "vessel_type": "CEMENT CARRIER",
+            "vessel_type_name": "CEMENT CARRIER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ZODIAC SHIPPING",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V SIROCO",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2021-12-08",
+            "signed_off": "2022-08-16",
+            "period": "",
+            "vessel_type": "GENERAL CARGO",
+            "vessel_type_name": "GENERAL CARGO",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ELREEDY SHIPPING",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V SC1",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2022-11-21",
+            "signed_off": "2023-01-22",
+            "period": "",
+            "vessel_type": "CEMENT CARRIER",
+            "vessel_type_name": "CEMENT CARRIER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ELREEDY STARS",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "LOTUS",
+            "flag": "EGYPT",
+            "flag_name": "EGYPT",
+            "signed_on": "2023-01-29",
+            "signed_off": "2023-09-11",
+            "period": "",
+            "vessel_type": "CONTAINER",
+            "vessel_type_name": "CONTAINER",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 7,
+    "user": null,
+    "user_name": "AHMED MOHAMED EL SAYED MOHAMED SHAMS EL DIN",
+    "user_email_display": "Ahmedshams26@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "O.S",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 4,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-07-04",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.129",
+        "rank_code": "DR-2.129",
+        "rank_name": "O.S"
+      }
+    ],
+    "rank_code": "DR-2.129",
+    "assigned_code": "DR-2.129",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A28365812",
+        "issue_date": "2021-05-23",
+        "expiry_date": "2028-05-22",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00032045",
+        "issue_date": "2023-06-19",
+        "expiry_date": "2028-06-13",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": "CY204074",
+        "issue_date": "2013-02-12",
+        "expiry_date": "2023-02-11",
+        "issued_by": "Cypriot  Authority",
+        "place_of_issue": "Cyprus",
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "16894",
+        "issue_date": "2023-07-26",
+        "expiry_date": "2025-07-25",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "16894",
+        "international_medical_issue_date": "2023-07-26",
+        "international_medical_expiry_date": "2025-07-25",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "Alexandros I",
+          "rank": "O\\S",
+          "vessel_type": "Bulk Carrier",
+          "flag": "Monrovia Liberia",
+          "signed_on": "2023-10-17",
+          "signed_off": "2024-05-08",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "ALIOS",
+          "rank": "A\\B",
+          "vessel_type": "RO – RO & Cargo",
+          "flag": "Cyprus",
+          "signed_on": "2013-01-30",
+          "signed_off": "2013-07-19",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "vessel_name": "Venus",
+          "rank": "A\\B",
+          "vessel_type": "Passenger",
+          "flag": "VALLETTA/Dnv",
+          "signed_on": "2012-05-25",
+          "signed_off": "2012-09-06",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "vessel_name": "Sea Lady",
+          "rank": "A\\B",
+          "vessel_type": "Supply",
+          "flag": "PANAMA",
+          "signed_on": "2011-11-09",
+          "signed_off": "2012-03-08",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "vessel_name": "DODO",
+          "rank": "A\\B",
+          "vessel_type": "RO – RO & Cargo",
+          "flag": "PANAMA",
+          "signed_on": "2009-11-02",
+          "signed_off": "2011-07-05",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Proficiency In Personal Survival Techniques",
+          "issue_date": "2023-06-11",
+          "expiry_date": "2028-06-05",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2023-06-10",
+          "expiry_date": "2028-06-03",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2023-06-10",
+          "expiry_date": "2028-06-03",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Personal Safety and Social Responsibilities",
+          "issue_date": "2023-06-11",
+          "expiry_date": "2028-06-05",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "issue_date": "2023-06-13",
+          "expiry_date": "2028-06-06",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "issue_date": "2011-01-06",
+          "expiry_date": "XX",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "course_name": "Navigational Watch keeping",
+          "issue_date": "2010-12-28",
+          "expiry_date": "XX",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 8,
+          "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+          "issue_date": "2023-10-02",
+          "expiry_date": "XX",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MOHAMED EL SAYED MOHAMED SHAMS EL DIN",
+        "date_of_birth": "1983-05-27",
+        "marital_status": {
+          "single": true,
+          "married": false
+        },
+        "nationality": "Egyptian",
+        "height_cm": "160",
+        "weight_kg": "65",
+        "place_of_birth": "Cairo , Egypt",
+        "overall_size": "Small",
+        "shirt_size": "Small",
+        "nearest_port": "",
+        "trouser_size": "Small",
+        "shoes_size": "42"
+      },
+      "2_education": {
+        "college_school": "higher institute for social work in Cairo",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": true,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "22 Wahed st. from sayed Hamada, El Marg , Cairo, Egypt.",
+        "e_mail": "Ahmedshams26@gmail.com",
+        "mobile_tel": "002   01140131010"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A28365812",
+          "iss_date": "2021-05-23",
+          "exp_date": "2028-05-22",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "Cairo",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00032045",
+          "iss_date": "2023-06-19",
+          "exp_date": "2028-06-13",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        },
+        {
+          "type": "Other Seaman Book",
+          "document_no": "CY204074",
+          "iss_date": "2013-02-12",
+          "exp_date": "2023-02-11",
+          "iss_by_authority": "Cypriot  Authority",
+          "place_of_issue": "Cyprus",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "Mahmoud Mohamed El Sayed Mohamed shams Eldin",
+        "address_country": "22 Wahed st. from sayed Hamada, El Marg , Cairo, Egypt.",
+        "tel_no_mobile": "002    011  45893725",
+        "relationship": "My Brother",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2009-11-03",
+            "expiry_date": "2019-11-13",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "Moderna",
+          "first_dose": "2022-05-17",
+          "second_dose": "2022-06-25",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Proficiency In Personal Survival Techniques",
+          "number": "H0020881",
+          "issue_date": "2023-06-11",
+          "expiry_date": "2028-06-05",
+          "issued_by": "ARAB REPUBLIC OF EGYPT NAVAL POST- GRADUATE STUDIES INSTITUTE",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "H0020823",
+          "issue_date": "2023-06-10",
+          "expiry_date": "2028-06-03",
+          "issued_by": "ARAB REPUBLIC OF EGYPT NAVAL POST- GRADUATE STUDIES INSTITUTE",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "H0020806",
+          "issue_date": "2023-06-10",
+          "expiry_date": "2028-06-03",
+          "issued_by": "ARAB REPUBLIC OF EGYPT NAVAL POST- GRADUATE STUDIES INSTITUTE",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Personal Safety and Social Responsibilities",
+          "number": "H0020893",
+          "issue_date": "2023-06-11",
+          "expiry_date": "2028-06-05",
+          "issued_by": "ARAB REPUBLIC OF EGYPT NAVAL POST- GRADUATE STUDIES INSTITUTE",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "number": "H0021061",
+          "issue_date": "2023-06-13",
+          "expiry_date": "2028-06-06",
+          "issued_by": "ARAB REPUBLIC OF EGYPT NAVAL POST- GRADUATE STUDIES INSTITUTE",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "737/11/EG",
+          "issue_date": "2011-01-06",
+          "expiry_date": "XX",
+          "issued_by": "ARAB REPUBLIC OF EGYPT NAVAL POST- GRADUATE STUDIES INSTITUTE",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Navigational Watch keeping",
+          "number": "49960/10/EG",
+          "issue_date": "2010-12-28",
+          "expiry_date": "XX",
+          "issued_by": "The Arab academy for science, technology& maritime transport",
+          "issued_at": ""
+        },
+        {
+          "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+          "number": "01538",
+          "issue_date": "2023-10-02",
+          "expiry_date": "XX",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "Ahmed Mohamed el sayed Mohamed shams el din",
+          "rank": "O.S",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "SILVERBULK SA",
+            "rank": "O\\S",
+            "rank_name": "O\\S",
+            "vessel_name_imo_number": "Alexandros I",
+            "flag": "Monrovia Liberia",
+            "flag_name": "Monrovia Liberia",
+            "signed_on": "2023-10-17",
+            "signed_off": "2024-05-08",
+            "period": "7 months",
+            "vessel_type": "Bulk Carrier",
+            "vessel_type_name": "Bulk Carrier",
+            "dwt_grt": "",
+            "engine_type": "STX-MANB&W 7S35MC",
+            "bh_kw": "5180",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "SALAMIS LINES LTD",
+            "rank": "A\\B",
+            "rank_name": "A\\B",
+            "vessel_name_imo_number": "ALIOS",
+            "flag": "Cyprus",
+            "flag_name": "Cyprus",
+            "signed_on": "2013-01-30",
+            "signed_off": "2013-07-19",
+            "period": "6 months",
+            "vessel_type": "RO – RO & Cargo",
+            "vessel_type_name": "RO – RO & Cargo",
+            "dwt_grt": "",
+            "engine_type": "2x Mak type 8M552C each",
+            "bh_kw": "6000 KW at 500 rpm total",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "East Mediterranean Cruises Line",
+            "rank": "A\\B",
+            "rank_name": "A\\B",
+            "vessel_name_imo_number": "Venus",
+            "flag": "VALLETTA/Dnv",
+            "flag_name": "VALLETTA/Dnv",
+            "signed_on": "2012-05-25",
+            "signed_off": "2012-09-06",
+            "period": "4 months",
+            "vessel_type": "Passenger",
+            "vessel_type_name": "Passenger",
+            "dwt_grt": "",
+            "engine_type": "Fiat  C 4210 ss m.e",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "ships & boats",
+            "rank": "A\\B",
+            "rank_name": "A\\B",
+            "vessel_name_imo_number": "Sea Lady",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2011-11-09",
+            "signed_off": "2012-03-08",
+            "period": "5 months",
+            "vessel_type": "Supply",
+            "vessel_type_name": "Supply",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "EL Salam",
+            "rank": "A\\B",
+            "rank_name": "A\\B",
+            "vessel_name_imo_number": "DODO",
+            "flag": "PANAMA",
+            "flag_name": "PANAMA",
+            "signed_on": "2009-11-02",
+            "signed_off": "2011-07-05",
+            "period": "21 months",
+            "vessel_type": "RO – RO & Cargo",
+            "vessel_type_name": "RO – RO & Cargo",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "consent_statement": "I declare that the information I have given is, to the best of my knowledge, true and complete...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 8,
+    "user": null,
+    "user_name": "AHMED MOHAMED ELSAYED RAGAB",
+    "user_email_display": "AHMEDMOHMEDRAGAB200@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "A.B",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 2,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2026-01-11",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.495",
+        "rank_code": "DR-2.495",
+        "rank_name": "A.B"
+      }
+    ],
+    "rank_code": "DR-2.495",
+    "assigned_code": "DR-2.495",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A31379882",
+        "issue_date": "2022-09-04",
+        "expiry_date": "2029-08-03",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "DAMIETTA",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00025413",
+        "issue_date": "2022-09-18",
+        "expiry_date": "2027-09-14",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "33471",
+        "issue_date": "2024-09-04",
+        "expiry_date": "2026-09-03",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "33471",
+        "international_medical_issue_date": "2024-09-04",
+        "international_medical_expiry_date": "2026-09-03",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "M/V ISLAND STAR",
+          "rank": "A.B",
+          "vessel_type": "G.CARGO",
+          "flag": "TOGO",
+          "signed_on": "2023-10-24",
+          "signed_off": "2025-01-21",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "M/V SEA STAR",
+          "rank": "A.B",
+          "vessel_type": "G.CARGO",
+          "flag": "TANZANIA",
+          "signed_on": "2025-02-11",
+          "signed_off": "2025-09-05",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2022-10-16",
+          "expiry_date": "2027-10-11",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2022-10-16",
+          "expiry_date": "2027-10-11",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2022-10-16",
+          "expiry_date": "2027-10-11",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Personal Safety and Social Responsibilities",
+          "issue_date": "2022-10-16",
+          "expiry_date": "2027-10-11",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "issue_date": "2022-10-13",
+          "expiry_date": "2027-10-11",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "issue_date": "2022-10-25",
+          "expiry_date": "2027-10-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "course_name": "Navigational Watch keeping",
+          "issue_date": "2022-10-29",
+          "expiry_date": "XXXXXX",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MOHAMED ELSAYED RAGAB",
+        "date_of_birth": "1995-06-21",
+        "marital_status": {
+          "single": false,
+          "married": false
+        },
+        "nationality": "EGYPTIAN",
+        "height_cm": "180",
+        "weight_kg": "68",
+        "place_of_birth": "DAMIETTA",
+        "overall_size": "XL",
+        "shirt_size": "XL",
+        "nearest_port": "DAMIETTA PORT",
+        "trouser_size": "33",
+        "shoes_size": "45"
+      },
+      "2_education": {
+        "college_school": "",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "EGYPT – DAMIETTA – ELSHIEKH DORGHAM",
+        "e_mail": "AHMEDMOHMEDRAGAB200@GMAIL.COM",
+        "mobile_tel": "+201069621848"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A31379882",
+          "iss_date": "2022-09-04",
+          "exp_date": "2029-08-03",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "DAMIETTA",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00025413",
+          "iss_date": "2022-09-18",
+          "exp_date": "2027-09-14",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "Mohamed el Sayed Taha Ragab",
+        "address_country": "EGYPT – DAMIETTA – ELSHIEKH DORGHAM",
+        "tel_no_mobile": "+2001062227899",
+        "relationship": "FATHER",
+        "email": ""
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2022-10-03",
+            "expiry_date": "LIFE LONG",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "",
+          "first_dose": "",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "XBST255",
+          "issue_date": "2022-10-16",
+          "expiry_date": "2027-10-11",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "XBST255",
+          "issue_date": "2022-10-16",
+          "expiry_date": "2027-10-11",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "XBST255",
+          "issue_date": "2022-10-16",
+          "expiry_date": "2027-10-11",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Personal Safety and Social Responsibilities",
+          "number": "XBST255",
+          "issue_date": "2022-10-16",
+          "expiry_date": "2027-10-11",
+          "issued_by": "EAMS",
+          "issued_at": "ALEX"
+        },
+        {
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "number": "XNA784",
+          "issue_date": "2022-10-13",
+          "expiry_date": "2027-10-11",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "XNC567",
+          "issue_date": "2022-10-25",
+          "expiry_date": "2027-10-17",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "course_name": "Navigational Watch keeping",
+          "number": "XNV295",
+          "issue_date": "2022-10-29",
+          "expiry_date": "XXXXXX",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "OCEAN STAR MARITIME",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V ISLAND STAR",
+            "flag": "TOGO",
+            "flag_name": "TOGO",
+            "signed_on": "2023-10-24",
+            "signed_off": "2025-01-21",
+            "period": "",
+            "vessel_type": "G.CARGO",
+            "vessel_type_name": "G.CARGO",
+            "dwt_grt": "3890",
+            "engine_type": "NORMO 2X1900",
+            "bh_kw": "",
+            "reason_for_sign_off": "EOC"
+          },
+          {
+            "company_name": "STAR GROUP",
+            "rank": "A.B",
+            "rank_name": "A.B",
+            "vessel_name_imo_number": "M/V SEA STAR",
+            "flag": "TANZANIA",
+            "flag_name": "TANZANIA",
+            "signed_on": "2025-02-11",
+            "signed_off": "2025-09-05",
+            "period": "",
+            "vessel_type": "G.CARGO",
+            "vessel_type_name": "G.CARGO",
+            "dwt_grt": "3433",
+            "engine_type": "HANSHIN 3000HP",
+            "bh_kw": "",
+            "reason_for_sign_off": "EOC"
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 9,
+    "user": null,
+    "user_name": "AHMED MOHAMED ETEFY",
+    "user_email_display": "Ahmedetefy1@gmail.com",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "AB",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 5,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2025-04-09",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.366",
+        "rank_code": "DR-2.366",
+        "rank_name": "AB"
+      }
+    ],
+    "rank_code": "DR-2.366",
+    "assigned_code": "DR-2.366",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A25760027",
+        "issue_date": "2019-02-09",
+        "expiry_date": "2026-01-10",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "Sohag",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00029521",
+        "issue_date": "2023-03-07",
+        "expiry_date": "2028-03-02",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": "1736558",
+        "issue_date": "2022-09-30",
+        "expiry_date": "2027-09-30",
+        "issued_by": null,
+        "place_of_issue": "Liberia",
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "41504",
+        "issue_date": "2025-03-10",
+        "expiry_date": "2027-03-09",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "41504",
+        "international_medical_issue_date": "2025-03-10",
+        "international_medical_expiry_date": "2027-03-09",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "Lamnalco choglugh",
+          "rank": "Ab",
+          "vessel_type": "Aths",
+          "flag": "Cyprus",
+          "signed_on": "2024-09-01",
+          "signed_off": "2025-01-21",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "SL Toucan",
+          "rank": "Ab",
+          "vessel_type": "Aths",
+          "flag": "Liberia",
+          "signed_on": "2024-01-07",
+          "signed_off": "2024-06-06",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "vessel_name": "SL Toucan",
+          "rank": "Ab",
+          "vessel_type": "Aths",
+          "flag": "Liberia",
+          "signed_on": "2023-05-16",
+          "signed_off": "2023-11-13",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "vessel_name": "SL Toucan",
+          "rank": "Ab",
+          "vessel_type": "Aths",
+          "flag": "Liberia",
+          "signed_on": "2022-08-26",
+          "signed_off": "2023-02-14",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "vessel_name": "SL Europe",
+          "rank": "Ab",
+          "vessel_type": "Aths",
+          "flag": "Liberia",
+          "signed_on": "2022-02-07",
+          "signed_off": "2022-07-20",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "vessel_name": "SL Teal",
+          "rank": "Ab",
+          "vessel_type": "Aths",
+          "flag": "Liberia",
+          "signed_on": "2021-09-07",
+          "signed_off": "2021-11-29",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "vessel_name": "Maridive 231",
+          "rank": "Ab",
+          "vessel_type": "Aths",
+          "flag": "",
+          "signed_on": "2021-05-09",
+          "signed_off": "2021-06-06",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 8,
+          "vessel_name": "Maridive 231",
+          "rank": "Ab",
+          "vessel_type": "Aths",
+          "flag": "",
+          "signed_on": "2021-03-14",
+          "signed_off": "2021-04-11",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 9,
+          "vessel_name": "Maridive 231",
+          "rank": "Ab",
+          "vessel_type": "Aths",
+          "flag": "",
+          "signed_on": "2021-01-17",
+          "signed_off": "2021-02-14",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 10,
+          "vessel_name": "Maridive Zohri",
+          "rank": "Ab",
+          "vessel_type": "PSV",
+          "flag": "",
+          "signed_on": "2020-08-29",
+          "signed_off": "2020-10-06",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2021-02-17",
+          "expiry_date": "2026-02-10",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2021-02-17",
+          "expiry_date": "2026-02-10",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2021-02-17",
+          "expiry_date": "2026-02-10",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Personal Safety and Social Responsibilities",
+          "issue_date": "2021-02-17",
+          "expiry_date": "2026-02-10",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "issue_date": "2024-07-07",
+          "expiry_date": "2029-06-26",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "issue_date": "2023-04-12",
+          "expiry_date": "2026-03-31",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "course_name": "Navigational Watch keeping",
+          "issue_date": "2024-06-26",
+          "expiry_date": null,
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 8,
+          "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+          "issue_date": "2023-04-12",
+          "expiry_date": null,
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MOHAMED ETEFY",
+        "date_of_birth": "1988-10-01",
+        "marital_status": {
+          "single": false,
+          "married": true
+        },
+        "nationality": "Egyptian",
+        "height_cm": "175",
+        "weight_kg": "77",
+        "place_of_birth": "Egypt - Sohag - Maragha",
+        "overall_size": "Xl",
+        "shirt_size": "Xl",
+        "nearest_port": "Sohag international airport",
+        "trouser_size": "Xl",
+        "shoes_size": "43"
+      },
+      "2_education": {
+        "college_school": "Ports training institute",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "13st Shiekh Makram",
+        "e_mail": "Ahmedetefy1@gmail.com",
+        "mobile_tel": "+20 11 24808683"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A25760027",
+          "iss_date": "2019-02-09",
+          "exp_date": "2026-01-10",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "Sohag",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00029521",
+          "iss_date": "2023-03-07",
+          "exp_date": "2028-03-02",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        },
+        {
+          "type": "Other Seaman Book",
+          "document_no": "1736558",
+          "iss_date": "2022-09-30",
+          "exp_date": "2027-09-30",
+          "iss_by_authority": "",
+          "place_of_issue": "Liberia",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "Mahmoud Moahmed Mohammed",
+        "address_country": "Commercial st maragha",
+        "tel_no_mobile": "01032393496",
+        "relationship": "Friend",
+        "email": "Mahmoud.business01@gmail.com"
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2011-09-14",
+            "expiry_date": "Valid for life",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "Covid19 Vaccine certificate",
+          "first_dose": "2022-08-22",
+          "second_dose": "",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "6202-21-eg",
+          "issue_date": "2021-02-17",
+          "expiry_date": "2026-02-10",
+          "issued_by": "",
+          "issued_at": "Alex"
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "6202/21/eg",
+          "issue_date": "2021-02-17",
+          "expiry_date": "2026-02-10",
+          "issued_by": "",
+          "issued_at": "Alex"
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "6202/21/eg",
+          "issue_date": "2021-02-17",
+          "expiry_date": "2026-02-10",
+          "issued_by": "",
+          "issued_at": "Alex"
+        },
+        {
+          "course_name": "Personal Safety and Social Responsibilities",
+          "number": "6202/21/eg",
+          "issue_date": "2021-02-17",
+          "expiry_date": "2026-02-10",
+          "issued_by": "",
+          "issued_at": "Alex"
+        },
+        {
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "number": "XNA8455",
+          "issue_date": "2024-07-07",
+          "expiry_date": "2029-06-26",
+          "issued_by": "",
+          "issued_at": "Alex"
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "04600",
+          "issue_date": "2023-04-12",
+          "expiry_date": "2026-03-31",
+          "issued_by": "",
+          "issued_at": "Alex"
+        },
+        {
+          "course_name": "Navigational Watch keeping",
+          "number": "XNV2075",
+          "issue_date": "2024-06-26",
+          "expiry_date": "",
+          "issued_by": "",
+          "issued_at": "Alex"
+        },
+        {
+          "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+          "number": "00665",
+          "issue_date": "2023-04-12",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "SImit lamnalco",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "Lamnalco choglugh",
+            "flag": "Cyprus",
+            "flag_name": "Cyprus",
+            "signed_on": "2024-09-01",
+            "signed_off": "2025-01-21",
+            "period": "140 D",
+            "vessel_type": "Aths",
+            "vessel_type_name": "Aths",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "SImit lamnalco",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "SL Toucan",
+            "flag": "Liberia",
+            "flag_name": "Liberia",
+            "signed_on": "2024-01-07",
+            "signed_off": "2024-06-06",
+            "period": "140 D",
+            "vessel_type": "Aths",
+            "vessel_type_name": "Aths",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "SImit lamnalco",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "SL Toucan",
+            "flag": "Liberia",
+            "flag_name": "Liberia",
+            "signed_on": "2023-05-16",
+            "signed_off": "2023-11-13",
+            "period": "150 D",
+            "vessel_type": "Aths",
+            "vessel_type_name": "Aths",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "SImit lamnalco",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "SL Toucan",
+            "flag": "Liberia",
+            "flag_name": "Liberia",
+            "signed_on": "2022-08-26",
+            "signed_off": "2023-02-14",
+            "period": "160 D",
+            "vessel_type": "Aths",
+            "vessel_type_name": "Aths",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "SImit lamnalco",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "SL Europe",
+            "flag": "Liberia",
+            "flag_name": "Liberia",
+            "signed_on": "2022-02-07",
+            "signed_off": "2022-07-20",
+            "period": "148 D",
+            "vessel_type": "Aths",
+            "vessel_type_name": "Aths",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "SImit lamnalco",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "SL Teal",
+            "flag": "Liberia",
+            "flag_name": "Liberia",
+            "signed_on": "2021-09-07",
+            "signed_off": "2021-11-29",
+            "period": "95 D",
+            "vessel_type": "Aths",
+            "vessel_type_name": "Aths",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "Maridive & oilservices",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "Maridive 231",
+            "flag": "",
+            "flag_name": "",
+            "signed_on": "2021-05-09",
+            "signed_off": "2021-06-06",
+            "period": "28 D",
+            "vessel_type": "Aths",
+            "vessel_type_name": "Aths",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "Maridive & oilservices",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "Maridive 231",
+            "flag": "",
+            "flag_name": "",
+            "signed_on": "2021-03-14",
+            "signed_off": "2021-04-11",
+            "period": "28 D",
+            "vessel_type": "Aths",
+            "vessel_type_name": "Aths",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "Maridive & oilservices",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "Maridive 231",
+            "flag": "",
+            "flag_name": "",
+            "signed_on": "2021-01-17",
+            "signed_off": "2021-02-14",
+            "period": "28 D",
+            "vessel_type": "Aths",
+            "vessel_type_name": "Aths",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "Maridive & oilservices",
+            "rank": "Ab",
+            "rank_name": "Ab",
+            "vessel_name_imo_number": "Maridive Zohri",
+            "flag": "",
+            "flag_name": "",
+            "signed_on": "2020-08-29",
+            "signed_off": "2020-10-06",
+            "period": "38 D",
+            "vessel_type": "PSV",
+            "vessel_type_name": "PSV",
+            "dwt_grt": "",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "Ahmed Mohamed Etefy",
+          "date": "17/03/2025"
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  },
+  {
+    "id": 10,
+    "user": null,
+    "user_name": "AHMED MOHAMED HAMDY ABD EL SALAM",
+    "user_email_display": "AHMEDHAMDY2001000@GMAIL.COM",
+    "company": null,
+    "ship": null,
+    "ship_details": null,
+    "position": null,
+    "position_name": "",
+    "cv_file": null,
+    "cover_letter": null,
+    "experience_years": 3,
+    "expected_salary": null,
+    "availability_date": null,
+    "status": "Pending",
+    "submitted_date": "2024-10-23",
+    "reviewed_by": null,
+    "reviewed_date": null,
+    "notes": "Auto-submitted via AI CV Extractor",
+    "rating": null,
+    "created_at": "2026-06-02T00:00:00Z",
+    "updated_at": "2026-06-02T00:00:00Z",
+    "generated_id": null,
+    "salary_display": null,
+    "coded_rank": [
+      {
+        "assigned_code": "DR-2.289",
+        "rank_code": "DR-2.289",
+        "rank_name": ""
+      }
+    ],
+    "rank_code": "DR-2.289",
+    "assigned_code": "DR-2.289",
+    "certificates": [],
+    "user_documents": {
+      "passport": {
+        "passport_no": "A36558632",
+        "issue_date": "2024-02-07",
+        "expiry_date": "2031-06-02",
+        "issued_by": "Egyptian Authority",
+        "place_of_issue": "Damitta - Egypt",
+        "file_url": null,
+        "download_url": null
+      },
+      "seaman_book": {
+        "seaman_book_no": "S00023680",
+        "issue_date": "2022-06-29",
+        "expiry_date": "2027-06-22",
+        "issued_by": "EAMS",
+        "place_of_issue": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "other_seaman_book": {
+        "seaman_book_no": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": null,
+        "place_of_issue": null,
+        "file_url": null,
+        "download_url": null
+      },
+      "coc": {
+        "certificate_name": "COC (Rank)",
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "file_url": null,
+        "download_url": null
+      },
+      "goc": {
+        "certificate_number": null,
+        "issue_date": null,
+        "expiry_date": null,
+        "issued_by": "NTRA",
+        "issued_at": "Cairo",
+        "file_url": null,
+        "download_url": null
+      },
+      "health_certificate": {
+        "flag_state": null,
+        "number": "54312",
+        "issue_date": "2025-12-15",
+        "expiry_date": "2027-06-22",
+        "issued_by": "EAMS",
+        "issued_at": "Alex.",
+        "international_medical_number": "54312",
+        "international_medical_issue_date": "2025-12-15",
+        "international_medical_expiry_date": "2027-06-22",
+        "file_url": null,
+        "download_url": null,
+        "records": []
+      },
+      "licenses": [],
+      "sea_service": [
+        {
+          "id": 1,
+          "vessel_name": "PANORAMA",
+          "rank": "ِAB",
+          "vessel_type": "Passenger",
+          "flag": "Greece",
+          "signed_on": "2024-11-07",
+          "signed_off": "2025-11-03",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "vessel_name": "AF MIA",
+          "rank": "ِAB",
+          "vessel_type": "RoRo Passenger",
+          "flag": "Italy",
+          "signed_on": "2024-03-15",
+          "signed_off": "2024-06-23",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "vessel_name": "CELESTYAL CRYSTAL",
+          "rank": "O.S",
+          "vessel_type": "Passenger",
+          "flag": "Malta",
+          "signed_on": "2023-08-29",
+          "signed_off": "2024-01-22",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "vessel_name": "CELESTYAL CRYSTAL",
+          "rank": "O.S",
+          "vessel_type": "Passenger",
+          "flag": "Malta",
+          "signed_on": "2023-03-26",
+          "signed_off": "2023-08-28",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "vessel_name": "CELESTYAL CRYSTAL",
+          "rank": "O.S",
+          "vessel_type": "Passenger",
+          "flag": "Malta",
+          "signed_on": "2022-10-22",
+          "signed_off": "2023-03-25",
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "marine_courses": [
+        {
+          "id": 1,
+          "course_name": "Personal Survival Techniques",
+          "issue_date": "2022-08-22",
+          "expiry_date": "2023-08-13",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 2,
+          "course_name": "Fire Prevention and Fire Fighting",
+          "issue_date": "2022-08-22",
+          "expiry_date": "2025-08-15",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 3,
+          "course_name": "Elementary First Aid",
+          "issue_date": "2022-08-23",
+          "expiry_date": "2023-08-13",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 4,
+          "course_name": "Personal Safety and Social Responsibilities",
+          "issue_date": "2022-08-24",
+          "expiry_date": "2025-08-15",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 5,
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "issue_date": "2022-09-01",
+          "expiry_date": "2027-08-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 6,
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "issue_date": "2022-09-03",
+          "expiry_date": "2022-08-17",
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 7,
+          "course_name": "Navigational Watch keeping",
+          "issue_date": "2024-02-21",
+          "expiry_date": null,
+          "file_url": null,
+          "download_url": null
+        },
+        {
+          "id": 8,
+          "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+          "issue_date": "2024-02-13",
+          "expiry_date": null,
+          "file_url": null,
+          "download_url": null
+        }
+      ],
+      "personal_documents": []
+    },
+    "job_position": null,
+    "job_position_details": null,
+    "seafarer_application": {
+      "1_personal_details": {
+        "full_name": "AHMED MOHAMED HAMDY ABD EL SALAM",
+        "date_of_birth": "1997-08-23",
+        "marital_status": {
+          "single": false,
+          "married": false
+        },
+        "nationality": "Egyptian",
+        "height_cm": "171",
+        "weight_kg": "80",
+        "place_of_birth": "Damietta - Egypt",
+        "overall_size": "2XL",
+        "shirt_size": "2XL",
+        "nearest_port": "Damitta Port",
+        "trouser_size": "38",
+        "shoes_size": "43"
+      },
+      "2_education": {
+        "college_school": "Maritime Secondary School For Navigation and Marine Arts",
+        "marline_test": {
+          "issued_date": "",
+          "result_percentage": "",
+          "issued_by_authority": "",
+          "issued_at": ""
+        },
+        "english_language": {
+          "fluent": false,
+          "good": false,
+          "average": false,
+          "poor": false
+        }
+      },
+      "3_contact_details": {
+        "home_address_city": "El Shiekh Durgham - Damitta - Egypt",
+        "e_mail": "AHMEDHAMDY2001000@GMAIL.COM",
+        "mobile_tel": "+201011801826"
+      },
+      "4_travel_documents": [
+        {
+          "type": "Passport",
+          "document_no": "A36558632",
+          "iss_date": "2024-02-07",
+          "exp_date": "2031-06-02",
+          "iss_by_authority": "Egyptian Authority",
+          "place_of_issue": "Damitta - Egypt",
+          "file_url": null
+        },
+        {
+          "type": "Seaman Book",
+          "document_no": "S00023680",
+          "iss_date": "2022-06-29",
+          "exp_date": "2027-06-22",
+          "iss_by_authority": "EAMS",
+          "place_of_issue": "Alex.",
+          "file_url": null
+        }
+      ],
+      "5_professional_qualification_certificate_of_competency": [
+        {
+          "certificate_name": "COC (Rank)",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        },
+        {
+          "certificate_name": "GOC",
+          "number": "",
+          "issue_date": "",
+          "expiry_date": "",
+          "issued_by": "NTRA",
+          "issued_at": "Cairo"
+        }
+      ],
+      "6_next_of_kin_emergency_contact": {
+        "full_name": "Mohamed Abd El Salam",
+        "address_country": "El Shiekh Durgham - Damitta - Egypt",
+        "tel_no_mobile": "+201006908018",
+        "relationship": "Father",
+        "email": "mohamedhamdy68@gmail.com"
+      },
+      "7_health_certificates_and_vaccinations": {
+        "certificates": [
+          {
+            "name": "Yellow Fever",
+            "issue_date": "2024-02-03",
+            "expiry_date": "",
+            "issued_by": "Ministry of Health"
+          }
+        ],
+        "covid_19": {
+          "vaccination_name": "Pfizer",
+          "first_dose": "20-11-2021",
+          "second_dose": "11-12-2021",
+          "other_does_or_remarks": ""
+        }
+      },
+      "8_marine_courses": [
+        {
+          "course_name": "Personal Survival Techniques",
+          "number": "XNPST185",
+          "issue_date": "2022-08-22",
+          "expiry_date": "13/08/2027",
+          "issued_by": "",
+          "issued_at": "Alexandria-Egypt"
+        },
+        {
+          "course_name": "Fire Prevention and Fire Fighting",
+          "number": "XNFF162",
+          "issue_date": "2022-08-22",
+          "expiry_date": "15/08/2027",
+          "issued_by": "",
+          "issued_at": "Alexandria-Egypt"
+        },
+        {
+          "course_name": "Elementary First Aid",
+          "number": "XNFA186",
+          "issue_date": "2023-08-22",
+          "expiry_date": "13/08/2027",
+          "issued_by": "",
+          "issued_at": "Alexandria-Egypt"
+        },
+        {
+          "course_name": "Personal Safety and Social Responsibilities",
+          "number": "XNPS169",
+          "issue_date": "2024-08-22",
+          "expiry_date": "15/08/2027",
+          "issued_by": "",
+          "issued_at": "Alexandria-Egypt"
+        },
+        {
+          "course_name": "Proficiency Of Security Awareness Training Seafarers",
+          "number": "XNA375",
+          "issue_date": "2022-09-01",
+          "expiry_date": "17/08/2027",
+          "issued_by": "",
+          "issued_at": "Alexandria-Egypt"
+        },
+        {
+          "course_name": "Proficiency In Survival Craft & Rescue Boats",
+          "number": "XNC213",
+          "issue_date": "2022-09-03",
+          "expiry_date": "17/08/2022",
+          "issued_by": "",
+          "issued_at": "Alexandria-Egypt"
+        },
+        {
+          "course_name": "Navigational Watch keeping",
+          "number": "XNV1609",
+          "issue_date": "2024-02-21",
+          "expiry_date": "",
+          "issued_by": "",
+          "issued_at": "Alexandria-Egypt"
+        },
+        {
+          "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+          "number": "01716",
+          "issue_date": "2024-02-13",
+          "expiry_date": "",
+          "issued_by": "EAMS",
+          "issued_at": "Alex."
+        }
+      ],
+      "9_complete_sea_service_details": {
+        "applicant_info": {
+          "name": "",
+          "rank": "",
+          "register_code": ""
+        },
+        "service_records": [
+          {
+            "company_name": "Variety Cruises",
+            "rank": "ِAB",
+            "rank_name": "ِAB",
+            "vessel_name_imo_number": "PANORAMA",
+            "flag": "Greece",
+            "flag_name": "Greece",
+            "signed_on": "2024-11-07",
+            "signed_off": "2025-11-03",
+            "period": "",
+            "vessel_type": "Passenger",
+            "vessel_type_name": "Passenger",
+            "dwt_grt": "674",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "Adria Ferries S.P.A",
+            "rank": "ِAB",
+            "rank_name": "ِAB",
+            "vessel_name_imo_number": "AF MIA",
+            "flag": "Italy",
+            "flag_name": "Italy",
+            "signed_on": "2024-03-15",
+            "signed_off": "2024-06-23",
+            "period": "",
+            "vessel_type": "RoRo Passenger",
+            "vessel_type_name": "RoRo Passenger",
+            "dwt_grt": "29968",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "Celestyal Cruises",
+            "rank": "O.S",
+            "rank_name": "O.S",
+            "vessel_name_imo_number": "CELESTYAL CRYSTAL",
+            "flag": "Malta",
+            "flag_name": "Malta",
+            "signed_on": "2023-08-29",
+            "signed_off": "2024-01-22",
+            "period": "",
+            "vessel_type": "Passenger",
+            "vessel_type_name": "Passenger",
+            "dwt_grt": "25611",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "Celestyal Cruises",
+            "rank": "O.S",
+            "rank_name": "O.S",
+            "vessel_name_imo_number": "CELESTYAL CRYSTAL",
+            "flag": "Malta",
+            "flag_name": "Malta",
+            "signed_on": "2023-03-26",
+            "signed_off": "2023-08-28",
+            "period": "",
+            "vessel_type": "Passenger",
+            "vessel_type_name": "Passenger",
+            "dwt_grt": "37773",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          },
+          {
+            "company_name": "Celestyal Cruises",
+            "rank": "O.S",
+            "rank_name": "O.S",
+            "vessel_name_imo_number": "CELESTYAL CRYSTAL",
+            "flag": "Malta",
+            "flag_name": "Malta",
+            "signed_on": "2022-10-22",
+            "signed_off": "2023-03-25",
+            "period": "",
+            "vessel_type": "Passenger",
+            "vessel_type_name": "Passenger",
+            "dwt_grt": "37773",
+            "engine_type": "",
+            "bh_kw": "",
+            "reason_for_sign_off": ""
+          }
+        ]
+      },
+      "10_references": [],
+      "11_declaration": {
+        "questions": {
+          "suffer_disease_unfit_for_sea": {
+            "answer": "NO",
+            "details": ""
+          },
+          "addicted_to_alcohol_or_drugs": {
+            "answer": "NO",
+            "details": ""
+          },
+          "suffer_accident_disabled": {
+            "answer": "NO",
+            "details": ""
+          },
+          "undergo_psychiatric_treatment": {
+            "answer": "NO",
+            "details": ""
+          }
+        },
+        "consent_statement": "I hereby declare that the above facts and information are true and accurate...",
+        "place": "",
+        "date": "",
+        "signature": ""
+      },
+      "12_for_office_use_only": {
+        "initial_assessment_of_applicant": "",
+        "comments": "",
+        "responsible_person": {
+          "name_signature": "",
+          "date": ""
+        }
+      }
+    },
+    "company_details": null,
+    "salary": null,
+    "available_date": null
+  }
+]

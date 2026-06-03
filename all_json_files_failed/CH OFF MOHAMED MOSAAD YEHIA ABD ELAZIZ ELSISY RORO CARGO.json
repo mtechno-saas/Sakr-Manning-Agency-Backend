@@ -1,0 +1,971 @@
+{
+    "user_name": "MOHAMED MOSAAD YEHIA ABD ELAZIZ ELSISY",
+    "user_email_display": null,
+    "position_name": "CHIEF MATE",
+    "status": "Pending",
+    "notes": "Auto-submitted via AI CV Extractor",
+    "coded_rank": [
+        {
+            "assigned_code": null,
+            "rank_code": null,
+            "rank_name": "CHIEF MATE"
+        }
+    ],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A12999562",
+            "issue_date": "2019-04-01",
+            "expiry_date": "2026-03-01",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "EL DAKAHLIA"
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00021498",
+            "issue_date": "2022-03-01",
+            "expiry_date": "2026-08-01",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Alex."
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": "5282",
+            "issue_date": "2022-03-09",
+            "expiry_date": "2026-08-18",
+            "issued_by": "AASTMT",
+            "issued_at": "Alex."
+        },
+        "goc": {
+            "certificate_number": "299",
+            "issue_date": "2018-06-01",
+            "expiry_date": "2024-06-01",
+            "issued_by": "NTRA",
+            "issued_at": "Alex."
+        },
+        "health_certificate": {
+            "number": "00165",
+            "issue_date": "2022-03-01",
+            "expiry_date": "2022-09-01",
+            "international_medical_number": "00165",
+            "international_medical_issue_date": "2022-03-01",
+            "international_medical_expiry_date": "2022-09-01"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "BANYAS 2",
+                "rank": "CH:OFF",
+                "vessel_type": "RO-RO CARGO",
+                "signed_on": "2022-03-30",
+                "signed_off": null
+            },
+            {
+                "vessel_name": "BANYAS 2",
+                "rank": "CH:OFF",
+                "vessel_type": "RO-RO CARGO",
+                "signed_on": null,
+                "signed_off": "2021-07-26"
+            },
+            {
+                "vessel_name": "JIMMY PRINCE",
+                "rank": "CH:OFF",
+                "vessel_type": "GENERAL CARGO",
+                "signed_on": "2020-05-23",
+                "signed_off": "2020-11-05"
+            },
+            {
+                "vessel_name": "MAHABBAH",
+                "rank": "CH:OFF",
+                "vessel_type": "RO-RO PASSANGER",
+                "signed_on": "2020-02-06",
+                "signed_off": "2020-03-17"
+            },
+            {
+                "vessel_name": "MASSARAH",
+                "rank": "2ND:OFF",
+                "vessel_type": "RO-RO PASSANGER",
+                "signed_on": "2019-10-14",
+                "signed_off": "2019-12-13"
+            },
+            {
+                "vessel_name": "NAMMA EXPRESS",
+                "rank": "2ND:OFF",
+                "vessel_type": "RO-RO CARGO",
+                "signed_on": "2019-09-23",
+                "signed_off": "2019-10-13"
+            },
+            {
+                "vessel_name": "MAHABBAH",
+                "rank": "2ND:OFF",
+                "vessel_type": "RO-RO PASSANGER",
+                "signed_on": "2019-04-20",
+                "signed_off": "2019-07-17"
+            },
+            {
+                "vessel_name": "MAHABBAH",
+                "rank": "2ND:OFF",
+                "vessel_type": "RO-RO PASSANGER",
+                "signed_on": "2019-02-07",
+                "signed_off": "2019-03-21"
+            },
+            {
+                "vessel_name": "MAHABBAH",
+                "rank": "2ND:OFF",
+                "vessel_type": "RO-RO PASSANGER",
+                "signed_on": "2018-11-04",
+                "signed_off": "2019-01-19"
+            },
+            {
+                "vessel_name": "MAWADDAH",
+                "rank": "2ND:OFF",
+                "vessel_type": "RO-RO PASSANGER",
+                "signed_on": "2018-07-07",
+                "signed_off": "2018-09-07"
+            },
+            {
+                "vessel_name": "WADI ALYARMOUK",
+                "rank": "2ND:OFF",
+                "vessel_type": "BULK CARRIER",
+                "signed_on": "2018-04-25",
+                "signed_off": "2018-06-10"
+            },
+            {
+                "vessel_name": "WADI ALYARMOUK",
+                "rank": "2ND:OFF",
+                "vessel_type": "BULK CARRIER",
+                "signed_on": "2016-01-18",
+                "signed_off": "2016-02-01"
+            },
+            {
+                "vessel_name": "WADI FERAN",
+                "rank": "2ND:OFF",
+                "vessel_type": "BULK CARRIER",
+                "signed_on": "2015-10-28",
+                "signed_off": "2016-01-10"
+            },
+            {
+                "vessel_name": "WADI FERAN",
+                "rank": "3RD:OFF",
+                "vessel_type": "BULK CARRIER",
+                "signed_on": "2015-05-05",
+                "signed_off": "2015-10-28"
+            },
+            {
+                "vessel_name": "WADI ELKARNAK",
+                "rank": "3RD:OFF",
+                "vessel_type": "BULK CARRIER",
+                "signed_on": "2013-08-24",
+                "signed_off": "2014-03-20"
+            },
+            {
+                "vessel_name": "WADI HALFA",
+                "rank": "3RD:OFF",
+                "vessel_type": "BULK CARRIER",
+                "signed_on": "2012-11-15",
+                "signed_off": "2013-02-02"
+            },
+            {
+                "vessel_name": "EDFU",
+                "rank": "CADET",
+                "vessel_type": "BULK CARRIER",
+                "signed_on": "2008-12-04",
+                "signed_off": "2010-07-03"
+            }
+        ],
+        "marine_courses": [
+            {
+                "name": "Personal Survival Techniques",
+                "number": "L-622799",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Proficiency In Personal Survival Techniques",
+                "number": "L-622799",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Fire Prevention and Fire Fighting",
+                "number": "L-622799",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Advanced Fire Prevention and Fire Fighting",
+                "number": "L-622799",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Elementary First Aid",
+                "number": "L-624675",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Medical Care Studies",
+                "number": "L-624675",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Personal Safety and Social Responsibilities",
+                "number": "L-623522",
+                "issue_date": "2016-10-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "L-622870",
+                "issue_date": "2016-12-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Proficiency as a ship Security officer ( PSSO )",
+                "number": "L-623437",
+                "issue_date": "2016-10-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "L-623437",
+                "issue_date": "2016-10-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Advanced personal survival and search & rescue",
+                "number": "L-624805",
+                "issue_date": "2022-03-01",
+                "expiry_date": "2027-03-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "G.M.D.S.S",
+                "number": "18988/18/EG",
+                "issue_date": "2018-07-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Communications",
+                "number": "861/17/EG",
+                "issue_date": "2017-08-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Advanced Communications",
+                "number": "861/17/EG",
+                "issue_date": "2017-01-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "ECDIS Advanced Simulator (Management Level)",
+                "number": "L-624861",
+                "issue_date": "2017-08-01",
+                "expiry_date": "2027-03-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "ECDIS Simulator (Operation Level)",
+                "number": "14155/15/EG",
+                "issue_date": "2015-10-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Prevention and Combating of Marine Pollution",
+                "number": "14156/15/EG",
+                "issue_date": "2015-03-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Radar & ARPA Simulator and Search &rescue",
+                "number": "48332/16/EG",
+                "issue_date": "2016-08-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "ARPA Simulator and Search",
+                "number": "48332/16/EG",
+                "issue_date": "2016-08-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Marine Radar and automatic Radar Plotting",
+                "number": "14157/15/EG",
+                "issue_date": "2015-03-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Bridge resource Management (B.R.M)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Engine resource Management (E.R.M)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": null
+            },
+            {
+                "name": "Navigational Watch keeping",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "High voltage training \u2013 operation of ship (1000 Volt and More)",
+                "number": "18152/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "18152/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Crowd Management Training",
+                "number": "18147/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Crisis Management and Human Behavior Training",
+                "number": "18142/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "18137/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Practical Ability to Prepare Meals and (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Personal Hygiene and Envir. Protection (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Safety and Health in the Provision Meals (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Food Storage and inventory Control (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Ships Cook Certificate (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Abel Seafarer Deck",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Abel Seafarer Deck (II/5)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Engineering Watch keeping",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Rating forming part of a watch in engine room",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Abel Seafarer Engine",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Abel Seafarer Engine (III/5)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Electro Technical Rating",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Electro Technical rating (III/7)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "JRC CERTIFICATE. NO.",
+                "number": "113759 / 392224",
+                "issue_date": "2018-04-29",
+                "expiry_date": null,
+                "issued_by_at": null
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "MOHAMED MOSAAD YEHIA ABD ELAZIZ ELSISY",
+            "date_of_birth": "1987-11-29",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "EGYPTIAN",
+            "place_of_birth": "EL DAKAHLIA"
+        },
+        "3_contact_details": {
+            "home_address_city": null,
+            "e_mail": null,
+            "mobile_tel": "01009558803"
+        },
+        "8_marine_courses": [
+            {
+                "name": "Personal Survival Techniques",
+                "number": "L-622799",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Proficiency In Personal Survival Techniques",
+                "number": "L-622799",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Fire Prevention and Fire Fighting",
+                "number": "L-622799",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Advanced Fire Prevention and Fire Fighting",
+                "number": "L-622799",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Elementary First Aid",
+                "number": "L-624675",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Medical Care Studies",
+                "number": "L-624675",
+                "issue_date": "2016-11-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Personal Safety and Social Responsibilities",
+                "number": "L-623522",
+                "issue_date": "2016-10-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "L-622870",
+                "issue_date": "2016-12-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Proficiency as a ship Security officer ( PSSO )",
+                "number": "L-623437",
+                "issue_date": "2016-10-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "L-623437",
+                "issue_date": "2016-10-01",
+                "expiry_date": "2027-02-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Advanced personal survival and search & rescue",
+                "number": "L-624805",
+                "issue_date": "2022-03-01",
+                "expiry_date": "2027-03-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "G.M.D.S.S",
+                "number": "18988/18/EG",
+                "issue_date": "2018-07-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Communications",
+                "number": "861/17/EG",
+                "issue_date": "2017-08-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Advanced Communications",
+                "number": "861/17/EG",
+                "issue_date": "2017-01-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "ECDIS Advanced Simulator (Management Level)",
+                "number": "L-624861",
+                "issue_date": "2017-08-01",
+                "expiry_date": "2027-03-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "ECDIS Simulator (Operation Level)",
+                "number": "14155/15/EG",
+                "issue_date": "2015-10-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Prevention and Combating of Marine Pollution",
+                "number": "14156/15/EG",
+                "issue_date": "2015-03-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Radar & ARPA Simulator and Search &rescue",
+                "number": "48332/16/EG",
+                "issue_date": "2016-08-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "ARPA Simulator and Search",
+                "number": "48332/16/EG",
+                "issue_date": "2016-08-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Marine Radar and automatic Radar Plotting",
+                "number": "14157/15/EG",
+                "issue_date": "2015-03-01",
+                "expiry_date": null,
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Bridge resource Management (B.R.M)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Engine resource Management (E.R.M)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": null
+            },
+            {
+                "name": "Navigational Watch keeping",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "High voltage training \u2013 operation of ship (1000 Volt and More)",
+                "number": "18152/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "18152/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Crowd Management Training",
+                "number": "18147/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Crisis Management and Human Behavior Training",
+                "number": "18142/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "18137/18/EG",
+                "issue_date": "2018-06-01",
+                "expiry_date": "2023-06-01",
+                "issued_by_at": "AASTMT"
+            },
+            {
+                "name": "Practical Ability to Prepare Meals and (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Personal Hygiene and Envir. Protection (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Safety and Health in the Provision Meals (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Food Storage and inventory Control (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Ships Cook Certificate (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Abel Seafarer Deck",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Abel Seafarer Deck (II/5)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Engineering Watch keeping",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Rating forming part of a watch in engine room",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Abel Seafarer Engine",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Abel Seafarer Engine (III/5)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Electro Technical Rating",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Proficiency for Electro Technical rating (III/7)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "JRC CERTIFICATE. NO.",
+                "number": "113759 / 392224",
+                "issue_date": "2018-04-29",
+                "expiry_date": null,
+                "issued_by_at": null
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "service_records": [
+                {
+                    "company_name": "EL BANYASYA SHIPPING COMPANY",
+                    "rank": "CH:OFF",
+                    "vessel_name_imo_number": "BANYAS 2",
+                    "signed_on": "2022-03-30",
+                    "signed_off": null,
+                    "period": "6 M",
+                    "vessel_type": "RO-RO CARGO",
+                    "dwt_grt": "4830"
+                },
+                {
+                    "company_name": "EL BANYASYA SHIPPING COMPANY",
+                    "rank": "CH:OFF",
+                    "vessel_name_imo_number": "BANYAS 2",
+                    "signed_on": null,
+                    "signed_off": "2021-07-26",
+                    "period": "4M 26D",
+                    "vessel_type": "RO-RO CARGO",
+                    "dwt_grt": "4830"
+                },
+                {
+                    "company_name": "GAMAL SHIPPING COMPANY",
+                    "rank": "CH:OFF",
+                    "vessel_name_imo_number": "JIMMY PRINCE",
+                    "signed_on": "2020-05-23",
+                    "signed_off": "2020-11-05",
+                    "period": "5M 12D",
+                    "vessel_type": "GENERAL CARGO",
+                    "dwt_grt": "2198"
+                },
+                {
+                    "company_name": "NAMMA SHIPPING COMPANY",
+                    "rank": "CH:OFF",
+                    "vessel_name_imo_number": "MAHABBAH",
+                    "signed_on": "2020-02-06",
+                    "signed_off": "2020-03-17",
+                    "period": "1M 11D",
+                    "vessel_type": "RO-RO PASSANGER",
+                    "dwt_grt": "1216.12M/T"
+                },
+                {
+                    "company_name": "NAMMA SHIPPING COMPANY",
+                    "rank": "2ND:OFF",
+                    "vessel_name_imo_number": "MASSARAH",
+                    "signed_on": "2019-10-14",
+                    "signed_off": "2019-12-13",
+                    "period": "1M 29D",
+                    "vessel_type": "RO-RO PASSANGER",
+                    "dwt_grt": "1753.2"
+                },
+                {
+                    "company_name": "NAMMA SHIPPING COMPANY",
+                    "rank": "2ND:OFF",
+                    "vessel_name_imo_number": "NAMMA EXPRESS",
+                    "signed_on": "2019-09-23",
+                    "signed_off": "2019-10-13",
+                    "period": "20D",
+                    "vessel_type": "RO-RO CARGO",
+                    "dwt_grt": "4800M/T"
+                },
+                {
+                    "company_name": "NAMMA SHIPPING COMPANY",
+                    "rank": "2ND:OFF",
+                    "vessel_name_imo_number": "MAHABBAH",
+                    "signed_on": "2019-04-20",
+                    "signed_off": "2019-07-17",
+                    "period": "2M 22D",
+                    "vessel_type": "RO-RO PASSANGER",
+                    "dwt_grt": "1216.12M/T"
+                },
+                {
+                    "company_name": "NAMMA SHIPPING COMPANY",
+                    "rank": "2ND:OFF",
+                    "vessel_name_imo_number": "MAHABBAH",
+                    "signed_on": "2019-02-07",
+                    "signed_off": "2019-03-21",
+                    "period": "1M 14D",
+                    "vessel_type": "RO-RO PASSANGER",
+                    "dwt_grt": "1216.12M/T"
+                },
+                {
+                    "company_name": "NAMMA SHIPPING COMPANY",
+                    "rank": "2ND:OFF",
+                    "vessel_name_imo_number": "MAHABBAH",
+                    "signed_on": "2018-11-04",
+                    "signed_off": "2019-01-19",
+                    "period": "2M 15D",
+                    "vessel_type": "RO-RO PASSANGER",
+                    "dwt_grt": "1216.12M/T"
+                },
+                {
+                    "company_name": "NAMMA SHIPPING COMPANY",
+                    "rank": "2ND:OFF",
+                    "vessel_name_imo_number": "MAWADDAH",
+                    "signed_on": "2018-07-07",
+                    "signed_off": "2018-09-07",
+                    "period": "2M",
+                    "vessel_type": "RO-RO PASSANGER",
+                    "dwt_grt": "3521.3 M/T"
+                },
+                {
+                    "company_name": "NATIONAL NAVIGATION COMAPANY",
+                    "rank": "2ND:OFF",
+                    "vessel_name_imo_number": "WADI ALYARMOUK",
+                    "signed_on": "2018-04-25",
+                    "signed_off": "2018-06-10",
+                    "period": "1M 15D",
+                    "vessel_type": "BULK CARRIER",
+                    "dwt_grt": "80,383.6M/T"
+                },
+                {
+                    "company_name": "NATIONAL NAVIGATION COMAPANY",
+                    "rank": "2ND:OFF",
+                    "vessel_name_imo_number": "WADI ALYARMOUK",
+                    "signed_on": "2016-01-18",
+                    "signed_off": "2016-02-01",
+                    "period": "13D",
+                    "vessel_type": "BULK CARRIER",
+                    "dwt_grt": "80,383.6M/T"
+                },
+                {
+                    "company_name": "NATIONAL NAVIGATION COMAPANY",
+                    "rank": "2ND:OFF",
+                    "vessel_name_imo_number": "WADI FERAN",
+                    "signed_on": "2015-10-28",
+                    "signed_off": "2016-01-10",
+                    "period": "2M 13D",
+                    "vessel_type": "BULK CARRIER",
+                    "dwt_grt": "57,281.89"
+                },
+                {
+                    "company_name": "NATIONAL NAVIGATION COMAPANY",
+                    "rank": "3RD:OFF",
+                    "vessel_name_imo_number": "WADI FERAN",
+                    "signed_on": "2015-05-05",
+                    "signed_off": "2015-10-28",
+                    "period": "5M.23D",
+                    "vessel_type": "BULK CARRIER",
+                    "dwt_grt": "57,281.89"
+                },
+                {
+                    "company_name": "NATIONAL NAVIGATION COMAPANY",
+                    "rank": "3RD:OFF",
+                    "vessel_name_imo_number": "WADI ELKARNAK",
+                    "signed_on": "2013-08-24",
+                    "signed_off": "2014-03-20",
+                    "period": "7M 25D",
+                    "vessel_type": "BULK CARRIER",
+                    "dwt_grt": "70000.00M/T"
+                },
+                {
+                    "company_name": "NATIONAL NAVIGATION COMAPANY",
+                    "rank": "3RD:OFF",
+                    "vessel_name_imo_number": "WADI HALFA",
+                    "signed_on": "2012-11-15",
+                    "signed_off": "2013-02-02",
+                    "period": "2M 17D",
+                    "vessel_type": "BULK CARRIER",
+                    "dwt_grt": "45.000.00"
+                },
+                {
+                    "company_name": "NATIONAL NAVIGATION COMAPANY",
+                    "rank": "CADET",
+                    "vessel_name_imo_number": "EDFU",
+                    "signed_on": "2008-12-04",
+                    "signed_off": "2010-07-03",
+                    "period": "19M 4D",
+                    "vessel_type": "BULK CARRIER",
+                    "dwt_grt": "71572.00 M/T"
+                }
+            ]
+        }
+    }
+}

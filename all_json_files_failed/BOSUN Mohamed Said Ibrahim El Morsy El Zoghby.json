@@ -1,0 +1,70 @@
+{
+    "user_name": null,
+    "user_email_display": null,
+    "position_name": null,
+    "status": "Pending",
+    "notes": "Auto-submitted via AI CV Extractor",
+    "coded_rank": [],
+    "user_documents": {
+        "passport": {
+            "passport_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null
+        },
+        "health_certificate": {
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "international_medical_number": null,
+            "international_medical_issue_date": null,
+            "international_medical_expiry_date": null
+        },
+        "sea_service": [],
+        "marine_courses": []
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": null,
+            "date_of_birth": null,
+            "marital_status": {
+                "single": false,
+                "married": false
+            },
+            "nationality": null,
+            "place_of_birth": null
+        },
+        "3_contact_details": {
+            "home_address_city": null,
+            "e_mail": null,
+            "mobile_tel": null
+        },
+        "8_marine_courses": [],
+        "9_complete_sea_service_details": {
+            "service_records": []
+        }
+    }
+}

@@ -1,0 +1,382 @@
+{
+    "user_name": "IBRAHIM DARWISH KHALIL TARABIA",
+    "user_email_display": null,
+    "position_name": "O.S",
+    "status": "Pending",
+    "notes": "Auto-submitted via AI CV Extractor",
+    "coded_rank": [
+        {
+            "assigned_code": "OS",
+            "rank_code": "OS",
+            "rank_name": "Ordinary Seaman"
+        },
+        {
+            "assigned_code": "BOSUN",
+            "rank_code": "BOSUN",
+            "rank_name": "Bosun"
+        }
+    ],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A23818757",
+            "issue_date": "2018-12-17",
+            "expiry_date": "2025-12-16",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00019546",
+            "issue_date": "2021-11-24",
+            "expiry_date": "2026-11-20",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex."
+        },
+        "coc": {
+            "certificate_name": "COC",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo"
+        },
+        "health_certificate": {
+            "number": "24433",
+            "issue_date": "2024-02-04",
+            "expiry_date": "2026-02-03",
+            "international_medical_number": "24433",
+            "international_medical_issue_date": "2024-02-04",
+            "international_medical_expiry_date": "2026-02-03"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "M/V HAYA",
+                "rank": "BOUSON",
+                "vessel_type": "GENERAL CARGO",
+                "signed_on": "2022-07-27",
+                "signed_off": "2024-01-18"
+            }
+        ],
+        "marine_courses": [
+            {
+                "course_name": "Basic Safety Training",
+                "number": "1399/22/EG",
+                "issue_date": "2022-01-12",
+                "expiry_date": "2026-01-29",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "NA 6892",
+                "issue_date": "2022-01-23",
+                "expiry_date": "2027-01-19",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "491/22/EG",
+                "issue_date": "2022-01-03",
+                "expiry_date": "2026-12-22",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Navigational Watch keeping",
+                "number": "1434/22/EG",
+                "issue_date": "2022-01-12",
+                "expiry_date": null,
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+                "number": "01708",
+                "issue_date": "2024-02-04",
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "15485/24/EG",
+                "issue_date": "2024-02-10",
+                "expiry_date": "2029-02-07",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Crowd Management Training",
+                "number": "15479/24/EG",
+                "issue_date": "2024-02-10",
+                "expiry_date": "2029-02-06",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Crisis Management and Human Behavior Training",
+                "number": "15474/24/EG",
+                "issue_date": "2024-02-10",
+                "expiry_date": "2029-02-05",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "15461/24/EG",
+                "issue_date": "2024-02-10",
+                "expiry_date": "2029-02-04",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Practical Ability to Prepare Meals and (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Personal Hygiene and Envir. Protection (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Safety and Health in the Provision Meals (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Food Storage and inventory Control (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Ships Cook Certificate (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Abel Seafarer Deck (II/5)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Engineering Watch keeping",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Rating forming part of a watch in engine room",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Abel Seafarer Engine (III/5)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Electro Technical rating (III/7)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Certificate of Proficiency in Survival Crafts and Rescue Boats",
+                "number": "06067",
+                "issue_date": "2024-02-04",
+                "expiry_date": "2026-11-20",
+                "issued_by_at": null
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "IBRAHIM DARWISH KHALIL TARABIA",
+            "date_of_birth": "1979-03-10",
+            "marital_status": {
+                "single": false,
+                "married": true
+            },
+            "nationality": "Egyptian",
+            "place_of_birth": "Damietta"
+        },
+        "3_contact_details": {
+            "home_address_city": "Al Fanar ST , Ezbet Elborg , Damietta",
+            "e_mail": null,
+            "mobile_tel": "+201009143016"
+        },
+        "8_marine_courses": [
+            {
+                "course_name": "Basic Safety Training",
+                "number": "1399/22/EG",
+                "issue_date": "2022-01-12",
+                "expiry_date": "2026-01-29",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "NA 6892",
+                "issue_date": "2022-01-23",
+                "expiry_date": "2027-01-19",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "491/22/EG",
+                "issue_date": "2022-01-03",
+                "expiry_date": "2026-12-22",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Navigational Watch keeping",
+                "number": "1434/22/EG",
+                "issue_date": "2022-01-12",
+                "expiry_date": null,
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+                "number": "01708",
+                "issue_date": "2024-02-04",
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "15485/24/EG",
+                "issue_date": "2024-02-10",
+                "expiry_date": "2029-02-07",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Crowd Management Training",
+                "number": "15479/24/EG",
+                "issue_date": "2024-02-10",
+                "expiry_date": "2029-02-06",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Crisis Management and Human Behavior Training",
+                "number": "15474/24/EG",
+                "issue_date": "2024-02-10",
+                "expiry_date": "2029-02-05",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "15461/24/EG",
+                "issue_date": "2024-02-10",
+                "expiry_date": "2029-02-04",
+                "issued_by_at": null
+            },
+            {
+                "course_name": "Practical Ability to Prepare Meals and (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Personal Hygiene and Envir. Protection (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Safety and Health in the Provision Meals (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Food Storage and inventory Control (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Ships Cook Certificate (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Abel Seafarer Deck (II/5)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Engineering Watch keeping",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Rating forming part of a watch in engine room",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Abel Seafarer Engine (III/5)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Electro Technical rating (III/7)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Certificate of Proficiency in Survival Crafts and Rescue Boats",
+                "number": "06067",
+                "issue_date": "2024-02-04",
+                "expiry_date": "2026-11-20",
+                "issued_by_at": null
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "service_records": [
+                {
+                    "company_name": null,
+                    "rank": "BOUSON",
+                    "vessel_name_imo_number": "M/V HAYA",
+                    "signed_on": "2022-07-27",
+                    "signed_off": "2024-01-18",
+                    "period": null,
+                    "vessel_type": "GENERAL CARGO",
+                    "dwt_grt": "5750.5"
+                }
+            ]
+        }
+    }
+}

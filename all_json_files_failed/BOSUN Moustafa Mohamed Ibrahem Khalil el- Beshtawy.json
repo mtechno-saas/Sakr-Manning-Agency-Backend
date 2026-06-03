@@ -1,0 +1,418 @@
+{
+    "user_name": "Moustafa Mohamed Ibrahem Khalil el- Beshtawy",
+    "user_email_display": null,
+    "position_name": "Bosun",
+    "status": "Pending",
+    "notes": "Auto-submitted via AI CV Extractor",
+    "coded_rank": [
+        {
+            "assigned_code": null,
+            "rank_code": null,
+            "rank_name": "Bosun"
+        }
+    ],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A24676969",
+            "issue_date": "2019-04-11",
+            "expiry_date": "2026-04-10",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": null
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00032082",
+            "issue_date": "2023-06-20",
+            "expiry_date": "2028-06-17",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex."
+        },
+        "coc": {
+            "certificate_name": "COC (Rank)",
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": "NTRA",
+            "issued_at": "Cairo"
+        },
+        "health_certificate": {
+            "number": "15979",
+            "issue_date": "2023-07-04",
+            "expiry_date": "2025-07-03",
+            "international_medical_number": "15979",
+            "international_medical_issue_date": "2023-07-04",
+            "international_medical_expiry_date": "2025-07-03"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "El-Salam 93",
+                "rank": "OS",
+                "vessel_type": "Passenger Ship",
+                "signed_on": "1998-07-04",
+                "signed_off": "1999-06-26"
+            },
+            {
+                "vessel_name": "Hero",
+                "rank": "AB",
+                "vessel_type": "General Cargo",
+                "signed_on": "1999-09-08",
+                "signed_off": "2000-05-17"
+            },
+            {
+                "vessel_name": "Med Spirit",
+                "rank": "AB",
+                "vessel_type": "Container",
+                "signed_on": "2002-01-20",
+                "signed_off": "2002-07-02"
+            },
+            {
+                "vessel_name": "Domiat",
+                "rank": "AB",
+                "vessel_type": "Bulk",
+                "signed_on": "2002-11-08",
+                "signed_off": "2003-05-30"
+            },
+            {
+                "vessel_name": "Atlantic Joy",
+                "rank": "AB",
+                "vessel_type": "General Cargo",
+                "signed_on": "2005-09-24",
+                "signed_off": "2006-04-09"
+            },
+            {
+                "vessel_name": "Agia Marcella",
+                "rank": "Bosun",
+                "vessel_type": "General Cargo",
+                "signed_on": "2010-02-09",
+                "signed_off": "2011-10-27"
+            },
+            {
+                "vessel_name": "Mawaddah",
+                "rank": "AB",
+                "vessel_type": "Passenger RORO",
+                "signed_on": "2014-05-04",
+                "signed_off": "2015-05-23"
+            },
+            {
+                "vessel_name": "Amanah",
+                "rank": "AB",
+                "vessel_type": "Passenger RORO",
+                "signed_on": "2015-10-11",
+                "signed_off": "2018-06-23"
+            },
+            {
+                "vessel_name": "Amanah",
+                "rank": "Ass.Bosun",
+                "vessel_type": "Passenger RORO",
+                "signed_on": "2018-12-23",
+                "signed_off": "2020-03-01"
+            },
+            {
+                "vessel_name": "El Nawa Express",
+                "rank": "Bosun",
+                "vessel_type": "RORO",
+                "signed_on": "2021-06-17",
+                "signed_off": "2022-01-02"
+            }
+        ],
+        "marine_courses": [
+            {
+                "name": "Personal Survival Techniques",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-09-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Fire Prevention and Fire Fighting",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-09-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Elementary First Aid",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-09-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Personal Safety and Social Responsibilities",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-04-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "H0018801",
+                "issue_date": "2023-05-17",
+                "expiry_date": "2028-05-10",
+                "issued_by_at": null
+            },
+            {
+                "name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "13399/23",
+                "issue_date": "2013-05-10",
+                "expiry_date": "2028-05-02",
+                "issued_by_at": null
+            },
+            {
+                "name": "Navigational Watch keeping",
+                "number": "17871/14",
+                "issue_date": "2014-04-14",
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "31604/22",
+                "issue_date": "2022-10-19",
+                "expiry_date": "2027-10-11",
+                "issued_by_at": null
+            },
+            {
+                "name": "Crowd Management Training",
+                "number": "31582/22",
+                "issue_date": "2022-10-19",
+                "expiry_date": "2027-10-08",
+                "issued_by_at": null
+            },
+            {
+                "name": "Crisis Management and Human Behavior Training",
+                "number": "31593/22",
+                "issue_date": "2022-10-19",
+                "expiry_date": "2027-10-12",
+                "issued_by_at": null
+            },
+            {
+                "name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-09-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Abel Seafarer Deck",
+                "number": "4186/17",
+                "issue_date": "2017-01-23",
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "Moustafa Mohamed Ibrahem Khalil el- Beshtawy",
+            "date_of_birth": "1975-11-26",
+            "marital_status": {
+                "single": true,
+                "married": false
+            },
+            "nationality": "Egyptian",
+            "place_of_birth": "Egypt"
+        },
+        "3_contact_details": {
+            "home_address_city": "Egypt - Alex",
+            "e_mail": null,
+            "mobile_tel": "00201551989203"
+        },
+        "8_marine_courses": [
+            {
+                "name": "Personal Survival Techniques",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-09-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Fire Prevention and Fire Fighting",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-09-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Elementary First Aid",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-09-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Personal Safety and Social Responsibilities",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-04-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "H0018801",
+                "issue_date": "2023-05-17",
+                "expiry_date": "2028-05-10",
+                "issued_by_at": null
+            },
+            {
+                "name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "13399/23",
+                "issue_date": "2013-05-10",
+                "expiry_date": "2028-05-02",
+                "issued_by_at": null
+            },
+            {
+                "name": "Navigational Watch keeping",
+                "number": "17871/14",
+                "issue_date": "2014-04-14",
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "31604/22",
+                "issue_date": "2022-10-19",
+                "expiry_date": "2027-10-11",
+                "issued_by_at": null
+            },
+            {
+                "name": "Crowd Management Training",
+                "number": "31582/22",
+                "issue_date": "2022-10-19",
+                "expiry_date": "2027-10-08",
+                "issued_by_at": null
+            },
+            {
+                "name": "Crisis Management and Human Behavior Training",
+                "number": "31593/22",
+                "issue_date": "2022-10-19",
+                "expiry_date": "2027-10-12",
+                "issued_by_at": null
+            },
+            {
+                "name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "29756/22",
+                "issue_date": "2022-10-05",
+                "expiry_date": "2027-09-21",
+                "issued_by_at": null
+            },
+            {
+                "name": "Abel Seafarer Deck",
+                "number": "4186/17",
+                "issue_date": "2017-01-23",
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "service_records": [
+                {
+                    "company_name": "El \u2013 Salam Maritime Transport",
+                    "rank": "OS",
+                    "vessel_name_imo_number": "El-Salam 93",
+                    "signed_on": "1998-07-04",
+                    "signed_off": "1999-06-26",
+                    "period": "1 Year",
+                    "vessel_type": "Passenger Ship",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": "El \u2013 Ahlia Navigation",
+                    "rank": "AB",
+                    "vessel_name_imo_number": "Hero",
+                    "signed_on": "1999-09-08",
+                    "signed_off": "2000-05-17",
+                    "period": "1 Year",
+                    "vessel_type": "General Cargo",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "AB",
+                    "vessel_name_imo_number": "Med Spirit",
+                    "signed_on": "2002-01-20",
+                    "signed_off": "2002-07-02",
+                    "period": "6 Months",
+                    "vessel_type": "Container",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": "Egyptian Company",
+                    "rank": "AB",
+                    "vessel_name_imo_number": "Domiat",
+                    "signed_on": "2002-11-08",
+                    "signed_off": "2003-05-30",
+                    "period": "6 Months",
+                    "vessel_type": "Bulk",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "AB",
+                    "vessel_name_imo_number": "Atlantic Joy",
+                    "signed_on": "2005-09-24",
+                    "signed_off": "2006-04-09",
+                    "period": "7 Months",
+                    "vessel_type": "General Cargo",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": null,
+                    "rank": "Bosun",
+                    "vessel_name_imo_number": "Agia Marcella",
+                    "signed_on": "2010-02-09",
+                    "signed_off": "2011-10-27",
+                    "period": "20 Months",
+                    "vessel_type": "General Cargo",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": "Namma Shipping Lines",
+                    "rank": "AB",
+                    "vessel_name_imo_number": "Mawaddah",
+                    "signed_on": "2014-05-04",
+                    "signed_off": "2015-05-23",
+                    "period": "1 Year",
+                    "vessel_type": "Passenger RORO",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": "Namma Shipping Lines",
+                    "rank": "AB",
+                    "vessel_name_imo_number": "Amanah",
+                    "signed_on": "2015-10-11",
+                    "signed_off": "2018-06-23",
+                    "period": "3 Years",
+                    "vessel_type": "Passenger RORO",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": "Namma Shipping Lines",
+                    "rank": "Ass.Bosun",
+                    "vessel_name_imo_number": "Amanah",
+                    "signed_on": "2018-12-23",
+                    "signed_off": "2020-03-01",
+                    "period": "2 Years",
+                    "vessel_type": "Passenger RORO",
+                    "dwt_grt": null
+                },
+                {
+                    "company_name": "Namma Shipping Lines",
+                    "rank": "Bosun",
+                    "vessel_name_imo_number": "El Nawa Express",
+                    "signed_on": "2021-06-17",
+                    "signed_off": "2022-01-02",
+                    "period": "7 Months",
+                    "vessel_type": "RORO / Passenger",
+                    "dwt_grt": null
+                }
+            ]
+        }
+    }
+}

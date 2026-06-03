@@ -1,0 +1,724 @@
+{
+    "user_name": "MEDHAT SHARAFELDIN BESHR",
+    "user_email_display": "MDHTBSHR@GMAIL",
+    "position_name": "Master",
+    "status": "Pending",
+    "notes": "Auto-submitted via AI CV Extractor",
+    "coded_rank": [
+        {
+            "assigned_code": null,
+            "rank_code": null,
+            "rank_name": "Master"
+        }
+    ],
+    "user_documents": {
+        "passport": {
+            "passport_no": "A04220277",
+            "issue_date": "2021-04-26",
+            "expiry_date": "2028-04-25",
+            "issued_by": "Egyptian Authority",
+            "place_of_issue": "Alex."
+        },
+        "seaman_book": {
+            "seaman_book_no": "S00019800",
+            "issue_date": "2021-12-08",
+            "expiry_date": "2026-11-20",
+            "issued_by": "EAMS",
+            "place_of_issue": "Alex."
+        },
+        "coc": {
+            "certificate_name": "COC ( Rank)",
+            "certificate_number": "6527",
+            "issue_date": "2021-12-07",
+            "expiry_date": "2026-11-20",
+            "issued_by": "EAMS",
+            "issued_at": "Alex."
+        },
+        "goc": {
+            "certificate_number": "40563",
+            "issue_date": "2023-02-19",
+            "expiry_date": "2028-03-12",
+            "issued_by": "NTRA",
+            "issued_at": "Cairo"
+        },
+        "health_certificate": {
+            "number": "24188",
+            "issue_date": "2024-01-28",
+            "expiry_date": "2026-01-27",
+            "international_medical_number": "24188",
+            "international_medical_issue_date": "2024-01-28",
+            "international_medical_expiry_date": "2026-01-27"
+        },
+        "sea_service": [
+            {
+                "vessel_name": "Sally m",
+                "rank": "Master",
+                "vessel_type": "G.Cargo",
+                "signed_on": "2024-07-11",
+                "signed_off": "2024-12-10"
+            },
+            {
+                "vessel_name": "Lady Khadija",
+                "rank": "Master",
+                "vessel_type": "G.Cargo",
+                "signed_on": "2023-02-14",
+                "signed_off": "2024-06-03"
+            },
+            {
+                "vessel_name": "JAJUAR",
+                "rank": "Master",
+                "vessel_type": "G.Cargo",
+                "signed_on": "2022-11-02",
+                "signed_off": "2022-12-24"
+            },
+            {
+                "vessel_name": "Amir Bey",
+                "rank": "Master",
+                "vessel_type": "G.Cargo",
+                "signed_on": "2022-03-15",
+                "signed_off": "2022-08-20"
+            },
+            {
+                "vessel_name": "Symphony",
+                "rank": "Master",
+                "vessel_type": "General cargo",
+                "signed_on": "2021-01-10",
+                "signed_off": "2022-01-30"
+            },
+            {
+                "vessel_name": "Alkahera",
+                "rank": "Master",
+                "vessel_type": "HSC Ro/Ro passenger",
+                "signed_on": "2018-11-01",
+                "signed_off": "2020-12-30"
+            },
+            {
+                "vessel_name": "Lily of sea",
+                "rank": "Master",
+                "vessel_type": "General cargo",
+                "signed_on": "2018-01-01",
+                "signed_off": "2018-03-20"
+            },
+            {
+                "vessel_name": "Alfahidi 1",
+                "rank": "Master",
+                "vessel_type": "Ro-Ro Cargo",
+                "signed_on": "2017-03-29",
+                "signed_off": "2017-10-10"
+            },
+            {
+                "vessel_name": "SHAMS",
+                "rank": "Ch. Off",
+                "vessel_type": "Bulk Carrier",
+                "signed_on": "2015-01-19",
+                "signed_off": "2016-10-10"
+            },
+            {
+                "vessel_name": "NOUR",
+                "rank": "Ch. Off",
+                "vessel_type": "Bulk Carrier",
+                "signed_on": "2013-06-11",
+                "signed_off": "2014-11-26"
+            },
+            {
+                "vessel_name": "Namma Express",
+                "rank": "2nd Off",
+                "vessel_type": "Ro-Ro Cargo",
+                "signed_on": "2011-06-27",
+                "signed_off": "2012-07-09"
+            },
+            {
+                "vessel_name": "Dodo",
+                "rank": "2nd Off",
+                "vessel_type": "Ro-Ro Cargo",
+                "signed_on": "2009-09-21",
+                "signed_off": "2011-05-15"
+            },
+            {
+                "vessel_name": "Fast Challenger",
+                "rank": "3rd Off",
+                "vessel_type": "Ro-Ro Cargo",
+                "signed_on": "2008-11-07",
+                "signed_off": "2009-07-30"
+            },
+            {
+                "vessel_name": "Mawaddah",
+                "rank": "3rd Off",
+                "vessel_type": "Ro-Ro Passenger",
+                "signed_on": "2007-01-23",
+                "signed_off": "2008-09-20"
+            }
+        ],
+        "marine_courses": [
+            {
+                "course_name": "Proficiency In Personal Survival Techniques",
+                "number": "NSR892",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-22",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Advanced Fire Prevention and Fire Fighting",
+                "number": "NAFF1879",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-24",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Medical Care Studies",
+                "number": "NMC1176",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-22",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Personal Safety and Social Responsibilities",
+                "number": "NPS3474",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-20",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "XNA6874",
+                "issue_date": "2024-03-26",
+                "expiry_date": "2029-03-05",
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Proficiency as a ship Security officer ( PSSO )",
+                "number": "XNP411",
+                "issue_date": "2024-06-02",
+                "expiry_date": "2029-05-21",
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "NC24604",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-20",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "G.M.D.S.S",
+                "number": "XNG311",
+                "issue_date": "2023-02-18",
+                "expiry_date": "2028-02-05",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Advanced Communications",
+                "number": "46911/14/EG",
+                "issue_date": "2014-10-20",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "ECDIS Advanced Simulator (Management Level)",
+                "number": "30337/24/EG",
+                "issue_date": "2024-08-18",
+                "expiry_date": "2029-08-14",
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "ECDIS Simulator (Operation Level)",
+                "number": "14026/13/EG",
+                "issue_date": "2013-04-07",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Prevention and Combating of Marine Pollution",
+                "number": "35316/14/EG",
+                "issue_date": "2014-08-11",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Radar & ARPA Simulator and Search &rescue",
+                "number": "47775/14/EG",
+                "issue_date": "2014-10-22",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Marine Radar and automatic Radar Plotting",
+                "number": "47110/14/EG",
+                "issue_date": "2014-10-21",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Bridge resource Management (B.R.M)",
+                "number": "38881/17/EG",
+                "issue_date": "2017-11-09",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "X-236/2023",
+                "issue_date": "2023-08-15",
+                "expiry_date": "2028-08-05",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Crowd Management Training",
+                "number": "X-238/2023",
+                "issue_date": "2023-08-15",
+                "expiry_date": "2028-08-08",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Crisis Management and Human Behavior Training",
+                "number": "X-235/2023",
+                "issue_date": "2023-08-15",
+                "expiry_date": "2028-08-04",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "X-237/2023",
+                "issue_date": "2023-08-15",
+                "expiry_date": "2028-08-07",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Practical Ability to Prepare Meals and (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Personal Hygiene and Envir. Protection (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Safety and Health in the Provision Meals (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Food Storage and inventory Control (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Ships Cook Certificate (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Engineering Watch keeping Proficiency for Rating forming part of a watch in engine room",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Abel Seafarer Engine ( III/5 )",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Electro Technical rating ( III/7 )",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "MEDHAT SHARAFELDIN BESHR",
+            "date_of_birth": "1970-08-09",
+            "marital_status": {
+                "single": true,
+                "married": false
+            },
+            "nationality": "Egyptian",
+            "place_of_birth": "Alexandria- Egypt"
+        },
+        "3_contact_details": {
+            "home_address_city": "1-Smeka basha st, Ganaklis,Alexandria,Egypt",
+            "e_mail": "MDHTBSHR@GMAIL",
+            "mobile_tel": "00201002657396"
+        },
+        "8_marine_courses": [
+            {
+                "course_name": "Proficiency In Personal Survival Techniques",
+                "number": "NSR892",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-22",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Advanced Fire Prevention and Fire Fighting",
+                "number": "NAFF1879",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-24",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Medical Care Studies",
+                "number": "NMC1176",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-22",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Personal Safety and Social Responsibilities",
+                "number": "NPS3474",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-20",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Proficiency Of Security Awareness Training Seafarers",
+                "number": "XNA6874",
+                "issue_date": "2024-03-26",
+                "expiry_date": "2029-03-05",
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Proficiency as a ship Security officer ( PSSO )",
+                "number": "XNP411",
+                "issue_date": "2024-06-02",
+                "expiry_date": "2029-05-21",
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Proficiency In Survival Craft & Rescue Boats",
+                "number": "NC24604",
+                "issue_date": "2021-11-29",
+                "expiry_date": "2026-11-20",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "G.M.D.S.S",
+                "number": "XNG311",
+                "issue_date": "2023-02-18",
+                "expiry_date": "2028-02-05",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Advanced Communications",
+                "number": "46911/14/EG",
+                "issue_date": "2014-10-20",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "ECDIS Advanced Simulator (Management Level)",
+                "number": "30337/24/EG",
+                "issue_date": "2024-08-18",
+                "expiry_date": "2029-08-14",
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "ECDIS Simulator (Operation Level)",
+                "number": "14026/13/EG",
+                "issue_date": "2013-04-07",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Prevention and Combating of Marine Pollution",
+                "number": "35316/14/EG",
+                "issue_date": "2014-08-11",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Radar & ARPA Simulator and Search &rescue",
+                "number": "47775/14/EG",
+                "issue_date": "2014-10-22",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Marine Radar and automatic Radar Plotting",
+                "number": "47110/14/EG",
+                "issue_date": "2014-10-21",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Bridge resource Management (B.R.M)",
+                "number": "38881/17/EG",
+                "issue_date": "2017-11-09",
+                "expiry_date": null,
+                "issued_by_at": "AAST"
+            },
+            {
+                "course_name": "Passenger Safety Cargo Safety and Hull integrity",
+                "number": "X-236/2023",
+                "issue_date": "2023-08-15",
+                "expiry_date": "2028-08-05",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Crowd Management Training",
+                "number": "X-238/2023",
+                "issue_date": "2023-08-15",
+                "expiry_date": "2028-08-08",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Crisis Management and Human Behavior Training",
+                "number": "X-235/2023",
+                "issue_date": "2023-08-15",
+                "expiry_date": "2028-08-04",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Safety training for Personal Prov. Direct Passengers",
+                "number": "X-237/2023",
+                "issue_date": "2023-08-15",
+                "expiry_date": "2028-08-07",
+                "issued_by_at": "NPGSI"
+            },
+            {
+                "course_name": "Proficiency for Rating forming part of Navigational watch (II/4)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Practical Ability to Prepare Meals and (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Personal Hygiene and Envir. Protection (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Safety and Health in the Provision Meals (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Food Storage and inventory Control (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Ships Cook Certificate (MLC 2006)",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Abel Seafarer Deck ( II/5 )",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Engineering Watch keeping Proficiency for Rating forming part of a watch in engine room",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Abel Seafarer Engine ( III/5 )",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            },
+            {
+                "course_name": "Proficiency for Electro Technical rating ( III/7 )",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by_at": "EAMS / Alex."
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "service_records": [
+                {
+                    "company_name": "Gulf international shipping",
+                    "rank": "Master",
+                    "vessel_name_imo_number": "Sally m",
+                    "signed_on": "2024-07-11",
+                    "signed_off": "2024-12-10",
+                    "period": null,
+                    "vessel_type": "G.Cargo",
+                    "dwt_grt": "7540"
+                },
+                {
+                    "company_name": "El Ready",
+                    "rank": "Master",
+                    "vessel_name_imo_number": "Lady Khadija",
+                    "signed_on": "2023-02-14",
+                    "signed_off": "2024-06-03",
+                    "period": null,
+                    "vessel_type": "G.Cargo",
+                    "dwt_grt": "7560"
+                },
+                {
+                    "company_name": "Blue ocean",
+                    "rank": "Master",
+                    "vessel_name_imo_number": "JAJUAR",
+                    "signed_on": "2022-11-02",
+                    "signed_off": "2022-12-24",
+                    "period": null,
+                    "vessel_type": "G.Cargo",
+                    "dwt_grt": "3400"
+                },
+                {
+                    "company_name": "Amal Libya",
+                    "rank": "Master",
+                    "vessel_name_imo_number": "Amir Bey",
+                    "signed_on": "2022-03-15",
+                    "signed_off": "2022-08-20",
+                    "period": null,
+                    "vessel_type": "G.Cargo",
+                    "dwt_grt": "8400"
+                },
+                {
+                    "company_name": "Island flag",
+                    "rank": "Master",
+                    "vessel_name_imo_number": "Symphony",
+                    "signed_on": "2021-01-10",
+                    "signed_off": "2022-01-30",
+                    "period": null,
+                    "vessel_type": "General cargo",
+                    "dwt_grt": "6186"
+                },
+                {
+                    "company_name": "Alkahera for maritime transport",
+                    "rank": "Master",
+                    "vessel_name_imo_number": "Alkahera",
+                    "signed_on": "2018-11-01",
+                    "signed_off": "2020-12-30",
+                    "period": null,
+                    "vessel_type": "HSC Ro/Ro passenger",
+                    "dwt_grt": "6450"
+                },
+                {
+                    "company_name": "Red Sea",
+                    "rank": "Master",
+                    "vessel_name_imo_number": "Lily of sea",
+                    "signed_on": "2018-01-01",
+                    "signed_off": "2018-03-20",
+                    "period": null,
+                    "vessel_type": "General cargo",
+                    "dwt_grt": "10500"
+                },
+                {
+                    "company_name": "Blue bird",
+                    "rank": "Master",
+                    "vessel_name_imo_number": "Alfahidi 1",
+                    "signed_on": "2017-03-29",
+                    "signed_off": "2017-10-10",
+                    "period": null,
+                    "vessel_type": "Ro-Ro Cargo",
+                    "dwt_grt": "20500"
+                },
+                {
+                    "company_name": "Elmoaz Maritime",
+                    "rank": "Ch. Off",
+                    "vessel_name_imo_number": "SHAMS",
+                    "signed_on": "2015-01-19",
+                    "signed_off": "2016-10-10",
+                    "period": null,
+                    "vessel_type": "Bulk Carrier",
+                    "dwt_grt": "25490"
+                },
+                {
+                    "company_name": "Elmoaz Maritime",
+                    "rank": "Ch. Off",
+                    "vessel_name_imo_number": "NOUR",
+                    "signed_on": "2013-06-11",
+                    "signed_off": "2014-11-26",
+                    "period": null,
+                    "vessel_type": "Bulk Carrier",
+                    "dwt_grt": "52000"
+                },
+                {
+                    "company_name": "Namma Shipping",
+                    "rank": "2nd Off",
+                    "vessel_name_imo_number": "Namma Express",
+                    "signed_on": "2011-06-27",
+                    "signed_off": "2012-07-09",
+                    "period": null,
+                    "vessel_type": "Ro-Ro Cargo",
+                    "dwt_grt": "8522"
+                },
+                {
+                    "company_name": "Elsalam Maritime",
+                    "rank": "2nd Off",
+                    "vessel_name_imo_number": "Dodo",
+                    "signed_on": "2009-09-21",
+                    "signed_off": "2011-05-15",
+                    "period": null,
+                    "vessel_type": "Ro-Ro Cargo",
+                    "dwt_grt": "8400"
+                },
+                {
+                    "company_name": "Demline Egypt",
+                    "rank": "3rd Off",
+                    "vessel_name_imo_number": "Fast Challenger",
+                    "signed_on": "2008-11-07",
+                    "signed_off": "2009-07-30",
+                    "period": null,
+                    "vessel_type": "Ro-Ro Cargo",
+                    "dwt_grt": "8202"
+                },
+                {
+                    "company_name": "Namma Shipping",
+                    "rank": "3rd Off",
+                    "vessel_name_imo_number": "Mawaddah",
+                    "signed_on": "2007-01-23",
+                    "signed_off": "2008-09-20",
+                    "period": null,
+                    "vessel_type": "Ro-Ro Passenger",
+                    "dwt_grt": "8600"
+                }
+            ]
+        }
+    }
+}
