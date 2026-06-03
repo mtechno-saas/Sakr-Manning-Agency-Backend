@@ -99,7 +99,7 @@ def process_database_question(user_question: str) -> str:
             sql_query = generate_sql(user_question)
         except Exception as e:
             logger.error(f"Error generating SQL: {str(e)}")
-            return "I'm sorry, I couldn't formulate a query to answer your question."
+            return f"I'm sorry, I couldn't formulate a query to answer your question. Error: {str(e)}"
 
     # 3. Database Execution & Feedback Loop
     try:
