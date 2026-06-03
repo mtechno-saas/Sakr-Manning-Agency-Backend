@@ -1,6 +1,7 @@
 """
 Run on server to DELETE UserRank records and custom Rank records
 (CUS-*, CLR-*, UNK-*) that were auto-generated during CV ingestion.
+Also clears the AI query cache so stale answers are not returned.
 
 Usage:
     cd /opt/sakr/Sakr-Manning-Agency-Backend
@@ -33,5 +34,13 @@ print(f"Deleted {clr_count} custom Rank records (CLR-*).")
 
 unk_count, _ = Rank.objects.filter(code__startswith="UNK-").delete()
 print(f"Deleted {unk_count} custom Rank records (UNK-*).")
+
+# 3. Clear AI query cache so stale answers are not returned
+try:
+    from ai_agents.models import QueryCache
+    cache_count, _ = QueryCache.objects.all().delete()
+    print(f"Cleared {cache_count} cached AI query results.")
+except Exception as e:
+    print(f"Could not clear query cache: {e}")
 
 print(f"\nDone! All custom rank entries have been removed.")

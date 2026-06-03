@@ -12,10 +12,23 @@ logger = logging.getLogger(__name__)
 # Use the same model as in agent.py
 model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=os.environ.get("GOOGLE_API_KEY", "missing_key_please_add_to_env"))
 
-SQL_GENERATION_PROMPT = """You are a highly skilled SQL data analyst.
+SQL_GENERATION_PROMPT = """You are a highly skilled SQL data analyst for a maritime manning agency.
 Your task is to generate a valid SQLite SQL query based on the provided user question and database schema.
 Return ONLY the raw SQL query. Do not include any explanations, markdown formatting (like ```sql), or comments.
 Ensure the query is a SELECT statement and uses the provided table and column names exactly.
+
+IMPORTANT DOMAIN KNOWLEDGE:
+- Seafarers/users are stored in the "api_users" table.
+- Rank codes like "DR-3.000", "EO-1.000", "ER-11.000" are stored in the "api_rank" table in the "code" column.
+- The "api_userrank" table links users to ranks. It has "user_id", "rank_id", and "assigned_code" columns.
+  The "assigned_code" (e.g. "DR-3.001", "DR-3.002") is a unique code assigned to each user for a given rank.
+- CV submissions are in "api_cvsubmission" with a "position_id" FK pointing to "api_rank".
+- To find seafarers by rank code, JOIN api_userrank with api_rank: 
+  SELECT ... FROM api_userrank ur JOIN api_rank r ON ur.rank_id = r.id WHERE r.code = 'XX-Y.000'
+- To count seafarers with a specific rank code:
+  SELECT COUNT(DISTINCT ur.user_id) FROM api_userrank ur JOIN api_rank r ON ur.rank_id = r.id WHERE r.code = 'XX-Y.000'
+- Sea service records are in "api_seaservice" table.
+- Marine courses are in "courses_course" table.
 
 Database Schema:
 {schema}
