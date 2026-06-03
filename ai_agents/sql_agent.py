@@ -132,4 +132,4 @@ def process_database_question(user_question: str) -> str:
         
     except Exception as e:
         logger.error(f"Error synthesizing response: {str(e)}")
-        return "I found the data, but encountered an error while trying to summarize it."
+        return f"I found the data, but encountered an error while trying to summarize it. Error: {str(e)}"
