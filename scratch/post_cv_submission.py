@@ -395,6 +395,7 @@ def process_folder(folder_path="all_json_files"):
     print(f"Found {len(files)} files in {folder_path}. Starting processing...\n")
 
     success_count = fail_count = 0
+    failed_files_list = []
 
     for filename in files:
         file_path = os.path.join(folder_path, filename)
@@ -410,6 +411,7 @@ def process_folder(folder_path="all_json_files"):
             if not data:
                 print(f"[{filename}] Error: Data extraction returned None.")
                 fail_count += 1
+                failed_files_list.append(f"{filename} (Extraction returned None)")
                 continue
                 
             if run_ingestion(data, file_name=filename):
@@ -417,11 +419,21 @@ def process_folder(folder_path="all_json_files"):
                 success_count += 1
             else:
                 fail_count += 1
+                failed_files_list.append(f"{filename} (Ingestion failed)")
         except Exception as e:
             print(f"[{filename}] Error: {e}")
             fail_count += 1
+            failed_files_list.append(f"{filename} (Exception: {e})")
 
     print(f"\nBatch complete! Success: {success_count}, Failed: {fail_count}")
+    
+    if failed_files_list:
+        failed_log_path = os.path.join(project_root, "failed_files.txt")
+        with open(failed_log_path, "w", encoding="utf-8") as f:
+            f.write(f"Batch failed files ({datetime.now().strftime('%Y-%m-%d %H:%M:%S')}):\n")
+            for failed_file in failed_files_list:
+                f.write(f"- {failed_file}\n")
+        print(f"\nA list of all failed files has been saved to: {failed_log_path}")
 
 def cleanup_duplicates():
     from django.db.models import Count
