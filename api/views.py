@@ -274,24 +274,29 @@ class UserViewSet(viewsets.ModelViewSet):
         GET /api/users/{id}/download-full-profile-pdf/
         NOTE: AllowAny because the frontend opens this in a new tab without auth headers.
         """
-        user = get_object_or_404(Users, pk=pk)
-        
-        # Get base user profile
-        user_data = UsersSerializer(user, context={'request': request}).data
-        
-        # Get all contracts
-        contracts = Contract.objects.filter(user=user).select_related('ship', 'company', 'rank')
-        user_data['contracts'] = ContractListSerializer(contracts, many=True, context={'request': request}).data
-        
-        # Generate PDF
-        from api.pdf_generator import generate_full_profile_pdf
-        logo_path = os.path.join(settings.BASE_DIR, 'logo.png') 
-        
-        pdf_bytes = generate_full_profile_pdf(user_data, logo_path=logo_path)
-        
-        response = HttpResponse(pdf_bytes, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="applicant_profile_{user.id}.pdf"'
-        return response
+        import traceback
+        try:
+            user = get_object_or_404(Users, pk=pk)
+            
+            # Get base user profile
+            user_data = UsersSerializer(user, context={'request': request}).data
+            
+            # Get all contracts
+            contracts = Contract.objects.filter(user=user).select_related('ship', 'company', 'rank')
+            user_data['contracts'] = ContractListSerializer(contracts, many=True, context={'request': request}).data
+            
+            # Generate PDF
+            from api.pdf_generator import generate_full_profile_pdf
+            logo_path = os.path.join(settings.BASE_DIR, 'logo.png') 
+            
+            pdf_bytes = generate_full_profile_pdf(user_data, logo_path=logo_path)
+            
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="applicant_profile_{user.id}.pdf"'
+            return response
+        except Exception as e:
+            tb = traceback.format_exc()
+            return Response({'error': str(e), 'traceback': tb}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['get'], url_path='download-marlins',
             permission_classes=[AllowAny], authentication_classes=[])
