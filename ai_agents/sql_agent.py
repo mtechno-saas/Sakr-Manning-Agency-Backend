@@ -487,12 +487,7 @@ def process_database_question(user_question: str) -> str:
     1. Full-profile lookup (for questions about specific applicants)
     2. Text-to-SQL RAG (for aggregate/general database questions)
     """
-    # 1. Caching (Check for existing answer)
-    cache_entry = QueryCache.objects.filter(question__iexact=user_question).first()
-    if cache_entry and cache_entry.final_answer:
-        return cache_entry.final_answer
-
-    # 2. Intent Detection — is the user asking about a specific person?
+    # Intent Detection — is the user asking about a specific person, company, jobs or listing?
     intent = detect_intent(user_question)
     logger.info(f"Intent detected: {intent} for question: {user_question}")
 
@@ -518,13 +513,6 @@ def _handle_list_companies(user_question: str) -> str:
         companies_data = get_companies_list(status_filter)
         answer = summarize_companies_list(user_question, companies_data)
 
-        from .models import QueryCache
-        QueryCache.objects.create(
-            question=user_question,
-            sql_query=f"[LIST_COMPANIES] status={status_filter}",
-            final_answer=answer
-        )
-
         return answer
     except Exception as e:
         logger.error(f"List companies error: {e}", exc_info=True)
@@ -536,12 +524,6 @@ def _handle_open_jobs_lookup(user_question: str) -> str:
         logger.info("Looking up open jobs")
         jobs_data = lookup_open_jobs()
         answer = summarize_open_jobs(user_question, jobs_data)
-
-        QueryCache.objects.create(
-            question=user_question,
-            sql_query="[OPEN_JOBS_LOOKUP]",
-            final_answer=answer
-        )
 
         return answer
     except Exception as e:
@@ -569,12 +551,6 @@ def _handle_company_lookup(user_question: str) -> str:
             return profile_data["error"]
 
         answer = summarize_company(user_question, profile_data)
-
-        QueryCache.objects.create(
-            question=user_question,
-            sql_query=f"[COMPANY_LOOKUP] name={name}, company_id={profile_data.get('id')}",
-            final_answer=answer
-        )
 
         return answer
 
@@ -608,13 +584,6 @@ def _handle_applicant_lookup(user_question: str) -> str:
 
         # Summarize the profile with the LLM
         answer = summarize_profile(user_question, profile_data)
-
-        # Cache the answer
-        QueryCache.objects.create(
-            question=user_question,
-            sql_query=f"[PROFILE_LOOKUP] name={name}, user_id={profile_data.get('id')}",
-            final_answer=answer
-        )
 
         return answer
 
