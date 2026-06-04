@@ -11,7 +11,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view, parser_classes, action, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
-from django.http import FileResponse, HttpResponseRedirect
+from django.http import FileResponse, HttpResponseRedirect, HttpResponse
 from rest_framework import status, viewsets, generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from finance.models import FinanceRecord
@@ -265,6 +265,33 @@ class UserViewSet(viewsets.ModelViewSet):
         user_data['contracts'] = contracts_data
         
         return Response(user_data)
+
+    @action(detail=True, methods=['get'], url_path='download-full-profile-pdf', permission_classes=[AllowAny])
+    def download_full_profile_pdf(self, request, pk=None):
+        """
+        Download the full profile (with sea services, documents, and contracts) as a structured PDF.
+        """
+        user = self.get_object()
+        
+        # Get base user profile
+        user_data = self.get_serializer(user).data
+        
+        # Get all contracts
+        from api.models import Contract
+        from api.serializer import ContractListSerializer
+        contracts = Contract.objects.filter(user=user).select_related('ship', 'company', 'rank')
+        user_data['contracts'] = ContractListSerializer(contracts, many=True, context={'request': request}).data
+        
+        # Generate PDF
+        from api.pdf_generator import generate_full_profile_pdf
+        # Assuming the logo is saved as 'logo.png' in the root project directory (or media/logo.png)
+        logo_path = os.path.join(settings.BASE_DIR, 'logo.png') 
+        
+        pdf_bytes = generate_full_profile_pdf(user_data, logo_path=logo_path)
+        
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="applicant_profile_{user.id}.pdf"'
+        return response
 
     @action(detail=True, methods=['get'], url_path='download-marlins',
             permission_classes=[AllowAny], authentication_classes=[])
