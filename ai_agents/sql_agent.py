@@ -35,10 +35,12 @@ Given the user's question, determine the intent:
 
 1. "applicant_lookup" — The user is asking about a SPECIFIC person/applicant by name.
    Examples: "tell me about Ahmed Mohamed", "what ships did John work on?", "show me the profile of Captain Ali"
-2. "aggregate_query" — The user is asking a general/aggregate question about the database.
+2. "company_lookup" — The user is asking about a SPECIFIC company by name.
+   Examples: "tell me all about (3 SEAS) company", "what is the contact info for MSC?", "show me details for Maersk"
+3. "aggregate_query" — The user is asking a general/aggregate question about the database.
    Examples: "how many seafarers?", "list all companies", "count by position", "which ships are active?"
 
-Return ONLY one of these two words: applicant_lookup OR aggregate_query
+Return ONLY one of these three words: applicant_lookup OR company_lookup OR aggregate_query
 Nothing else."""
 
 
@@ -53,6 +55,8 @@ def detect_intent(question: str) -> str:
         intent = intent_text.lower().replace('"', '').replace("'", "")
         if "applicant_lookup" in intent:
             return "applicant_lookup"
+        if "company_lookup" in intent:
+            return "company_lookup"
         return "aggregate_query"
     except Exception as e:
         logger.error(f"Intent detection error: {e}")
@@ -78,6 +82,32 @@ def extract_applicant_name(question: str) -> str:
     try:
         response = model.invoke([
             SystemMessage(content=NAME_EXTRACTION_PROMPT),
+            HumanMessage(content=question)
+        ])
+        return extract_text(response.content)
+    except Exception as e:
+        logger.error(f"Name extraction error: {e}")
+        return ""
+
+
+# ─────────────────────────────────────────────────────────────────────
+# COMPANY NAME EXTRACTION
+# ─────────────────────────────────────────────────────────────────────
+
+COMPANY_NAME_EXTRACTION_PROMPT = """Extract the company name from the user's question.
+Return ONLY the name, nothing else. Remove words like "company", "ltd", "inc" if they are just descriptive in the sentence, but keep the core name.
+
+Examples:
+- "tell me all about (3 SEAS) company" → 3 SEAS
+- "what is the contact info for MSC?" → MSC
+- "show me details for Maersk Shipping" → Maersk Shipping
+"""
+
+def extract_company_name(question: str) -> str:
+    """Extract the company name from the user's question."""
+    try:
+        response = model.invoke([
+            SystemMessage(content=COMPANY_NAME_EXTRACTION_PROMPT),
             HumanMessage(content=question)
         ])
         return extract_text(response.content)
@@ -198,6 +228,77 @@ def summarize_profile(question: str, profile_data: dict) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────
+# COMPANY PROFILE LOOKUP
+# ─────────────────────────────────────────────────────────────────────
+
+def lookup_company_profile(name: str) -> dict:
+    """Search for a company by name and return its details."""
+    from django.db.models import Q
+    from api.models import Company
+    from api.serializer import CompanySerializer
+
+    name = name.strip()
+    
+    # Try exact match first
+    companies = Company.objects.filter(name__iexact=name)
+    
+    # Try partial match if no exact match
+    if not companies.exists():
+        companies = Company.objects.filter(name__icontains=name)
+
+    if not companies.exists():
+        return {"error": f"No company found matching the name '{name}'."}
+
+    # If multiple matches, pick the best one (or return them all if <= 3)
+    if companies.count() > 3:
+        matches = [
+            {"id": c.id, "name": c.name, "email": c.email}
+            for c in companies[:10]
+        ]
+        return {
+            "multiple_matches": True,
+            "count": companies.count(),
+            "matches": matches,
+            "message": f"Found {companies.count()} companies matching '{name}'. Here are the top results:"
+        }
+
+    company = companies.first()
+    return CompanySerializer(company).data
+
+
+COMPANY_SUMMARY_PROMPT = """You are a helpful AI assistant for a maritime manning agency.
+You have been given the profile data of a company that the agency works with.
+Answer the user's question based on this profile data.
+Be thorough and provide all relevant details from the profile.
+
+If the user asked a general question like "tell me about this company", provide a comprehensive summary including:
+- Company name and type
+- Contact information (email, phone, website)
+- Address and country
+- Contact persons and their info
+- Status and open positions
+- Any notes
+
+User Question: {question}
+
+Company Profile Data:
+{profile_data}
+"""
+
+def summarize_company(question: str, profile_data: dict) -> str:
+    """Use the LLM to generate a human-friendly summary of the company."""
+    profile_str = json.dumps(profile_data, default=str, indent=2)
+
+    response = model.invoke([
+        SystemMessage(content=COMPANY_SUMMARY_PROMPT.format(
+            question=question, profile_data=profile_str
+        )),
+        HumanMessage(content="Please provide the answer based on the company data above.")
+    ])
+    return extract_text(response.content)
+
+
+# ─────────────────────────────────────────────────────────────────────
 # TEXT-TO-SQL (kept for aggregate queries)
 # ─────────────────────────────────────────────────────────────────────
 
@@ -296,9 +397,44 @@ def process_database_question(user_question: str) -> str:
 
     if intent == "applicant_lookup":
         return _handle_applicant_lookup(user_question)
+    elif intent == "company_lookup":
+        return _handle_company_lookup(user_question)
     else:
         return _handle_aggregate_query(user_question)
 
+def _handle_company_lookup(user_question: str) -> str:
+    """Handle questions about specific companies."""
+    try:
+        name = extract_company_name(user_question)
+        if not name:
+            return "I couldn't identify the company name from your question."
+
+        logger.info(f"Looking up company: {name}")
+
+        profile_data = lookup_company_profile(name)
+
+        if profile_data.get("multiple_matches"):
+            matches_text = "\n".join(
+                [f"  - {m['name']} (ID: {m['id']}, Email: {m['email']})" for m in profile_data['matches']]
+            )
+            return f"{profile_data['message']}\n\n{matches_text}\n\nPlease specify the exact company name."
+
+        if profile_data.get("error"):
+            return profile_data["error"]
+
+        answer = summarize_company(user_question, profile_data)
+
+        QueryCache.objects.create(
+            question=user_question,
+            sql_query=f"[COMPANY_LOOKUP] name={name}, company_id={profile_data.get('id')}",
+            final_answer=answer
+        )
+
+        return answer
+
+    except Exception as e:
+        logger.error(f"Company lookup error: {e}", exc_info=True)
+        return f"I encountered an error while looking up the company. Error: {str(e)}"
 
 def _handle_applicant_lookup(user_question: str) -> str:
     """Handle questions about specific applicants using the full-profile data."""
