@@ -41,10 +41,12 @@ Given the user's question, determine the intent:
    Examples: "what are the open jobs?", "are there any vacancies for Master?", "show me available positions"
 4. "list_companies" — The user is asking to list all or active companies.
    Examples: "tell me all the active companies", "list all companies", "what companies do we have?"
-5. "aggregate_query" — The user is asking a general database query or aggregate question (e.g. statistics, counts, ships, interviews, flights, contracts).
+5. "monthly_stats" — The user is asking for monthly statistics, monthly report, dashboard overview or system-wide stats.
+   Examples: "Get statistics for this month", "show me monthly statistics", "dashboard report for this month"
+6. "aggregate_query" — The user is asking a general database query or aggregate question (e.g. statistics, counts, ships, interviews, flights, contracts).
    Examples: "show upcoming interviews this week", "how many seafarers?", "which ships are active?", "count by position", "list interviews scheduled for today"
 
-Return ONLY one of these five words: applicant_lookup OR company_lookup OR open_jobs_lookup OR list_companies OR aggregate_query
+Return ONLY one of these six words: applicant_lookup OR company_lookup OR open_jobs_lookup OR list_companies OR monthly_stats OR aggregate_query
 Nothing else."""
 
 
@@ -65,6 +67,8 @@ def detect_intent(question: str) -> str:
             return "open_jobs_lookup"
         if "list_companies" in intent:
             return "list_companies"
+        if "monthly_stats" in intent:
+            return "monthly_stats"
         return "aggregate_query"
     except Exception as e:
         logger.error(f"Intent detection error: {e}")
@@ -397,8 +401,173 @@ def summarize_companies_list(question: str, companies_data: list) -> str:
     ])
     return extract_text(response.content)
 
+
+# ─────────────────────────────────────────────────────────────────────
+# MONTHLY / SYSTEM STATISTICS
+# ─────────────────────────────────────────────────────────────────────
+
+def get_all_system_stats(year: int, month: int) -> dict:
+    """Query all statistics from core models for the given month and overall."""
+    from django.utils import timezone
+    from api.models import Users, Contract, Interview, CVSubmission, Document
+    from companies.models import Company
+    from finance.models import FinanceRecord
+    from datetime import timedelta
+    
+    today = timezone.now().date()
+    
+    # 1. User stats
+    users = Users.objects.all()
+    overall_users = {
+        'total_users': users.count(),
+        'admins': users.filter(role='Admin').count(),
+        'hr_managers': users.filter(role='HR Manager').count(),
+        'recruiters': users.filter(role='Recruiter').count(),
+        'employees': users.filter(role='Employee').count(),
+        'active_users': users.filter(is_active=True).count(),
+    }
+    monthly_users = users.filter(created_at__year=year, created_at__month=month).count()
+    
+    # 2. Contract stats
+    contracts = Contract.objects.all()
+    overall_contracts = {
+        'signed_contracts': contracts.filter(status='Signed').count(),
+        'pending_signature': contracts.filter(status='Pending Signature').count(),
+        'drafts': contracts.filter(status='Draft').count(),
+        'active': contracts.filter(status='Active').count(),
+        'completed': contracts.filter(status='Completed').count(),
+        'pending': contracts.filter(status='Pending').count(),
+    }
+    monthly_contracts = contracts.filter(created_at__year=year, created_at__month=month).count()
+    
+    # 3. Company stats
+    companies = Company.objects.all()
+    overall_companies = {
+        'total_companies': companies.count(),
+        'active_companies': companies.filter(status='Active').count(),
+        'prospect_companies': companies.filter(status='Prospect').count(),
+        'inactive_companies': companies.filter(status='Inactive').count(),
+    }
+    monthly_companies = companies.filter(created_at__year=year, created_at__month=month).count()
+    
+    # 4. Interview stats
+    interviews = Interview.objects.all()
+    overall_interviews = {
+        'total_interviews': interviews.count(),
+        'today_interviews': interviews.filter(scheduled_date=today).count(),
+        'pending_confirmation': interviews.filter(status='Pending Confirmation').count(),
+        'scheduled': interviews.filter(status='Scheduled').count(),
+        'completed': interviews.filter(status='Completed').count(),
+    }
+    monthly_interviews = interviews.filter(scheduled_date__year=year, scheduled_date__month=month).count()
+    
+    # 5. CV Submission stats
+    cvs = CVSubmission.objects.all()
+    overall_cvs = {
+        'total_cvs': cvs.count(),
+        'under_review': cvs.filter(status='Under Review').count(),
+        'interviewed': cvs.filter(status='Interviewed').count(),
+        'pending': cvs.filter(status='Pending').count(),
+        'approved': cvs.filter(status='Approved').count(),
+    }
+    monthly_cvs = cvs.filter(submitted_date__year=year, submitted_date__month=month).count()
+    
+    # 6. Finance stats
+    finance = FinanceRecord.objects.all()
+    overall_finance = {
+        'total_records': finance.count(),
+        'pending': finance.filter(status='Pending').count(),
+        'paid': finance.filter(status='Paid').count(),
+    }
+    monthly_finance = finance.filter(created_at__year=year, created_at__month=month).count()
+    
+    # 7. Document stats
+    docs = Document.objects.all()
+    overall_docs = {
+        'total_documents': docs.count(),
+        'pending': docs.filter(status='Pending').count(),
+        'active': docs.filter(status='Active').count(),
+        'blacklist': docs.filter(status='Blacklist').count(),
+    }
+    monthly_docs = docs.filter(created_at__year=year, created_at__month=month).count()
+    
+    return {
+        "period": f"{year}-{month:02d}",
+        "overall_cumulative_statistics": {
+            "users": overall_users,
+            "contracts": overall_contracts,
+            "companies": overall_companies,
+            "interviews": overall_interviews,
+            "cv_submissions": overall_cvs,
+            "finance_records": overall_finance,
+            "documents": overall_docs
+        },
+        "this_month_statistics": {
+            "new_users_registered": monthly_users,
+            "contracts_created": monthly_contracts,
+            "companies_added": monthly_companies,
+            "interviews_scheduled": monthly_interviews,
+            "cv_submissions_received": monthly_cvs,
+            "finance_records_created": monthly_finance,
+            "documents_uploaded": monthly_docs
+        }
+    }
+
+MONTHLY_STATS_PROMPT = """You are a helpful AI assistant for a maritime manning agency.
+The user is asking for monthly statistics, reports, or a general system stats summary.
+You have been given a JSON payload containing the overall cumulative statistics (from the stats endpoints) and statistics specifically for the requested month.
+
+Present the statistics clearly, professionally, and in a structured, readable way (e.g. using bullet points, tables, or markdown formatting).
+Highlight important figures such as new registered users, signed/active contracts, upcoming interviews, new CV submissions, etc. for the requested month.
+
+User Question: {question}
+
+System Statistics Data:
+{stats_data}
+"""
+
+def summarize_monthly_stats(question: str, stats_data: dict) -> str:
+    """Use LLM to summarize system statistics."""
+    import json
+    data_str = json.dumps(stats_data, default=str, indent=2)
+    response = model.invoke([
+        SystemMessage(content=MONTHLY_STATS_PROMPT.format(
+            question=question, stats_data=data_str
+        )),
+        HumanMessage(content='Please summarize the statistics above.')
+    ])
+    return extract_text(response.content)
+
+def _handle_monthly_stats(user_question: str) -> str:
+    """Retrieve and summarize system statistics for the current month."""
+    try:
+        from django.utils import timezone
+        now = timezone.now()
+        # Heuristic to parse month/year or fallback to current
+        year = now.year
+        month = now.month
+        
+        # Simple extraction of month names if mentioned
+        q_lower = user_question.lower()
+        months_map = {
+            'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6,
+            'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12
+        }
+        for name, num in months_map.items():
+            if name in q_lower:
+                month = num
+                break
+                
+        logger.info(f"Fetching monthly stats for {year}-{month:02d}")
+        stats_data = get_all_system_stats(year, month)
+        return summarize_monthly_stats(user_question, stats_data)
+    except Exception as e:
+        logger.error(f"Monthly stats error: {e}", exc_info=True)
+        return f"I encountered an error while fetching the statistics. Error: {str(e)}"
+
 # ─────────────────────────────────────────────────────────────────────
 # TEXT-TO-SQL (kept for aggregate queries)
+
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -499,6 +668,8 @@ def process_database_question(user_question: str) -> str:
         return _handle_open_jobs_lookup(user_question)
     elif intent == "list_companies":
         return _handle_list_companies(user_question)
+    elif intent == "monthly_stats":
+        return _handle_monthly_stats(user_question)
     else:
         return _handle_aggregate_query(user_question)
 
