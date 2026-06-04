@@ -41,8 +41,8 @@ Given the user's question, determine the intent:
    Examples: "what are the open jobs?", "are there any vacancies for Master?", "show me available positions"
 4. "list_companies" — The user is asking to list all or active companies.
    Examples: "tell me all the active companies", "list all companies", "what companies do we have?"
-5. "aggregate_query" — The user is asking a general/aggregate question about the database.
-   Examples: "how many seafarers?", "count by position", "which ships are active?"
+5. "aggregate_query" — The user is asking a general database query or aggregate question (e.g. statistics, counts, ships, interviews, flights, contracts).
+   Examples: "show upcoming interviews this week", "how many seafarers?", "which ships are active?", "count by position", "list interviews scheduled for today"
 
 Return ONLY one of these five words: applicant_lookup OR company_lookup OR open_jobs_lookup OR list_companies OR aggregate_query
 Nothing else."""
