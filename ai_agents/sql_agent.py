@@ -9,8 +9,197 @@ import os
 
 logger = logging.getLogger(__name__)
 
+def extract_text(response_content):
+    if isinstance(response_content, str):
+        return response_content.strip()
+    elif isinstance(response_content, list):
+        text_parts = []
+        for part in response_content:
+            if isinstance(part, dict) and 'text' in part:
+                text_parts.append(part['text'])
+            elif isinstance(part, str):
+                text_parts.append(part)
+        return " ".join(text_parts).strip()
+    return str(response_content).strip()
+
 # Use the same model as in agent.py
 model = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=os.environ.get("GOOGLE_API_KEY", "missing_key_please_add_to_env"))
+
+# ─────────────────────────────────────────────────────────────────────
+# INTENT DETECTION — decide whether the question is about a specific
+# person (→ full-profile lookup) or aggregate data (→ SQL generation)
+# ─────────────────────────────────────────────────────────────────────
+
+INTENT_PROMPT = """You are a routing assistant for a maritime manning agency system.
+Given the user's question, determine the intent:
+
+1. "applicant_lookup" — The user is asking about a SPECIFIC person/applicant by name.
+   Examples: "tell me about Ahmed Mohamed", "what ships did John work on?", "show me the profile of Captain Ali"
+2. "aggregate_query" — The user is asking a general/aggregate question about the database.
+   Examples: "how many seafarers?", "list all companies", "count by position", "which ships are active?"
+
+Return ONLY one of these two words: applicant_lookup OR aggregate_query
+Nothing else."""
+
+
+def detect_intent(question: str) -> str:
+    """Classify the user's question as applicant_lookup or aggregate_query."""
+    try:
+        response = model.invoke([
+            SystemMessage(content=INTENT_PROMPT),
+            HumanMessage(content=question)
+        ])
+        intent_text = extract_text(response.content)
+        intent = intent_text.lower().replace('"', '').replace("'", "")
+        if "applicant_lookup" in intent:
+            return "applicant_lookup"
+        return "aggregate_query"
+    except Exception as e:
+        logger.error(f"Intent detection error: {e}")
+        return "aggregate_query"  # default fallback
+
+
+# ─────────────────────────────────────────────────────────────────────
+# APPLICANT NAME EXTRACTION
+# ─────────────────────────────────────────────────────────────────────
+
+NAME_EXTRACTION_PROMPT = """Extract the person's name from the user's question.
+Return ONLY the name, nothing else. If multiple names are mentioned, return the primary one being asked about.
+
+Examples:
+- "tell me about Ahmed Mohamed" → Ahmed Mohamed
+- "what ships did Captain Ali Hassan work on?" → Ali Hassan
+- "show profile of AYMAN MOHAMED REFAAT RAMADAN" → AYMAN MOHAMED REFAAT RAMADAN
+"""
+
+
+def extract_applicant_name(question: str) -> str:
+    """Extract the applicant name from the user's question."""
+    try:
+        response = model.invoke([
+            SystemMessage(content=NAME_EXTRACTION_PROMPT),
+            HumanMessage(content=question)
+        ])
+        return extract_text(response.content)
+    except Exception as e:
+        logger.error(f"Name extraction error: {e}")
+        return ""
+
+
+# ─────────────────────────────────────────────────────────────────────
+# FULL PROFILE LOOKUP — uses the same data as /api/users/{id}/full-profile/
+# ─────────────────────────────────────────────────────────────────────
+
+def lookup_applicant_profile(name: str) -> dict:
+    """
+    Search for an applicant by name and return their full profile data.
+    Uses the same serializers as GET /api/users/{id}/full-profile/
+    """
+    from django.db.models import Q, Value
+    from django.db.models.functions import Concat
+    from api.models import Users, Contract
+    from api.serializer import UsersSerializer, ContractListSerializer
+
+    # Annotate with full name for easier searching
+    users = Users.objects.annotate(
+        full_name=Concat('first_name', Value(' '), 'middle_name')
+    )
+
+    # 1. Try exact match (case-insensitive)
+    exact_matches = users.filter(full_name__icontains=name)
+    if exact_matches.exists():
+        users = exact_matches
+    else:
+        # 2. Try matching all terms anywhere in the name
+        terms = name.strip().split()
+        query = Q()
+        for term in terms:
+            query &= Q(full_name__icontains=term)
+        users = users.filter(query)
+
+    if not users.exists():
+        return {"error": f"No applicant found matching the name '{name}'."}
+
+    # If multiple matches, pick the best one (or return them all if <= 3)
+    if users.count() > 3:
+        # Too many matches — return a list of names for the user to choose from
+        matches = [
+            {"id": u.id, "name": f"{u.first_name} {u.middle_name}".strip(), "email": u.email}
+            for u in users[:10]
+        ]
+        return {
+            "multiple_matches": True,
+            "count": users.count(),
+            "matches": matches,
+            "message": f"Found {users.count()} applicants matching '{name}'. Here are the top results:"
+        }
+
+    # Get the best match (first result)
+    user = users.first()
+
+    # Use the same serializer as the full-profile endpoint
+    user_data = UsersSerializer(user).data
+
+    # Add contracts (same as full-profile endpoint)
+    contracts = Contract.objects.filter(user=user).select_related('ship', 'company', 'rank')
+    user_data['contracts'] = ContractListSerializer(contracts, many=True).data
+
+    return user_data
+
+
+# ─────────────────────────────────────────────────────────────────────
+# PROFILE SUMMARIZATION — LLM generates a human-friendly answer
+# ─────────────────────────────────────────────────────────────────────
+
+PROFILE_SUMMARY_PROMPT = """You are a helpful AI assistant for a maritime manning agency.
+You have been given the complete profile data of an applicant/seafarer.
+Answer the user's question based on this profile data.
+Be thorough and provide all relevant details from the profile.
+Format your response clearly with sections if needed.
+
+If the user asked a general question like "tell me about this applicant", provide a comprehensive summary including:
+- Personal info (name, nationality, date of birth, contact info)
+- Applied position and rank codes
+- Sea service history (ships, ranks, dates)
+- Documents status (passport, seaman book, COC, GOC, expiry dates)
+- Marine courses
+- Contracts (companies and ships signed on)
+- Any other relevant information
+
+User Question: {question}
+
+Applicant Profile Data:
+{profile_data}
+"""
+
+
+def summarize_profile(question: str, profile_data: dict) -> str:
+    """Use the LLM to generate a human-friendly summary of the profile."""
+    # Trim large nested structures to avoid context explosion
+    trimmed = {k: v for k, v in profile_data.items()}
+
+    # Keep seafarer_application compact
+    if 'seafarer_application' in trimmed:
+        trimmed['seafarer_application'] = "[Full application form data available]"
+
+    profile_str = json.dumps(trimmed, default=str, indent=2)
+
+    # Truncate if too large (keep under ~30k chars for the LLM)
+    if len(profile_str) > 30000:
+        profile_str = profile_str[:30000] + "\n... [truncated]"
+
+    response = model.invoke([
+        SystemMessage(content=PROFILE_SUMMARY_PROMPT.format(
+            question=question, profile_data=profile_str
+        )),
+        HumanMessage(content="Please provide the answer based on the profile data above.")
+    ])
+    return extract_text(response.content)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# TEXT-TO-SQL (kept for aggregate queries)
+# ─────────────────────────────────────────────────────────────────────
 
 SQL_GENERATION_PROMPT = """You are a highly skilled SQL data analyst for a maritime manning agency.
 Your task is to generate a valid SQLite SQL query based on the provided user question and database schema.
@@ -32,6 +221,8 @@ IMPORTANT DOMAIN KNOWLEDGE:
 - Sea service records are in "api_seaservice" table.
 - Marine courses are in "courses_course" table.
 - Ships are in "ships_ship" table.
+- Contracts are in "api_contract" table with FK to api_users (user_id), ships_ship (ship_id), companies_company (company_id).
+- User status field is "user_status" on api_users. Common values: ON_SITE, AVAILABLE, ON_BOARD.
 
 Database Schema:
 {schema}
@@ -54,7 +245,7 @@ def generate_sql(user_question: str) -> str:
     human_msg = HumanMessage(content=f"User Question: {user_question}")
     
     response = model.invoke([system_msg, human_msg])
-    raw_response = response.content.strip()
+    raw_response = extract_text(response.content)
     
     # Extract SQL if the model includes conversational text
     match = re.search(r"```(?:sql)?\s*(.*?)\s*```", raw_response, re.DOTALL | re.IGNORECASE)
@@ -68,7 +259,10 @@ def generate_sql(user_question: str) -> str:
             sql_query = raw_response[start_idx:].strip()
         else:
             sql_query = raw_response
-            
+    
+    # Strip trailing semicolons and extra whitespace
+    sql_query = sql_query.rstrip(';').strip()
+    
     return sql_query
 
 def summarize_results(user_question: str, sql_results: dict) -> str:
@@ -78,19 +272,80 @@ def summarize_results(user_question: str, sql_results: dict) -> str:
     human_msg = HumanMessage(content="Please provide the final answer.")
     
     response = model.invoke([system_msg, human_msg])
-    return response.content.strip()
+    return extract_text(response.content)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# MAIN ENTRYPOINT
+# ─────────────────────────────────────────────────────────────────────
 
 def process_database_question(user_question: str) -> str:
     """
-    Main entrypoint for Text-to-SQL RAG.
-    Implements Caching, Prompt Chaining, and Feedback Loop.
+    Main entrypoint — routes to either:
+    1. Full-profile lookup (for questions about specific applicants)
+    2. Text-to-SQL RAG (for aggregate/general database questions)
     """
     # 1. Caching (Check for existing answer)
     cache_entry = QueryCache.objects.filter(question__iexact=user_question).first()
     if cache_entry and cache_entry.final_answer:
         return cache_entry.final_answer
 
-    # 2. SQL Generation
+    # 2. Intent Detection — is the user asking about a specific person?
+    intent = detect_intent(user_question)
+    logger.info(f"Intent detected: {intent} for question: {user_question}")
+
+    if intent == "applicant_lookup":
+        return _handle_applicant_lookup(user_question)
+    else:
+        return _handle_aggregate_query(user_question)
+
+
+def _handle_applicant_lookup(user_question: str) -> str:
+    """Handle questions about specific applicants using the full-profile data."""
+    try:
+        # Extract the applicant name from the question
+        name = extract_applicant_name(user_question)
+        if not name:
+            return "I couldn't identify the applicant name from your question. Could you please provide the full name?"
+
+        logger.info(f"Looking up applicant: {name}")
+
+        # Fetch the full profile
+        profile_data = lookup_applicant_profile(name)
+
+        # Handle multiple matches
+        if profile_data.get("multiple_matches"):
+            matches_text = "\n".join(
+                [f"  - {m['name']} (ID: {m['id']}, Email: {m['email']})" for m in profile_data['matches']]
+            )
+            return f"{profile_data['message']}\n\n{matches_text}\n\nPlease specify the exact name to get the full profile."
+
+        # Handle no matches
+        if profile_data.get("error"):
+            return profile_data["error"]
+
+        # Summarize the profile with the LLM
+        answer = summarize_profile(user_question, profile_data)
+
+        # Cache the answer
+        QueryCache.objects.create(
+            question=user_question,
+            sql_query=f"[PROFILE_LOOKUP] name={name}, user_id={profile_data.get('id')}",
+            final_answer=answer
+        )
+
+        return answer
+
+    except Exception as e:
+        logger.error(f"Applicant lookup error: {e}", exc_info=True)
+        return f"I encountered an error while looking up the applicant. Error: {str(e)}"
+
+
+def _handle_aggregate_query(user_question: str) -> str:
+    """Handle aggregate/general database questions using Text-to-SQL."""
+    # Check cache for SQL
+    cache_entry = QueryCache.objects.filter(question__iexact=user_question).first()
+
     sql_query = ""
     if cache_entry and cache_entry.sql_query:
         sql_query = cache_entry.sql_query
@@ -101,7 +356,7 @@ def process_database_question(user_question: str) -> str:
             logger.error(f"Error generating SQL: {str(e)}")
             return f"I'm sorry, I couldn't formulate a query to answer your question. Error: {str(e)}"
 
-    # 3. Database Execution & Feedback Loop
+    # Database Execution & Feedback Loop
     try:
         sql_results = execute_read_only_query(sql_query)
         
@@ -119,7 +374,7 @@ def process_database_question(user_question: str) -> str:
         logger.error(f"SQL Execution Error: {str(e)} | Query: {sql_query}")
         return "I'm sorry, I encountered an error while trying to fetch the data."
 
-    # 4. Final Synthesis
+    # Final Synthesis
     try:
         final_answer = summarize_results(user_question, sql_results)
         
