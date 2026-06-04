@@ -6,6 +6,14 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 
+
+def _safe(value):
+    """Convert None/non-string values to empty strings so reportlab never crashes."""
+    if value is None:
+        return ''
+    return str(value)
+
+
 def generate_full_profile_pdf(user_data, logo_path=None):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
@@ -25,22 +33,19 @@ def generate_full_profile_pdf(user_data, logo_path=None):
             img.hAlign = 'LEFT'
             elements.append(img)
             elements.append(Spacer(1, 12))
-        except Exception as e:
+        except Exception:
             pass
             
     # 2. Title
-    name = user_data.get('first_name', '')
+    name = _safe(user_data.get('first_name', ''))
     elements.append(Paragraph(f"Applicant Profile: {name}", title_style))
     elements.append(Spacer(1, 12))
     
     # Basic Info Table
-    email = user_data.get('email', '')
-    phone = user_data.get('phone_number', '')
-    nationality = user_data.get('nationality', '')
     basic_info = [
-        ['Email:', email, 'Phone:', phone],
-        ['Nationality:', nationality, 'DOB:', str(user_data.get('date_of_birth', ''))],
-        ['Position:', user_data.get('application_for_position', ''), 'Status:', user_data.get('user_status', '')]
+        ['Email:', _safe(user_data.get('email')), 'Phone:', _safe(user_data.get('phone_number'))],
+        ['Nationality:', _safe(user_data.get('nationality')), 'DOB:', _safe(user_data.get('date_of_birth'))],
+        ['Position:', _safe(user_data.get('application_for_position')), 'Status:', _safe(user_data.get('user_status'))]
     ]
     t = Table(basic_info, colWidths=[80, 170, 80, 170])
     t.setStyle(TableStyle([
@@ -63,10 +68,10 @@ def generate_full_profile_pdf(user_data, logo_path=None):
         data = [['Ship Name', 'Rank', 'Sign On', 'Sign Off']]
         for ss in sea_services:
             data.append([
-                ss.get('ship_name', ''),
-                ss.get('rank', ''),
-                str(ss.get('signed_on', '')),
-                str(ss.get('signed_off', ''))
+                _safe(ss.get('ship_name')),
+                _safe(ss.get('rank')),
+                _safe(ss.get('signed_on')),
+                _safe(ss.get('signed_off'))
             ])
             
         ss_table = Table(data, colWidths=[150, 100, 100, 100])
@@ -91,10 +96,10 @@ def generate_full_profile_pdf(user_data, logo_path=None):
         c_data = [['Company', 'Ship', 'Sign On', 'Status']]
         for c in contracts:
             c_data.append([
-                c.get('company_name', ''),
-                c.get('ship_name', ''),
-                str(c.get('sign_on_date', '')),
-                c.get('status', '')
+                _safe(c.get('company_name')),
+                _safe(c.get('ship_name')),
+                _safe(c.get('sign_on_date')),
+                _safe(c.get('status'))
             ])
             
         c_table = Table(c_data, colWidths=[150, 120, 90, 90])
@@ -110,38 +115,44 @@ def generate_full_profile_pdf(user_data, logo_path=None):
         elements.append(c_table)
         elements.append(Spacer(1, 20))
 
-    # Documents
+    # Documents — user_documents is a dict with keys like passport, seaman_book, coc, etc.
     docs_dict = user_data.get('user_documents', {})
+    if not isinstance(docs_dict, dict):
+        docs_dict = {}
     
-    # Flatten docs_dict into a list of tuples: (Title, Number, Issue, Expiry)
+    # Flatten docs_dict into a list of rows: [Title, Number, Issue, Expiry]
     flat_docs = []
     
     def add_doc(title, obj):
         if obj and isinstance(obj, dict):
             flat_docs.append([
-                title,
-                obj.get('document_number', obj.get('number', '')),
-                str(obj.get('issue_date', '')),
-                str(obj.get('expiration_date', obj.get('expiry_date', '')))
+                _safe(title),
+                _safe(obj.get('document_number', obj.get('certificate_number', obj.get('number', obj.get('passport_no', obj.get('seaman_book_no', '')))))),
+                _safe(obj.get('issue_date')),
+                _safe(obj.get('expiration_date', obj.get('expiry_date')))
             ])
 
     add_doc('Passport', docs_dict.get('passport'))
     add_doc('Seaman Book', docs_dict.get('seaman_book'))
+    add_doc('Other Seaman Book', docs_dict.get('other_seaman_book'))
     add_doc('COC', docs_dict.get('coc'))
     add_doc('GOC', docs_dict.get('goc'))
     add_doc('Health Cert.', docs_dict.get('health_certificate'))
     
-    for lic in docs_dict.get('licenses', []):
-        add_doc(lic.get('document_name', 'License'), lic)
+    for lic in (docs_dict.get('licenses') or []):
+        if isinstance(lic, dict):
+            add_doc(_safe(lic.get('document_name', 'License')), lic)
         
-    for mc in docs_dict.get('marine_courses', []):
-        add_doc(mc.get('course_name', 'Course'), mc)
+    for mc in (docs_dict.get('marine_courses') or []):
+        if isinstance(mc, dict):
+            add_doc(_safe(mc.get('course_name', 'Course')), mc)
         
-    for pd in docs_dict.get('personal_documents', []):
-        add_doc(pd.get('document_type', 'Document'), pd)
+    for pd_doc in (docs_dict.get('personal_documents') or []):
+        if isinstance(pd_doc, dict):
+            add_doc(_safe(pd_doc.get('document_type', 'Document')), pd_doc)
 
     if flat_docs:
-        elements.append(Paragraph("Documents & Certificates", subtitle_style))
+        elements.append(Paragraph("Documents &amp; Certificates", subtitle_style))
         elements.append(Spacer(1, 10))
         
         d_data = [['Type/Title', 'Number', 'Issue Date', 'Expiry Date']]

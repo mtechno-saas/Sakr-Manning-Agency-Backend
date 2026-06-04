@@ -266,25 +266,25 @@ class UserViewSet(viewsets.ModelViewSet):
         
         return Response(user_data)
 
-    @action(detail=True, methods=['get'], url_path='download-full-profile-pdf', permission_classes=[AllowAny])
+    @action(detail=True, methods=['get'], url_path='download-full-profile-pdf',
+            permission_classes=[AllowAny], authentication_classes=[])
     def download_full_profile_pdf(self, request, pk=None):
         """
         Download the full profile (with sea services, documents, and contracts) as a structured PDF.
+        GET /api/users/{id}/download-full-profile-pdf/
+        NOTE: AllowAny because the frontend opens this in a new tab without auth headers.
         """
-        user = self.get_object()
+        user = get_object_or_404(Users, pk=pk)
         
         # Get base user profile
-        user_data = self.get_serializer(user).data
+        user_data = UsersSerializer(user, context={'request': request}).data
         
         # Get all contracts
-        from api.models import Contract
-        from api.serializer import ContractListSerializer
         contracts = Contract.objects.filter(user=user).select_related('ship', 'company', 'rank')
         user_data['contracts'] = ContractListSerializer(contracts, many=True, context={'request': request}).data
         
         # Generate PDF
         from api.pdf_generator import generate_full_profile_pdf
-        # Assuming the logo is saved as 'logo.png' in the root project directory (or media/logo.png)
         logo_path = os.path.join(settings.BASE_DIR, 'logo.png') 
         
         pdf_bytes = generate_full_profile_pdf(user_data, logo_path=logo_path)
