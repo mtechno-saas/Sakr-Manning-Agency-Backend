@@ -39,10 +39,12 @@ Given the user's question, determine the intent:
    Examples: "tell me all about (3 SEAS) company", "what is the contact info for MSC?", "show me details for Maersk"
 3. "open_jobs_lookup" — The user is asking about open jobs, vacancies, or job orders.
    Examples: "what are the open jobs?", "are there any vacancies for Master?", "show me available positions"
-4. "aggregate_query" — The user is asking a general/aggregate question about the database.
-   Examples: "how many seafarers?", "list all companies", "count by position", "which ships are active?"
+4. "list_companies" — The user is asking to list all or active companies.
+   Examples: "tell me all the active companies", "list all companies", "what companies do we have?"
+5. "aggregate_query" — The user is asking a general/aggregate question about the database.
+   Examples: "how many seafarers?", "count by position", "which ships are active?"
 
-Return ONLY one of these four words: applicant_lookup OR company_lookup OR open_jobs_lookup OR aggregate_query
+Return ONLY one of these five words: applicant_lookup OR company_lookup OR open_jobs_lookup OR list_companies OR aggregate_query
 Nothing else."""
 
 
@@ -61,6 +63,8 @@ def detect_intent(question: str) -> str:
             return "company_lookup"
         if "open_jobs_lookup" in intent:
             return "open_jobs_lookup"
+        if "list_companies" in intent:
+            return "list_companies"
         return "aggregate_query"
     except Exception as e:
         logger.error(f"Intent detection error: {e}")
@@ -352,8 +356,50 @@ def summarize_open_jobs(question: str, jobs_data: list) -> str:
     ])
     return extract_text(response.content)
 
+
+# ─────────────────────────────────────────────────────────────────────
+# LIST COMPANIES
+# ─────────────────────────────────────────────────────────────────────
+
+def get_companies_list(status_filter=None) -> list:
+    """Fetch a list of companies, optionally filtered by status."""
+    from companies.models import Company
+    
+    qs = Company.objects.all().order_by('company_name')
+    if status_filter:
+        qs = qs.filter(status__iexact=status_filter)
+        
+    return list(qs.values('id', 'company_name', 'status', 'contact_email', 'open_positions'))
+
+LIST_COMPANIES_SUMMARY_PROMPT = """You are a helpful AI assistant for a maritime manning agency.
+The user is asking for a list of companies (possibly filtered, e.g., active companies).
+You have been given a JSON list of companies. Summarize the list clearly for the user.
+If there are many companies, you can list the names and mention their statuses or open positions briefly.
+If the list is empty, politely inform the user that no companies match the criteria.
+
+User Question: {question}
+
+Companies Data:
+{companies_data}
+"""
+
+def summarize_companies_list(question: str, companies_data: list) -> str:
+    import json
+    if not companies_data:
+        return 'There are currently no companies found.'
+        
+    data_str = json.dumps(companies_data, default=str, indent=2)
+    response = model.invoke([
+        SystemMessage(content=LIST_COMPANIES_SUMMARY_PROMPT.format(
+            question=question, companies_data=data_str
+        )),
+        HumanMessage(content='Please provide the list of companies based on the data above.')
+    ])
+    return extract_text(response.content)
+
 # ─────────────────────────────────────────────────────────────────────
 # TEXT-TO-SQL (kept for aggregate queries)
+
 
 # ─────────────────────────────────────────────────────────────────────
 
