@@ -111,19 +111,41 @@ def generate_full_profile_pdf(user_data, logo_path=None):
         elements.append(Spacer(1, 20))
 
     # Documents
-    docs = user_data.get('user_documents', [])
-    if docs:
+    docs_dict = user_data.get('user_documents', {})
+    
+    # Flatten docs_dict into a list of tuples: (Title, Number, Issue, Expiry)
+    flat_docs = []
+    
+    def add_doc(title, obj):
+        if obj and isinstance(obj, dict):
+            flat_docs.append([
+                title,
+                obj.get('document_number', obj.get('number', '')),
+                str(obj.get('issue_date', '')),
+                str(obj.get('expiration_date', obj.get('expiry_date', '')))
+            ])
+
+    add_doc('Passport', docs_dict.get('passport'))
+    add_doc('Seaman Book', docs_dict.get('seaman_book'))
+    add_doc('COC', docs_dict.get('coc'))
+    add_doc('GOC', docs_dict.get('goc'))
+    add_doc('Health Cert.', docs_dict.get('health_certificate'))
+    
+    for lic in docs_dict.get('licenses', []):
+        add_doc(lic.get('document_name', 'License'), lic)
+        
+    for mc in docs_dict.get('marine_courses', []):
+        add_doc(mc.get('course_name', 'Course'), mc)
+        
+    for pd in docs_dict.get('personal_documents', []):
+        add_doc(pd.get('document_type', 'Document'), pd)
+
+    if flat_docs:
         elements.append(Paragraph("Documents & Certificates", subtitle_style))
         elements.append(Spacer(1, 10))
         
         d_data = [['Type/Title', 'Number', 'Issue Date', 'Expiry Date']]
-        for d in docs:
-            d_data.append([
-                d.get('document_type', d.get('document_name', '')),
-                d.get('document_number', ''),
-                str(d.get('issue_date', '')),
-                str(d.get('expiration_date', d.get('expiry_date', '')))
-            ])
+        d_data.extend(flat_docs)
             
         d_table = Table(d_data, colWidths=[150, 100, 100, 100])
         d_table.setStyle(TableStyle([
