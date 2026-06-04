@@ -246,6 +246,26 @@ class UserViewSet(viewsets.ModelViewSet):
             'active_users': users.filter(is_active=True).count(),
         })
 
+    @action(detail=True, methods=['get'], url_path='full-profile')
+    def full_profile(self, request, pk=None):
+        """
+        Get the applicant's complete profile including documents, sea service, and all signed contracts.
+        Combines the UsersSerializer response with the ContractListSerializer response.
+        """
+        user = self.get_object()
+        
+        # Get base user profile (includes sea_services and user_documents)
+        user_data = self.get_serializer(user).data
+        
+        # Get all contracts for this user
+        contracts = Contract.objects.filter(user=user).select_related('ship', 'company', 'rank')
+        contracts_data = ContractListSerializer(contracts, many=True, context={'request': request}).data
+        
+        # Combine the data
+        user_data['contracts'] = contracts_data
+        
+        return Response(user_data)
+
     @action(detail=True, methods=['get'], url_path='download-marlins',
             permission_classes=[AllowAny], authentication_classes=[])
     def download_marlins(self, request, pk=None):
