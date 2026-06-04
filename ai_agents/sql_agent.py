@@ -234,17 +234,17 @@ def summarize_profile(question: str, profile_data: dict) -> str:
 def lookup_company_profile(name: str) -> dict:
     """Search for a company by name and return its details."""
     from django.db.models import Q
-    from api.models import Company
-    from api.serializer import CompanySerializer
+    from companies.models import Company
+    from companies.serializers import CompanySerializer
 
     name = name.strip()
     
     # Try exact match first
-    companies = Company.objects.filter(name__iexact=name)
+    companies = Company.objects.filter(company_name__iexact=name)
     
     # Try partial match if no exact match
     if not companies.exists():
-        companies = Company.objects.filter(name__icontains=name)
+        companies = Company.objects.filter(company_name__icontains=name)
 
     if not companies.exists():
         return {"error": f"No company found matching the name '{name}'."}
@@ -252,7 +252,7 @@ def lookup_company_profile(name: str) -> dict:
     # If multiple matches, pick the best one (or return them all if <= 3)
     if companies.count() > 3:
         matches = [
-            {"id": c.id, "name": c.name, "email": c.email}
+            {"id": c.id, "name": c.company_name, "email": c.contact_email}
             for c in companies[:10]
         ]
         return {
