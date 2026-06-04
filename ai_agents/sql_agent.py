@@ -502,8 +502,33 @@ def process_database_question(user_question: str) -> str:
         return _handle_company_lookup(user_question)
     elif intent == "open_jobs_lookup":
         return _handle_open_jobs_lookup(user_question)
+    elif intent == "list_companies":
+        return _handle_list_companies(user_question)
     else:
         return _handle_aggregate_query(user_question)
+
+def _handle_list_companies(user_question: str) -> str:
+    """Handle requests to list companies."""
+    try:
+        logger.info("Listing companies")
+        
+        # Simple heuristic to determine if user asked for "active" companies
+        status_filter = 'Active' if 'active' in user_question.lower() else None
+        
+        companies_data = get_companies_list(status_filter)
+        answer = summarize_companies_list(user_question, companies_data)
+
+        from .models import QueryCache
+        QueryCache.objects.create(
+            question=user_question,
+            sql_query=f"[LIST_COMPANIES] status={status_filter}",
+            final_answer=answer
+        )
+
+        return answer
+    except Exception as e:
+        logger.error(f"List companies error: {e}", exc_info=True)
+        return f"I encountered an error while retrieving the list of companies. Error: {str(e)}"
 
 def _handle_open_jobs_lookup(user_question: str) -> str:
     """Handle questions about open jobs and vacancies."""
