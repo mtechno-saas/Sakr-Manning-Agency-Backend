@@ -37,15 +37,17 @@ Given the user's question, determine the intent:
    Examples: "tell me about Ahmed Mohamed", "what ships did John work on?", "show me the profile of Captain Ali"
 2. "company_lookup" — The user is asking about a SPECIFIC company by name.
    Examples: "tell me all about (3 SEAS) company", "what is the contact info for MSC?", "show me details for Maersk"
-3. "aggregate_query" — The user is asking a general/aggregate question about the database.
+3. "open_jobs_lookup" — The user is asking about open jobs, vacancies, or job orders.
+   Examples: "what are the open jobs?", "are there any vacancies for Master?", "show me available positions"
+4. "aggregate_query" — The user is asking a general/aggregate question about the database.
    Examples: "how many seafarers?", "list all companies", "count by position", "which ships are active?"
 
-Return ONLY one of these three words: applicant_lookup OR company_lookup OR aggregate_query
+Return ONLY one of these four words: applicant_lookup OR company_lookup OR open_jobs_lookup OR aggregate_query
 Nothing else."""
 
 
 def detect_intent(question: str) -> str:
-    """Classify the user's question as applicant_lookup or aggregate_query."""
+    """Classify the user's question into an intent."""
     try:
         response = model.invoke([
             SystemMessage(content=INTENT_PROMPT),
@@ -57,6 +59,8 @@ def detect_intent(question: str) -> str:
             return "applicant_lookup"
         if "company_lookup" in intent:
             return "company_lookup"
+        if "open_jobs_lookup" in intent:
+            return "open_jobs_lookup"
         return "aggregate_query"
     except Exception as e:
         logger.error(f"Intent detection error: {e}")
@@ -298,8 +302,59 @@ def summarize_company(question: str, profile_data: dict) -> str:
     return extract_text(response.content)
 
 
+
+# ─────────────────────────────────────────────────────────────────────
+# OPEN JOBS LOOKUP
+# ─────────────────────────────────────────────────────────────────────
+
+def lookup_open_jobs() -> list:
+    """Fetch currently open and active job orders."""
+    from companies.models import JobOrder
+    from companies.serializers import JobOrderSerializer
+
+    # Fetch job orders that are currently open/active/in progress
+    job_orders = JobOrder.objects.filter(
+        status__in=['Open', 'Active', 'Pending', 'In Progress']
+    ).prefetch_related('positions', 'positions__rank', 'company', 'ship').order_by('-request_date')
+
+    if not job_orders.exists():
+        return []
+
+    # Serialize up to 20 recent job orders to avoid token limits
+    return JobOrderSerializer(job_orders[:20], many=True).data
+
+OPEN_JOBS_SUMMARY_PROMPT = """You are a helpful AI assistant for a maritime manning agency.
+The user is asking about open jobs or vacancies. 
+You have been given a list of currently open 'Job Orders' and the specific 'Positions' (ranks) required for each.
+Summarize the available jobs clearly for the user. Group them by company or vessel if it makes sense.
+Be sure to mention the ranks needed, quantities, and any salary/duration information if available.
+If the list of jobs is empty, politely inform the user that there are currently no open jobs.
+
+User Question: {question}
+
+Open Jobs Data:
+{jobs_data}
+"""
+
+def summarize_open_jobs(question: str, jobs_data: list) -> str:
+    """Use the LLM to generate a summary of open jobs."""
+    if not jobs_data:
+        return 'There are currently no open jobs or vacancies available at this time.'
+        
+    import json
+    jobs_str = json.dumps(jobs_data, default=str, indent=2)
+
+    response = model.invoke([
+        SystemMessage(content=OPEN_JOBS_SUMMARY_PROMPT.format(
+            question=question, jobs_data=jobs_str
+        )),
+        HumanMessage(content='Please provide the summary of open jobs based on the data above.')
+    ])
+    return extract_text(response.content)
+
 # ─────────────────────────────────────────────────────────────────────
 # TEXT-TO-SQL (kept for aggregate queries)
+
 # ─────────────────────────────────────────────────────────────────────
 
 SQL_GENERATION_PROMPT = """You are a highly skilled SQL data analyst for a maritime manning agency.
@@ -399,8 +454,28 @@ def process_database_question(user_question: str) -> str:
         return _handle_applicant_lookup(user_question)
     elif intent == "company_lookup":
         return _handle_company_lookup(user_question)
+    elif intent == "open_jobs_lookup":
+        return _handle_open_jobs_lookup(user_question)
     else:
         return _handle_aggregate_query(user_question)
+
+def _handle_open_jobs_lookup(user_question: str) -> str:
+    """Handle questions about open jobs and vacancies."""
+    try:
+        logger.info("Looking up open jobs")
+        jobs_data = lookup_open_jobs()
+        answer = summarize_open_jobs(user_question, jobs_data)
+
+        QueryCache.objects.create(
+            question=user_question,
+            sql_query="[OPEN_JOBS_LOOKUP]",
+            final_answer=answer
+        )
+
+        return answer
+    except Exception as e:
+        logger.error(f"Open jobs lookup error: {e}", exc_info=True)
+        return f"I encountered an error while retrieving open jobs. Error: {str(e)}"
 
 def _handle_company_lookup(user_question: str) -> str:
     """Handle questions about specific companies."""
