@@ -35,18 +35,12 @@ Given the user's question, determine the intent:
 
 1. "applicant_lookup" — The user is asking about a SPECIFIC person/applicant by name.
    Examples: "tell me about Ahmed Mohamed", "what ships did John work on?", "show me the profile of Captain Ali"
-2. "company_lookup" — The user is asking about a SPECIFIC company by name.
-   Examples: "tell me all about (3 SEAS) company", "what is the contact info for MSC?", "show me details for Maersk"
-3. "open_jobs_lookup" — The user is asking about open jobs, vacancies, or job orders.
-   Examples: "what are the open jobs?", "are there any vacancies for Master?", "show me available positions"
-4. "list_companies" — The user is asking to list all or active companies.
-   Examples: "tell me all the active companies", "list all companies", "what companies do we have?"
-5. "monthly_stats" — The user is asking for monthly statistics, monthly report, dashboard overview or system-wide stats.
+2. "monthly_stats" — The user is asking for monthly statistics, monthly report, dashboard overview or system-wide stats.
    Examples: "Get statistics for this month", "show me monthly statistics", "dashboard report for this month"
-6. "endpoint_query" — The user is asking ANY other data question: listings, counts, filters, searches across the system (users, ships, interviews, contracts, CVs, finance, documents, etc.).
-   Examples: "show upcoming interviews this week", "how many seafarers?", "list Egyptian crew members", "show active contracts", "which ships are active?", "count pending CV submissions"
+3. "endpoint_query" — The user is asking ANY other data question: listing companies, showing open jobs, finding contracts, searching CVs, filtering seafarers, checking documents, etc.
+   Examples: "list active companies", "what are the open jobs?", "show upcoming interviews", "how many pending CVs?", "list Egyptian crew members"
 
-Return ONLY one of these six words: applicant_lookup OR company_lookup OR open_jobs_lookup OR list_companies OR monthly_stats OR endpoint_query
+Return ONLY one of these three words: applicant_lookup OR monthly_stats OR endpoint_query
 Nothing else."""
 
 
@@ -61,16 +55,8 @@ def detect_intent(question: str) -> str:
         intent = intent_text.lower().replace('"', '').replace("'", "")
         if "applicant_lookup" in intent:
             return "applicant_lookup"
-        if "company_lookup" in intent:
-            return "company_lookup"
-        if "open_jobs_lookup" in intent:
-            return "open_jobs_lookup"
-        if "list_companies" in intent:
-            return "list_companies"
         if "monthly_stats" in intent:
             return "monthly_stats"
-        if "endpoint_query" in intent:
-            return "endpoint_query"
         return "endpoint_query"  # default to endpoint query
     except Exception as e:
         logger.error(f"Intent detection error: {e}")
@@ -664,12 +650,6 @@ def process_database_question(user_question: str) -> str:
 
     if intent == "applicant_lookup":
         return _handle_applicant_lookup(user_question)
-    elif intent == "company_lookup":
-        return _handle_company_lookup(user_question)
-    elif intent == "open_jobs_lookup":
-        return _handle_open_jobs_lookup(user_question)
-    elif intent == "list_companies":
-        return _handle_list_companies(user_question)
     elif intent == "monthly_stats":
         return _handle_monthly_stats(user_question)
     else:
