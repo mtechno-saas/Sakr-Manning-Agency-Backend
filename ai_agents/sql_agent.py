@@ -1,11 +1,11 @@
 import json
 import logging
 import re
-from langchain_google_genai import ChatGoogleGenerativeAI
+import os
 from langchain_core.messages import HumanMessage, SystemMessage
 from .db_utils import get_abbreviated_schema, execute_read_only_query
 from .models import QueryCache, FailedQueryLog
-import os
+from langchain_google_genai import ChatGoogleGenerativeAI, HarmCategory, HarmBlockThreshold
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,19 @@ def extract_text(response_content):
         return " ".join(text_parts).strip()
     return str(response_content).strip()
 
+safety_settings = {
+    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+}
+
 # Use the same model as in agent.py
-model = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=os.environ.get("GOOGLE_API_KEY", "missing_key_please_add_to_env"))
+model = ChatGoogleGenerativeAI(
+    model="gemini-3.1-flash-lite", 
+    google_api_key=os.environ.get("GOOGLE_API_KEY", "missing_key_please_add_to_env"),
+    safety_settings=safety_settings
+)
 
 # ─────────────────────────────────────────────────────────────────────
 # INTENT DETECTION — decide whether the question is about a specific
@@ -135,17 +146,21 @@ def lookup_applicant_profile(name: str) -> dict:
         full_name=Concat('first_name', Value(' '), 'middle_name')
     )
 
-    # 1. Try exact match (case-insensitive)
-    exact_matches = users.filter(full_name__icontains=name)
-    if exact_matches.exists():
-        users = exact_matches
+    import re
+    if re.match(r'^[\w\.-]+@[\w\.-]+$', name.strip()):
+        users = users.filter(email__iexact=name.strip())
     else:
-        # 2. Try matching all terms anywhere in the name
-        terms = name.strip().split()
-        query = Q()
-        for term in terms:
-            query &= Q(full_name__icontains=term)
-        users = users.filter(query)
+        # 1. Try exact match (case-insensitive)
+        exact_matches = users.filter(full_name__icontains=name)
+        if exact_matches.exists():
+            users = exact_matches
+        else:
+            # 2. Try matching all terms anywhere in the name
+            terms = name.strip().split()
+            query = Q()
+            for term in terms:
+                query &= Q(full_name__icontains=term)
+            users = users.filter(query)
 
     if not users.exists():
         return {"error": f"No applicant found matching the name '{name}'."}
@@ -644,9 +659,16 @@ def process_database_question(user_question: str) -> str:
     1. Full-profile lookup (for questions about specific applicants)
     2. Text-to-SQL RAG (for aggregate/general database questions)
     """
-    # Intent Detection — is the user asking about a specific person, company, jobs or listing?
-    intent = detect_intent(user_question)
-    logger.info(f"Intent detected: {intent} for question: {user_question}")
+    import re
+    email_match = re.search(r'[\w\.-]+@[\w\.-]+', user_question)
+    
+    if email_match:
+        logger.info(f"Email detected in query: {email_match.group(0)}. Routing to applicant_lookup.")
+        intent = "applicant_lookup"
+    else:
+        # Intent Detection — is the user asking about a specific person, company, jobs or listing?
+        intent = detect_intent(user_question)
+        logger.info(f"Intent detected: {intent} for question: {user_question}")
 
     if intent == "applicant_lookup":
         return _handle_applicant_lookup(user_question)
@@ -714,12 +736,18 @@ def _handle_company_lookup(user_question: str) -> str:
 def _handle_applicant_lookup(user_question: str) -> str:
     """Handle questions about specific applicants using the full-profile data."""
     try:
-        # Extract the applicant name from the question
-        name = extract_applicant_name(user_question)
-        if not name:
-            return "I couldn't identify the applicant name from your question. Could you please provide the full name?"
-
-        logger.info(f"Looking up applicant: {name}")
+        import re
+        email_match = re.search(r'[\w\.-]+@[\w\.-]+', user_question)
+        
+        if email_match:
+            name = email_match.group(0)
+            logger.info(f"Looking up applicant by exact email: {name}")
+        else:
+            # Extract the applicant name from the question
+            name = extract_applicant_name(user_question)
+            if not name:
+                return "I couldn't identify the applicant name from your question. Could you please provide the full name?"
+            logger.info(f"Looking up applicant: {name}")
 
         # Fetch the full profile
         profile_data = lookup_applicant_profile(name)
