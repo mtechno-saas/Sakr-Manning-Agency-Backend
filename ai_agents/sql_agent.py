@@ -43,10 +43,10 @@ Given the user's question, determine the intent:
    Examples: "tell me all the active companies", "list all companies", "what companies do we have?"
 5. "monthly_stats" — The user is asking for monthly statistics, monthly report, dashboard overview or system-wide stats.
    Examples: "Get statistics for this month", "show me monthly statistics", "dashboard report for this month"
-6. "aggregate_query" — The user is asking a general database query or aggregate question (e.g. statistics, counts, ships, interviews, flights, contracts).
-   Examples: "show upcoming interviews this week", "how many seafarers?", "which ships are active?", "count by position", "list interviews scheduled for today"
+6. "endpoint_query" — The user is asking ANY other data question: listings, counts, filters, searches across the system (users, ships, interviews, contracts, CVs, finance, documents, etc.).
+   Examples: "show upcoming interviews this week", "how many seafarers?", "list Egyptian crew members", "show active contracts", "which ships are active?", "count pending CV submissions"
 
-Return ONLY one of these six words: applicant_lookup OR company_lookup OR open_jobs_lookup OR list_companies OR monthly_stats OR aggregate_query
+Return ONLY one of these six words: applicant_lookup OR company_lookup OR open_jobs_lookup OR list_companies OR monthly_stats OR endpoint_query
 Nothing else."""
 
 
@@ -69,10 +69,12 @@ def detect_intent(question: str) -> str:
             return "list_companies"
         if "monthly_stats" in intent:
             return "monthly_stats"
-        return "aggregate_query"
+        if "endpoint_query" in intent:
+            return "endpoint_query"
+        return "endpoint_query"  # default to endpoint query
     except Exception as e:
         logger.error(f"Intent detection error: {e}")
-        return "aggregate_query"  # default fallback
+        return "endpoint_query"  # default fallback
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -671,7 +673,7 @@ def process_database_question(user_question: str) -> str:
     elif intent == "monthly_stats":
         return _handle_monthly_stats(user_question)
     else:
-        return _handle_aggregate_query(user_question)
+        return _handle_endpoint_query(user_question)
 
 def _handle_list_companies(user_question: str) -> str:
     """Handle requests to list companies."""
@@ -763,50 +765,44 @@ def _handle_applicant_lookup(user_question: str) -> str:
         return f"I encountered an error while looking up the applicant. Error: {str(e)}"
 
 
-def _handle_aggregate_query(user_question: str) -> str:
-    """Handle aggregate/general database questions using Text-to-SQL."""
-    # Check cache for SQL
-    cache_entry = QueryCache.objects.filter(question__iexact=user_question).first()
+def _handle_endpoint_query(user_question: str) -> str:
+    """Handle general queries using the endpoint-aware filter engine."""
+    from .endpoint_query_engine import plan_query, execute_query, summarize_query_results
 
-    sql_query = ""
-    if cache_entry and cache_entry.sql_query:
-        sql_query = cache_entry.sql_query
-    else:
-        try:
-            sql_query = generate_sql(user_question)
-        except Exception as e:
-            logger.error(f"Error generating SQL: {str(e)}")
-            return f"I'm sorry, I couldn't formulate a query to answer your question. Error: {str(e)}"
-
-    # Database Execution & Feedback Loop
     try:
-        sql_results = execute_read_only_query(sql_query)
-        
-        # Save to cache if new
-        if not cache_entry:
-            cache_entry = QueryCache.objects.create(question=user_question, sql_query=sql_query)
-            
+        # Step 1: Plan the query (LLM picks endpoint + filters)
+        plan = plan_query(user_question, model)
+        if not plan:
+            logger.warning("Endpoint query planner returned None, falling back to Text-to-SQL")
+            return _handle_sql_fallback(user_question)
+
+        logger.info(f"Query plan: endpoint={plan.get('endpoint')}, filters={plan.get('filters')}")
+
+        # Step 2: Execute the ORM query
+        result = execute_query(plan)
+        result["hint"] = plan.get("hint", "")
+
+        # Step 3: Summarize the results
+        return summarize_query_results(user_question, result, model)
+
     except Exception as e:
-        # Feedback Loop: Log failed queries
+        logger.error(f"Endpoint query error: {e}", exc_info=True)
+        # Fallback to Text-to-SQL if the endpoint engine fails
+        logger.info("Falling back to Text-to-SQL")
+        return _handle_sql_fallback(user_question)
+
+
+def _handle_sql_fallback(user_question: str) -> str:
+    """Fallback: use Text-to-SQL for queries the endpoint engine can't handle."""
+    try:
+        sql_query = generate_sql(user_question)
+        sql_results = execute_read_only_query(sql_query)
+        return summarize_results(user_question, sql_results)
+    except Exception as e:
+        logger.error(f"SQL fallback also failed: {e}")
         FailedQueryLog.objects.create(
             question=user_question,
-            generated_sql=sql_query,
+            generated_sql=str(e),
             error_message=str(e)
         )
-        logger.error(f"SQL Execution Error: {str(e)} | Query: {sql_query}")
-        return "I'm sorry, I encountered an error while trying to fetch the data."
-
-    # Final Synthesis
-    try:
-        final_answer = summarize_results(user_question, sql_results)
-        
-        # Update cache with final answer
-        if cache_entry:
-            cache_entry.final_answer = final_answer
-            cache_entry.save()
-            
-        return final_answer
-        
-    except Exception as e:
-        logger.error(f"Error synthesizing response: {str(e)}")
-        return f"I found the data, but encountered an error while trying to summarize it. Error: {str(e)}"
+        return "I'm sorry, I encountered an error while trying to fetch the data. Please try rephrasing your question."
