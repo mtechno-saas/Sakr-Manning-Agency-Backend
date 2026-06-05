@@ -166,7 +166,7 @@ FILTER_MAPS = {
         "ship_name":        "contracts__ship__ship_name__icontains",
         "passport_no":      "passport_no__icontains",
         "seaman_book_no":   "seaman_book_no__icontains",
-        "course_name":      "marine_courses__course_name__icontains",
+        "course_name":      "courses__course_name__icontains",
         "document_status":  "documents__status__iexact",
     },
     "companies": {
