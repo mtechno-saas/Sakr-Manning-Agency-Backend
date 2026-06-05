@@ -89,23 +89,35 @@ def generate_full_profile_pdf(user_data, logo_path=None):
     )
     normal_style = styles['Normal']
 
-    # ── 1. Logo + Title ──────────────────────────────────────────────
-    if logo_path and os.path.exists(logo_path):
-        try:
-            img = Image(logo_path, width=80, height=80)
-            img.hAlign = 'LEFT'
-            elements.append(img)
-            elements.append(Spacer(1, 8))
-        except Exception:
-            pass
-
+    # ── 1. Logo + Title (branded header row) ────────────────────────
     name = _safe(user_data.get('first_name', ''))
     gen_id = _safe(user_data.get('generated_id', ''))
     title_text = f"Applicant Full Profile: {name}"
     if gen_id:
-        title_text += f"  (ID: {gen_id})"
-    elements.append(Paragraph(title_text, title_style))
-    elements.append(Spacer(1, 6))
+        title_text += f"<br/><font size='9' color='#555555'>ID: {gen_id}</font>"
+
+    header_built = False
+    if logo_path and os.path.exists(logo_path):
+        try:
+            logo_img = Image(logo_path, width=70, height=70)
+            header_table = Table(
+                [[logo_img, Paragraph(title_text, title_style)]],
+                colWidths=[80, 435],
+            )
+            header_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (0, 0), 0),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            elements.append(header_table)
+            header_built = True
+        except Exception:
+            pass
+
+    if not header_built:
+        elements.append(Paragraph(title_text, title_style))
+
+    elements.append(Spacer(1, 10))
 
     # ── 2. Personal Information ──────────────────────────────────────
     elements.append(Paragraph("Personal Information", section_style))
