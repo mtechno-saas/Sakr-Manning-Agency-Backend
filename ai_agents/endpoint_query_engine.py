@@ -56,6 +56,9 @@ start_date_from (date), start_date_to (date)
 
 ### 9. documents — Quick Apply Documents
 Filters: status (str: Pending|Active|Blacklist), name (str), position (str)
+
+### 10. personal_documents — Travel/Personal Documents (Visas, Passports, Seaman Books, etc)
+Filters: document_type (str: e.g. 'US Visa B1/B2', 'Passport', 'Schengen Visa'), document_number (str), issuing_country (str)
 """
 
 QUERY_PLANNER_PROMPT = """You are a query planner for a maritime manning agency backend.
@@ -67,7 +70,7 @@ Today's date: {today}  |  Current month: {month_name} {year}
 
 Return ONLY a valid JSON object — no markdown, no backticks, no explanation:
 {{
-  "endpoint": "users|companies|ships|job_orders|cv_submissions|interviews|contracts|finance|documents",
+  "endpoint": "users|companies|ships|job_orders|cv_submissions|interviews|contracts|finance|documents|personal_documents",
   "filters": {{"filter_name": "value"}},
   "count_only": false,
   "limit": 20,
@@ -140,6 +143,7 @@ def plan_query(question: str, model) -> dict:
     valid_endpoints = [
         "users", "companies", "ships", "job_orders",
         "cv_submissions", "interviews", "contracts", "finance", "documents",
+        "personal_documents"
     ]
     if plan.get("endpoint") not in valid_endpoints:
         logger.error(f"Invalid endpoint in plan: {plan.get('endpoint')}")
@@ -216,6 +220,11 @@ FILTER_MAPS = {
         "name":     "name__icontains",
         "position": "position__icontains",
     },
+    "personal_documents": {
+        "document_type": "document_type__icontains",
+        "document_number": "document_number__icontains",
+        "issuing_country": "issuing_country__icontains",
+    },
 }
 
 # Fields to return for each endpoint (lightweight .values() output)
@@ -255,6 +264,10 @@ DISPLAY_FIELDS = {
     ],
     "documents": [
         "id", "title", "name", "email", "position", "status", "created_at",
+    ],
+    "personal_documents": [
+        "id", "user__first_name", "user__email", "document_type", 
+        "document_number", "issue_date", "expiry_date", "issuing_country"
     ],
 }
 
@@ -298,6 +311,9 @@ def _get_base_queryset(endpoint: str):
     elif endpoint == "documents":
         from api.models import Document
         return Document.objects.all().order_by("-created_at")
+    elif endpoint == "personal_documents":
+        from api.models import PersonalDocument
+        return PersonalDocument.objects.select_related("user").all().order_by("-created_at")
     else:
         raise ValueError(f"Unknown endpoint: {endpoint}")
 
