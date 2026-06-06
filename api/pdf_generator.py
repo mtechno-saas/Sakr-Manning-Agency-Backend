@@ -52,6 +52,18 @@ def _make_table(headers, rows, col_widths=None):
     return table
 
 
+def _resolve_name(app_label, model_name, value):
+    if not value or not str(value).isdigit():
+        return value
+    from django.apps import apps
+    try:
+        model_class = apps.get_model(app_label, model_name)
+        obj = model_class.objects.get(id=int(value))
+        return obj.name
+    except Exception:
+        return value
+
+
 def generate_full_profile_pdf(user_data, logo_path=None):
     """
     Build a structured PDF from the full-profile endpoint payload.
@@ -88,6 +100,10 @@ def generate_full_profile_pdf(user_data, logo_path=None):
         borderWidth=0, borderPadding=0,
     )
     normal_style = styles['Normal']
+    cell_style = ParagraphStyle(
+        'CellStyle', parent=styles['Normal'],
+        fontSize=8, leading=10, textColor=colors.black
+    )
 
     # ── 1. Logo + Title (branded header row) ────────────────────────
     name = _safe(user_data.get('first_name', ''))
@@ -228,6 +244,7 @@ def generate_full_profile_pdf(user_data, logo_path=None):
             ['Issued By:', _safe(hc.get('issued_by')), 'Issued At:', _safe(hc.get('issued_at'))],
             ['Intl Medical No:', _safe(hc.get('international_medical_number')),
              'Intl Med Issue:', _safe(hc.get('international_medical_issue_date'))],
+            ['Intl Med Expiry:', _safe(hc.get('international_medical_expiry_date')), '', ''],
         ]
         hc_table = Table(hc_rows, colWidths=[90, 160, 90, 160])
         hc_table.setStyle(TableStyle([
@@ -238,6 +255,24 @@ def generate_full_profile_pdf(user_data, logo_path=None):
             ('GRID', (0, 0), (-1, -1), 0.25, colors.lightgrey),
         ]))
         elements.append(hc_table)
+        
+        records = hc.get('records', [])
+        if records:
+            vac_rows = []
+            for r in records:
+                vac_rows.append([
+                    Paragraph(_safe(r.get('vaccine_name')), cell_style),
+                    _safe(r.get('first_dose_date')),
+                    _safe(r.get('second_dose_date')),
+                    Paragraph(_safe(r.get('remarks')), cell_style)
+                ])
+            elements.append(Spacer(1, 5))
+            elements.append(Paragraph("Vaccinations", section_style))
+            elements.append(_make_table(
+                ['Vaccine Name', '1st Dose', '2nd Dose', 'Remarks'],
+                vac_rows, [150, 100, 100, 165]
+            ))
+            
         elements.append(Spacer(1, 10))
 
     # ── 7. Licenses ──────────────────────────────────────────────────
@@ -287,10 +322,10 @@ def generate_full_profile_pdf(user_data, logo_path=None):
         ss_rows = []
         for ss in sea_services:
             ss_rows.append([
-                _safe(ss.get('vessel_name', ss.get('ship_name', ''))),
-                _safe(ss.get('rank')),
-                _safe(ss.get('vessel_type')),
-                _safe(ss.get('flag')),
+                Paragraph(_safe(ss.get('vessel_name', ss.get('ship_name', ''))), cell_style),
+                Paragraph(_safe(_resolve_name('api', 'Rank', ss.get('rank'))), cell_style),
+                Paragraph(_safe(_resolve_name('core', 'VesselType', ss.get('vessel_type'))), cell_style),
+                Paragraph(_safe(_resolve_name('core', 'Flag', ss.get('flag'))), cell_style),
                 _safe(ss.get('signed_on')),
                 _safe(ss.get('signed_off')),
                 _safe(ss.get('period')),
@@ -308,12 +343,12 @@ def generate_full_profile_pdf(user_data, logo_path=None):
         c_rows = []
         for c in contracts:
             c_rows.append([
-                _safe(c.get('company_name')),
-                _safe(c.get('ship_name')),
-                _safe(c.get('rank_name')),
+                Paragraph(_safe(c.get('company_name')), cell_style),
+                Paragraph(_safe(c.get('ship_name')), cell_style),
+                Paragraph(_safe(c.get('rank_name')), cell_style),
                 _safe(c.get('sign_on_date')),
                 _safe(c.get('sign_off_date')),
-                _safe(c.get('status')),
+                Paragraph(_safe(c.get('status')), cell_style),
             ])
         elements.append(_make_table(
             ['Company', 'Ship', 'Rank', 'Sign On', 'Sign Off', 'Status'],
