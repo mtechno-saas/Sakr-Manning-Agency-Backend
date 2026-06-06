@@ -283,9 +283,9 @@ def generate_full_profile_pdf(user_data, logo_path=None):
         for lic in licenses:
             if isinstance(lic, dict):
                 lic_rows.append([
-                    _safe(lic.get('document_name')),
+                    Paragraph(_safe(lic.get('document_name')), cell_style),
                     _safe(lic.get('document_number')),
-                    _safe(lic.get('country_of_issue')),
+                    Paragraph(_safe(lic.get('country_of_issue')), cell_style),
                     _safe(lic.get('issue_date')),
                     _safe(lic.get('expiration_date')),
                 ])
