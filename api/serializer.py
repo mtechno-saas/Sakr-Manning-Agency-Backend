@@ -979,6 +979,9 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 'vaccine_name': v.name,
                 'issue_date': str(v.issue_date) if v.issue_date else None,
                 'expiry_date': str(v.expiry_date) if v.expiry_date else None,
+                'first_dose_date': str(v.first_date) if v.first_date else None,
+                'second_dose_date': str(v.last_date) if v.last_date else None,
+                'remarks': v.remarks,
                 'file_url': file_url(v.document, download_path=build_download_url('vaccination', v.id)) if v.document else None,
                 'download_url': build_download_url('vaccination', v.id) if v.document else None,
             }
@@ -1665,6 +1668,9 @@ class ContractSerializer(serializers.ModelSerializer):
                 'vaccine_name': v.name,
                 'issue_date': str(v.issue_date) if v.issue_date else None,
                 'expiry_date': str(v.expiry_date) if v.expiry_date else None,
+                'first_dose_date': str(v.first_date) if v.first_date else None,
+                'second_dose_date': str(v.last_date) if v.last_date else None,
+                'remarks': v.remarks,
                 'file_url': file_url(v.document, download_path=f"/api/users/{user.id}/download-vaccination/{v.id}/") if v.document else None,
                 'download_url': f"/api/users/{user.id}/download-vaccination/{v.id}/" if v.document else None,
             }
@@ -2236,6 +2242,9 @@ class UsersSerializer(serializers.ModelSerializer):
                 'vaccine_name': v.name,
                 'issue_date': str(v.issue_date) if v.issue_date else None,
                 'expiry_date': str(v.expiry_date) if v.expiry_date else None,
+                'first_dose_date': str(v.first_date) if v.first_date else None,
+                'second_dose_date': str(v.last_date) if v.last_date else None,
+                'remarks': v.remarks,
                 'file_url': file_url(v.document, download_path=build_download_url('vaccination', v.id)) if v.document else None,
                 'download_url': build_download_url('vaccination', v.id) if v.document else None,
             }

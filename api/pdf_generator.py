@@ -262,14 +262,14 @@ def generate_full_profile_pdf(user_data, logo_path=None):
             for r in records:
                 vac_rows.append([
                     Paragraph(_safe(r.get('vaccine_name')), cell_style),
-                    _safe(r.get('first_dose_date')),
-                    _safe(r.get('second_dose_date')),
+                    _safe(r.get('first_dose_date') or r.get('issue_date')),
+                    _safe(r.get('second_dose_date') or r.get('expiry_date')),
                     Paragraph(_safe(r.get('remarks')), cell_style)
                 ])
             elements.append(Spacer(1, 5))
             elements.append(Paragraph("Vaccinations", section_style))
             elements.append(_make_table(
-                ['Vaccine Name', '1st Dose', '2nd Dose', 'Remarks'],
+                ['Vaccine Name', '1st Dose / Issue', '2nd Dose / Expiry', 'Remarks'],
                 vac_rows, [150, 100, 100, 165]
             ))
             
