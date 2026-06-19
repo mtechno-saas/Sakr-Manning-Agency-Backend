@@ -179,7 +179,8 @@ class UsersFilter(django_filters.FilterSet):
             return queryset
         return queryset.filter(
             Q(codes__name__icontains=value) | 
-            Q(application_for_position__icontains=value)
+            Q(application_for_position__icontains=value) |
+            Q(position__icontains=value)
         ).distinct()
 
     class Meta:
