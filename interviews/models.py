@@ -1,6 +1,7 @@
 from django.db import models
 from api.models import Users
 
+# DEPRECATED: This model is no longer used. Use `api.models.Interview` instead.
 class Interview(models.Model):
     STATUS_CHOICES = [
         ('Scheduled', 'Scheduled'),

@@ -3,11 +3,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import FinanceRecord
 from .serializers import FinanceRecordSerializer
-
+from api.filters import FinanceRecordFilter
 
 class FinanceRecordViewSet(viewsets.ModelViewSet):
     queryset = FinanceRecord.objects.all()
     serializer_class = FinanceRecordSerializer
+    filterset_class = FinanceRecordFilter
 
     # Custom endpoint: calculate without saving
     @action(detail=False, methods=["post"])

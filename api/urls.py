@@ -11,7 +11,6 @@ from .views import (
     CertificateViewSet,
     RankViewSet,
     InterviewViewSet,
-    FinanceRecordViewSet,
     CVSubmissionViewSet,
     DeclarationViewSet,
     GlobalSearchView,
@@ -51,7 +50,6 @@ router.register(r'certificates', CertificateViewSet, basename="certificate")
 router.register(r'ranks', RankViewSet, basename="rank")
 # NOTE: companies route is handled by the companies app (includes stats endpoint)
 router.register(r'interviews', InterviewViewSet, basename="interview")
-router.register(r'finance-records', FinanceRecordViewSet, basename="financerecord")
 router.register(r'cv-submissions', CVSubmissionViewSet, basename="cvsubmission")
 router.register(r'declarations', DeclarationViewSet, basename="declaration")
 router.register(r'documents', DocumentViewSet, basename="document")

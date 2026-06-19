@@ -218,14 +218,13 @@ class InterviewFilter(django_filters.FilterSet):
 class FinanceRecordFilter(django_filters.FilterSet):
     user = django_filters.NumberFilter(field_name="user__id")
     company = django_filters.NumberFilter(field_name="company__id")
-    record_type = django_filters.CharFilter(field_name="record_type", lookup_expr="iexact")
     status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
     start_date_from = django_filters.DateFilter(field_name="start_date", lookup_expr="gte")
     start_date_to = django_filters.DateFilter(field_name="start_date", lookup_expr="lte")
 
     class Meta:
         model = FinanceRecord
-        fields = ["user", "company", "record_type", "status"]
+        fields = ["user", "company", "status"]
 
 
 class CVSubmissionFilter(django_filters.FilterSet):

@@ -3,11 +3,12 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from api.models import Interview
 from api.serializer import InterviewSerializer
-
+from api.filters import InterviewFilter
 
 class InterviewViewSet(viewsets.ModelViewSet):
     queryset = Interview.objects.all()
     serializer_class = InterviewSerializer
+    filterset_class = InterviewFilter
 
     @action(detail=False, methods=['get'], url_path='status')
     def status(self, request):
