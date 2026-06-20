@@ -1,0 +1,360 @@
+{
+    "user_name": "UNKNOWN APPLICANT",
+    "user_email_display": "",
+    "position_name": "Other",
+    "status": "Pending",
+    "notes": "Auto-submitted via Rule-Based CV Extractor",
+    "user_documents": {
+        "passport": {
+            "passport_no": "A27533066",
+            "issue_date": "2020-12-16",
+            "expiry_date": "2020-12-16",
+            "issued_by": null,
+            "place_of_issue": null
+        },
+        "seaman_book": {
+            "seaman_book_no": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "place_of_issue": null
+        },
+        "coc": {
+            "certificate_name": null,
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null
+        },
+        "goc": {
+            "certificate_number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "issued_by": null,
+            "issued_at": null
+        },
+        "health_certificate": {
+            "number": null,
+            "issue_date": null,
+            "expiry_date": null,
+            "international_medical_number": null,
+            "international_medical_issue_date": null,
+            "international_medical_expiry_date": null
+        },
+        "sea_service": [],
+        "marine_courses": [
+            {
+                "course_name": "Issued By / At",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            }
+        ]
+    },
+    "seafarer_application": {
+        "1_personal_details": {
+            "full_name": "UNKNOWN APPLICANT",
+            "date_of_birth": null,
+            "marital_status": {
+                "single": false,
+                "married": false
+            },
+            "nationality": "",
+            "place_of_birth": ""
+        },
+        "3_contact_details": {
+            "home_address_city": "",
+            "e_mail": "",
+            "mobile_tel": ""
+        },
+        "4_travel_documents": [
+            {
+                "type": "Passport",
+                "document_no": "A27533066",
+                "iss_date": "2020-12-16",
+                "exp_date": "2020-12-16",
+                "iss_by_authority": null,
+                "place_of_issue": null
+            },
+            {
+                "type": "Seaman Book",
+                "document_no": null,
+                "iss_date": null,
+                "exp_date": null,
+                "iss_by_authority": null,
+                "place_of_issue": null
+            }
+        ],
+        "5_professional_qualification_certificate_of_competency": [
+            {
+                "certificate_name": "COC",
+                "number": null,
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": null,
+                "issued_at": null
+            }
+        ],
+        "8_marine_courses": [
+            {
+                "course_name": "Issued By / At",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            },
+            {
+                "course_name": "EAMS / Alex.",
+                "number": "",
+                "issue_date": null,
+                "expiry_date": null,
+                "issued_by": "",
+                "issued_at": ""
+            }
+        ],
+        "9_complete_sea_service_details": {
+            "applicant_info": {
+                "name": "UNKNOWN APPLICANT",
+                "rank": "Other",
+                "register_code": ""
+            },
+            "service_records": []
+        }
+    }
+}

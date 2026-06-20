@@ -1,0 +1,106 @@
+"""Regression test for the endpoint_query_engine fixes.
+
+Verifies:
+  - users.position filter now finds users across all 3 sources
+    (codes__name, application_for_position, position column)
+  - users.rank_name filter no longer crashes (related_name was 'ranks',
+    should be 'user_ranks')
+"""
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saker.settings")
+django.setup()
+
+TEST_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_endpoint_fix.sqlite3")
+if os.path.exists(TEST_DB):
+    os.remove(TEST_DB)
+from django.conf import settings
+settings.DATABASES["default"]["NAME"] = TEST_DB
+
+from django.core.management import call_command
+call_command("migrate", verbosity=0, interactive=False)
+
+from django.contrib.auth import get_user_model
+from api.models import Users, Rank, UserRank
+from ai_agents.endpoint_query_engine import execute_query
+
+User = get_user_model()
+
+# Seed three users, each matchable through exactly ONE source
+rank_chief = Rank.objects.create(code="FX.CO", name="Chief Officer")
+rank_able = Rank.objects.create(code="FX.AB", name="Able Seaman")
+
+u_pos_col = User.objects.create_user(email="pos_col@x.com", first_name="Pos", role="Employee")
+u_pos_col.position = "Chief Officer"  # only this source
+u_pos_col.save()
+
+u_app = User.objects.create_user(email="app@x.com", first_name="App", role="Employee",
+                                  application_for_position="Able Seaman")
+assert not u_app.position
+
+u_codes = User.objects.create_user(email="codes@x.com", first_name="Codes", role="Employee")
+# Position is matchable via codes M2M AND user_ranks FK — both exist for this user
+u_codes.codes.add(rank_chief)
+UserRank.objects.create(user=u_codes, rank=rank_chief, assigned_code="FX.CO.001")
+assert not u_codes.position
+assert not u_codes.application_for_position
+
+User.objects.create_user(email="nomatch@x.com", first_name="No", role="Employee")
+
+failures = []
+def check(label, actual, expected):
+    if isinstance(actual, int):
+        got = actual
+        want = expected
+    else:
+        got = sorted(actual)
+        want = sorted(expected)
+    if got == want:
+        print(f"  [PASS] {label}")
+    else:
+        print(f"  [FAIL] {label}: expected {want}, got {got}")
+        failures.append(label)
+
+
+# --- position filter: must hit all three sources, with .distinct() collapsing dups ---
+out = execute_query({"endpoint": "users", "filters": {"position": "Chief Officer"}, "limit": 50})
+check("position=Chief Officer via position column", [r["email"] for r in out["results"]],
+      ["pos_col@x.com", "codes@x.com"])
+
+out = execute_query({"endpoint": "users", "filters": {"position": "Able Seaman"}, "limit": 50})
+check("position=Able Seaman via application_for_position", [r["email"] for r in out["results"]],
+      ["app@x.com"])
+
+out = execute_query({"endpoint": "users", "filters": {"position": "Officer"}, "limit": 50})
+check("position substring hits both position col and codes M2M (distinct)",
+      [r["email"] for r in out["results"]], ["pos_col@x.com", "codes@x.com"])
+
+out = execute_query({"endpoint": "users", "filters": {"position": "Electrician"}, "limit": 50})
+check("position with no match returns []", [r["email"] for r in out["results"]], [])
+
+# --- rank_name filter: must NOT crash, must find users with matching rank ---
+out = execute_query({"endpoint": "users", "filters": {"rank_name": "Chief Officer"}, "limit": 50})
+check("rank_name finds user via user_ranks__rank__name (no FieldError)",
+      [r["email"] for r in out["results"]], ["codes@x.com"])
+
+out = execute_query({"endpoint": "users", "filters": {"rank_name": "Able Seaman"}, "limit": 50})
+check("rank_name with no match returns []", [r["email"] for r in out["results"]], [])
+
+# --- combined: position + rank_name should narrow further ---
+out = execute_query({"endpoint": "users",
+                     "filters": {"position": "Officer", "rank_name": "Chief Officer"},
+                     "limit": 50})
+check("position + rank_name narrows to user with both", [r["email"] for r in out["results"]],
+      ["codes@x.com"])
+
+# --- empty/None values must not crash ---
+out = execute_query({"endpoint": "users", "filters": {"position": "", "rank_name": None}, "limit": 50})
+check("empty/None filters return all users", len(out["results"]), 4)
+
+print()
+if failures:
+    print(f"FAILED: {len(failures)}")
+    for f in failures: print(f"  - {f}")
+    raise SystemExit(1)
+print("All endpoint_query_engine regression checks PASSED.")

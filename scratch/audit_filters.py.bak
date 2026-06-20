@@ -1,0 +1,248 @@
+"""
+Audit script: instantiate EVERY filter documented in global_filters_reference.md
+with the querystring example given in the doc, run it against an isolated SQLite
+seed, and report any that crash (FieldError, etc.) or return wrong results.
+
+Run from project root:
+    python audit_filters.py
+"""
+import os
+import sys
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saker.settings")
+django.setup()
+
+TEST_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audit_filters.sqlite3")
+if os.path.exists(TEST_DB):
+    os.remove(TEST_DB)
+from django.conf import settings
+settings.DATABASES["default"]["NAME"] = TEST_DB
+
+from django.core.management import call_command
+call_command("migrate", verbosity=0, interactive=False)
+
+from django.http import QueryDict
+from django.contrib.auth import get_user_model
+
+from api.models import (
+    Users, Company as ApiCompany, Contract, CVSubmission, Interview, Rank, UserRank,
+    PersonalDocument, Document, UserLanguage, LanguageProficiency, Certificate,
+)
+from api.filters import (
+    UsersFilter, CompanyFilter as ApiCompanyFilter,
+    InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, JobOrderFilter,
+    FlightBookingFilter, VisaApplicationFilter, AuditFilter, IncidentReportFilter,
+    ShipFilter, ContractFilter,
+)
+from companies.models import Company, CompanyType, JobOrder, JobOrderPosition
+from companies.filters import CompanyFilter as CompaniesCompanyFilter
+from finance.models import FinanceRecord
+from logistics.models import FlightBooking, VisaApplication
+from compliance.models import Audit, IncidentReport
+from ships.models import Ship
+from core.models import Flag, VesselType
+
+# Seed -------------------------------------------------------------------
+ct_agency, _ = CompanyType.objects.get_or_create(name="Agency")
+ct_owner, _ = CompanyType.objects.get_or_create(name="Owner")
+
+vessel_bulk, _ = VesselType.objects.get_or_create(name="Bulk Carrier")
+vessel_tanker, _ = VesselType.objects.get_or_create(name="Tanker")
+
+flag_panama, _ = Flag.objects.get_or_create(name="Panama")
+flag_bahamas, _ = Flag.objects.get_or_create(name="Bahamas")
+
+co_agency_a = Company.objects.create(company_name="Maersk Agency", company_type=ct_agency, contact_email="a@m.com", status="Active")
+co_agency_b = Company.objects.create(company_name="PIL Agency", company_type=ct_agency, contact_email="b@p.com", status="Inactive")
+co_owner_a = Company.objects.create(company_name="Maersk Owner", company_type=ct_owner, contact_email="c@m.com", status="Active")
+co_owner_b = Company.objects.create(company_name="PIL Owner", company_type=ct_owner, contact_email="d@p.com", status="Prospect")
+
+ship_a = Ship.objects.create(ship_name="Northern Star", imo_number="IMO-001", company=co_owner_a, ship_type=vessel_bulk, flag=flag_panama, status="Active")
+ship_b = Ship.objects.create(ship_name="Eastern Wind", imo_number="IMO-002", company=co_owner_b, ship_type=vessel_tanker, flag=flag_bahamas, status="Active")
+
+User = get_user_model()
+u1 = User.objects.create_user(email="ahmed@x.com", first_name="Ahmed", middle_name="Hassan", user_status="ON_SITE", nationality="Egypt", role="Employee")
+u2 = User.objects.create_user(email="mohamed@x.com", first_name="Mohamed", middle_name="Ali", user_status="VACATION", nationality="Syria", role="Employee")
+u3 = User.objects.create_user(email="sara@x.com", first_name="Sara", middle_name="Khaled", user_status="ON_SITE", nationality="Egypt", role="Recruiter")
+u4 = User.objects.create_user(email="john@x.com", first_name="John", middle_name="Smith", user_status="ON_SITE", nationality="USA", role="Employee")
+
+# Rank + position variants
+rank_chief = Rank.objects.create(code="AUDIT.CO", name="Chief Officer")
+rank_able = Rank.objects.create(code="AUDIT.AB", name="Able Seaman")
+
+u1.codes.add(rank_chief)
+u1.application_for_position = "Chief Officer"
+u1.save()
+u1.position = "Chief Officer"
+u1.save()
+
+u2.application_for_position = "Able Seaman"
+u2.save()
+
+u3.codes.add(rank_chief)
+
+u4.codes.add(rank_able)
+u4.application_for_position = "Electrician"
+u4.position = "Electrician"
+u4.save()
+
+# Contracts
+Contract.objects.create(user=u1, company=co_agency_a, ship=ship_a, sign_on_date="2024-01-01", sign_off_date="2024-06-01", status="Signed")
+Contract.objects.create(user=u1, company=co_agency_a, ship=ship_b, sign_on_date="2024-06-02", sign_off_date="2024-12-01", status="Active")
+Contract.objects.create(user=u2, company=co_owner_b, ship=ship_b, sign_on_date="2024-03-01", sign_off_date="2024-09-01", status="Active")
+
+# CV submissions
+CVSubmission.objects.create(user=u1, company=co_agency_a, ship=ship_a, position=rank_chief, status="Pending", submitted_date="2024-04-01")
+CVSubmission.objects.create(user=u2, company=co_owner_b, ship=ship_b, position=rank_able, status="Approved", submitted_date="2024-05-01")
+
+# Interviews
+from datetime import date, time
+Interview.objects.create(candidate=u1, company=co_agency_a, position=rank_chief, scheduled_date=date(2024, 5, 1), scheduled_time=time(10, 0), status="Scheduled")
+
+# Finance
+FinanceRecord.objects.create(user=u1, company=co_agency_a, status="Pending", start_date=date(2024, 1, 1), end_date=date(2024, 1, 30))
+
+# Logistics
+FlightBooking.objects.create(user=u1, airline="Emirates", flight_number="EK001", departure_airport="DXB", arrival_airport="CAI", departure_time="2024-05-01T08:00:00Z", arrival_time="2024-05-01T12:00:00Z", status="Confirmed")
+VisaApplication.objects.create(user=u1, country="Egypt", visa_type="Tourist", status="Pending")
+
+# Compliance
+Audit.objects.create(audit_type="Annual", company=co_owner_a, ship=ship_a, audit_date=date(2024, 4, 1), auditor_name="Bob", organization="DNV", status="Open")
+IncidentReport.objects.create(title="Engine failure", incident_type="Accident", severity="High", ship=ship_a, is_closed=False, date_occurred=date(2024, 5, 1))
+
+# Documents
+PersonalDocument.objects.create(user=u1, document_type="Passport", document_number="P-001")
+PersonalDocument.objects.create(user=u1, document_type="Panama Seaman's Book", document_number="SB-001")
+PersonalDocument.objects.create(user=u2, document_type="Bahamas Seaman's Book", document_number="SB-002")
+PersonalDocument.objects.create(user=u4, document_type="Schengen Visa", document_number="V-001")
+
+Document.objects.create(user=u3, title="CV John", status="Active")
+Document.objects.create(user=u3, title="CV Ahmed", status="Pending")
+
+# ------------------------------------------------------------------
+# Audit: every (filter_name, qs) pair from global_filters_reference.md
+# ------------------------------------------------------------------
+problems = []
+def try_query(label, FilterClass, model, qs_string):
+    try:
+        qs = FilterClass(QueryDict(qs_string), queryset=model.objects.all()).qs
+        count = qs.count()
+        print(f"  [OK]  {label:60s} -> {count} rows  (qs={qs_string})")
+    except Exception as e:
+        print(f"  [FAIL] {label:60s} -> {type(e).__name__}: {e}  (qs={qs_string})")
+        problems.append((label, qs_string, type(e).__name__, str(e)))
+
+
+print("\n--- UsersFilter (api.filters) ---")
+try_query("name=ahmed",                       UsersFilter, Users, "name=ahmed")
+try_query("user_status=ON_SITE&user_status=VACATION", UsersFilter, Users, "user_status=ON_SITE&user_status=VACATION")
+try_query("nationality=Egypt&nationality=Syria", UsersFilter, Users, "nationality=Egypt&nationality=Syria")
+try_query("role=Employee&role=Admin",        UsersFilter, Users, "role=Employee&role=Admin")
+try_query("is_blacklisted=true",             UsersFilter, Users, "is_blacklisted=true")
+try_query("company=1 (agency_a)",            UsersFilter, Users, f"company={co_agency_a.id}")
+try_query("company_name=maersk",             UsersFilter, Users, "company_name=maersk")
+try_query("ship=1 (ship_a)",                 UsersFilter, Users, f"ship={ship_a.id}")
+try_query("ship_name=Northern",              UsersFilter, Users, "ship_name=Northern")
+try_query("job_position_name=Chief",         UsersFilter, Users, "job_position_name=Chief")
+try_query("position=Chief Officer",          UsersFilter, Users, "position=Chief Officer")
+try_query("language=English",                UsersFilter, Users, "language=English")
+try_query("contract_status=Signed&contract_status=Active", UsersFilter, Users, "contract_status=Signed&contract_status=Active")
+try_query("company_type=Agency",             UsersFilter, Users, "company_type=Agency")
+try_query("ship_type=Bulk",                  UsersFilter, Users, "ship_type=Bulk")
+try_query("passport_no=P-001",               UsersFilter, Users, "passport_no=P-001")
+try_query("passport_type=Passport",          UsersFilter, Users, "passport_type=Passport")
+try_query("seaman_book_no=SB-001",           UsersFilter, Users, "seaman_book_no=SB-001")
+try_query("seaman_book_type=Panama",         UsersFilter, Users, "seaman_book_type=Panama")
+try_query("document_type=Visa",              UsersFilter, Users, "document_type=Visa")
+try_query("medical_no=123",                  UsersFilter, Users, "medical_no=123")
+try_query("course_name=STCW",                UsersFilter, Users, "course_name=STCW")
+try_query("document_status=Active",          UsersFilter, Users, "document_status=Active")
+try_query("document_title=CV",               UsersFilter, Users, "document_title=CV")
+try_query("rank_name=Chief",                 UsersFilter, Users, "rank_name=Chief")
+try_query("assigned_code=AUDIT",             UsersFilter, Users, "assigned_code=AUDIT")
+
+print("\n--- CompanyFilter (companies.filters) — for companies.Company ---")
+try_query("name=maersk",                     CompaniesCompanyFilter, Company, "name=maersk")
+try_query("company_type=Agency&company_type=Owner", CompaniesCompanyFilter, Company, "company_type=Agency&company_type=Owner")
+try_query("status=Active&status=Inactive",   CompaniesCompanyFilter, Company, "status=Active&status=Inactive")
+
+print("\n--- CompanyFilter (api.filters) — for api.Company ---")
+try_query("name=foo",                        ApiCompanyFilter, ApiCompany, "name=foo")
+try_query("company_type=Active",             ApiCompanyFilter, ApiCompany, "company_type=Ship%20Owner")
+try_query("status=Active",                   ApiCompanyFilter, ApiCompany, "status=Active")
+
+print("\n--- ShipFilter ---")
+try_query("name=Northern",                   ShipFilter, Ship, "name=Northern")
+try_query("imo_number=IMO-001",              ShipFilter, Ship, "imo_number=IMO-001")
+try_query("flag=Panama",                     ShipFilter, Ship, "flag=Panama")
+try_query("ship_type=Bulk Carrier",          ShipFilter, Ship, "ship_type=Bulk%20Carrier")
+try_query("status=Active",                   ShipFilter, Ship, "status=Active")
+try_query("company=owner_a",                 ShipFilter, Ship, f"company={co_owner_a.id}")
+
+print("\n--- JobOrderFilter ---")
+try_query("status=Open&status=Pending",      JobOrderFilter, JobOrder, "status=Open&status=Pending")
+try_query("company=agency_a",                JobOrderFilter, JobOrder, f"company={co_agency_a.id}")
+try_query("reference_number=JO",             JobOrderFilter, JobOrder, "reference_number=JO")
+
+print("\n--- CVSubmissionFilter ---")
+try_query("user=u1",                         CVSubmissionFilter, CVSubmission, f"user={u1.id}")
+try_query("position=rank_chief",             CVSubmissionFilter, CVSubmission, f"position={rank_chief.id}")
+try_query("status=Pending",                  CVSubmissionFilter, CVSubmission, "status=Pending")
+try_query("submitted_date_from=2024-04-01",  CVSubmissionFilter, CVSubmission, "submitted_date_from=2024-04-01")
+
+print("\n--- InterviewFilter ---")
+try_query("candidate=u1",                    InterviewFilter, Interview, f"candidate={u1.id}")
+try_query("company=agency_a",                InterviewFilter, Interview, f"company={co_agency_a.id}")
+try_query("status=Scheduled",                InterviewFilter, Interview, "status=Scheduled")
+try_query("scheduled_date=2024-05-01",       InterviewFilter, Interview, "scheduled_date=2024-05-01")
+
+print("\n--- FinanceRecordFilter ---")
+try_query("user=u1",                         FinanceRecordFilter, FinanceRecord, f"user={u1.id}")
+try_query("company=agency_a",                FinanceRecordFilter, FinanceRecord, f"company={co_agency_a.id}")
+try_query("status=Pending",                  FinanceRecordFilter, FinanceRecord, "status=Pending")
+try_query("start_date_from=2024-01-01",      FinanceRecordFilter, FinanceRecord, "start_date_from=2024-01-01")
+
+print("\n--- FlightBookingFilter ---")
+try_query("user=u1",                         FlightBookingFilter, FlightBooking, f"user={u1.id}")
+try_query("status=Confirmed",                FlightBookingFilter, FlightBooking, "status=Confirmed")
+try_query("airline=Emirates",                FlightBookingFilter, FlightBooking, "airline=Emirates")
+try_query("departure_date=2024-05-01",       FlightBookingFilter, FlightBooking, "departure_date=2024-05-01")
+
+print("\n--- VisaApplicationFilter ---")
+try_query("user=u1",                         VisaApplicationFilter, VisaApplication, f"user={u1.id}")
+try_query("country=Egypt",                   VisaApplicationFilter, VisaApplication, "country=Egypt")
+try_query("visa_type=Tourist",               VisaApplicationFilter, VisaApplication, "visa_type=Tourist")
+try_query("status=Pending",                  VisaApplicationFilter, VisaApplication, "status=Pending")
+
+print("\n--- AuditFilter ---")
+try_query("company=owner_a",                 AuditFilter, Audit, f"company={co_owner_a.id}")
+try_query("ship=ship_a",                     AuditFilter, Audit, f"ship={ship_a.id}")
+try_query("audit_type=Annual",               AuditFilter, Audit, "audit_type=Annual")
+try_query("status=Open",                     AuditFilter, Audit, "status=Open")
+try_query("audit_date_from=2024-01-01",      AuditFilter, Audit, "audit_date_from=2024-01-01")
+
+print("\n--- IncidentReportFilter ---")
+try_query("ship=ship_a",                     IncidentReportFilter, IncidentReport, f"ship={ship_a.id}")
+try_query("incident_type=Accident",          IncidentReportFilter, IncidentReport, "incident_type=Accident")
+try_query("severity=High",                   IncidentReportFilter, IncidentReport, "severity=High")
+try_query("is_closed=false",                 IncidentReportFilter, IncidentReport, "is_closed=false")
+
+print("\n--- ContractFilter ---")
+try_query("user=u1",                         ContractFilter, Contract, f"user={u1.id}")
+try_query("ship=ship_a",                     ContractFilter, Contract, f"ship={ship_a.id}")
+try_query("company=agency_a",                ContractFilter, Contract, f"company={co_agency_a.id}")
+try_query("rank=rank_chief",                 ContractFilter, Contract, f"rank={rank_chief.id}")
+try_query("status=Active&status=Signed",     ContractFilter, Contract, "status=Active&status=Signed")
+try_query("sign_on_from=2024-01-01",         ContractFilter, Contract, "sign_on_from=2024-01-01")
+try_query("applicant_name=Ahmed",            ContractFilter, Contract, "applicant_name=Ahmed")
+
+print("\n" + "=" * 60)
+if problems:
+    print(f"FAILED: {len(problems)} queries had errors")
+    for label, qs, err, msg in problems:
+        print(f"  - {label}  (qs={qs})  {err}: {msg}")
+    sys.exit(1)
+else:
+    print("All filter queries execute cleanly.")
+    sys.exit(0)

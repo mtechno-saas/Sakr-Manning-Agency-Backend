@@ -1,0 +1,35 @@
+"""Check whether FILTER_MAPS['users']['rank_name'] in endpoint_query_engine.py
+is functional or crashes with FieldError due to wrong related_name."""
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saker.settings")
+django.setup()
+
+TEST_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_endpoint.sqlite3")
+if os.path.exists(TEST_DB):
+    os.remove(TEST_DB)
+from django.conf import settings
+settings.DATABASES["default"]["NAME"] = TEST_DB
+
+from django.core.management import call_command
+call_command("migrate", verbosity=0, interactive=False)
+
+from ai_agents.endpoint_query_engine import FILTER_MAPS, execute_query
+from api.models import Users, Rank
+
+# Probe: does the rank_name lookup actually work?
+print("Lookup from FILTER_MAPS['users']['rank_name']:", FILTER_MAPS["users"]["rank_name"])
+
+try:
+    out = execute_query({"endpoint": "users", "filters": {"rank_name": "Chief"}, "limit": 5})
+    print("rank_name query OK:", out.get("total"), "results")
+except Exception as e:
+    print(f"rank_name query CRASHED: {type(e).__name__}: {e}")
+
+# And probe the position lookup — should it ALSO cover the synced Users.position column?
+try:
+    out = execute_query({"endpoint": "users", "filters": {"position": "Chief"}, "limit": 5})
+    print("position query OK:", out.get("total"), "results")
+except Exception as e:
+    print(f"position query CRASHED: {type(e).__name__}: {e}")

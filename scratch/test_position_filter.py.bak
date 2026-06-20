@@ -1,0 +1,100 @@
+"""Targeted test for the position filter after commit 25dc784f.
+
+We seed users where their match can ONLY come from:
+  - the synced `position` column (Users.position, line 603 of models.py)
+  - the `application_for_position` column (line 428)
+  - the `codes` M2M (Rank.name)
+
+Each scenario should return that user; pre-commit only the latter two worked.
+"""
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saker.settings")
+django.setup()
+
+TEST_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_position.sqlite3")
+if os.path.exists(TEST_DB):
+    os.remove(TEST_DB)
+from django.conf import settings
+settings.DATABASES["default"]["NAME"] = TEST_DB
+
+from django.core.management import call_command
+call_command("migrate", verbosity=0, interactive=False)
+
+from django.http import QueryDict
+from django.contrib.auth import get_user_model
+from api.models import Users, Rank
+from api.filters import UsersFilter
+
+User = get_user_model()
+
+# Build rank codes
+rank_chief = Rank.objects.create(code="TEST.CO", name="Chief Officer")
+rank_able = Rank.objects.create(code="TEST.AB", name="Able Seaman")
+
+# Three users, each matchable only through ONE of the three sources
+u_pos_only = User.objects.create_user(
+    email="pos_only@x.com", first_name="Pos", role="Employee",
+)
+u_pos_only.position = "Chief Officer"  # synced from Document.position
+u_pos_only.save()
+
+u_app_only = User.objects.create_user(
+    email="app_only@x.com", first_name="App", role="Employee",
+    application_for_position="Able Seaman",
+)
+# Make sure `position` is empty so we know we matched through application_for_position
+assert not u_app_only.position
+
+u_codes_only = User.objects.create_user(
+    email="codes_only@x.com", first_name="Codes", role="Employee",
+)
+u_codes_only.codes.add(rank_chief)
+assert not u_codes_only.position
+assert not u_codes_only.application_for_position
+
+# Sanity: a user that should NOT match
+User.objects.create_user(email="nomatch@x.com", first_name="No", role="Employee")
+
+failures = []
+def check(label, actual, expected):
+    if isinstance(actual, int):
+        got = actual
+    else:
+        got = sorted(actual)
+    if got == (expected if isinstance(expected, int) else sorted(expected)):
+        print(f"  [PASS] {label}")
+    else:
+        print(f"  [FAIL] {label}: expected {expected}, got {actual}")
+        failures.append(label)
+
+
+qs = UsersFilter(QueryDict("position=Chief Officer"), queryset=Users.objects.all()).qs
+check("position matches via position column", qs.values_list("email", flat=True),
+      ["pos_only@x.com", "codes_only@x.com"])
+
+qs = UsersFilter(QueryDict("position=Able Seaman"), queryset=Users.objects.all()).qs
+check("position matches via application_for_position", qs.values_list("email", flat=True),
+      ["app_only@x.com"])
+
+# Now the trickier one: "Officer" should match Chief Officer via BOTH
+# position column AND codes M2M, returning both, with distinct collapsing duplicates
+qs = UsersFilter(QueryDict("position=Officer"), queryset=Users.objects.all()).qs
+check("position substring matches both columns and is distinct", qs.values_list("email", flat=True),
+      ["pos_only@x.com", "codes_only@x.com"])
+
+# Negative case
+qs = UsersFilter(QueryDict("position=Electrician"), queryset=Users.objects.all()).qs
+check("position with no match returns empty", qs.values_list("email", flat=True), [])
+
+# Empty value should not crash and should return everything
+qs = UsersFilter(QueryDict(""), queryset=Users.objects.all()).qs
+check("empty QueryDict returns all users", qs.count(), 4)
+
+print()
+if failures:
+    print(f"FAILED: {len(failures)}")
+    for f in failures: print(f"  - {f}")
+    raise SystemExit(1)
+print("All position-filter checks PASSED.")

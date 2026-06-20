@@ -1,0 +1,836 @@
+Found 219 files in /run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files. Starting processing...
+
+--- Processing A,B Kareem Hesham Elsaid Badway Abdelfattah.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[A,B Kareem Hesham Elsaid Badway Abdelfattah.docx] Error: Data extraction returned None.
+--- Processing A.B Abdalla ELNokrashy Ibrahim Moustafa.docx ---
+[A.B Abdalla ELNokrashy Ibrahim Moustafa.docx] Serializer validation failed: {
+  "user_first_name": [
+    "This field may not be blank."
+  ],
+  "user_middle_name": [
+    "This field may not be blank."
+  ]
+}
+--- Processing deepseek_json_20260601_c11b8a.json ---
+[deepseek_json_20260601_c11b8a.json] Error: Unterminated string starting at: line 256 column 31 (char 8466)
+--- Processing gemini-code-1780326986798.json ---
+[gemini-code-1780326986798.json] Error: NOT NULL constraint failed: api_users.coc_issued_by
+--- Processing AB   MAHMOUD FATHY GALAL ABDELAAL.docx ---
+[AB   MAHMOUD FATHY GALAL ABDELAAL.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB MAHMOUD NASR HASSANEIN IBRAHIM.docx ---
+[AB MAHMOUD NASR HASSANEIN IBRAHIM.docx] Successfully ingested CV Submission ID: 193
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+--- Processing gemini-code-1780340461593.json ---
+[gemini-code-1780340461593.json] Error: Expecting property name enclosed in double quotes: line 3645 column 38 (char 108445)
+--- Processing gemini-code-1780341205662.json ---
+[gemini-code-1780341205662.json] Error: Unterminated string starting at: line 3201 column 5 (char 95665)
+--- Processing a.b Ahmed esmail Ibíahim esmail.docx ---
+[a.b Ahmed esmail Ibíahim esmail.docx] Serializer validation failed: {
+  "user_first_name": [
+    "This field may not be blank."
+  ],
+  "user_middle_name": [
+    "This field may not be blank."
+  ]
+}
+--- Processing A.B EMAD ALY ALY ABOU ELHASSAN.docx ---
+[A.B EMAD ALY ALY ABOU ELHASSAN.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing A.B Mohammed Moustafa Abdallah Mohamed.docx ---
+[A.B Mohammed Moustafa Abdallah Mohamed.docx] Error: database is locked
+--- Processing A.B Ahmed Youssef Mohamed el saadewy.docx ---
+[A.B Ahmed Youssef Mohamed el saadewy.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing gemini-code-1780342041203.json ---
+[gemini-code-1780342041203.json] Error: Invalid \escape: line 50 column 76 (char 3251)
+--- Processing gemini-code-1780342300885.json ---
+[gemini-code-1780342300885.json] Serializer validation failed: {
+  "user_email": [
+    "Enter a valid email address."
+  ]
+}
+--- Processing gemini-code-1780344518755.json ---
+[gemini-code-1780344518755.json] Error: 'list' object has no attribute 'get'
+--- Processing gemini-code-1780345115807.json ---
+[gemini-code-1780345115807.json] Error: No email provided in data.
+--- Processing gemini-code-1780345125976.json ---
+[gemini-code-1780345125976.json] Error: NOT NULL constraint failed: api_users.coc_issued_by
+--- Processing gemini-code-1780345446183.json ---
+[gemini-code-1780345446183.json] Error: NOT NULL constraint failed: api_users.coc_issued_by
+--- Processing gemini-code-1780346358022.json ---
+[gemini-code-1780346358022.json] Error: No email provided in data.
+--- Processing gemini-code-1780346383982.json ---
+[gemini-code-1780346383982.json] Error: NOT NULL constraint failed: api_users.coc_issued_by
+--- Processing gemini-code-1780347871380.json ---
+[gemini-code-1780347871380.json] Error: 'list' object has no attribute 'get'
+--- Processing Meaning Of Code.docx ---
+[Meaning Of Code.docx] Error: No email provided in data.
+--- Processing A.B KHALED MOHAMED ATTIA ABOU-ZEID.docx ---
+[A.B KHALED MOHAMED ATTIA ABOU-ZEID.docx] Error: No email provided in data.
+--- Processing A.B mohamed hassan mohamed bayoumy.docx ---
+[A.B mohamed hassan mohamed bayoumy.docx] Successfully ingested CV Submission ID: 309
+[A.B mohamed hassan mohamed bayoumy.docx] Error: ['“2017-02-29” value has the correct format (YYYY-MM-DD) but it is an invalid date.']
+--- Processing a.b MOHAMED MOHAMED ASHOUR ELKASHAWY.docx ---
+[a.b MOHAMED MOHAMED ASHOUR ELKASHAWY.docx] Successfully ingested CV Submission ID: 316
+Ingested 0 new Sea Service records.
+[a.b MOHAMED MOHAMED ASHOUR ELKASHAWY.docx] Error: ['“2025-02-29” value has the correct format (YYYY-MM-DD) but it is an invalid date.']
+--- Processing A.B MOHAMED MOUSTAFA ELSAYED HELALY.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[A.B MOHAMED MOUSTAFA ELSAYED HELALY.docx] Error: Data extraction returned None.
+--- Processing A.B Ragab Mahmoud Ragab Ismail Ali.docx ---
+[A.B Ragab Mahmoud Ragab Ismail Ali.docx] Error: database is locked
+--- Processing AB ABDELAZEZ Samy ABDELAZEZ Mohamed.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB ABDELAZEZ Samy ABDELAZEZ Mohamed.docx] Error: Data extraction returned None.
+--- Processing AB Ahmed Gomaa Hassan Elbarawy.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB Ahmed Gomaa Hassan Elbarawy.docx] Error: Data extraction returned None.
+--- Processing AB Ahmed Moustafa Abdelalim Hassan Elmelligy.docx ---
+[AB Ahmed Moustafa Abdelalim Hassan Elmelligy.docx] Serializer validation failed: {
+  "user_first_name": [
+    "This field may not be blank."
+  ],
+  "user_middle_name": [
+    "This field may not be blank."
+  ]
+}
+--- Processing AB AMR SHAWKY MOHAMED  ABOU ALHAGAG.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB AMR SHAWKY MOHAMED  ABOU ALHAGAG.docx] Error: Data extraction returned None.
+--- Processing AB ASHRAF MAHMOUD AHMED MOHAMED.docx ---
+[AB ASHRAF MAHMOUD AHMED MOHAMED.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB DIAA ELSAYED MOHAMED ABDALLA.docx ---
+[AB DIAA ELSAYED MOHAMED ABDALLA.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB ELTAYEB GAMAL HUSSEIN MOHAMED.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB ELTAYEB GAMAL HUSSEIN MOHAMED.docx] Error: Data extraction returned None.
+--- Processing AB ESLAM MOHSEN ELTABEY DADOUR.docx ---
+[AB ESLAM MOHSEN ELTABEY DADOUR.docx] Error: No email provided in data.
+--- Processing AB Ahmed Gaber Ahmed Abdullah.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB Ahmed Gaber Ahmed Abdullah.docx] Error: Data extraction returned None.
+--- Processing AB Ahmed Mohamed Etefy.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB Ahmed Mohamed Etefy.docx] Error: Data extraction returned None.
+--- Processing AB Amr Mohamed Morad Abbas.docx ---
+[AB Amr Mohamed Morad Abbas.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB BELAL HAMDY MOHAMED SHARAFELDIN ALY.docx ---
+[AB BELAL HAMDY MOHAMED SHARAFELDIN ALY.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB ESLAM HEMDAN ABDELRAHMAN KELIEY.docx ---
+[AB ESLAM HEMDAN ABDELRAHMAN KELIEY.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB FADY MOHAMED AHMED ABD ALHAMID.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB FADY MOHAMED AHMED ABD ALHAMID.docx'
+[AB FADY MOHAMED AHMED ABD ALHAMID.docx] Error: Data extraction returned None.
+--- Processing AB HASSAN GAD AHMED SAYED AHMED.docx ---
+[AB HASSAN GAD AHMED SAYED AHMED.docx] Successfully ingested CV Submission ID: 424
+Ingested 0 new Sea Service records.
+Ingested 7 new Marine Course records.
+--- Processing AB Ibrahim Elsayed Ibrahim Ismail.docx ---
+[AB Ibrahim Elsayed Ibrahim Ismail.docx] Successfully ingested CV Submission ID: 426
+Ingested 6 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing AB KAREEM MOHAMED MOHAMED ELAFIFY.docx ---
+[AB KAREEM MOHAMED MOHAMED ELAFIFY.docx] Successfully ingested CV Submission ID: 428
+Ingested 5 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing AB Khalid Ebeid Abdelbaset Hassan.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Khalid Ebeid Abdelbaset Hassan.docx'
+[AB Khalid Ebeid Abdelbaset Hassan.docx] Error: Data extraction returned None.
+--- Processing ab FARES ALAA AWAD ASAR.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/ab FARES ALAA AWAD ASAR.docx'
+[ab FARES ALAA AWAD ASAR.docx] Error: Data extraction returned None.
+--- Processing AB FATHI SHRIF FATHY EISSA.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB FATHI SHRIF FATHY EISSA.docx'
+[AB FATHI SHRIF FATHY EISSA.docx] Error: Data extraction returned None.
+--- Processing AB Galal Hussien Lofty Abou-Amasha.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Galal Hussien Lofty Abou-Amasha.docx'
+[AB Galal Hussien Lofty Abou-Amasha.docx] Error: Data extraction returned None.
+--- Processing AB Gamal rehab abdlelatif khalil.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Gamal rehab abdlelatif khalil.docx'
+[AB Gamal rehab abdlelatif khalil.docx] Error: Data extraction returned None.
+--- Processing AB HAITHAM ALI ABDELSALAM MAHMOUD HASSAN ELREKAWY.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB HAITHAM ALI ABDELSALAM MAHMOUD HASSAN ELREKAWY.docx'
+[AB HAITHAM ALI ABDELSALAM MAHMOUD HASSAN ELREKAWY.docx] Error: Data extraction returned None.
+--- Processing AB HAMADA MAHROUS AHMED AHMED.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB HAMADA MAHROUS AHMED AHMED.docx'
+[AB HAMADA MAHROUS AHMED AHMED.docx] Error: Data extraction returned None.
+--- Processing AB HAMADA SHABAN ABD-ELATTY ELABD.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB HAMADA SHABAN ABD-ELATTY ELABD.docx'
+[AB HAMADA SHABAN ABD-ELATTY ELABD.docx] Error: Data extraction returned None.
+--- Processing AB HAMDY AHMED MOHAMED ELFAYOUMY.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB HAMDY AHMED MOHAMED ELFAYOUMY.docx'
+[AB HAMDY AHMED MOHAMED ELFAYOUMY.docx] Error: Data extraction returned None.
+--- Processing ab HAMDY MOHAMED ABDELAAL SHAIKHOUN.docx ---
+[ab HAMDY MOHAMED ABDELAAL SHAIKHOUN.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB HAMODA KHAMIS HEMIDA HAMODA HEMIDA.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB HAMODA KHAMIS HEMIDA HAMODA HEMIDA.docx'
+[AB HAMODA KHAMIS HEMIDA HAMODA HEMIDA.docx] Error: Data extraction returned None.
+--- Processing AB HASSAN ABDELHARES MOHAMED MOHAMED GADOU.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB HASSAN ABDELHARES MOHAMED MOHAMED GADOU.docx'
+[AB HASSAN ABDELHARES MOHAMED MOHAMED GADOU.docx] Error: Data extraction returned None.
+--- Processing ab Hassan Ibrahem Ahmed Mohamed.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/ab Hassan Ibrahem Ahmed Mohamed.docx'
+[ab Hassan Ibrahem Ahmed Mohamed.docx] Error: Data extraction returned None.
+--- Processing AB HASSAN MOHAMED MAHMOUD SHATA.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB HASSAN MOHAMED MAHMOUD SHATA.docx'
+[AB HASSAN MOHAMED MAHMOUD SHATA.docx] Error: Data extraction returned None.
+--- Processing AB Hassan Youssef Ahmed.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Hassan Youssef Ahmed.docx'
+[AB Hassan Youssef Ahmed.docx] Error: Data extraction returned None.
+--- Processing AB Haytham Sobhy Abdelaziz Ibrahim Mansour.docx ---
+[AB Haytham Sobhy Abdelaziz Ibrahim Mansour.docx] Successfully ingested CV Submission ID: 430
+Ingested 11 new Sea Service records.
+Ingested 14 new Marine Course records.
+--- Processing AB HAZEM KHALED MOUSTAFA MOHAMED HIKAL.docx ---
+[AB HAZEM KHALED MOUSTAFA MOHAMED HIKAL.docx] Successfully ingested CV Submission ID: 431
+Ingested 7 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB HESHAM HAMED HASSAN MOHAMED.docx ---
+[AB HESHAM HAMED HASSAN MOHAMED.docx] Successfully ingested CV Submission ID: 432
+Ingested 9 new Sea Service records.
+Ingested 21 new Marine Course records.
+--- Processing AB HESHAM MOHAMED NAGUIB ABDELHAY IBRAHIM.docx ---
+[AB HESHAM MOHAMED NAGUIB ABDELHAY IBRAHIM.docx] Successfully ingested CV Submission ID: 433
+Ingested 4 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB HOSNY FARID HOSNY GABR.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB HOSNY FARID HOSNY GABR.docx'
+[AB HOSNY FARID HOSNY GABR.docx] Error: Data extraction returned None.
+--- Processing AB Hussien EL shafie Abdelaal.docx ---
+[AB Hussien EL shafie Abdelaal.docx] Serializer validation failed: {
+  "user_email": [
+    "Enter a valid email address."
+  ]
+}
+--- Processing AB HUSSIEVN ABO ELMATTY ZEIN SHETTA.docx ---
+[AB HUSSIEVN ABO ELMATTY ZEIN SHETTA.docx] Successfully ingested CV Submission ID: 436
+Ingested 3 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB Hytham Mohamed AbuElela.docx ---
+[AB Hytham Mohamed AbuElela.docx] Successfully ingested CV Submission ID: 437
+Ingested 13 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing ab IBRAHIM IBRAHIM MOHAMED ELGHARBAWY.docx ---
+[ab IBRAHIM IBRAHIM MOHAMED ELGHARBAWY.docx] Successfully ingested CV Submission ID: 438
+Ingested 9 new Sea Service records.
+Ingested 19 new Marine Course records.
+--- Processing AB IBRAHIM KHALIFA ELSAYED ABOUHEGAZY.docx ---
+[AB IBRAHIM KHALIFA ELSAYED ABOUHEGAZY.docx] Successfully ingested CV Submission ID: 439
+Ingested 4 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB IBRAHIM ROSHDY AHMED ELSHIEKH IBRAHIM.docx ---
+[AB IBRAHIM ROSHDY AHMED ELSHIEKH IBRAHIM.docx] Successfully ingested CV Submission ID: 440
+Ingested 9 new Sea Service records.
+Ingested 15 new Marine Course records.
+--- Processing AB IBRAHIM SAID MOHAMED KHEDR IBRAHIM.docx ---
+[AB IBRAHIM SAID MOHAMED KHEDR IBRAHIM.docx] Successfully ingested CV Submission ID: 441
+Ingested 8 new Sea Service records.
+Ingested 10 new Marine Course records.
+--- Processing AB IBRAHIM SAYED MOHAMED AHMED.docx ---
+[AB IBRAHIM SAYED MOHAMED AHMED.docx] Successfully ingested CV Submission ID: 442
+Ingested 9 new Sea Service records.
+Ingested 11 new Marine Course records.
+--- Processing AB IHAB ABDOU ABDELHADY ELBOREY.docx ---
+[AB IHAB ABDOU ABDELHADY ELBOREY.docx] Successfully ingested CV Submission ID: 443
+Ingested 4 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB ISLAM ALY ALY AHMED FESHIR.docx ---
+[AB ISLAM ALY ALY AHMED FESHIR.docx] Successfully ingested CV Submission ID: 444
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB ISLAM ALY ALY AHMED FESHIR.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB ISLAM ALY ALY AHMED FESHIR.docx'
+--- Processing AB Islam ismail ali shaaban darwish.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Islam ismail ali shaaban darwish.docx'
+[AB Islam ismail ali shaaban darwish.docx] Error: Data extraction returned None.
+--- Processing AB Islam Moawd Mohammad Abdallah Elsharkawy.docx ---
+[AB Islam Moawd Mohammad Abdallah Elsharkawy.docx] Error: No email provided in data.
+--- Processing AB Islam Reda mohamed.docx ---
+[AB Islam Reda mohamed.docx] Successfully ingested CV Submission ID: 447
+Ingested 5 new Sea Service records.
+Ingested 9 new Marine Course records.
+--- Processing AB Islam Saad Muhammad.docx ---
+[AB Islam Saad Muhammad.docx] Successfully ingested CV Submission ID: 448
+Ingested 7 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing AB KARIM ABDELGHANI ELSAYED  KASSEM OSMAN..docx ---
+[AB KARIM ABDELGHANI ELSAYED  KASSEM OSMAN..docx] Successfully ingested CV Submission ID: 449
+Ingested 13 new Sea Service records.
+Ingested 14 new Marine Course records.
+--- Processing AB Karim Komsan Abdelaal Farrag.docx ---
+[AB Karim Komsan Abdelaal Farrag.docx] Successfully ingested CV Submission ID: 450
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Karim Komsan Abdelaal Farrag.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Karim Komsan Abdelaal Farrag.docx'
+--- Processing AB KARIM TAHA ABDALMONEM TAHA.docx ---
+[AB KARIM TAHA ABDALMONEM TAHA.docx] Successfully ingested CV Submission ID: 172
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+--- Processing AB KHAIRY MOHAMED AHMED ASHRAF.docx ---
+[AB KHAIRY MOHAMED AHMED ASHRAF.docx] Successfully ingested CV Submission ID: 173
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB KHAIRY MOHAMED AHMED ASHRAF.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB KHAIRY MOHAMED AHMED ASHRAF.docx'
+--- Processing AB Khaled abdel khalek abdel fattah.docx ---
+[AB Khaled abdel khalek abdel fattah.docx] Successfully ingested CV Submission ID: 174
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Khaled abdel khalek abdel fattah.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Khaled abdel khalek abdel fattah.docx'
+--- Processing AB KHALED ABDO FEREEJ BEHAIRY.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB KHALED ABDO FEREEJ BEHAIRY.docx] Error: Data extraction returned None.
+--- Processing AB Khaled ali abdelhamed elmesmary.docx ---
+[AB Khaled ali abdelhamed elmesmary.docx] Successfully ingested CV Submission ID: 175
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Khaled ali abdelhamed elmesmary.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Khaled ali abdelhamed elmesmary.docx'
+--- Processing AB Khaled Amr Ahmed Abodeif.docx ---
+[AB Khaled Amr Ahmed Abodeif.docx] Successfully ingested CV Submission ID: 176
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Khaled Amr Ahmed Abodeif.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Khaled Amr Ahmed Abodeif.docx'
+--- Processing AB KHALED FOUAD HUSSEIN ALALAILI.docx ---
+[AB KHALED FOUAD HUSSEIN ALALAILI.docx] Successfully ingested CV Submission ID: 177
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB KHALED FOUAD HUSSEIN ALALAILI.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB KHALED FOUAD HUSSEIN ALALAILI.docx'
+--- Processing AB KHALED MOHAMED ABDELLATIF ALY.docx ---
+[AB KHALED MOHAMED ABDELLATIF ALY.docx] Successfully ingested CV Submission ID: 178
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB KHALED MOHAMED ABDELLATIF ALY.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB KHALED MOHAMED ABDELLATIF ALY.docx'
+--- Processing AB KHALED SAMIR MOHAMED ZEIADA.docx ---
+[AB KHALED SAMIR MOHAMED ZEIADA.docx] Successfully ingested CV Submission ID: 179
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB KHALED SAMIR MOHAMED ZEIADA.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB KHALED SAMIR MOHAMED ZEIADA.docx'
+--- Processing AB Mabrouk Sayed Mabrouk.docx ---
+[AB Mabrouk Sayed Mabrouk.docx] Successfully ingested CV Submission ID: 200
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Mabrouk Sayed Mabrouk.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Mabrouk Sayed Mabrouk.docx'
+--- Processing ab MAHER AHMED MOHAMED ELEZABY.docx ---
+[ab MAHER AHMED MOHAMED ELEZABY.docx] Successfully ingested CV Submission ID: 181
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+--- Processing AB Mahmoud  Abdelhamid Ali  Abdelhamid Mohamed.docx ---
+[AB Mahmoud  Abdelhamid Ali  Abdelhamid Mohamed.docx] Successfully ingested CV Submission ID: 182
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+--- Processing AB Mahmoud abdelhafeez khalaf  osman.docx ---
+[AB Mahmoud abdelhafeez khalaf  osman.docx] Successfully ingested CV Submission ID: 183
+Ingested 0 new Sea Service records.
+[AB Mahmoud abdelhafeez khalaf  osman.docx] Error: ['“2021-18-10” value has the correct format (YYYY-MM-DD) but it is an invalid date.']
+--- Processing AB MAHMOUD ABOUZIED AHMED ABDELLAH.docx ---
+[AB MAHMOUD ABOUZIED AHMED ABDELLAH.docx] Successfully ingested CV Submission ID: 184
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MAHMOUD ABOUZIED AHMED ABDELLAH.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MAHMOUD ABOUZIED AHMED ABDELLAH.docx'
+--- Processing AB Mahmoud Ahmed Hassan Shokhoba.docx ---
+[AB Mahmoud Ahmed Hassan Shokhoba.docx] Successfully ingested CV Submission ID: 185
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Mahmoud Ahmed Hassan Shokhoba.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Mahmoud Ahmed Hassan Shokhoba.docx'
+--- Processing AB MAHMOUD AHMED MAHMOUD AHMED FARAG.docx ---
+[AB MAHMOUD AHMED MAHMOUD AHMED FARAG.docx] Successfully ingested CV Submission ID: 186
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+--- Processing AB MAHMOUD GAMAL ZAKI  ABDOU SOBH.docx ---
+[AB MAHMOUD GAMAL ZAKI  ABDOU SOBH.docx] Successfully ingested CV Submission ID: 187
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MAHMOUD GAMAL ZAKI  ABDOU SOBH.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MAHMOUD GAMAL ZAKI  ABDOU SOBH.docx'
+--- Processing AB MAHMOUD MOHAMED AHMED ABDELAAL.docx ---
+[AB MAHMOUD MOHAMED AHMED ABDELAAL.docx] Successfully ingested CV Submission ID: 188
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MAHMOUD MOHAMED AHMED ABDELAAL.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MAHMOUD MOHAMED AHMED ABDELAAL.docx'
+--- Processing AB Mahmoud Mohamed Mahmoud Abdelhamed.docx ---
+[AB Mahmoud Mohamed Mahmoud Abdelhamed.docx] Successfully ingested CV Submission ID: 189
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+--- Processing AB MAHMOUD MOHAMED MAHMOUD AWAD   ALREEDY.docx ---
+[AB MAHMOUD MOHAMED MAHMOUD AWAD   ALREEDY.docx] Successfully ingested CV Submission ID: 190
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+--- Processing AB MAHMOUD MOHAMED MOSAAD ABDLLA.docx ---
+[AB MAHMOUD MOHAMED MOSAAD ABDLLA.docx] Successfully ingested CV Submission ID: 191
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+--- Processing AB MAHMOUD SAMY MOHAMED SAFAAN.docx ---
+[AB MAHMOUD SAMY MOHAMED SAFAAN.docx] Successfully ingested CV Submission ID: 194
+Ingested 0 new Sea Service records.
+[AB MAHMOUD SAMY MOHAMED SAFAAN.docx] Error: database is locked
+--- Processing AB Mahmoud Soliaman Abduallah.docx ---
+Error reading docx: Package not found at '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Mahmoud Soliaman Abduallah.docx'
+[AB Mahmoud Soliaman Abduallah.docx] Error: Data extraction returned None.
+--- Processing AB MAZEN MAHMOUD AHMED KAMEL ROUSHDY.docx ---
+[AB MAZEN MAHMOUD AHMED KAMEL ROUSHDY.docx] Successfully ingested CV Submission ID: 196
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MAZEN MAHMOUD AHMED KAMEL ROUSHDY.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MAZEN MAHMOUD AHMED KAMEL ROUSHDY.docx'
+--- Processing AB MEDHAT FATHY SAAD ELSAYED KIWAN.docx ---
+[AB MEDHAT FATHY SAAD ELSAYED KIWAN.docx] Successfully ingested CV Submission ID: 197
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MEDHAT FATHY SAAD ELSAYED KIWAN.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MEDHAT FATHY SAAD ELSAYED KIWAN.docx'
+--- Processing AB Mina Abdelnour Amen Khalil Sakran.docx ---
+[AB Mina Abdelnour Amen Khalil Sakran.docx] Successfully ingested CV Submission ID: 198
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+--- Processing ab MOAMEN ABDOU ELSAYED MOHAMED SALEM ELBANY.docx ---
+[ab MOAMEN ABDOU ELSAYED MOHAMED SALEM ELBANY.docx] Successfully ingested CV Submission ID: 199
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[ab MOAMEN ABDOU ELSAYED MOHAMED SALEM ELBANY.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/ab MOAMEN ABDOU ELSAYED MOHAMED SALEM ELBANY.docx'
+--- Processing AB Moamen Hassan Ahmed Fouad Mohamed Soliman.docx ---
+[AB Moamen Hassan Ahmed Fouad Mohamed Soliman.docx] Successfully ingested CV Submission ID: 455
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Moamen Hassan Ahmed Fouad Mohamed Soliman.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Moamen Hassan Ahmed Fouad Mohamed Soliman.docx'
+--- Processing AB MOAMEN NASIM IBRAHIM ELFEKY.docx ---
+[AB MOAMEN NASIM IBRAHIM ELFEKY.docx] Successfully ingested CV Submission ID: 456
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOAMEN NASIM IBRAHIM ELFEKY.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOAMEN NASIM IBRAHIM ELFEKY.docx'
+--- Processing AB Mohame Ismail Mohmed.docx ---
+[AB Mohame Ismail Mohmed.docx] Successfully ingested CV Submission ID: 457
+Ingested 5 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB MOHAMED  ALY  ELTAWARGY.docx ---
+[AB MOHAMED  ALY  ELTAWARGY.docx] Successfully ingested CV Submission ID: 459
+Ingested 7 new Sea Service records.
+Ingested 11 new Marine Course records.
+--- Processing AB MOHAMED ABD ELLTIF SAAD AHMED ELSHOKY.docx ---
+[AB MOHAMED ABD ELLTIF SAAD AHMED ELSHOKY.docx] Successfully ingested CV Submission ID: 460
+Ingested 6 new Sea Service records.
+Ingested 12 new Marine Course records.
+--- Processing AB MOHAMED ABDELHAMID MOHAMED ALI KHODIR.docx ---
+[AB MOHAMED ABDELHAMID MOHAMED ALI KHODIR.docx] Successfully ingested CV Submission ID: 461
+Ingested 4 new Sea Service records.
+Ingested 14 new Marine Course records.
+--- Processing AB Mohamed Abdellah Mahmoud Aboelhamd.docx ---
+[AB Mohamed Abdellah Mahmoud Aboelhamd.docx] Successfully ingested CV Submission ID: 462
+Ingested 4 new Sea Service records.
+Ingested 8 new Marine Course records.
+--- Processing AB MOHAMED ABDELREHIM SELIM AWADALLA.docx ---
+[AB MOHAMED ABDELREHIM SELIM AWADALLA.docx] Successfully ingested CV Submission ID: 463
+Ingested 4 new Sea Service records.
+Ingested 9 new Marine Course records.
+--- Processing AB MOHAMED ABDOU MOHAMED MAILOU.docx ---
+[AB MOHAMED ABDOU MOHAMED MAILOU.docx] Successfully ingested CV Submission ID: 464
+Ingested 5 new Sea Service records.
+Ingested 16 new Marine Course records.
+--- Processing AB MOHAMED ADEL GABER ABDELGHANY ELMAKHZANGY.docx ---
+[AB MOHAMED ADEL GABER ABDELGHANY ELMAKHZANGY.docx] Successfully ingested CV Submission ID: 465
+Ingested 3 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing AB MOHAMED AHMED  ABDELFATTAH MAAROUF.docx ---
+[AB MOHAMED AHMED  ABDELFATTAH MAAROUF.docx] Successfully ingested CV Submission ID: 466
+Ingested 4 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB MOHAMED AHMED IBRAHIM MOHAMED HAMDIN.docx ---
+[AB MOHAMED AHMED IBRAHIM MOHAMED HAMDIN.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB MOHAMED AHMED MOHAMED ELALAYLY.docx ---
+[AB MOHAMED AHMED MOHAMED ELALAYLY.docx] Successfully ingested CV Submission ID: 467
+Ingested 6 new Sea Service records.
+Ingested 15 new Marine Course records.
+--- Processing AB Mohamed Ahmed Mohamed Eleslambouly.docx ---
+[AB Mohamed Ahmed Mohamed Eleslambouly.docx] Successfully ingested CV Submission ID: 468
+Ingested 8 new Sea Service records.
+Ingested 14 new Marine Course records.
+--- Processing AB MOHAMED ALY ALY ABOU ELHASSAN.docx ---
+[AB MOHAMED ALY ALY ABOU ELHASSAN.docx] Successfully ingested CV Submission ID: 469
+Ingested 7 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB MOHAMED ASAAD TAHA ABDALLA.docx ---
+[AB MOHAMED ASAAD TAHA ABDALLA.docx] Successfully ingested CV Submission ID: 470
+Ingested 8 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB MOHAMED ASHRAF FAWZY ELSORDY.docx ---
+[AB MOHAMED ASHRAF FAWZY ELSORDY.docx] Successfully ingested CV Submission ID: 471
+Ingested 3 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB MOHAMED ATTIA HUSSEIN EDRIS.docx ---
+[AB MOHAMED ATTIA HUSSEIN EDRIS.docx] Successfully ingested CV Submission ID: 472
+Ingested 10 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB MOHAMED DARWISH YOUNES ELKOLALY.docx ---
+[AB MOHAMED DARWISH YOUNES ELKOLALY.docx] Successfully ingested CV Submission ID: 473
+Ingested 13 new Sea Service records.
+Ingested 16 new Marine Course records.
+--- Processing AB MOHAMED ELARABY AHMED TABL.docx ---
+[AB MOHAMED ELARABY AHMED TABL.docx] Successfully ingested CV Submission ID: 474
+Ingested 0 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing ab Mohamed Elsaid Mahmoud Mohamed esmael.docx ---
+[ab Mohamed Elsaid Mahmoud Mohamed esmael.docx] Successfully ingested CV Submission ID: 475
+Ingested 9 new Sea Service records.
+Ingested 22 new Marine Course records.
+--- Processing AB MOHAMED ELSAYED ABDOU GOMAA SEROUR.docx ---
+[AB MOHAMED ELSAYED ABDOU GOMAA SEROUR.docx] Successfully ingested CV Submission ID: 476
+Ingested 9 new Sea Service records.
+Ingested 7 new Marine Course records.
+--- Processing AB MOHAMED ELSAYED MOURSY SOLIMAN.docx ---
+[AB MOHAMED ELSAYED MOURSY SOLIMAN.docx] Successfully ingested CV Submission ID: 478
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED ELSAYED MOURSY SOLIMAN.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED ELSAYED MOURSY SOLIMAN.docx'
+--- Processing AB MOHAMED FATHY FAWZY ABOUELENIN.docx ---
+[AB MOHAMED FATHY FAWZY ABOUELENIN.docx] Serializer validation failed: {
+  "user_email": [
+    "Enter a valid email address."
+  ]
+}
+--- Processing AB Mohamed Gamal Awad Tarabia.docx ---
+[AB Mohamed Gamal Awad Tarabia.docx] Successfully ingested CV Submission ID: 480
+Ingested 6 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB Mohamed Gamal Ezzat  EIsherbiny.docx ---
+[AB Mohamed Gamal Ezzat  EIsherbiny.docx] Successfully ingested CV Submission ID: 481
+Ingested 9 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB MOHAMED GOMAA AHMED ELTARABILY.docx ---
+[AB MOHAMED GOMAA AHMED ELTARABILY.docx] Successfully ingested CV Submission ID: 482
+Ingested 8 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB Mohamed Habashy Elsayed Omar.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image20.jpeg'
+[AB Mohamed Habashy Elsayed Omar.docx] Error: Data extraction returned None.
+--- Processing ab Mohamed Hassan Abd El-Alim Taha.docx ---
+[ab Mohamed Hassan Abd El-Alim Taha.docx] Successfully ingested CV Submission ID: 483
+Ingested 17 new Sea Service records.
+Ingested 16 new Marine Course records.
+--- Processing ab Mohamed Hassan El Sayed Soliman Mohamed.docx ---
+[ab Mohamed Hassan El Sayed Soliman Mohamed.docx] Successfully ingested CV Submission ID: 484
+Ingested 3 new Sea Service records.
+Ingested 0 new Marine Course records.
+[ab Mohamed Hassan El Sayed Soliman Mohamed.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/ab Mohamed Hassan El Sayed Soliman Mohamed.docx'
+--- Processing AB MOHAMED HASSAN KAMAL KAMEL.docx ---
+[AB MOHAMED HASSAN KAMAL KAMEL.docx] Successfully ingested CV Submission ID: 485
+Ingested 0 new Sea Service records.
+Ingested 5 new Marine Course records.
+--- Processing AB MOHAMED IBRAHIM KHALIL ABOURAGAB.docx ---
+[AB MOHAMED IBRAHIM KHALIL ABOURAGAB.docx] Successfully ingested CV Submission ID: 486
+Ingested 7 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB Mohamed Ibrahim Mohamed Abo Halawa.docx ---
+[AB Mohamed Ibrahim Mohamed Abo Halawa.docx] Successfully ingested CV Submission ID: 487
+Ingested 6 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB Mohamed Ibrahim Mohamed Ibrahim.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB Mohamed Ibrahim Mohamed Ibrahim.docx] Error: Data extraction returned None.
+--- Processing AB Mohamed Ibrahim Mohamed Mohamed Hassan.docx ---
+[AB Mohamed Ibrahim Mohamed Mohamed Hassan.docx] Successfully ingested CV Submission ID: 488
+Ingested 8 new Sea Service records.
+Ingested 12 new Marine Course records.
+--- Processing AB Mohamed Ibrahim Mohamed Moustafa.docx ---
+[AB Mohamed Ibrahim Mohamed Moustafa.docx] Successfully ingested CV Submission ID: 489
+Ingested 2 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Mohamed Ibrahim Mohamed Moustafa.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Mohamed Ibrahim Mohamed Moustafa.docx'
+--- Processing AB MOHAMED MAHMOUD AHMED ELKASHAWY.docx ---
+[AB MOHAMED MAHMOUD AHMED ELKASHAWY.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB MOHAMED MAHMOUD MOHAMED FARAGALAH.docx ---
+[AB MOHAMED MAHMOUD MOHAMED FARAGALAH.docx] Successfully ingested CV Submission ID: 490
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED MAHMOUD MOHAMED FARAGALAH.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED MAHMOUD MOHAMED FARAGALAH.docx'
+--- Processing AB MOHAMED MAHMOUD MOHAMED KHODEER.docx ---
+[AB MOHAMED MAHMOUD MOHAMED KHODEER.docx] Successfully ingested CV Submission ID: 491
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED MAHMOUD MOHAMED KHODEER.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED MAHMOUD MOHAMED KHODEER.docx'
+--- Processing AB MOHAMED MAHMOUD RABIE AGOUR.docx ---
+[AB MOHAMED MAHMOUD RABIE AGOUR.docx] Successfully ingested CV Submission ID: 492
+Ingested 3 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED MAHMOUD RABIE AGOUR.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED MAHMOUD RABIE AGOUR.docx'
+--- Processing AB Mohamed Mohamed Abd-El Wahab.docx ---
+[AB Mohamed Mohamed Abd-El Wahab.docx] Successfully ingested CV Submission ID: 493
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Mohamed Mohamed Abd-El Wahab.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Mohamed Mohamed Abd-El Wahab.docx'
+--- Processing AB Mohamed Mohamed abdelmoneim neamatalla.docx ---
+[AB Mohamed Mohamed abdelmoneim neamatalla.docx] Successfully ingested CV Submission ID: 494
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB Mohamed Mohamed abdelmoneim neamatalla.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Mohamed Mohamed abdelmoneim neamatalla.docx'
+--- Processing AB MOHAMED MOHAMED AHMED ELSAGEA.docx ---
+[AB MOHAMED MOHAMED AHMED ELSAGEA.docx] Successfully ingested CV Submission ID: 495
+Ingested 4 new Sea Service records.
+Ingested 15 new Marine Course records.
+--- Processing AB Mohamed Mohamed Ibrahim Metwally Elsokari.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB Mohamed Mohamed Ibrahim Metwally Elsokari.docx] Error: Data extraction returned None.
+--- Processing AB MOHAMED MOHAMED MOHAMED AHMED KHALIL.docx ---
+[AB MOHAMED MOHAMED MOHAMED AHMED KHALIL.docx] Successfully ingested CV Submission ID: 496
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED MOHAMED MOHAMED AHMED KHALIL.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED MOHAMED MOHAMED AHMED KHALIL.docx'
+--- Processing AB Mohamed Mohamed Tahe Bayoud.docx ---
+[AB Mohamed Mohamed Tahe Bayoud.docx] Successfully ingested CV Submission ID: 497
+Ingested 0 new Sea Service records.
+Ingested 4 new Marine Course records.
+[AB Mohamed Mohamed Tahe Bayoud.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Mohamed Mohamed Tahe Bayoud.docx'
+--- Processing AB MOHAMED MOHEI ELDIN FADEL AHMED.docx ---
+[AB MOHAMED MOHEI ELDIN FADEL AHMED.docx] Successfully ingested CV Submission ID: 498
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED MOHEI ELDIN FADEL AHMED.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED MOHEI ELDIN FADEL AHMED.docx'
+--- Processing AB MOHAMED MORGAN AHMED ABOUAWAD.docx ---
+[AB MOHAMED MORGAN AHMED ABOUAWAD.docx] Successfully ingested CV Submission ID: 499
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED MORGAN AHMED ABOUAWAD.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED MORGAN AHMED ABOUAWAD.docx'
+--- Processing AB MOHAMED MOSAAD ABD-ELAZIZ ELKHININY.docx ---
+[AB MOHAMED MOSAAD ABD-ELAZIZ ELKHININY.docx] Error: No email provided in data.
+--- Processing AB MOHAMED MOSSAD MOHAMED ISMAIL.docx ---
+[AB MOHAMED MOSSAD MOHAMED ISMAIL.docx] Successfully ingested CV Submission ID: 501
+Ingested 6 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED MOSSAD MOHAMED ISMAIL.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED MOSSAD MOHAMED ISMAIL.docx'
+--- Processing AB Mohamed Moustafa Abd ElGawad Ibrahim.docx ---
+[AB Mohamed Moustafa Abd ElGawad Ibrahim.docx] Error: No email provided in data.
+--- Processing AB MOHAMED MUSTAFA EBRAHIM  RAMADAN ALI.docx ---
+[AB MOHAMED MUSTAFA EBRAHIM  RAMADAN ALI.docx] Successfully ingested CV Submission ID: 502
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED MUSTAFA EBRAHIM  RAMADAN ALI.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED MUSTAFA EBRAHIM  RAMADAN ALI.docx'
+--- Processing AB MOHAMED NABIL ASIL ABDEL GHANY.docx ---
+[AB MOHAMED NABIL ASIL ABDEL GHANY.docx] Successfully ingested CV Submission ID: 503
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED NABIL ASIL ABDEL GHANY.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED NABIL ASIL ABDEL GHANY.docx'
+--- Processing AB MOHAMED SAFWAT KAMEL IBRAHIM.docx ---
+[AB MOHAMED SAFWAT KAMEL IBRAHIM.docx] Successfully ingested CV Submission ID: 505
+Ingested 0 new Sea Service records.
+Ingested 6 new Marine Course records.
+--- Processing AB MOHAMED SAID KAMAL MOHAMED IBRAHIM.docx ---
+[AB MOHAMED SAID KAMAL MOHAMED IBRAHIM.docx] Successfully ingested CV Submission ID: 506
+Ingested 8 new Sea Service records.
+Ingested 12 new Marine Course records.
+--- Processing ab Mohamed said osman kassem.docx ---
+[ab Mohamed said osman kassem.docx] Successfully ingested CV Submission ID: 507
+Ingested 20 new Sea Service records.
+--- Processing AB MOHAMED SELIM MOHAMED TAGELDIN.docx ---
+[AB MOHAMED SELIM MOHAMED TAGELDIN.docx] Successfully ingested CV Submission ID: 508
+Ingested 9 new Sea Service records.
+Ingested 23 new Marine Course records.
+--- Processing AB Mohamed Sobhi Mahmoud Attia.docx ---
+[AB Mohamed Sobhi Mahmoud Attia.docx] Successfully ingested CV Submission ID: 509
+Ingested 4 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing AB MOHAMED TAHA TAHA ISSA.docx ---
+[AB MOHAMED TAHA TAHA ISSA.docx] Successfully ingested CV Submission ID: 510
+Ingested 8 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing AB MOHAMED TAHER ABDELAZIZ ELZAKZOUK.docx ---
+[AB MOHAMED TAHER ABDELAZIZ ELZAKZOUK.docx] Successfully ingested CV Submission ID: 511
+Ingested 5 new Sea Service records.
+Ingested 5 new Marine Course records.
+[AB MOHAMED TAHER ABDELAZIZ ELZAKZOUK.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED TAHER ABDELAZIZ ELZAKZOUK.docx'
+--- Processing AB MOHAMED WAFDY MOHAMED KHALIL.docx ---
+[AB MOHAMED WAFDY MOHAMED KHALIL.docx] Successfully ingested CV Submission ID: 512
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMED WAFDY MOHAMED KHALIL.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMED WAFDY MOHAMED KHALIL.docx'
+--- Processing AB Mohamed Yasser Aly Elbargisy.docx ---
+[AB Mohamed Yasser Aly Elbargisy.docx] Successfully ingested CV Submission ID: 513
+Ingested 0 new Sea Service records.
+Ingested 2 new Marine Course records.
+[AB Mohamed Yasser Aly Elbargisy.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB Mohamed Yasser Aly Elbargisy.docx'
+--- Processing AB MOHAMMED ABOU ELHAMD AHMED ALY.docx ---
+[AB MOHAMMED ABOU ELHAMD AHMED ALY.docx] Successfully ingested CV Submission ID: 514
+Ingested 0 new Sea Service records.
+Ingested 0 new Marine Course records.
+[AB MOHAMMED ABOU ELHAMD AHMED ALY.docx] Error: [Errno 2] No such file or directory: '/run/media/storm/New Volume/2-TECHNO AQUARE/all_json_files/AB MOHAMMED ABOU ELHAMD AHMED ALY.docx'
+--- Processing AB MOSTAFA ELMETWALLY MOHAMED MOROU.docx ---
+[AB MOSTAFA ELMETWALLY MOHAMED MOROU.docx] Error: No email provided in data.
+--- Processing AB MOSTAFA KASSEM HASSAN GABIR.docx ---
+[AB MOSTAFA KASSEM HASSAN GABIR.docx] Successfully ingested CV Submission ID: 516
+Ingested 3 new Sea Service records.
+Ingested 15 new Marine Course records.
+--- Processing AB Mostafa Osman Hassan Marouf.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB Mostafa Osman Hassan Marouf.docx] Error: Data extraction returned None.
+--- Processing AB Mostafa Said Metkall Metkall.docx ---
+[AB Mostafa Said Metkall Metkall.docx] Successfully ingested CV Submission ID: 517
+Ingested 10 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing ab MOSTAFA YAHIA MOHAMED ELZAHED.docx ---
+[ab MOSTAFA YAHIA MOHAMED ELZAHED.docx] Successfully ingested CV Submission ID: 518
+Ingested 6 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB Nasr Aly Saad Ramadan.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB Nasr Aly Saad Ramadan.docx] Error: Data extraction returned None.
+--- Processing AB OMAR MOHAMED HASSAN ELDEEB.docx ---
+[AB OMAR MOHAMED HASSAN ELDEEB.docx] Successfully ingested CV Submission ID: 519
+Ingested 4 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB OMAR SALEH MOHAMED HASSAN.docx ---
+[AB OMAR SALEH MOHAMED HASSAN.docx] Serializer validation failed: {
+  "user_email": [
+    "Enter a valid email address."
+  ]
+}
+--- Processing AB OSAMA AHMED KHALIIL RAGAB.docx ---
+[AB OSAMA AHMED KHALIIL RAGAB.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB Osman Abdulalrady Osman.docx ---
+[AB Osman Abdulalrady Osman.docx] Successfully ingested CV Submission ID: 520
+Ingested 12 new Sea Service records.
+Ingested 12 new Marine Course records.
+--- Processing AB RAMADAN KHALIL MOHAMED SULTAN.docx ---
+[AB RAMADAN KHALIL MOHAMED SULTAN.docx] Successfully ingested CV Submission ID: 521
+Ingested 8 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB RAMY ABDELHAMID ABDELLATIF SHARAF.docx ---
+[AB RAMY ABDELHAMID ABDELLATIF SHARAF.docx] Successfully ingested CV Submission ID: 522
+Ingested 3 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB Ramy Desouky El sayed Nassar.docx ---
+[AB Ramy Desouky El sayed Nassar.docx] Serializer validation failed: {
+  "user_email": [
+    "Enter a valid email address."
+  ]
+}
+--- Processing AB SAAD MOHAMED FHMY TAKTAK.docx ---
+[AB SAAD MOHAMED FHMY TAKTAK.docx] Successfully ingested CV Submission ID: 523
+Ingested 3 new Sea Service records.
+Ingested 15 new Marine Course records.
+--- Processing AB Salem Mohamed Salem ElGizawy.docx ---
+[AB Salem Mohamed Salem ElGizawy.docx] Successfully ingested CV Submission ID: 524
+Ingested 10 new Sea Service records.
+Ingested 19 new Marine Course records.
+--- Processing AB Shaban Mohamed Diab Mohamed.docx ---
+[AB Shaban Mohamed Diab Mohamed.docx] Successfully ingested CV Submission ID: 525
+Ingested 15 new Sea Service records.
+Ingested 20 new Marine Course records.
+--- Processing AB TAHA AHMED TAHA ABOUYOUSSEF.docx ---
+[AB TAHA AHMED TAHA ABOUYOUSSEF.docx] Successfully ingested CV Submission ID: 526
+Ingested 7 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB TAMER GAMAL ABDELHAY IBRAHIM HARB.docx ---
+[AB TAMER GAMAL ABDELHAY IBRAHIM HARB.docx] Successfully ingested CV Submission ID: 527
+Ingested 10 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB Tamer Mostafa Elshenawy.docx ---
+[AB Tamer Mostafa Elshenawy.docx] Successfully ingested CV Submission ID: 528
+Ingested 10 new Sea Service records.
+Ingested 22 new Marine Course records.
+--- Processing AB TAREK AHMED ALI ELSEMNAWY.docx ---
+Error reading docx: Bad CRC-32 for file 'word/media/image1.png'
+[AB TAREK AHMED ALI ELSEMNAWY.docx] Error: Data extraction returned None.
+--- Processing AB Wafdy samir wafdy khalil.docx ---
+[AB Wafdy samir wafdy khalil.docx] Successfully ingested CV Submission ID: 529
+Ingested 4 new Sea Service records.
+Ingested 17 new Marine Course records.
+--- Processing AB Waled sameh gomaa farhat.docx ---
+[AB Waled sameh gomaa farhat.docx] Successfully ingested CV Submission ID: 530
+Ingested 9 new Sea Service records.
+Ingested 16 new Marine Course records.
+--- Processing AB WALEED ABDELFATTAH MAHRAN ISAIL.docx ---
+[AB WALEED ABDELFATTAH MAHRAN ISAIL.docx] Successfully ingested CV Submission ID: 531
+Ingested 4 new Sea Service records.
+Ingested 15 new Marine Course records.
+--- Processing ab WALID  ELSAYED AHMED MANSOUR.docx ---
+[ab WALID  ELSAYED AHMED MANSOUR.docx] Successfully ingested CV Submission ID: 532
+Ingested 9 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB WALID KHALID RASHAD AHMED.docx ---
+[AB WALID KHALID RASHAD AHMED.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB Walid mohamed gomaa abd elkader.docx ---
+[AB Walid mohamed gomaa abd elkader.docx] Successfully ingested CV Submission ID: 533
+Ingested 14 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing AB WALID MOHAMED MOHAMED KEWAN.docx ---
+[AB WALID MOHAMED MOHAMED KEWAN.docx] Successfully ingested CV Submission ID: 534
+Ingested 6 new Sea Service records.
+Ingested 19 new Marine Course records.
+--- Processing AB WARDSHAN SABRY TAHA ABOUHEGAZY.docx ---
+[AB WARDSHAN SABRY TAHA ABOUHEGAZY.docx] Error: UNIQUE constraint failed: api_rank.code
+--- Processing AB WESSAM EZZAT MOHAMMED EMAM.docx ---
+[AB WESSAM EZZAT MOHAMMED EMAM.docx] Successfully ingested CV Submission ID: 535
+Ingested 10 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB YASSER ABDELRAZEK MOHAMED MOHAMED HASSAN.docx ---
+[AB YASSER ABDELRAZEK MOHAMED MOHAMED HASSAN.docx] Successfully ingested CV Submission ID: 536
+Ingested 10 new Sea Service records.
+Ingested 14 new Marine Course records.
+--- Processing AB YASSER ALI MAHMOUD.docx ---
+[AB YASSER ALI MAHMOUD.docx] Successfully ingested CV Submission ID: 537
+Ingested 10 new Sea Service records.
+Ingested 14 new Marine Course records.
+--- Processing AB YASSER MOHAMED ABD ELAZIZ.docx ---
+[AB YASSER MOHAMED ABD ELAZIZ.docx] Error: No email provided in data.
+--- Processing AB YASSER NASSER ELDESSOUKY ABOUELROUS.docx ---
+[AB YASSER NASSER ELDESSOUKY ABOUELROUS.docx] Successfully ingested CV Submission ID: 538
+Ingested 5 new Sea Service records.
+Ingested 16 new Marine Course records.
+--- Processing AB Yasser Shawky Mohamed Ibrahim.docx ---
+[AB Yasser Shawky Mohamed Ibrahim.docx] Successfully ingested CV Submission ID: 539
+Ingested 10 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB Yasser Soliman Hefny Soliman.docx ---
+[AB Yasser Soliman Hefny Soliman.docx] Successfully ingested CV Submission ID: 540
+Ingested 6 new Sea Service records.
+Ingested 11 new Marine Course records.
+--- Processing AB Yosry mohamed yosry elsaid skeen.docx ---
+[AB Yosry mohamed yosry elsaid skeen.docx] Successfully ingested CV Submission ID: 541
+Ingested 6 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB Youssef Mohammed Mohammed Abo Sayed Ahmed.docx ---
+[AB Youssef Mohammed Mohammed Abo Sayed Ahmed.docx] Successfully ingested CV Submission ID: 542
+Ingested 7 new Sea Service records.
+Ingested 15 new Marine Course records.
+--- Processing AB MOHAMED ABD ELMONEM ABD ELMONEM BAYOUD.docx ---
+[AB MOHAMED ABD ELMONEM ABD ELMONEM BAYOUD.docx] Serializer validation failed: {
+  "user_email": [
+    "Enter a valid email address."
+  ]
+}
+--- Processing AB MOHAMED ATEF MOHAMED MOHAMED ABD EL-REHIM.docx ---
+[AB MOHAMED ATEF MOHAMED MOHAMED ABD EL-REHIM.docx] Successfully ingested CV Submission ID: 543
+Ingested 7 new Sea Service records.
+Ingested 18 new Marine Course records.
+--- Processing AB MOHAMED HASSAN ABDELRAHIM ATTIA.docx ---
+[AB MOHAMED HASSAN ABDELRAHIM ATTIA.docx] Successfully ingested CV Submission ID: 544
+[AB MOHAMED HASSAN ABDELRAHIM ATTIA.docx] Error: ['“1993-06-31” value has the correct format (YYYY-MM-DD) but it is an invalid date.']
+--- Processing AB MOHAMED MOHAMED ABDELKAK ELBRAWY.docx ---
+[AB MOHAMED MOHAMED ABDELKAK ELBRAWY.docx] Successfully ingested CV Submission ID: 545
+Ingested 4 new Sea Service records.
+Ingested 13 new Marine Course records.
+--- Processing AB Mohamed Saber El-sayed.docx ---
+[AB Mohamed Saber El-sayed.docx] Successfully ingested CV Submission ID: 546
+Ingested 6 new Sea Service records.
+Ingested 19 new Marine Course records.
+--- Processing AB Mostafa Mohamed salah eldin zaki hamed.docx ---
+[AB Mostafa Mohamed salah eldin zaki hamed.docx] Successfully ingested CV Submission ID: 547
+Ingested 4 new Sea Service records.
+Ingested 12 new Marine Course records.
+--- Processing AB Salah Mohamed mahmud Youssef sarhan.docx ---
+[AB Salah Mohamed mahmud Youssef sarhan.docx] Successfully ingested CV Submission ID: 548
+Ingested 6 new Sea Service records.
+Ingested 19 new Marine Course records.
+--- Processing deepseek_json_20260601_5deff1.json ---
+[deepseek_json_20260601_5deff1.json] Error: Unterminated string starting at: line 33 column 27 (char 943)
+--- Processing gemini-code-1780327034063.json ---
+[gemini-code-1780327034063.json] Error: ['“1990-18-11” value has the correct format (YYYY-MM-DD) but it is an invalid date.']
+--- Processing gemini-code-1780342032950.json ---
+[gemini-code-1780342032950.json] Successfully ingested CV Submission ID: 136
+[gemini-code-1780342032950.json] Error: ['“2010-11-31” value has the correct format (YYYY-MM-DD) but it is an invalid date.']
+--- Processing gemini-code-1780343398301.json ---
+[gemini-code-1780343398301.json] Serializer validation failed: {
+  "user_email": [
+    "Enter a valid email address."
+  ]
+}
+--- Processing gemini-code-1780345437112.json ---
+[gemini-code-1780345437112.json] Error: No email provided in data.
+
+Batch complete! Success: 93, Failed: 126
+Running duplicate cleanup just in case...
+Cleaned up 1 duplicate CV Submissions for User ID 470.
+Cleaned up 1 duplicate CV Submissions for User ID 490.
+Cleaned up 1 duplicate CV Submissions for User ID 519.

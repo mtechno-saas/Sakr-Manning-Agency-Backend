@@ -1,0 +1,49 @@
+"""Verify QueryArrayWidget fix."""
+import os, django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saker.settings")
+django.setup()
+import django_filters
+
+TEST_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audit_filters.sqlite3")
+from django.conf import settings
+settings.DATABASES["default"]["NAME"] = TEST_DB
+
+from django.http import QueryDict
+from django_filters import BaseInFilter, CharFilter
+from django_filters.widgets import QueryArrayWidget
+from companies.models import Company, CompanyType
+
+ct_agency, _ = CompanyType.objects.get_or_create(name="Agency")
+ct_owner, _ = CompanyType.objects.get_or_create(name="Owner")
+Company.objects.get_or_create(company_name="Maersk Agency", defaults={"company_type": ct_agency, "contact_email": "a@m.com", "status": "Active"})
+Company.objects.get_or_create(company_name="PIL Owner", defaults={"company_type": ct_owner, "contact_email": "b@p.com", "status": "Active"})
+
+class TestCompanyFilter(django_filters.FilterSet):
+    company_type = BaseInFilter(field_name="company_type__name", lookup_expr="in", widget=QueryArrayWidget)
+    class Meta:
+        model = Company
+        fields = ["company_type"]
+
+# Test 1: repeated query keys
+qd = QueryDict("company_type=Agency&company_type=Owner")
+f = TestCompanyFilter(qd, queryset=Company.objects.all())
+f.is_valid()
+print("Repeated keys: company_type=Agency&company_type=Owner")
+print("  cleaned:", f.form.cleaned_data)
+print("  count:", f.qs.count())
+
+# Test 2: CSV
+qd = QueryDict("company_type=Agency,Owner")
+f = TestCompanyFilter(qd, queryset=Company.objects.all())
+f.is_valid()
+print("\nCSV: company_type=Agency,Owner")
+print("  cleaned:", f.form.cleaned_data)
+print("  count:", f.qs.count())
+
+# Test 3: array notation
+qd = QueryDict("company_type[]=Agency&company_type[]=Owner")
+f = TestCompanyFilter(qd, queryset=Company.objects.all())
+f.is_valid()
+print("\nArray notation: company_type[]=Agency&company_type[]=Owner")
+print("  cleaned:", f.form.cleaned_data)
+print("  count:", f.qs.count())

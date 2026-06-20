@@ -1,0 +1,30 @@
+"""Trace QueryArrayWidget CSV path."""
+import os, django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saker.settings")
+django.setup()
+
+from django.http import QueryDict
+from django.utils.datastructures import MultiValueDict
+from django_filters.widgets import QueryArrayWidget
+
+w = QueryArrayWidget()
+
+# CSV case
+qd = QueryDict("company_type=Agency,Owner")
+print("CSV input items:", list(qd.items()))
+data = qd.copy()
+print("After copy type:", type(data).__name__)
+print("After copy items:", list(data.items()))
+print("After copy isinstance MultiValueDict:", isinstance(data, MultiValueDict))
+print("After copy isinstance QueryDict:", isinstance(data, QueryDict))
+
+# Iterate
+for key, value in data.items():
+    print(f"  iterating: key={key!r}, value={value!r}, type={type(value).__name__}")
+    if isinstance(value, str):
+        data[key] = [x.strip() for x in value.rstrip(",").split(",") if x]
+        print(f"    set {key} = {data[key]}")
+
+data = MultiValueDict(data)
+print("Final getlist:", data.getlist('company_type'))
+print("Final getlist with []:", data.getlist('company_type[]'))

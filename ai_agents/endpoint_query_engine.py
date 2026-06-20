@@ -22,7 +22,8 @@ ENDPOINTS_REFERENCE = """
 ### 1. users — Seafarers / Applicants / Crew
 Filters: name (str), nationality (str), user_status (str: ON_SITE|VACATION|ON_BOARD|AVAILABLE),
 role (str: Admin|HR Manager|Recruiter|Employee), is_blacklisted (bool),
-position (str - matches application_for_position), rank_name (str),
+position (str - matches codes__name / application_for_position / position; same logic as UsersFilter),
+rank_name (str - matches user_ranks__rank__name),
 company_name (str), ship_name (str), passport_no (str), seaman_book_no (str),
 course_name (str), document_status (str: Pending|Active|Blacklist)
 
@@ -164,8 +165,10 @@ FILTER_MAPS = {
         "user_status":      "user_status",
         "role":             "role",
         "is_blacklisted":   "is_blacklisted",
-        "position":         "application_for_position__icontains",
-        "rank_name":        "ranks__rank__name__icontains",
+        # NOTE: `position` is handled specially in execute_query() because it must
+        # match across three sources (codes__name | application_for_position |
+        # position), matching api.filters.UsersFilter.filter_by_position.
+        "rank_name":        "user_ranks__rank__name__icontains",
         "company_name":     "contracts__company__company_name__icontains",
         "ship_name":        "contracts__ship__ship_name__icontains",
         "passport_no":      "passport_no__icontains",
@@ -338,7 +341,23 @@ def execute_query(plan: dict) -> dict:
 
     # Apply each filter
     for param, value in filters.items():
-        if param in fmap and value not in (None, "", "null"):
+        if value in (None, "", "null"):
+            continue
+
+        # Special case: `position` on the users endpoint must match the same
+        # three sources as api.filters.UsersFilter.filter_by_position
+        # (codes__name | application_for_position | position). FILTER_MAPS only
+        # supports a single ORM lookup per filter, so we handle it here.
+        if endpoint == "users" and param == "position":
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(codes__name__icontains=value) |
+                Q(application_for_position__icontains=value) |
+                Q(position__icontains=value)
+            ).distinct()
+            continue
+
+        if param in fmap:
             lookup = fmap[param]
             qs = qs.filter(**{lookup: _coerce_value(param, value)})
 

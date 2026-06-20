@@ -50,9 +50,9 @@ from .serializer import (
     UserLanguageSerializer, PersonalDocumentSerializer, LanguageProficiencySerializer
 )
 from .filters import (
-    UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter, 
+    UsersFilter, InterviewFilter, FinanceRecordFilter, CVSubmissionFilter,
     CompanyFilter, ContractFilter, FlightBookingFilter, VisaApplicationFilter,
-    AuditFilter, IncidentReportFilter, ShipFilter
+    AuditFilter, IncidentReportFilter, ShipFilter, SeaServiceFilter
 )
 from .permissions import (
     IsAdmin, IsHRManager, IsRecruiter, IsEmployee,
@@ -1254,18 +1254,20 @@ class ReferenceViewSet(viewsets.ModelViewSet):
 class SeaServiceViewSet(viewsets.ModelViewSet):
     """
     Sea Service Management - Role-based access:
-    - Admin/HR Manager/Employee: Full access to all records
+    - Admin / HR Manager / Recruiter: full access to all records
+    - Employee: only their own records
     """
     queryset = SeaService.objects.all()
     serializer_class = SeaServiceSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    filterset_class = SeaServiceFilter
 
     def get_queryset(self):
-        user_id = self.request.query_params.get('user')
-        if user_id:
-            return SeaService.objects.filter(user_id=user_id)
-        return SeaService.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.role in ['Admin', 'HR Manager', 'Recruiter', 'admin'] or user.is_superuser:
+            return SeaService.objects.all()
+        return SeaService.objects.filter(user=user)
 
     def perform_create(self, serializer):
         user_id = self.request.data.get('user') or self.request.query_params.get('user')
