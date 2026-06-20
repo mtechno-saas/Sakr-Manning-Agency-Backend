@@ -308,11 +308,12 @@ GET /api/users/users/?has_language=false
 
 ### 6.1 `?rank_name=` — Rank / Position (multi-source)
 
-Searches six places in one query:
+Searches seven places in one query:
 - `User.codes` (M2M) → `codes__name`
 - `UserRank.rank.name`
 - `SeaService.rank` (free-text)
 - `Contract.rank.name`
+- **`CVSubmission.position.name`** — finds users who *applied for* a rank via a CV, even if they haven't been assigned it yet
 - `User.application_for_position` (legacy)
 - `User.position` (synced from `Document.position`)
 
@@ -332,6 +333,11 @@ GET /api/users/users/?rank_name=Chief%20Officer
   ]
 }
 ```
+
+> **Gap-bridging source:** `CVSubmission.position.name` was added so a candidate
+> who applied for a rank via the CV Submissions board but has no contract yet
+> is still findable by rank. Without it, a user whose only link to the rank
+> is a pending CV application would be missed.
 
 ---
 
@@ -382,7 +388,7 @@ GET /api/users/users/?role=Admin&role=HR%20Manager
 
 ### 6.4 `?position=` — General Position
 
-Multi-source: `codes.name` + `application_for_position` + `position`.
+Multi-source: `codes.name` + `application_for_position` + `position` + **`CVSubmission.position.name`**.
 
 ```http
 GET /api/users/users/?position=Chief%20Officer
@@ -426,6 +432,11 @@ GET /api/users/users/?course_name=STCW
 
 ### 7.1 `?company=` — Company (ID or name)
 
+Accepts either a numeric Company ID (exact match) or a name (icontains).
+Searches **both `Contract.company` and `CVSubmission.company`** — so a candidate
+who applied to a company via a CV submission but hasn't been hired there yet
+is still findable.
+
 ```http
 GET /api/users/users/?company=5                # numeric id
 GET /api/users/users/?company=ROMALEX%20MARINE # name (icontains)
@@ -450,11 +461,20 @@ GET /api/users/users/?company=ROMALEX          # partial
 }
 ```
 
+> **Gap-bridging source:** `CVSubmission.company` was added so a candidate
+> who applied to a company via the CV Submissions board but has no contract
+> with that company is still findable. Numeric IDs OR against both tables
+> (id branches); names icontains against `contracts__company__company_name`
+> and `cv_submissions__company__company_name`.
+
 ---
 
 ### 7.2 `?company_name=` — Company Name (multi-source)
 
-Searches both `Company.company_name` (via `Contract.company`) and `SeaService.company_name` (free-text).
+Searches three places in one query:
+- `Company.company_name` (via `Contract.company`) — a company the user has signed a contract with
+- **`CVSubmission.company.company_name`** — a company the user has applied to via a CV submission
+- `SeaService.company_name` (free-text) — a company the user has sailed for, even if there's no `Company` row
 
 ```http
 GET /api/users/users/?company_name=ROMALEX%20MARINE
@@ -477,11 +497,17 @@ GET /api/users/users/?company_name=ROMALEX
 > This is the filter that returned 0 users before the `SeaService.company_name` source
 > was added — `ROMALEX MARINE` doesn't exist in the `Company` table, only in the
 > free-text `SeaService.company_name` column. The fix is the OR'd Q expression in
-> `filter_by_company_name`.
+> `filter_by_company_name`. **A CVSubmission source was added later** so a candidate
+> who applied to a company but has no contract with them yet is still findable.
 
 ---
 
 ### 7.3 `?ship=` — Ship (ID or name)
+
+Accepts either a numeric Ship ID (exact match) or a name (icontains).
+Searches **both `Contract.ship` and `CVSubmission.ship`** — so a candidate
+who applied for a specific ship via a CV submission but hasn't been hired
+for it yet is still findable.
 
 ```http
 GET /api/users/users/?ship=5                # numeric id
@@ -506,11 +532,19 @@ GET /api/users/users/?ship=1234             # numeric, won't match names contain
 }
 ```
 
+> **Gap-bridging source:** `CVSubmission.ship` was added so a candidate
+> who applied for a ship via the CV Submissions board but has no contract
+> for that ship is still findable. Numeric IDs OR against both tables
+> (id branches); names icontains against `contracts__ship__ship_name`
+> and `cv_submissions__ship__ship_name`.
+
 ---
 
-### 7.4 `?ship_name=` — Ship Name (icontains)
+### 7.4 `?ship_name=` — Ship Name (icontains, multi-source)
 
-Direct FK traversal. Same effect as `?ship=<name>` but always uses icontains.
+Searches two places:
+- `Contract.ship.ship_name` (FK traversal) — a ship the user has a contract on
+- **`CVSubmission.ship.ship_name`** — a ship the user has applied to via a CV submission
 
 ```http
 GET /api/users/users/?ship_name=Star
@@ -525,6 +559,9 @@ GET /api/users/users/?ship_name=Star
   "results": [ /* 2 users with ship_name icontains "Star" */ ]
 }
 ```
+
+> Same effect as `?ship=<name>` but always uses icontains (no numeric-id
+> shortcut — that lives on `?ship=`). Now also covers CV-submission ships.
 
 ---
 
@@ -580,6 +617,81 @@ GET /api/users/users/?job_position_name=Chief%20Officer
   "results": [ /* users with that rank on any contract */ ]
 }
 ```
+
+---
+
+### 7.8 `?cv_status=` — CV Submission Status (multi-value, case-insensitive)
+
+Filters users by the status of any of their CV submissions. Case-insensitive
+on input (`Pending`, `PENDING`, `pending` all match); supports repeated keys
+/ array notation / CSV.
+
+**Valid values (matched via `iexact`):**
+`Pending`, `Under Review`, `Interviewed`, `Shortlisted`, `Approved`, `Rejected`, `Hired`
+
+```http
+GET /api/users/users/?cv_status=Pending                          # single value
+GET /api/users/users/?cv_status=Pending&cv_status=Shortlisted   # two values (OR'd)
+GET /api/users/users/?cv_status=pending,shortlisted              # CSV, case-insensitive
+GET /api/users/users/?cv_status[]=Pending&cv_status[]=Approved   # array notation
+```
+
+**Response (200, `?cv_status=Pending&cv_status=Approved`):**
+```json
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    { "id": 1, "first_name": "Mahmoud", "cv_submissions": [{ "status": "Approved", ... }] },
+    { "id": 5, "first_name": "Mona",    "cv_submissions": [{ "status": "Pending", ... }] },
+    { "id": 9, "first_name": "Sara",    "cv_submissions": [{ "status": "Approved", ... }] }
+  ]
+}
+```
+
+> A user is returned if **any** of their CV submissions has any of the
+> requested statuses. The lookup uses `IexactInFilter` (same class as
+> `?marital_status=`) so input is case-insensitive but multi-value is still
+> OR'd correctly — `?cv_status=Pending` matches a DB row stored as
+> `"Pending"` even if you typed `"pending"`.
+
+---
+
+### 7.9 `?cv_notes=` — CV Submission Notes (icontains)
+
+Free-text search across the `notes` column of any of the user's CV
+submissions. Case-insensitive substring match.
+
+```http
+GET /api/users/users/?cv_notes=strong
+GET /api/users/users/?cv_notes=interview
+GET /api/users/users/?cv_notes=LNG%20experience
+```
+
+**Response (200, `?cv_notes=strong`):**
+```json
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 9,
+      "first_name": "Sara",
+      "cv_submissions": [
+        { "status": "Approved", "notes": "Strong candidate for next available.", ... }
+      ],
+      ...
+    }
+  ]
+}
+```
+
+> Use this to find users by recruiter comments left on their CV application.
+> Note that this searches `CVSubmission.notes` — a snapshot written at the time
+> of submission — and does **not** search the user's free-text `position` or
+> `application_for_position` fields. For those, use `?position=` (Section 6.4).
 
 ---
 

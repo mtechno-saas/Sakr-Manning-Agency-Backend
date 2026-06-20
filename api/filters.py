@@ -187,6 +187,7 @@ class UsersFilter(django_filters.FilterSet):
           - UserRank (FK)          → user_ranks__rank__name
           - SeaService (FK)        → sea_services__rank        (free-text field!)
           - Contract (FK)          → contracts__rank__name
+          - CVSubmission (FK)      → cv_submissions__position__name
           - User.application_for_position (legacy)
           - User.position          (synced from Document.position)
         Then collapse duplicates with .distinct() so M2M joins don't inflate counts.
@@ -198,6 +199,7 @@ class UsersFilter(django_filters.FilterSet):
             Q(user_ranks__rank__name__icontains=value) |
             Q(sea_services__rank__icontains=value) |
             Q(contracts__rank__name__icontains=value) |
+            Q(cv_submissions__position__name__icontains=value) |
             Q(application_for_position__icontains=value) |
             Q(position__icontains=value)
         ).distinct()
@@ -213,19 +215,31 @@ class UsersFilter(django_filters.FilterSet):
         Accept either a numeric Company ID (`?company=5`) or a name
         (`?company=ROMALEX MARINE`). Numeric values match by id; everything
         else falls back to icontains on company_name.
+
+        Searches BOTH contracts the user has signed AND CV submissions the
+        user has applied to, so a candidate who applied to a company but
+        hasn't been hired there yet is still findable.
         """
         if not value:
             return queryset
         value = str(value).strip()
         if value.isdigit():
-            return queryset.filter(contracts__company__id=int(value)).distinct()
-        return queryset.filter(contracts__company__company_name__icontains=value).distinct()
+            cid = int(value)
+            return queryset.filter(
+                Q(contracts__company__id=cid) |
+                Q(cv_submissions__company__id=cid)
+            ).distinct()
+        return queryset.filter(
+            Q(contracts__company__company_name__icontains=value) |
+            Q(cv_submissions__company__company_name__icontains=value)
+        ).distinct()
 
     def filter_by_company_name(self, queryset, name, value):
         """
         Match `value` against every place a company name might live on or
         related to a user:
           - Company (FK via Contract) → contracts__company__company_name
+          - Company (FK via CVSubmission) → cv_submissions__company__company_name
           - SeaService (FK)           → sea_services__company_name  (free-text!)
         Then collapse duplicates with .distinct().
         """
@@ -233,11 +247,12 @@ class UsersFilter(django_filters.FilterSet):
             return queryset
         return queryset.filter(
             Q(contracts__company__company_name__icontains=value) |
+            Q(cv_submissions__company__company_name__icontains=value) |
             Q(sea_services__company_name__icontains=value)
         ).distinct()
 
     ship = django_filters.CharFilter(method='filter_by_ship')
-    ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
+    ship_name = django_filters.CharFilter(method='filter_by_ship_name')
 
     def filter_by_ship(self, queryset, name, value):
         """
@@ -246,13 +261,38 @@ class UsersFilter(django_filters.FilterSet):
         falls back to icontains on ship_name. This means a strict numeric
         filter is preserved (so `?ship=1234` won't accidentally match a ship
         whose name happens to contain "1234").
+
+        Searches BOTH ships the user has a contract on AND ships the user
+        has applied to via a CV submission.
         """
         if not value:
             return queryset
         value = str(value).strip()
         if value.isdigit():
-            return queryset.filter(contracts__ship__id=int(value)).distinct()
-        return queryset.filter(contracts__ship__ship_name__icontains=value).distinct()
+            sid = int(value)
+            return queryset.filter(
+                Q(contracts__ship__id=sid) |
+                Q(cv_submissions__ship__id=sid)
+            ).distinct()
+        return queryset.filter(
+            Q(contracts__ship__ship_name__icontains=value) |
+            Q(cv_submissions__ship__ship_name__icontains=value)
+        ).distinct()
+
+    def filter_by_ship_name(self, queryset, name, value):
+        """
+        Multi-source ship-name search. Mirrors `filter_by_ship` but always
+        does name-based matching (no numeric-id shortcut — that lives on
+        `?ship=`). Searches BOTH ships the user has a contract on AND ships
+        the user has applied to via a CV submission.
+        """
+        if not value:
+            return queryset
+        value = str(value).strip()
+        return queryset.filter(
+            Q(contracts__ship__ship_name__icontains=value) |
+            Q(cv_submissions__ship__ship_name__icontains=value)
+        ).distinct()
     
     job_position_name = django_filters.CharFilter(field_name="contracts__job_position__rank__name", lookup_expr="icontains")
     
@@ -378,25 +418,42 @@ class UsersFilter(django_filters.FilterSet):
     document_title = django_filters.CharFilter(field_name="documents__title", lookup_expr="icontains")
 
     position = django_filters.CharFilter(method='filter_by_position')
-    
+
     def filter_by_position(self, queryset, name, value):
+        """
+        Match `value` against every place a position/rank might live on or
+        related to a user (lighter-weight than `?rank_name=`):
+          - codes (M2M)            → codes__name
+          - CVSubmission (FK)      → cv_submissions__position__name
+          - User.application_for_position (legacy)
+          - User.position          (synced from Document.position)
+        Then collapse duplicates with .distinct().
+        """
         if not value:
             return queryset
         return queryset.filter(
-            Q(codes__name__icontains=value) | 
+            Q(codes__name__icontains=value) |
+            Q(cv_submissions__position__name__icontains=value) |
             Q(application_for_position__icontains=value) |
             Q(position__icontains=value)
         ).distinct()
+
+    # ---------- CVSubmission-specific filters ----------
+    # These are NOT on the User model — they're reverse-FK joins to CVSubmission.
+    # Same multi-value / case-insensitive patterns as the user-level filters.
+    cv_status = IexactInFilter(field_name="cv_submissions__status")
+    cv_notes = django_filters.CharFilter(field_name="cv_submissions__notes", lookup_expr="icontains")
 
     @property
     def qs(self):
         """
         Many UsersFilter fields traverse FK / M2M relations
         (contracts__, personal_documents__, documents__, user_ranks__, codes__, courses__,
-         languages__, user_languages__). Joining across those without a DISTINCT
-        produces duplicate rows whenever a user has more than one related record
-        (e.g. multiple contracts for the same company).
-        Apply .distinct() so list / pagination never inflates counts.
+         languages__, user_languages__, cv_submissions__). Joining across those without
+        a DISTINCT produces duplicate rows whenever a user has more than one related
+        record (e.g. multiple contracts for the same company, or several CV submissions
+        to the same company). Apply .distinct() so list / pagination never inflates
+        counts.
         """
         qs = super().qs
         return qs.distinct()
@@ -408,7 +465,8 @@ class UsersFilter(django_filters.FilterSet):
             "nearest_port", "role", "is_blacklisted", "company", "ship",
             "language", "has_language", "contract_status", "position",
             "document_status", "document_title",
-            "passport_no", "seaman_book_no", "medical_no", "course_name"
+            "passport_no", "seaman_book_no", "medical_no", "course_name",
+            "cv_status", "cv_notes",
         ]
 
 

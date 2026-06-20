@@ -27,16 +27,18 @@ This document outlines all the available query parameters (filters) you can appe
 | `user_status` | `list` | `multiple` | Filter by user status (e.g., `?user_status=ON_SITE&user_status=VACATION`) |
 | `nationality` | `list` | `multiple` | Filter by nationality (e.g., `?nationality=Egypt&nationality=Syria`) |
 | `nearest_port` | `string` | `icontains` | Partial match on Nearest Port |
-| `rank_name` | `string` | `icontains` | Partial match on any assigned Rank name |
+| `rank_name` | `string` | `icontains` | Partial match on Rank name (codes, UserRank, SeaService, Contract, **CVSubmission**) |
 | `assigned_code` | `string` | `icontains` | Partial match on UserRank assigned code |
 | `role` | `list` | `multiple` | Filter by user role (e.g., `?role=Employee&role=Admin`) |
 | `is_blacklisted` | `boolean` | `exact` | `true` or `false` |
-| `company` | `int` | `exact` | Filter by Company ID (linked via contracts) |
-| `company_name` | `string` | `icontains` | Partial match on Company Name |
-| `ship` | `int` | `exact` | Filter by Ship ID (linked via contracts) |
-| `ship_name` | `string` | `icontains` | Partial match on Ship Name |
+| `company` | `int` or `string` | mixed | Accepts Company ID (exact) OR name (icontains). Searches **Contract + CVSubmission** — finds candidates who applied to a company but haven't been hired yet. |
+| `company_name` | `string` | `icontains` | Partial match on Company Name (Contract + SeaService + **CVSubmission**) |
+| `ship` | `int` or `string` | mixed | Accepts Ship ID (exact) OR name (icontains). Searches **Contract + CVSubmission** — finds candidates who applied for a ship but haven't sailed on it yet. |
+| `ship_name` | `string` | `icontains` | Partial match on Ship Name (Contract + **CVSubmission**) |
 | `job_position_name` | `string` | `icontains` | Partial match on Job Position name in contracts |
-| `position` | `string` | `icontains` | Search by Rank name OR Application Position |
+| `position` | `string` | `icontains` | Search by Rank name OR Application Position (codes, application_for_position, position, **CVSubmission**) |
+| `cv_status` | `list` | `multiple` (iexact) | Filter users by their CV submission status (Pending / Under Review / Interviewed / Shortlisted / Approved / Rejected / Hired). Case-insensitive, multi-value. |
+| `cv_notes` | `string` | `icontains` | Search inside CV submission notes (free-text). |
 | `language` | `string` | `icontains` | Partial match on Language (e.g., "English") |
 | `contract_status` | `list` | `multiple` | Filter by contract status (Supports multiple e.g. `?contract_status=Signed&contract_status=Draft`) |
 | `signed_on_from` | `date` | `>=` | Contract sign-on date range start |
@@ -50,7 +52,7 @@ This document outlines all the available query parameters (filters) you can appe
 | `passport_expiry_from` / `to` | `date` | `range` | Passport expiry date range |
 | `seaman_book_no` | `string` | `icontains` | Search by Seaman Book Number |
 | `seaman_book_type` | `string` | `icontains` | Filter by Seaman Book type (e.g., "Panama", "Bahamas") |
-| `seaman_book_expiry_from` / `to` | `date` | `range` | Seaman Book expiry date range |
+| `seaman_book_expiry_from` / `to` | `date` | `range` | Seaman book expiry date range |
 | `document_type` | `string` | `icontains` | General search across all personal document types |
 | `medical_no` | `string` | `icontains` | Search by Medical/Health Certificate Number |
 | `medical_expiry_from` / `to` | `date` | `range` | Medical certificate expiry date range |
