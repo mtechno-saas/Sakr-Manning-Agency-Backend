@@ -33,4 +33,4 @@ google-auth==2.51.0
 python-dotenv>=1.0.0
 langchain-google-genai
 reportlab
-langchain-groq==0.1.6
+langchain-groq==0.3.0
