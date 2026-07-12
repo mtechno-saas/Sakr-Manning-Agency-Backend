@@ -1,9 +1,26 @@
 from rest_framework import serializers
 from .models import Company, JobOrder, JobOrderPosition
+from core.models import CompanyType, Flag
+
 
 class CompanySerializer(serializers.ModelSerializer):
     ships = serializers.SerializerMethodField()
+
+    # company_type is exposed as a string (the CompanyType.name) on both
+    # request and response. SlugRelatedField handles string↔instance
+    # conversion natively, so the previous to_internal_value string→ID
+    # shim is no longer needed.
+    company_type = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=CompanyType.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    # Kept for backwards compatibility — now mirrors company_type.
     company_type_name = serializers.CharField(source='company_type.name', read_only=True)
+
+    # company_flag still accepts either an integer ID or a string name
+    # (handled in to_internal_value below) and serialises back to the ID.
     company_flag_name = serializers.CharField(source='company_flag.name', read_only=True)
 
     open_positions = serializers.SerializerMethodField()
@@ -22,23 +39,13 @@ class CompanySerializer(serializers.ModelSerializer):
 
     def to_internal_value(self, data):
         """
-        Accept `company_type` and `company_flag` as either integer IDs or string names.
+        Normalise `company_flag` (accepts either an integer ID or a string name)
+        and `website` (auto-prefix https:// if missing) before DRF field
+        validation. `company_type` is handled natively by SlugRelatedField.
         """
-        if 'company_type' in data:
-            val = data['company_type']
-            if isinstance(val, str) and not val.isdigit() and val.strip():
-                from core.models import CompanyType
-                ct, _ = CompanyType.objects.get_or_create(name=val.strip())
-                if hasattr(data, 'copy'):
-                    data = data.copy()
-                else:
-                    data = dict(data)
-                data['company_type'] = ct.id
-
         if 'company_flag' in data:
             val = data['company_flag']
             if isinstance(val, str) and not val.isdigit() and val.strip():
-                from core.models import Flag
                 flag, _ = Flag.objects.get_or_create(name=val.strip())
                 if hasattr(data, 'copy'):
                     data = data.copy()
@@ -59,7 +66,7 @@ class CompanySerializer(serializers.ModelSerializer):
 
         return super().to_internal_value(data)
 
-  
+
 
     def get_open_positions(self, obj):
         # Calculate remaining open slots by subtracting filled contracts from quantity
