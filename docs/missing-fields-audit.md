@@ -1,11 +1,13 @@
-# Missing Fields Audit — Sakr Companies API
+# Missing Fields Audit — Sakr Companies & Interviews API
 
 **Generated:** 2026-07-14
 **Scope:** Fields requested by the frontend that were not present in the backend response, and the migrations created to add them.
 
+This document covers **4 endpoints** across 2 Django apps. Every section follows the same structure: the fields added, the migration that creates them, the model/serializer files touched, a sample API payload, and the frontend mapping required.
+
 ---
 
-## Endpoint: `GET / PATCH /api/companies/{id}/`
+## Endpoint 1: `GET / PATCH /api/companies/{id}/`  *(Company Detail)*
 
 ### Fields Added
 
@@ -19,13 +21,6 @@
 **Migration:** `companies/migrations/0013_company_address_contact_person_alt_phone_notes.py`
 **Model file:** `companies/models.py` (Company class, after `owner`)
 **Serializer:** `companies/serializers.py` (no change — auto-included via `fields = '__all__'`)
-
-### Frontend Mapping Required
-
-Frontend must:
-- Add 4 new inputs in the **Company form** bound to the API keys above
-- Display the values in the **Company detail/list views**
-- All four are optional — send `null` or omit the key on POST/PATCH
 
 ### Sample Response (after migration applied)
 
@@ -54,9 +49,17 @@ Frontend must:
 }
 ```
 
+### Frontend Mapping Required
+
+- Add 4 new inputs in the **Company form** bound to the API keys above
+- Display the values in the **Company detail/list views**
+- All four are optional — send `null` or omit the key on POST/PATCH
+- `address` and `notes` are unbounded text — use `<textarea>` inputs in the form
+- `contact_person` and `alt_phone` are short strings — use single-line `<input type="text">`
+
 ---
 
-## Endpoint: `GET / PATCH /api/companies/job-positions/{id}/`
+## Endpoint 2: `GET / PATCH /api/companies/job-positions/{id}/`  *(Job Position Detail)*
 
 ### Fields Added
 
@@ -68,14 +71,6 @@ Frontend must:
 **Migration:** `companies/migrations/0014_joborderposition_created_at_and_more.py`
 **Model file:** `companies/models.py` (JobOrderPosition class, after `remarks`)
 **Serializer:** `companies/serializers.py` (no change — auto-included via `fields = '__all__'`)
-
-### Frontend Mapping Required
-
-Frontend must:
-- Add a **"Created"** column in the job-positions table/list mapped to `created_at`
-- (Optional) Add an **"Updated"** column mapped to `updated_at`
-- **Do NOT send** these fields in POST/PATCH — they are read-only on the API. The server auto-fills them on create and update respectively.
-- Existing rows were backfilled with the migration timestamp; new rows will get the real creation time automatically.
 
 ### Sample Response (after migration applied)
 
@@ -102,44 +97,20 @@ Frontend must:
 }
 ```
 
----
+### Frontend Mapping Required
 
-## Summary
-
-| Endpoint | New Fields | Migration | Status |
-|---|---|---|---|
-| `/api/companies/{id}/` | `address`, `contact_person`, `alt_phone`, `notes` | `0013_company_address_contact_person_alt_phone_notes.py` | Code added — pending `python manage.py migrate companies` |
-| `/api/companies/job-positions/{id}/` | `created_at`, `updated_at` | `0014_joborderposition_created_at_and_more.py` | Code added — pending `python manage.py migrate companies` |
-
-## Apply the Migrations
-
-```powershell
-cd E:\2-TECHNO AQUARE
-.\venv\Scripts\activate
-python manage.py migrate companies
-```
-
-Expected output:
-```
-Running migrations:
-  Applying companies.0013_company_address_contact_person_alt_phone_notes... OK
-  Applying companies.0014_joborderposition_created_at_and_more... OK
-```
-
-## Handoff Notes for Frontend
-
-1. All new fields are optional — none are required on POST or PATCH.
-2. `address` and `notes` are unbounded text — use `<textarea>` inputs in the form.
-3. `contact_person` and `alt_phone` are short strings — use single-line `<input type="text">`.
-4. `created_at` and `updated_at` are read-only — never include them in POST/PATCH payloads.
+- Add a **"Created"** column in the job-positions table/list mapped to `created_at`
+- (Optional) Add an **"Updated"** column mapped to `updated_at`
+- **Do NOT send** these fields in POST/PATCH — they are read-only on the API. The server auto-fills them on create and update respectively.
+- Existing rows were backfilled with the migration timestamp; new rows will get the real creation time automatically.
 
 ---
 
-## Endpoint: `POST / GET / PATCH / DELETE /api/interviews/reminders/`
+## Endpoint 3: `POST / GET / PATCH / DELETE /api/interviews/reminders/`  *(NEW ENDPOINT)*
 
-**New endpoint added.** The original interview endpoint is `/api/interviews/`. A `Reminder` resource has been added to the same app, exposed under `/api/interviews/reminders/`.
+A new `Reminder` resource has been added to the `interviews` app, exposed at `/api/interviews/reminders/`.
 
-### Fields Added (new model `Reminder`)
+### Fields Added (new `Reminder` model)
 
 | # | Field Name | API Key | Type | Required | UI Label | Example |
 |---|---|---|---|---|---|---|
@@ -151,18 +122,12 @@ Running migrations:
 | 6 | Created at | `created_at` | `datetime` (ISO 8601) | auto (server) | — | `"2026-07-14T11:00:00Z"` |
 | 7 | Updated at | `updated_at` | `datetime` (ISO 8601) | auto (server) | — | `"2026-07-14T11:00:00Z"` |
 
-Plus a read-only computed field:
+### Computed Fields (read-only)
 
 | Field | Type | Source | Purpose |
 |---|---|---|---|
 | `user_name` | `string` | `user.get_full_name()` | Display name of the assigned crew member |
 | `user_email` | `string` | `user.email` | Email of the assigned crew member |
-
-**Migration:** `interviews/migrations/0002_reminder.py`
-**Model file:** `interviews/models.py` (new `Reminder` class)
-**Serializer file:** `interviews/serializers.py` (new `ReminderSerializer`)
-**View file:** `interviews/views.py` (new `ReminderViewSet`)
-**URL file:** `interviews/urls.py` (router register `r'reminders'`)
 
 ### Available HTTP Methods
 
@@ -180,6 +145,12 @@ Plus a read-only computed field:
 
 - **Admin / HR Manager / Recruiter** — sees and manages every reminder
 - **Any other authenticated user** — sees only their own reminders (`user == request.user`)
+
+**Migration:** `interviews/migrations/0002_reminder.py`
+**Model file:** `interviews/models.py` (new `Reminder` class)
+**Serializer file:** `interviews/serializers.py` (new `ReminderSerializer`)
+**View file:** `interviews/views.py` (new `ReminderViewSet`)
+**URL file:** `interviews/urls.py` (router register `r'reminders'`)
 
 ### Sample Request (POST)
 
@@ -215,8 +186,7 @@ Content-Type: application/json
 
 ### Frontend Mapping Required
 
-Frontend must:
-- Add 4 inputs in the **Add Reminder** modal mapped to `user`, `text`, `reminder_date`, `reminder_time` (the screenshot you sent already does this)
+- Add 4 inputs in the **Add Reminder** modal mapped to `user`, `text`, `reminder_date`, `reminder_time`
 - Send the user as the integer `id` (not the name string)
 - Send dates as `YYYY-MM-DD`, times as `HH:MM:SS` (or `HH:MM`)
 - Use `/api/interviews/reminders/` for create, list, and delete
@@ -225,15 +195,130 @@ Frontend must:
 
 ---
 
-## Summary
+## Endpoint 4: `POST / GET / PATCH / DELETE /api/interviews/`  *(Interview Detail)*
 
-| Endpoint | New Fields / Resource | Migration | Status |
-|---|---|---|---|
-| `/api/companies/{id}/` | `address`, `contact_person`, `alt_phone`, `notes` | `0013_company_address_contact_person_alt_phone_notes.py` | Code added — pending `python manage.py migrate companies` |
-| `/api/companies/job-positions/{id}/` | `created_at`, `updated_at` | `0014_joborderposition_created_at_and_more.py` | Code added — pending `python manage.py migrate companies` |
-| `/api/interviews/reminders/` *(new endpoint)* | `user`, `text`, `reminder_date`, `reminder_time`, `is_completed`, `created_at`, `updated_at` | `0002_reminder.py` | Code added — pending `python manage.py migrate interviews` |
+Fields added to the existing `Interview` model — this endpoint already existed; the new fields expand what the UI can show/save.
 
-## Apply All Migrations
+### Fields Added (model)
+
+| # | Field Name | API Key | Type | Required | UI Label | Example |
+|---|---|---|---|---|---|---|
+| 1 | Principal (Company) | `principal` | `integer` (FK to `companies.Company`) | No | Principal | `12` |
+| 2 | Position | `position` | `string` | No | Position | `"Chief Officer"` |
+| 3 | Interview type | `type` | `string` (choice) | No | Type | `"Video"` |
+| 4 | Duration | `duration_minutes` | `integer` | No | Duration (min) | `30` |
+| 5 | Location | `location` | `string` | No | Location | `"Zoom"` |
+| 6 | Result | `result` | `string` (choice) | No | Result | `"Pass"` |
+| 7 | Feedback | `feedback` | `string` (long) | No | Feedback | `"Strong communicator."` |
+
+### Computed Fields Added (serializer, read-only)
+
+| Field | Type | Source | UI Label | Purpose |
+|---|---|---|---|---|
+| `candidate_email` | `string` | `candidate.email` | Candidate Email | Flat email of the candidate |
+| `interviewer_email` | `string` | `interviewer.email` | Interviewer Email | Flat email of the interviewer |
+
+### Choice Values
+
+**`type`** must be one of:
+- `"Phone"`
+- `"Video"`
+- `"In-Person"`
+
+**`result`** must be one of:
+- `"Pending"`
+- `"Pass"`
+- `"Fail"`
+- `"Hold"`
+
+**Migration:** `interviews/migrations/0003_interview_more_fields.py`
+**Depends on:** `interviews.0002_reminder`, `companies.0014_joborderposition_created_at_and_more`
+**Model file:** `interviews/models.py` (Interview class)
+**Serializer file:** `interviews/serializers.py` (InterviewSerializer)
+
+### Date / Time Note (Option A — single DateTimeField)
+
+`date` stays as a single `DateTimeField` on the backend. The frontend splits it for the **Date** and **Time** columns using JavaScript:
+
+```js
+const d = new Date(interview.date);
+const dateStr = d.toISOString().slice(0, 10);   // "2026-07-20"
+const timeStr = d.toTimeString().slice(0, 5);   // "14:30"
+```
+
+Send `date` on POST/PATCH as ISO 8601: `"2026-07-20T14:30:00Z"`.
+
+### Sample Request (POST)
+
+```http
+POST /api/interviews/
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "candidate": 42,
+  "interviewer": 7,
+  "principal": 12,
+  "position": "Chief Officer",
+  "type": "Video",
+  "duration_minutes": 30,
+  "location": "Zoom",
+  "date": "2026-07-20T14:30:00Z",
+  "status": "Scheduled",
+  "result": "Pending",
+  "feedback": "",
+  "link": "https://zoom.us/j/123",
+  "notes": "First round screening"
+}
+```
+
+### Sample Response (GET single)
+
+```json
+{
+  "id": 23,
+  "candidate": 42,
+  "candidate_details": { "id": 42, "first_name": "Hassan", "last_name": "Mohamed", "email": "hassan@example.com" },
+  "candidate_email": "hassan@example.com",
+  "interviewer": 7,
+  "interviewer_details": { "id": 7, "first_name": "Sara", "last_name": "Ali", "email": "sara@example.com" },
+  "interviewer_email": "sara@example.com",
+  "principal": 12,
+  "position": "Chief Officer",
+  "type": "Video",
+  "duration_minutes": 30,
+  "location": "Zoom",
+  "date": "2026-07-20T14:30:00Z",
+  "status": "Scheduled",
+  "result": "Pending",
+  "feedback": "",
+  "notes": "First round screening",
+  "link": "https://zoom.us/j/123",
+  "created_at": "2026-07-14T11:00:00Z",
+  "updated_at": "2026-07-14T11:00:00Z"
+}
+```
+
+### Frontend Mapping Required
+
+- Add inputs/columns for the 7 new fields: `principal`, `position`, `type`, `duration_minutes`, `location`, `result`, `feedback`
+- Use the flat `candidate_email` and `interviewer_email` instead of digging into `candidate_details` / `interviewer_details`
+- Split the single `date` DateTimeField into separate Date and Time inputs on the form (and join them back into ISO 8601 before POST/PATCH)
+- Render `type` and `result` as dropdowns with the choice values listed above
+- Send `principal` as integer id (not company name)
+
+---
+
+## Final Summary
+
+| # | Endpoint | New Fields / Resource | Migration | App |
+|---|---|---|---|---|
+| 1 | `/api/companies/{id}/` | `address`, `contact_person`, `alt_phone`, `notes` | `0013_company_address_contact_person_alt_phone_notes.py` | companies |
+| 2 | `/api/companies/job-positions/{id}/` | `created_at`, `updated_at` | `0014_joborderposition_created_at_and_more.py` | companies |
+| 3 | `/api/interviews/reminders/` *(new endpoint)* | `user`, `text`, `reminder_date`, `reminder_time`, `is_completed`, `created_at`, `updated_at` | `0002_reminder.py` | interviews |
+| 4 | `/api/interviews/` | `principal`, `position`, `type`, `duration_minutes`, `location`, `result`, `feedback` *(model)* + `candidate_email`, `interviewer_email` *(serializer)* | `0003_interview_more_fields.py` | interviews |
+
+## Apply All Migrations (one command)
 
 ```powershell
 cd E:\2-TECHNO AQUARE
@@ -248,4 +333,12 @@ Running migrations:
   Applying companies.0013_company_address_contact_person_alt_phone_notes... OK
   Applying companies.0014_joborderposition_created_at_and_more... OK
   Applying interviews.0002_reminder... OK
+  Applying interviews.0003_interview_more_fields... OK
 ```
+
+## Global Handoff Notes for Frontend
+
+1. All new fields are optional except the **Reminder** ones (`user`, `text`, `reminder_date`, `reminder_time` — those are required).
+2. Timestamp fields (`created_at`, `updated_at`) are **always read-only** — never send them in POST/PATCH.
+3. Foreign key fields (`user`, `principal`, `candidate`, `interviewer`) must be sent as **integer ids**, never as names or objects.
+4. Date-only fields (`reminder_date`) use `YYYY-MM-DD`. Time-only fields (`reminder_time`) use `HH:MM:SS`. DateTime fields (`date` on Interview, `created_at`, `updated_at`) use ISO 8601.

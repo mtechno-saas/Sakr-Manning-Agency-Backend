@@ -5,6 +5,8 @@ from api.serializers import UserSerializer  # Assuming UserSerializer exists
 class InterviewSerializer(serializers.ModelSerializer):
     candidate_details = UserSerializer(source='candidate', read_only=True)
     interviewer_details = UserSerializer(source='interviewer', read_only=True)
+    candidate_email = serializers.CharField(source='candidate.email', read_only=True)
+    interviewer_email = serializers.CharField(source='interviewer.email', read_only=True)
 
     class Meta:
         model = Interview
