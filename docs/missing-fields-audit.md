@@ -309,6 +309,148 @@ Content-Type: application/json
 
 ---
 
+## Frontend Updates — Saved Filter Management (Interviews Page)
+
+These are **UI feature additions** for the **SAVED VIEWS** panel in the Interviews page filter sidebar. No backend changes are required — the saved views are stored locally (React state / `localStorage`); there is no `SavedView` or `SavedFilter` model in the backend.
+
+**Related files (frontend):**
+- `src/components/dashboard/Components/Common/SavedFilters.jsx` — main saved-filters chip row at the top of the data table (already has a delete button via `Trash2` icon, but no rename)
+- `src/components/dashboard/Components/Common/EnhancedFilterModel.jsx` — right-hand filter sidebar where the **SAVED VIEWS** section is rendered
+- `src/components/dashboard/Components/Common/FilterModel.jsx` — alternate / older filter sidebar implementation
+- `src/components/dashboard/Components/Common/ConfirmDialog.jsx` — confirm dialog component (already exists, reuse for delete)
+
+### Feature 1: Delete Saved Filter
+
+**Where it lives:** Next to each saved view in the **SAVED VIEWS** list, add a small delete icon (trash / `X`).
+
+**Behavior:**
+- Hover the saved view row → reveal the delete icon (e.g. `Trash2` from `lucide-react`, same icon used in `SavedFilters.jsx`)
+- Click the delete icon → open the existing `ConfirmDialog` with the message: *"Delete saved view "<name>"? This cannot be undone."*
+- On confirm → remove the entry from the saved-views state (and `localStorage` if persisted) and re-render the list
+- On cancel → close the dialog, no state change
+
+**Acceptance criteria:**
+- [ ] Each saved view has a visible-on-hover delete icon
+- [ ] Clicking delete opens a confirmation dialog (does not delete immediately)
+- [ ] After confirm, the saved view disappears from the list and the active filters are **not** changed
+- [ ] The state persists across page reloads (if `localStorage` is the storage layer)
+
+**Existing reference code:** `SavedFilters.jsx` lines 102–131 already implement a delete button (calls `onDeletePreset(preset.name)`). The implementation in the sidebar should mirror this pattern.
+
+### Feature 2: Rename Saved Filter
+
+**Where it lives:** Each saved view row in the **SAVED VIEWS** list.
+
+**Behavior — Option A (inline edit, recommended):**
+- Click on the saved view's name → it becomes an editable `<input>` pre-filled with the current name
+- Press **Enter** or click outside → save the new name
+- Press **Escape** → cancel and revert to the old name
+- The bookmark icon stays to the left of the name throughout
+
+**Behavior — Option B (modal):**
+- Click a small pencil/edit icon next to the saved view → open a modal with a single text input pre-filled with the current name
+- Save button → commits, modal closes
+- Cancel button → closes without saving
+
+**Validation:**
+- Name must be non-empty (trim before submit)
+- Name must be unique within the user's saved views (case-insensitive)
+- Max length: 50 characters
+- If validation fails, show a small inline error message under the input
+
+**State changes:**
+- Update the entry's `name` field in the saved-views state
+- Persist to `localStorage` (or wherever the saved views are stored)
+- If the renamed view is currently the **active** filter set, the active filters themselves do **not** change — only the display name
+
+**Acceptance criteria:**
+- [ ] User can trigger rename by clicking the name (Option A) or a dedicated icon (Option B)
+- [ ] Empty or whitespace-only names are rejected
+- [ ] Duplicate names are rejected with a clear error
+- [ ] Successful rename persists across page reloads
+- [ ] Pressing Escape cancels the rename
+
+### Storage Layer Note
+
+If saved views are currently in `localStorage` under a key like `interviews:savedViews`, the shape of each entry is `{ name, filters }`. The rename operation updates the `name` field in place — the `filters` object stays the same. The delete operation removes the entry from the array.
+
+If the data lives in React state only (no persistence), the changes still apply but won't survive a page refresh — recommend adding `localStorage` sync in the same change.
+
+### API / Backend
+
+**No backend changes are required for either feature.** The backend has no `SavedView` or `SavedFilter` model; saved views are 100% client-side. If you later want them to sync across devices, that would need a new model + endpoint — not in scope for this update.
+
+---
+
+## Frontend Updates — Convert Settings Side Panel to Full-Screen Page
+
+The current Settings UI is implemented as a **slide-out side panel** (drawer from the right edge). The requirement is to convert it into a **full-screen page** so settings are easier to manage (more room for forms, tables, and dropdown management — see the cramped dropdown list in the current screenshot).
+
+**Related file (frontend):**
+- `src/components/dashboard/Components/Modal/SettingsSidePanel.jsx` — currently a 36 KB side-drawer component, 1 file contains all 5 tabs
+
+### Current State (side panel)
+
+- Root container: `fixed inset-y-0 right-0 z-[210] w-full max-w-2xl ... transform transition-transform`
+- Backdrop: `fixed inset-0 z-[200] bg-slate-900/40 backdrop-blur-sm` (clicking it closes the panel)
+- Close button: top-right `X` icon that calls `onClose`
+- Max content width: `672px` (Tailwind `max-w-2xl`)
+- The page sidebar (left nav) remains visible behind the panel
+- No URL changes — opening settings does not change the route
+
+### Target State (full-screen page)
+
+- Root container: `fixed inset-0 w-full h-full` (or `w-screen h-screen`) — covers the whole viewport
+- **No backdrop overlay** — replace with normal page chrome
+- Sidebar (left nav) may stay visible, but the Settings content fills the rest of the viewport
+- Each tab becomes a real page section (or a sub-route if you want deep-linking)
+- Add a real route: `/dashboard/settings` with optional `?tab=appearance` query param so the URL reflects the active tab
+- Header keeps the same title/subtitle; replace the `X` close button with a **Back to Dashboard** link/button, or with browser back navigation
+
+### Implementation Sketch
+
+1. **Move the component** from `Components/Modal/SettingsSidePanel.jsx` to `Content/SettingsPage.jsx` (or `Pages/SettingsPage.jsx`) — it stops being a modal/drawer
+2. **Add a route** in your dashboard router (likely `src/components/dashboard/DashboardApp.jsx`):
+   ```jsx
+   <Route path="/dashboard/settings" element={<SettingsPage />} />
+   ```
+3. **Update the left-nav link** for Settings to navigate to that route (use `useNavigate` from `react-router-dom`)
+4. **Refactor the root container** from:
+   ```jsx
+   <div className="fixed inset-y-0 right-0 z-[210] w-full max-w-2xl ...">
+   ```
+   to:
+   ```jsx
+   <div className="w-full h-full bg-white dark:bg-slate-900">
+   ```
+5. **Remove the backdrop** element entirely
+6. **Replace the X close button** with a "← Back" link or breadcrumb
+7. **Add an optional URL query param** for the active tab, e.g. `?tab=dropdowns`, so the link is shareable / refreshable
+
+### Acceptance Criteria
+
+- [ ] Clicking "Settings" in the left nav navigates to `/dashboard/settings`
+- [ ] The Settings page fills the full viewport (no max-width constraint)
+- [ ] The 5 tabs work the same as before: Profile & Account, Appearance, Agency Details, Contract Defaults, Dropdown Data, System Management
+- [ ] No backdrop overlay blocks interaction with the rest of the app
+- [ ] The dropdown-list management section has noticeably more room — the table inside it no longer needs `max-h-[300px] overflow-y-auto` and can show more rows
+- [ ] Browser back button returns to the previous page
+- [ ] Refreshing the page keeps the user on the Settings page (not kicked back to dashboard)
+- [ ] Optional: `?tab=dropdowns` etc. deep-links to a specific tab
+
+### Notes / Considerations
+
+- **No backend changes** — all 5 tabs read/write through existing endpoints (`/api/users/`, `/api/core/`, `/api/companies/job-positions/`, etc.). The settings data layer is unchanged.
+- **State management** — the `useState` calls inside the component stay. If the tabs become separate sub-routes, lift the state up or use URL query params to preserve the active tab.
+- **Mobile responsiveness** — the current side panel already collapses; full-screen layout will need a max-width on really wide screens (optional) so the dropdown table doesn't get unreadably stretched. Consider `max-w-7xl mx-auto` as a sane upper bound.
+- **Browser history** — opening settings should add to the back stack, not replace the current entry. Use `navigate('/dashboard/settings')` (not `replace`).
+
+### API / Backend
+
+**No backend changes required.** The conversion is purely a frontend structural change.
+
+---
+
 ## Final Summary
 
 | # | Endpoint | New Fields / Resource | Migration | App |

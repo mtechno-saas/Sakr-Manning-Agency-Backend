@@ -19,8 +19,19 @@ class CompanySerializer(serializers.ModelSerializer):
     # Kept for backwards compatibility — now mirrors company_type.
     company_type_name = serializers.CharField(source='company_type.name', read_only=True)
 
-    # company_flag still accepts either an integer ID or a string name
-    # (handled in to_internal_value below) and serialises back to the ID.
+    # company_flag is now also exposed as a string (the Flag.name) on both
+    # request and response. SlugRelatedField handles the string<->instance
+    # conversion; to_internal_value below still auto-creates a Flag if a
+    # name is passed that doesn't exist yet.
+    company_flag = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=Flag.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    # Read-only int id (useful for React keys, joins, etc.)
+    company_flag_id = serializers.IntegerField(source='company_flag.id', read_only=True)
+    # Kept for backwards compatibility -- now mirrors company_flag.
     company_flag_name = serializers.CharField(source='company_flag.name', read_only=True)
 
     open_positions = serializers.SerializerMethodField()
@@ -39,19 +50,32 @@ class CompanySerializer(serializers.ModelSerializer):
 
     def to_internal_value(self, data):
         """
-        Normalise `company_flag` (accepts either an integer ID or a string name)
-        and `website` (auto-prefix https:// if missing) before DRF field
-        validation. `company_type` is handled natively by SlugRelatedField.
+        Normalise `company_flag` (accepts an integer ID, a string name, or
+        auto-creates a new Flag if the name is unknown) and `website`
+        (auto-prefix https:// if missing) before DRF field validation.
+        `company_type` is handled natively by SlugRelatedField.
         """
         if 'company_flag' in data:
             val = data['company_flag']
-            if isinstance(val, str) and not val.isdigit() and val.strip():
+            # If a numeric string is sent (e.g. "3"), coerce to int so the
+            # SlugRelatedField treats it as a primary key lookup and returns
+            # the matching Flag's name.
+            if isinstance(val, str) and val.isdigit():
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                else:
+                    data = dict(data)
+                data['company_flag'] = int(val)
+            # If a non-numeric string is sent, auto-create the Flag if it
+            # doesn't already exist (preserves the legacy auto-create
+            # behaviour from before the SlugRelatedField migration).
+            elif isinstance(val, str) and val.strip():
                 flag, _ = Flag.objects.get_or_create(name=val.strip())
                 if hasattr(data, 'copy'):
                     data = data.copy()
                 else:
                     data = dict(data)
-                data['company_flag'] = flag.id
+                data['company_flag'] = flag.name
 
         if 'website' in data and data['website']:
             website_val = data['website']
