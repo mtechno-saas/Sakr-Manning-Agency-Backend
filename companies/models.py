@@ -21,6 +21,22 @@ class Company(models.Model):
     contact_email = models.EmailField()
     contact_phone = models.CharField(max_length=50, blank=True, null=True)
     owner = models.CharField(max_length=255, blank=True, null=True)
+    contact_person = models.CharField(
+        max_length=200, blank=True, null=True,
+        help_text="Primary contact name at the company",
+    )
+    alt_phone = models.CharField(
+        max_length=50, blank=True, null=True,
+        help_text="Alternative phone number",
+    )
+    address = models.TextField(
+        blank=True, null=True,
+        help_text="Full postal address",
+    )
+    notes = models.TextField(
+        blank=True, null=True,
+        help_text="Internal notes about this company",
+    )
     website = models.URLField(max_length=255, blank=True, null=True, help_text="Company website URL")
     company_flag = models.ForeignKey(
         Flag,
