@@ -2676,7 +2676,10 @@ def expiring_documents(request):
         users_with_expiring = Users.objects.filter(user_q).distinct()
 
         for user in users_with_expiring:
-            user_name = f"{user.first_name} {user.last_name}".strip() or user.email
+            user_name = (
+                f"{getattr(user, 'first_name', '')} {getattr(user, 'middle_name', '')}"
+                .strip() or getattr(user, 'email', '')
+            )
             for field, doc_type, number_field in user_expiry_fields:
                 expiry = getattr(user, field, None)
                 if not expiry:
@@ -2720,9 +2723,9 @@ def expiring_documents(request):
                 continue
 
             user_name = (
-                f"{doc.user.first_name} {doc.user.last_name}".strip()
-                if doc.user else 'Unknown'
-            )
+                f"{getattr(doc.user, 'first_name', '')} {getattr(doc.user, 'middle_name', '')}"
+                .strip() or getattr(doc.user, 'email', 'Unknown')
+            ) if doc.user else 'Unknown'
             all_items.append({
                 'id': f"pd_{doc.id}",
                 'type': doc.document_type or 'Personal Document',
