@@ -93,5 +93,5 @@ urlpatterns = [
     path('vessel-types/', get_vessel_types, name='get-vessel-types'),
     path('coc-choices/', get_coc_choices, name='get-coc-choices'),
     path('document-types/', get_document_types, name='get-document-types'),
-    path('users/expiring-documents/', expiring_documents, name='expiring-documents'),
+    path('expiring-documents/', expiring_documents, name='expiring-documents'),
 ]

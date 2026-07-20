@@ -445,7 +445,9 @@ const { data } = await api.get("/users/expiring-documents/?days=30");
 ### Backend locations
 
 - **View function:** `api/views.py:2598` (`def expiring_documents`)
-- **URL pattern:** `api/urls.py:104` (`path('users/expiring-documents/', expiring_documents, name='expiring-documents')`)
+- **URL pattern:** `api/urls.py:104` (`path('expiring-documents/', expiring_documents, name='expiring-documents')`)
+- **Full URL (after both mounts in `saker/urls.py` resolve):** `/api/users/expiring-documents/`
+- **Why the inner path doesn't have a `users/` prefix:** `saker/urls.py` mounts `api/urls.py` at `path("api/users/", ...)` first, so any `users/...` inside `api/urls.py` would resolve to `/api/users/users/...` (double). The cleaner inner path `expiring-documents/` produces the correct full URL `/api/users/expiring-documents/`.
 
 ### Migration / deploy steps
 
