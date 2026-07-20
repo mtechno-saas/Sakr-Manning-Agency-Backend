@@ -337,18 +337,25 @@ class FinanceRecordSerializer(serializers.ModelSerializer):
 # =====================
 
 class CVSubmissionListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for list views"""
+    """Lightweight serializer for list views — extended with all 17 UI columns"""
     user_name = serializers.SerializerMethodField()
     position_name = serializers.CharField(source='position.name', read_only=True)
     company_name = serializers.CharField(source='company.company_name', read_only=True)
 
-    # New fields pulled from the linked user profile
+    # Reviewed-by display fields (read-only)
+    reviewed_by_name = serializers.CharField(source='reviewed_by.first_name', read_only=True, default=None)
+    reviewed_by_last_name = serializers.CharField(source='reviewed_by.last_name', read_only=True, default=None)
+
+    # CV-level fields (not user-level) — so the list shows what THIS application set
+    # rather than the user's profile defaults
+    salary = serializers.DecimalField(source='expected_salary', max_digits=10, decimal_places=2, read_only=True, default=None)
+    available_date = serializers.DateField(source='availability_date', read_only=True, default=None)
+
+    # Profile-derived fields (kept from user for display only)
     generated_id = serializers.SerializerMethodField()
-    salary = serializers.CharField(source='user.salary', read_only=True, default=None)
-    available_date = serializers.DateField(source='user.available_date', read_only=True, default=None)
     profile_image = serializers.ImageField(source='user.profile_image', read_only=True)
     coded_rank = serializers.SerializerMethodField()
-    
+
     # Directly expose the rank_code and assigned_code for the specific position
     rank_code = serializers.CharField(source='position.code', read_only=True)
     assigned_code = serializers.SerializerMethodField()
@@ -363,7 +370,12 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
             'experience_years', 'status', 'submitted_date',
             'generated_id', 'salary', 'available_date', 'profile_image', 'coded_rank',
             'rank_code', 'assigned_code',
-            'job_position', 'job_position_details'
+            'job_position', 'job_position_details',
+            # Fields previously missing in the list response (now exposed)
+            'cover_letter',
+            'reviewed_by', 'reviewed_by_name', 'reviewed_by_last_name', 'reviewed_date',
+            'notes', 'rating',
+            'created_at', 'updated_at',
         ]
 
     def get_user_name(self, obj):
