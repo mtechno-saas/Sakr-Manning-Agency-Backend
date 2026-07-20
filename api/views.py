@@ -128,10 +128,10 @@ class GoogleAuthView(APIView):
 
     Responses
     ---------
-    200 OK  — { access, refresh, user: { id, email, first_name, middle_name, role } }
-    400 BAD REQUEST — invalid / unverified / missing token
-    403 FORBIDDEN   — account is deactivated
-    503 UNAVAILABLE — OAuth not configured on this server
+    200 OK  â€” { access, refresh, user: { id, email, first_name, middle_name, role } }
+    400 BAD REQUEST â€” invalid / unverified / missing token
+    403 FORBIDDEN   â€” account is deactivated
+    503 UNAVAILABLE â€” OAuth not configured on this server
     """
     permission_classes = [AllowAny]
     authentication_classes = []
@@ -141,7 +141,7 @@ class GoogleAuthView(APIView):
         from .google_user_service import GoogleUserService
         from .jwt_token_service import JWTTokenService
 
-        # Step 1 — Validate & verify the Google ID token
+        # Step 1 â€” Validate & verify the Google ID token
         serializer = GoogleTokenSerializer(data=request.data)
         if not serializer.is_valid():
             errors = serializer.errors.get("id_token", serializer.errors)
@@ -159,7 +159,7 @@ class GoogleAuthView(APIView):
 
         google_payload: dict = serializer.google_payload
 
-        # Step 2 — Resolve (or create) the local user
+        # Step 2 â€” Resolve (or create) the local user
         user, created = GoogleUserService.get_or_create_user_from_google(google_payload)
 
         if not user.is_active:
@@ -168,7 +168,7 @@ class GoogleAuthView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Step 3 — Issue JWT tokens
+        # Step 3 â€” Issue JWT tokens
         tokens: dict = JWTTokenService.get_tokens_for_user(user)
 
         return Response(
@@ -1216,15 +1216,15 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
         GET /api/cv-submissions/{id}/download-document/?type=<doc_type>&doc_id=<id>
 
         Supported types:
-          passport          → user.passport_attachment
-          seaman_book       → user.seaman_book_attachment
-          other_seaman_book → user.other_seaman_book_attachment
-          marlins           → user.marlins_test_attachment
-          ces               → user.ces_test_attachment
-          sea_service       → SeaService.objects.get(id=doc_id)
-          vaccination       → Vaccination.objects.get(id=doc_id)
-          course            → Course.objects.get(id=doc_id)
-          personal_document → PersonalDocument.objects.get(id=doc_id)
+          passport          â†’ user.passport_attachment
+          seaman_book       â†’ user.seaman_book_attachment
+          other_seaman_book â†’ user.other_seaman_book_attachment
+          marlins           â†’ user.marlins_test_attachment
+          ces               â†’ user.ces_test_attachment
+          sea_service       â†’ SeaService.objects.get(id=doc_id)
+          vaccination       â†’ Vaccination.objects.get(id=doc_id)
+          course            â†’ Course.objects.get(id=doc_id)
+          personal_document â†’ PersonalDocument.objects.get(id=doc_id)
 
         NOTE: AllowAny because the frontend renders these as plain <a href> links
         that open in a new tab without auth headers. Media files are already public.
@@ -1555,7 +1555,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
             # Auto-create CVSubmission so the approved employee appears in the CV Submissions board
             if document.position:
                 from .models import Rank, CVSubmission, RANKS
-                # Ensure rank exists — try flexible matching
+                # Ensure rank exists â€” try flexible matching
                 pos = document.position.strip()
                 rank = Rank.objects.filter(name__iexact=pos).first()
                 if not rank:
@@ -1913,7 +1913,7 @@ def remove_user_rank(request, user_id, rank_id):
 
 
 # =====================
-# POSITION → CODED RANK BRIDGE
+# POSITION â†’ CODED RANK BRIDGE
 # =====================
 
 # Maps human-readable position names (from Document.POSITION_CHOICES)
@@ -2016,9 +2016,9 @@ def assign_rank_by_position(request, user_id):
 
     Flow:
       1. Validates position is a known POSITION_CHOICES value.
-      2. Maps it to a short rank code (e.g. 'Master' → 'MST').
+      2. Maps it to a short rank code (e.g. 'Master' â†’ 'MST').
       3. Gets or creates the Rank object in the DB.
-      4. Creates a UserRank → assigned_code is AUTO-GENERATED (e.g. 'MST.001').
+      4. Creates a UserRank â†’ assigned_code is AUTO-GENERATED (e.g. 'MST.001').
       5. Returns the full UserRank data.
     """
     if request.user.role not in ['Admin', 'HR Manager']:
@@ -2067,7 +2067,7 @@ def assign_rank_by_position(request, user_id):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    # Map position name → short rank code (only if we didn't find it by ID)
+    # Map position name â†’ short rank code (only if we didn't find it by ID)
     created = False
     if not rank:
         rank_code = POSITION_CODE_MAP.get(position_name, position_name[:6].upper().replace(' ', '_'))
@@ -2089,7 +2089,7 @@ def assign_rank_by_position(request, user_id):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Create UserRank — assigned_code is auto-generated in UserRank.save()
+    # Create UserRank â€” assigned_code is auto-generated in UserRank.save()
     user_rank = UserRank.objects.create(user=user, rank=rank)
 
     from .serializer import UserRankSerializer
@@ -2589,3 +2589,176 @@ class GlobalSearchView(APIView):
 
 
 
+# =============================================================
+# Expiring Documents - Aggregated endpoint
+# =============================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def expiring_documents(request):
+    """
+    Aggregate all expiring documents across users in a single response.
+    Combines:
+      - 9 expiry date fields on the Users model (passport, seaman book, COC, GOC, health, etc.)
+      - All rows in PersonalDocument (passport, visas, seaman books, etc.)
+    Returns a unified list with daysToExpiry and category per item.
+
+    Query params:
+      days (int, default 30): how far ahead to look
+      category (str, optional): filter - expired / critical / warning / notice / all
+    """
+    try:
+        # ---- parse query params ----
+        try:
+            days = int(request.query_params.get('days', 30))
+        except (TypeError, ValueError):
+            days = 30
+        if days < 1:
+            days = 30
+        if days > 365:
+            days = 365
+
+        category_filter = request.query_params.get('category', None)
+
+        # ---- role check ----
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        if getattr(request.user, 'role', None) not in ['Admin', 'HR Manager']:
+            return Response(
+                {'error': 'Only Admin and HR Manager can view expiring documents.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        today = timezone.localdate()
+        soon = today + timedelta(days=days)
+
+        def categorize(days_to_expiry):
+            if days_to_expiry is None:
+                return 'unknown'
+            if days_to_expiry < 0:
+                return 'expired'
+            if days_to_expiry <= 14:
+                return 'critical'
+            if days_to_expiry <= 30:
+                return 'warning'
+            if days_to_expiry <= 90:
+                return 'notice'
+            return 'active'
+
+        all_items = []
+
+        # =============================================================
+        # Source 1: Users profile expiry fields (9 fields)
+        # =============================================================
+        from .models import Users, PersonalDocument
+
+        user_expiry_fields = [
+            ('passport_expiry_date',              'Passport',                          'passport_no'),
+            ('seaman_book_expiry_date',           "Seaman's Book",                      'seaman_book_no'),
+            ('other_seaman_book_expiry_date',     "Other Seaman's Book",                'other_seaman_book_no'),
+            ('coc_expiry_date',                   'Certificate of Competency (COC)',   'coc_certificate_number'),
+            ('goc_expiry_date',                   'General Operator Certificate (GOC)', 'goc_certificate_number'),
+            ('health_expiry_date',                'Health Certificate',                'health_number'),
+            ('international_medical_expiry_date', 'International Medical',              'international_medical_number'),
+            ('yellow_fever_expiry_date',          'Yellow Fever Vaccination',          'yellow_fever_number'),
+            ('cholera_expiry_date',               'Cholera Vaccination',               None),
+        ]
+
+        # Build Q for users with at least one field in range or expired
+        user_q = Q()
+        for field, _, _ in user_expiry_fields:
+            user_q |= Q(**{f'{field}__lt': today})
+            user_q |= Q(**{f'{field}__gte': today, f'{field}__lte': soon})
+
+        users_with_expiring = Users.objects.filter(user_q).distinct()
+
+        for user in users_with_expiring:
+            user_name = f"{user.first_name} {user.last_name}".strip() or user.email
+            for field, doc_type, number_field in user_expiry_fields:
+                expiry = getattr(user, field, None)
+                if not expiry:
+                    continue
+                if not (expiry < today or today <= expiry <= soon):
+                    continue
+
+                days_to_expiry = (expiry - today).days
+                cat = categorize(days_to_expiry)
+                if category_filter and category_filter != 'all' and cat != category_filter:
+                    continue
+
+                doc_number = getattr(user, number_field, None) if number_field else None
+                all_items.append({
+                    'id': f"user_{user.id}_{field}",
+                    'type': doc_type,
+                    'name': f"{doc_type} - {doc_number or 'N/A'}",
+                    'number': doc_number or 'N/A',
+                    'user': user_name,
+                    'userId': user.id,
+                    'userEmail': user.email,
+                    'expiryDate': expiry.isoformat(),
+                    'daysToExpiry': days_to_expiry,
+                    'category': cat,
+                    'source': 'user_profile',
+                })
+
+        # =============================================================
+        # Source 2: PersonalDocument table
+        # =============================================================
+        personal_docs = PersonalDocument.objects.select_related('user').filter(
+            expiry_date__lte=soon
+        )
+
+        for doc in personal_docs:
+            if not doc.expiry_date:
+                continue
+            days_to_expiry = (doc.expiry_date - today).days
+            cat = categorize(days_to_expiry)
+            if category_filter and category_filter != 'all' and cat != category_filter:
+                continue
+
+            user_name = (
+                f"{doc.user.first_name} {doc.user.last_name}".strip()
+                if doc.user else 'Unknown'
+            )
+            all_items.append({
+                'id': f"pd_{doc.id}",
+                'type': doc.document_type or 'Personal Document',
+                'name': f"{doc.document_type or 'Document'} - {doc.document_number or 'N/A'}",
+                'number': doc.document_number or 'N/A',
+                'user': user_name,
+                'userId': doc.user_id,
+                'userEmail': doc.user.email if doc.user else None,
+                'expiryDate': doc.expiry_date.isoformat(),
+                'daysToExpiry': days_to_expiry,
+                'category': cat,
+                'source': 'personal_document',
+            })
+
+        # ---- sort by urgency (most overdue first, then earliest expiry) ----
+        all_items.sort(key=lambda x: x['daysToExpiry'])
+
+        counts = {
+            'expired': sum(1 for x in all_items if x['category'] == 'expired'),
+            'critical': sum(1 for x in all_items if x['category'] == 'critical'),
+            'warning': sum(1 for x in all_items if x['category'] == 'warning'),
+            'notice': sum(1 for x in all_items if x['category'] == 'notice'),
+            'active': sum(1 for x in all_items if x['category'] == 'active'),
+            'total': len(all_items),
+        }
+
+        return Response({
+            'counts': counts,
+            'days_window': days,
+            'today': today.isoformat(),
+            'category_filter': category_filter or 'all',
+            'results': all_items,
+        })
+    except Exception as e:
+        import traceback
+        return Response(
+            {'error': str(e), 'traceback': traceback.format_exc()},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )

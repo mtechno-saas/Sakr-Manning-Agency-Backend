@@ -1,0 +1,188 @@
+"""Append the expiring_documents view to api/views.py using UTF-8."""
+from pathlib import Path
+
+CODE = '''
+
+
+# =============================================================
+# Expiring Documents - Aggregated endpoint
+# =============================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def expiring_documents(request):
+    """
+    Aggregate all expiring documents across users in a single response.
+    Combines:
+      - 9 expiry date fields on the Users model (passport, seaman book, COC, GOC, health, etc.)
+      - All rows in PersonalDocument (passport, visas, seaman books, etc.)
+    Returns a unified list with daysToExpiry and category per item.
+
+    Query params:
+      days (int, default 30): how far ahead to look
+      category (str, optional): filter - expired / critical / warning / notice / all
+    """
+    try:
+        # ---- parse query params ----
+        try:
+            days = int(request.query_params.get('days', 30))
+        except (TypeError, ValueError):
+            days = 30
+        if days < 1:
+            days = 30
+        if days > 365:
+            days = 365
+
+        category_filter = request.query_params.get('category', None)
+
+        # ---- role check ----
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        if getattr(request.user, 'role', None) not in ['Admin', 'HR Manager']:
+            return Response(
+                {'error': 'Only Admin and HR Manager can view expiring documents.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        today = timezone.localdate()
+        soon = today + timedelta(days=days)
+
+        def categorize(days_to_expiry):
+            if days_to_expiry is None:
+                return 'unknown'
+            if days_to_expiry < 0:
+                return 'expired'
+            if days_to_expiry <= 14:
+                return 'critical'
+            if days_to_expiry <= 30:
+                return 'warning'
+            if days_to_expiry <= 90:
+                return 'notice'
+            return 'active'
+
+        all_items = []
+
+        # =============================================================
+        # Source 1: Users profile expiry fields (9 fields)
+        # =============================================================
+        from .models import Users, PersonalDocument
+
+        user_expiry_fields = [
+            ('passport_expiry_date',              'Passport',                          'passport_no'),
+            ('seaman_book_expiry_date',           "Seaman's Book",                      'seaman_book_no'),
+            ('other_seaman_book_expiry_date',     "Other Seaman's Book",                'other_seaman_book_no'),
+            ('coc_expiry_date',                   'Certificate of Competency (COC)',   'coc_certificate_number'),
+            ('goc_expiry_date',                   'General Operator Certificate (GOC)', 'goc_certificate_number'),
+            ('health_expiry_date',                'Health Certificate',                'health_number'),
+            ('international_medical_expiry_date', 'International Medical',              'international_medical_number'),
+            ('yellow_fever_expiry_date',          'Yellow Fever Vaccination',          'yellow_fever_number'),
+            ('cholera_expiry_date',               'Cholera Vaccination',               None),
+        ]
+
+        # Build Q for users with at least one field in range or expired
+        user_q = Q()
+        for field, _, _ in user_expiry_fields:
+            user_q |= Q(**{f'{field}__lt': today})
+            user_q |= Q(**{f'{field}__gte': today, f'{field}__lte': soon})
+
+        users_with_expiring = Users.objects.filter(user_q).distinct()
+
+        for user in users_with_expiring:
+            user_name = f"{user.first_name} {user.last_name}".strip() or user.email
+            for field, doc_type, number_field in user_expiry_fields:
+                expiry = getattr(user, field, None)
+                if not expiry:
+                    continue
+                if not (expiry < today or today <= expiry <= soon):
+                    continue
+
+                days_to_expiry = (expiry - today).days
+                cat = categorize(days_to_expiry)
+                if category_filter and category_filter != 'all' and cat != category_filter:
+                    continue
+
+                doc_number = getattr(user, number_field, None) if number_field else None
+                all_items.append({
+                    'id': f"user_{user.id}_{field}",
+                    'type': doc_type,
+                    'name': f"{doc_type} - {doc_number or 'N/A'}",
+                    'number': doc_number or 'N/A',
+                    'user': user_name,
+                    'userId': user.id,
+                    'userEmail': user.email,
+                    'expiryDate': expiry.isoformat(),
+                    'daysToExpiry': days_to_expiry,
+                    'category': cat,
+                    'source': 'user_profile',
+                })
+
+        # =============================================================
+        # Source 2: PersonalDocument table
+        # =============================================================
+        personal_docs = PersonalDocument.objects.select_related('user').filter(
+            expiry_date__lte=soon
+        )
+
+        for doc in personal_docs:
+            if not doc.expiry_date:
+                continue
+            days_to_expiry = (doc.expiry_date - today).days
+            cat = categorize(days_to_expiry)
+            if category_filter and category_filter != 'all' and cat != category_filter:
+                continue
+
+            user_name = (
+                f"{doc.user.first_name} {doc.user.last_name}".strip()
+                if doc.user else 'Unknown'
+            )
+            all_items.append({
+                'id': f"pd_{doc.id}",
+                'type': doc.document_type or 'Personal Document',
+                'name': f"{doc.document_type or 'Document'} - {doc.document_number or 'N/A'}",
+                'number': doc.document_number or 'N/A',
+                'user': user_name,
+                'userId': doc.user_id,
+                'userEmail': doc.user.email if doc.user else None,
+                'expiryDate': doc.expiry_date.isoformat(),
+                'daysToExpiry': days_to_expiry,
+                'category': cat,
+                'source': 'personal_document',
+            })
+
+        # ---- sort by urgency (most overdue first, then earliest expiry) ----
+        all_items.sort(key=lambda x: x['daysToExpiry'])
+
+        counts = {
+            'expired': sum(1 for x in all_items if x['category'] == 'expired'),
+            'critical': sum(1 for x in all_items if x['category'] == 'critical'),
+            'warning': sum(1 for x in all_items if x['category'] == 'warning'),
+            'notice': sum(1 for x in all_items if x['category'] == 'notice'),
+            'active': sum(1 for x in all_items if x['category'] == 'active'),
+            'total': len(all_items),
+        }
+
+        return Response({
+            'counts': counts,
+            'days_window': days,
+            'today': today.isoformat(),
+            'category_filter': category_filter or 'all',
+            'results': all_items,
+        })
+    except Exception as e:
+        import traceback
+        return Response(
+            {'error': str(e), 'traceback': traceback.format_exc()},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+'''
+
+target = Path(r"E:\2-TECHNO AQUARE\api\views.py")
+existing = target.read_text(encoding="utf-8")
+if "def expiring_documents" in existing:
+    print("SKIP: function already exists")
+else:
+    target.write_text(existing + CODE, encoding="utf-8")
+    print(f"OK: appended {len(CODE)} chars to {target}")
