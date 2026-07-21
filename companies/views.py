@@ -7,7 +7,7 @@ from django.db.models import Count, Sum
 from .models import Company, JobOrder, JobOrderPosition
 from .models import Company, JobOrder, JobOrderPosition
 from .serializers import CompanySerializer, JobOrderSerializer, JobOrderPositionSerializer
-from .filters import CompanyFilter
+from .filters import CompanyFilter, JobOrderPositionFilter
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
@@ -121,7 +121,7 @@ class JobOrderPositionViewSet(viewsets.ModelViewSet):
     """
     queryset = JobOrderPosition.objects.all().prefetch_related('contracts__user')
     serializer_class = JobOrderPositionSerializer
-    filterset_fields = ['job_order', 'rank']
+    filterset_class = JobOrderPositionFilter
     permission_classes = [PublicJobOrderPermission]
 
     def get_serializer(self, *args, **kwargs):
