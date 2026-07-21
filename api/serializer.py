@@ -231,9 +231,11 @@ class UserMeSerializer(serializers.ModelSerializer):
 
 class CompanyListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views"""
+    company_type = serializers.StringRelatedField()
+
     class Meta:
         model = Company
-        fields = ['id', 'name', 'company_type', 'email', 'open_positions', 'status']
+        fields = ['id', 'company_name', 'company_type', 'contact_email', 'open_positions', 'status']
 
 
 class CompanySerializer(serializers.ModelSerializer):

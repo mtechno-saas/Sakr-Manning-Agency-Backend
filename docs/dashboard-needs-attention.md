@@ -481,3 +481,200 @@ Should return the full payload with `counts`, `days_window`, and `results` sorte
 | **Expiring Documents** | **`/api/users/expiring-documents/`** | **GET** | **Single source for all 9 user-profile + 30 personal-doc types** |
 | Expiring Documents (legacy) | `/users/personal-documents/`, `/my-licenses/`, `/vaccinations/`, `/contracts/` | GET × 4 | What `useDocumentExpiry` uses today — can be replaced by the new endpoint |
 | Document stats | `/api/documents/?status=Pending&page_size=1` (count) | GET | For the "X items need attention" badge |
+
+---
+
+## CV Submissions — `/api/cv-submissions/`
+
+The CV Submissions widget on the dashboard lists all CV applications from candidates, with status tracking from `Pending` → `Approved` (or `Rejected` / `Hired`).
+
+### Where it lives
+
+- **Frontend route:** `/dashboard` → CV Submissions tab
+- **Model:** `api.models.CVSubmission`
+- **ViewSet:** `api.views.CVSubmissionViewSet`
+- **List serializer:** `api.serializer.CVSubmissionListSerializer` (lightweight, 17+ fields)
+- **Detail serializer:** `api.serializer.CVSubmissionSerializer` (full record, 30+ fields)
+- **Filter class:** `api.filters.CVSubmissionFilter`
+- **URL:** `/api/cv-submissions/` (router-registered via `DefaultRouter`)
+
+### List endpoint
+
+```http
+GET https://backend.sakrshipping.com/api/cv-submissions/?status=Approved
+Authorization: Bearer <token>
+```
+
+### Query parameters
+
+| Param | Type | Effect |
+|---|---|---|
+| `page` | int | Page number (default 1) |
+| `page_size` | int | Override default page size |
+| `user` | int | Filter by user id |
+| `position` | int | Filter by `position` (Rank) id |
+| `status` | string | One of: `Pending`, `Under Review`, `Interviewed`, `Shortlisted`, `Approved`, `Rejected`, `Hired` (case-insensitive via `iexact`) |
+| `submitted_date_from` | date (YYYY-MM-DD) | `submitted_date >= from` |
+| `submitted_date_to` | date (YYYY-MM-DD) | `submitted_date <= to` |
+
+### Available HTTP methods
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/cv-submissions/` | List (paginated, filterable) |
+| POST | `/api/cv-submissions/` | Create new CV submission |
+| GET | `/api/cv-submissions/{id}/` | Retrieve full record |
+| PUT | `/api/cv-submissions/{id}/` | Full update |
+| PATCH | `/api/cv-submissions/{id}/` | Partial update |
+| DELETE | `/api/cv-submissions/{id}/` | Delete (also removes user from ship's crew if linked) |
+| GET | `/api/cv-submissions/stats/` | Aggregated stats (totals by status) |
+| POST | `/api/cv-submissions/upload/` | Upload a CV (multipart form) |
+
+### Permissions
+
+| Role | GET | POST | PATCH | DELETE |
+|---|---|---|---|---|
+| Anonymous | ❌ 401 | ❌ 401 | ❌ 401 | ❌ 401 |
+| Employee | ✅ own only | ✅ (for self) | ❌ 403 | ❌ 403 |
+| Admin | ✅ all | ✅ | ✅ | ✅ |
+| HR Manager | ✅ all | ✅ | ✅ | ✅ |
+| Recruiter | ✅ all | ✅ | ✅ (status only) | ❌ 403 |
+
+The custom `CVPermission` class enforces these rules.
+
+### Sample response (list with `?status=Approved`)
+
+```json
+{
+  "count": 12,
+  "next": "https://backend.sakrshipping.com/api/cv-submissions/?page=2&status=Approved",
+  "previous": null,
+  "results": [
+    {
+      "id": 42,
+      "user": 7,
+      "user_name": "Hassan Mohamed",
+      "company": 3,
+      "company_name": "Maersk Line Egypt",
+      "position": 4,
+      "position_name": "Chief Officer",
+      "experience_years": 5,
+      "status": "Approved",
+      "submitted_date": "2026-07-18T10:00:00Z",
+      "generated_id": "ER-14.051",
+      "salary": "8500.00",
+      "available_date": "2026-08-01",
+      "profile_image": "https://backend.sakrshipping.com/media/profile_images/hassan.jpg",
+      "coded_rank": [
+        { "assigned_code": "MST.001", "rank_code": "ER-7.103", "rank_name": "Master" }
+      ],
+      "rank_code": "ER-7.103",
+      "assigned_code": "MST.001",
+      "job_position": 87,
+      "job_position_details": {
+        "id": 87, "job_position_name": "Chief Officer",
+        "quantity": 1, "salary_min": "7500.00", "salary_max": "9500.00",
+        "currency": "USD", "contract_duration_months": 6, "remarks": "Urgent hire"
+      },
+      "cover_letter": "Dear Hiring Manager, I am writing to express my interest...",
+      "reviewed_by": 12,
+      "reviewed_by_name": "Sara",
+      "reviewed_by_last_name": null,
+      "reviewed_date": "2026-07-19T14:23:00Z",
+      "notes": "Strong candidate. Recommend hire.",
+      "rating": 4,
+      "created_at": "2026-07-18T10:00:00Z",
+      "updated_at": "2026-07-19T14:23:00Z"
+    }
+  ]
+}
+```
+
+### Field reference — list serializer (17 UI columns)
+
+| # | UI column | API key | Type | Source |
+|---|---|---|---|---|
+| 1 | Name | `user_name` | string (computed) | `user.first_name middle_name` |
+| 2 | ID | `id` | int | CV submission primary key |
+| 3 | Principal | `company_name` | string (computed) | `company.company_name` |
+| 4 | Position | `position_name` | string (computed) | `position.name` |
+| 5 | Rank Code | `rank_code` | string (computed) | `position.code` |
+| 6 | Experience | `experience_years` | int | CV model field |
+| 7 | Salary | `salary` | decimal (string) | `expected_salary` (CV-level, not user) |
+| 8 | Status | `status` | string (choice) | One of 7 values |
+| 9 | Cover Letter | `cover_letter` | text | CV model field |
+| 10 | Availability Date | `available_date` | date | `availability_date` (CV-level) |
+| 11 | Submitted Date | `submitted_date` | datetime | CV model field |
+| 12 | Reviewed By | `reviewed_by_name` | string | `reviewed_by.first_name` |
+| 13 | Reviewed Date | `reviewed_date` | datetime | CV model field |
+| 14 | Notes | `notes` | text | CV model field |
+| 15 | Rating | `rating` | int | CV model field (0–5) |
+| 16 | Created At | `created_at` | datetime | auto |
+| 17 | Updated At | `updated_at` | datetime | auto |
+
+### Field reference — extra fields in detail serializer (not in list)
+
+| Field | Type | Notes |
+|---|---|---|
+| `cv_file` | URL | URL to the uploaded CV (PDF/DOCX) |
+| `ship` | int (FK) | Optional ship link |
+| `ship_name` | string | Ship's name (read-only) |
+| `ship_details` | object | Nested ship info |
+| `cover_letter` | text | Long-form cover letter |
+| `experience_years` | int | Years of experience |
+| `expected_salary` | decimal | The CV's expected salary (vs `salary` from user) |
+| `availability_date` | date | The CV's available date (vs `available_date` from user) |
+| `user_first_name` / `user_middle_name` / `user_email` | string/email (write-only) | For creating CVs without an existing user |
+| `company_name_input` / `position_name_input` / `ship_name_input` | string (write-only) | Allow name-based FK resolution on create |
+| `reviewed_by_name` | string (write-only) | Allow name-based reviewer assignment |
+| `certificates` | array | List of certificate objects on the linked user |
+| `user_documents` | object | All docs on the linked user (passport, seaman book, COC, etc.) |
+
+### Valid `status` values
+
+⚠️ **Important:** The `status` filter is **case-insensitive but value-strict**. Unknown values (like `Active`) return `200 OK` with an empty list, not an error.
+
+| Valid value | When to use |
+|---|---|
+| `Pending` | New, undecided |
+| `Under Review` | Reviewer is looking at it |
+| `Interviewed` | Interview done, decision pending |
+| `Shortlisted` | Selected for further consideration |
+| `Approved` | Cleared for hire |
+| `Rejected` | Not moving forward |
+| `Hired` | Actually working |
+
+> Don't confuse with the **Company** `status` filter, which uses `Active` / `Inactive` / `Prospect`. The vocabularies are different on purpose.
+
+### Frontend mapping required
+
+- The list response is shaped to plug straight into a 17-column table — every column in the UI is in the list payload.
+- For the **Download CV** action, use `cv_file` from the detail endpoint (not the list — list doesn't include it).
+- For inline editing, `PATCH /api/cv-submissions/{id}/` with `{ "status": "Approved" }` is the most common action.
+
+### Backend locations
+
+- **Model:** `api/models.py:777` (`class CVSubmission`)
+- **List serializer:** `api/serializer.py:339` (`class CVSubmissionListSerializer`)
+- **Detail serializer:** `api/serializer.py:419` (`class CVSubmissionSerializer`)
+- **Filter:** `api/filters.py:231` (`class CVSubmissionFilter`)
+- **ViewSet:** `api/views.py:1084` (`class CVSubmissionViewSet`)
+- **URL:** `api/urls.py:55` (`router.register(r'cv-submissions', CVSubmissionViewSet, basename="cvsubmission")`)
+
+### Migration / deploy
+
+No migration needed for the recent serializer fix (was a code-only change to `CVSubmissionListSerializer.Meta.fields`).
+
+```bash
+sudo systemctl restart gunicorn
+```
+
+### Verify
+
+```bash
+curl -H "Authorization: Bearer <admin-token>" \
+  "https://backend.sakrshipping.com/api/cv-submissions/?status=Approved" \
+  | python -m json.tool | head -30
+```
+
+Should return `count`, `next`, `previous`, and `results[]` with the full payload.
