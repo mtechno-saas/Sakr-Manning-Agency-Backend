@@ -26,7 +26,7 @@ A card on the dashboard listing the count of pending documents and the most rece
 ### What it shows
 
 - Total count of documents with `status == "Pending"`
-- List of recent pending documents (typically top 5–10)
+- List of recent pending documents (typically top 5â€“10)
 - For each item: title, file name, uploader name, upload date, quick-action buttons (View / Approve / Reject)
 
 ---
@@ -101,13 +101,13 @@ Authorization: Bearer <jwt>
 
 | Role | GET | POST | PUT/PATCH | DELETE |
 |---|---|---|---|---|
-| Anonymous | ❌ 401 | ✅ allowed (any user can upload) | ❌ 401 | ❌ 401 |
-| Employee | ✅ (own only) | ✅ (for self) | ❌ 403 | ❌ 403 |
-| Admin | ✅ all | ✅ | ✅ | ✅ |
-| HR Manager | ✅ all | ✅ | ✅ | ✅ |
-| Recruiter | ✅ all | ✅ | ✅ | ✅ |
+| Anonymous | âŒ 401 | âœ… allowed (any user can upload) | âŒ 401 | âŒ 401 |
+| Employee | âœ… (own only) | âœ… (for self) | âŒ 403 | âŒ 403 |
+| Admin | âœ… all | âœ… | âœ… | âœ… |
+| HR Manager | âœ… all | âœ… | âœ… | âœ… |
+| Recruiter | âœ… all | âœ… | âœ… | âœ… |
 
-⚠️ The `create` action is `AllowAny` in the current code — anyone, even unauthenticated users, can POST a document. This is a known issue for a public-facing form (the Apply Now button on the landing page) but it does mean unauthenticated users can upload. **Review whether this is intentional.**
+âš ï¸ The `create` action is `AllowAny` in the current code — anyone, even unauthenticated users, can POST a document. This is a known issue for a public-facing form (the Apply Now button on the landing page) but it does mean unauthenticated users can upload. **Review whether this is intentional.**
 
 ### Pagination
 
@@ -140,7 +140,7 @@ Authorization: Bearer <jwt>
 - `?search=abdelaleem` matches every document with "abdelaleem" in name or email
 - `?search=user28@example.com` matches that exact email if it exists
 
-⚠️ The `search` param does **not** look up by document id. If "28" was meant as a document id, the right call is:
+âš ï¸ The `search` param does **not** look up by document id. If "28" was meant as a document id, the right call is:
 
 ```bash
 GET /api/documents/28/
@@ -209,30 +209,30 @@ If the frontend is calling `?search=28` to get a specific document, that's proba
 
 ```
 1. Dashboard mounts
-   └─→ GET /api/documents/?page=1&status=Pending
+   â””â”€â†’ GET /api/documents/?page=1&status=Pending
        Returns: { count: 27, results: [...10 items] }
 
 2. For each item in results:
-   └─→ GET /api/documents/?search=<something>
+   â””â”€â†’ GET /api/documents/?search=<something>
        (Currently looks up by name/email fragment — see warning above)
        Should be: GET /api/documents/{id}/
 
 3. User clicks a row
-   └─→ Open detail panel / modal
-   └─→ GET /api/documents/{id}/
+   â””â”€â†’ Open detail panel / modal
+   â””â”€â†’ GET /api/documents/{id}/
 
 4. User clicks "Approve" or "Reject"
-   └─→ PATCH /api/documents/{id}/  with { "status": "Approved" }
-   └─→ Dashboard re-fetches list to update count
+   â””â”€â†’ PATCH /api/documents/{id}/  with { "status": "Approved" }
+   â””â”€â†’ Dashboard re-fetches list to update count
 ```
 
 ### Performance note (N+1)
 
 The current flow does **1 list query + N search queries** (one per item). For 10 items, that's 11 requests. This is the classic N+1 problem. Better:
 
-- ✅ Fetch the full payload in the list (already does — `?page_size=1000` if needed)
-- ✅ Use `/api/documents/{id}/` for direct lookup, not `?search=`
-- ✅ Or include the full record in a single list response and skip per-item fetches
+- âœ… Fetch the full payload in the list (already does — `?page_size=1000` if needed)
+- âœ… Use `/api/documents/{id}/` for direct lookup, not `?search=`
+- âœ… Or include the full record in a single list response and skip per-item fetches
 
 ---
 
@@ -291,6 +291,21 @@ The main thing to fix is the per-item detail call. The current `?search=28` retu
 
 ---
 
+
+## Applicants Page — separate doc
+
+The **Applicants** page on the dashboard is a separate page from the "Needs Attention" widget. It uses the same `/api/documents/` endpoint but **without** the `?status=Pending` filter — it's the canonical applicants list with all statuses.
+
+Full documentation is in **`docs/applicants-page.md`**.
+
+Quick reference:
+- **URL:** `GET /api/documents/?page=1` (no `status` filter)
+- **Backend view:** `api.views.DocumentViewSet` (same as Needs Attention)
+- **Same permission matrix** as Needs Attention
+- **Common frontend bug to watch for:** if a shared `getDocuments()` service hardcodes `?status=Pending`, the Applicants page would inherit the wrong filter
+
+---
+
 ## Expiring Documents — Aggregated Endpoint
 
 A single endpoint that surfaces every expiring or expired document across all users. Combines the 9 expiry date fields stored on the `Users` model with the `PersonalDocument` table into one unified response.
@@ -312,7 +327,7 @@ GET /api/users/expiring-documents/
 
 | Param | Type | Default | Effect |
 |---|---|---|---|
-| `days` | int | `30` | Look-ahead window in days (1–365) |
+| `days` | int | `30` | Look-ahead window in days (1â€“365) |
 | `category` | string | *(none)* | Filter: `expired` / `critical` / `warning` / `notice` / `active` / `all` |
 
 ### Categories
@@ -320,9 +335,9 @@ GET /api/users/expiring-documents/
 | Category | Range | Meaning |
 |---|---|---|
 | `expired` | `daysToExpiry < 0` | Already past expiry date |
-| `critical` | `0–14 days` | Renew immediately |
-| `warning` | `15–30 days` | Plan renewal |
-| `notice` | `31–90 days` | Heads up |
+| `critical` | `0â€“14 days` | Renew immediately |
+| `warning` | `15â€“30 days` | Plan renewal |
+| `notice` | `31â€“90 days` | Heads up |
 | `active` | `> 90 days` | Not flagged by this endpoint (only appears if you widen `days`) |
 
 ### Request examples
@@ -479,18 +494,18 @@ Should return the full payload with `counts`, `days_window`, and `results` sorte
 | Needs Attention — list | `/api/documents/?page=1&status=Pending` | GET | Paginated list of pending uploads |
 | Needs Attention — per item | `/api/documents/{id}/` | GET | Full document (use id, not `?search=`) |
 | **Expiring Documents** | **`/api/users/expiring-documents/`** | **GET** | **Single source for all 9 user-profile + 30 personal-doc types** |
-| Expiring Documents (legacy) | `/users/personal-documents/`, `/my-licenses/`, `/vaccinations/`, `/contracts/` | GET × 4 | What `useDocumentExpiry` uses today — can be replaced by the new endpoint |
+| Expiring Documents (legacy) | `/users/personal-documents/`, `/my-licenses/`, `/vaccinations/`, `/contracts/` | GET Ã— 4 | What `useDocumentExpiry` uses today — can be replaced by the new endpoint |
 | Document stats | `/api/documents/?status=Pending&page_size=1` (count) | GET | For the "X items need attention" badge |
 
 ---
 
 ## CV Submissions — `/api/cv-submissions/`
 
-The CV Submissions widget on the dashboard lists all CV applications from candidates, with status tracking from `Pending` → `Approved` (or `Rejected` / `Hired`).
+The CV Submissions widget on the dashboard lists all CV applications from candidates, with status tracking from `Pending` â†’ `Approved` (or `Rejected` / `Hired`).
 
 ### Where it lives
 
-- **Frontend route:** `/dashboard` → CV Submissions tab
+- **Frontend route:** `/dashboard` â†’ CV Submissions tab
 - **Model:** `api.models.CVSubmission`
 - **ViewSet:** `api.views.CVSubmissionViewSet`
 - **List serializer:** `api.serializer.CVSubmissionListSerializer` (lightweight, 17+ fields)
@@ -534,11 +549,11 @@ Authorization: Bearer <token>
 
 | Role | GET | POST | PATCH | DELETE |
 |---|---|---|---|---|
-| Anonymous | ❌ 401 | ❌ 401 | ❌ 401 | ❌ 401 |
-| Employee | ✅ own only | ✅ (for self) | ❌ 403 | ❌ 403 |
-| Admin | ✅ all | ✅ | ✅ | ✅ |
-| HR Manager | ✅ all | ✅ | ✅ | ✅ |
-| Recruiter | ✅ all | ✅ | ✅ (status only) | ❌ 403 |
+| Anonymous | âŒ 401 | âŒ 401 | âŒ 401 | âŒ 401 |
+| Employee | âœ… own only | âœ… (for self) | âŒ 403 | âŒ 403 |
+| Admin | âœ… all | âœ… | âœ… | âœ… |
+| HR Manager | âœ… all | âœ… | âœ… | âœ… |
+| Recruiter | âœ… all | âœ… | âœ… (status only) | âŒ 403 |
 
 The custom `CVPermission` class enforces these rules.
 
@@ -608,7 +623,7 @@ The custom `CVPermission` class enforces these rules.
 | 12 | Reviewed By | `reviewed_by_name` | string | `reviewed_by.first_name` |
 | 13 | Reviewed Date | `reviewed_date` | datetime | CV model field |
 | 14 | Notes | `notes` | text | CV model field |
-| 15 | Rating | `rating` | int | CV model field (0–5) |
+| 15 | Rating | `rating` | int | CV model field (0â€“5) |
 | 16 | Created At | `created_at` | datetime | auto |
 | 17 | Updated At | `updated_at` | datetime | auto |
 
@@ -632,7 +647,7 @@ The custom `CVPermission` class enforces these rules.
 
 ### Valid `status` values
 
-⚠️ **Important:** The `status` filter is **case-insensitive but value-strict**. Unknown values (like `Active`) return `200 OK` with an empty list, not an error.
+âš ï¸ **Important:** The `status` filter is **case-insensitive but value-strict**. Unknown values (like `Active`) return `200 OK` with an empty list, not an error.
 
 | Valid value | When to use |
 |---|---|
