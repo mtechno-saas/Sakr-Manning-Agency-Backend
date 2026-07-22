@@ -309,18 +309,18 @@ class ShipFilter(django_filters.FilterSet):
     def filter_company(self, queryset, name, value):
         """
         Handle ?company=2&company=10 (multi-select) and ?company=2 (single).
-        `name` here is the URL parameter name ('company'), and we have
-        direct access to the request via self.request.
-        """
-        if value in (None, "", []):
-            return queryset
 
+        IMPORTANT: `name` in django-filter method callbacks is the FIELD
+        name, which in older versions can resolve to the DB lookup
+        ('company__id') rather than the URL param ('company'). To stay
+        safe we hardcode the URL param name here.
+        """
         # Always read the raw repeated values from the request.
-        # This works whether the frontend sent one or many.
-        all_values = self.request.GET.getlist(name)
+        # Hardcoded 'company' — the URL param name, NOT the DB lookup.
+        all_values = self.request.GET.getlist("company")
+
         if not all_values:
-            # Fallback: use the single value django-filter passed us
-            all_values = [value] if isinstance(value, str) else list(value)
+            return queryset
 
         ids = [int(v) for v in all_values if str(v).strip().isdigit()]
         if not ids:
