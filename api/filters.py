@@ -84,6 +84,24 @@ class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
     pass
 
 
+class MultiValueIDFilter(django_filters.NumberFilter):
+    """
+    Number filter that handles repeated query params (?key=1&key=2) and joins
+    them with __in. We override `value()` to use getlist() because
+    django-filter's BaseInFilter doesn't always override it on older versions.
+    """
+    def value(self):
+        return self.parent.request.GET.getlist(self.field_name)
+
+    def filter(self, qs, value):
+        if not value:
+            return qs
+        ids = [int(v) for v in value if str(v).strip().isdigit()]
+        if not ids:
+            return qs.none()
+        return qs.filter(**{f"{self.field_name}__in": ids})
+
+
 class UsersFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(method='filter_by_name')
     age = django_filters.NumberFilter(field_name="age", lookup_expr="exact")
@@ -297,7 +315,7 @@ class IncidentReportFilter(django_filters.FilterSet):
 class ShipFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="ship_name", lookup_expr="icontains")
     imo_number = django_filters.CharFilter(field_name="imo_number", lookup_expr="icontains")
-    company = django_filters.CharFilter(method="filter_company")
+    company = MultiValueIDFilter(field_name="company__id")
     status = django_filters.AllValuesMultipleFilter(field_name="status")
     flag = CharInFilter(field_name="flag__name", lookup_expr="in")
     ship_type = CharInFilter(field_name="ship_type__name", lookup_expr="in")
@@ -305,32 +323,6 @@ class ShipFilter(django_filters.FilterSet):
     class Meta:
         model = Ship
         fields = ["name", "imo_number", "company", "status", "flag", "ship_type"]
-
-    def filter_company(self, queryset, name, value):
-        """
-        Accept company as:
-          - a list of IDs (?company=2&company=10)   ← multi-select
-          - a single ID (?company=2)
-          - a comma-separated string (?company=2,10) ← defensive fallback
-        """
-        if value in (None, "", []):
-            return queryset
-
-        if isinstance(value, list):
-            ids = [int(v) for v in value if str(v).strip().isdigit()]
-        elif isinstance(value, str):
-            if "," in value:
-                ids = [int(v.strip()) for v in value.split(",") if v.strip().isdigit()]
-            elif value.strip().isdigit():
-                ids = [int(value.strip())]
-            else:
-                return queryset.none()
-        else:
-            return queryset.none()
-
-        if not ids:
-            return queryset.none()
-        return queryset.filter(company__id__in=ids)
 
 
 class ContractFilter(django_filters.FilterSet):
