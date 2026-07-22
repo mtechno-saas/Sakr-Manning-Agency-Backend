@@ -67,6 +67,8 @@ class JobOrder(models.Model):
     STATUS_CHOICES = [
         ('Pending', 'Pending Review'),
         ('Open', 'Open / Sourcing'),
+        ('Hold', 'On Hold'),
+        ('Closed', 'Closed'),
         ('Active', 'Active'),
         ('In Progress', 'In Progress / Interviewing'),
         ('Fulfilled', 'Fulfilled'),
