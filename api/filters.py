@@ -297,10 +297,10 @@ class IncidentReportFilter(django_filters.FilterSet):
 class ShipFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="ship_name", lookup_expr="icontains")
     imo_number = django_filters.CharFilter(field_name="imo_number", lookup_expr="icontains")
-    company = django_filters.NumberFilter(field_name="company__id")
+    company = NumberInFilter(field_name="company__id", lookup_expr="in")
     status = django_filters.AllValuesMultipleFilter(field_name="status")
-    flag = django_filters.CharFilter(field_name="flag__name", lookup_expr="icontains")
-    ship_type = django_filters.CharFilter(field_name="ship_type__name", lookup_expr="icontains")
+    flag = CharInFilter(field_name="flag__name", lookup_expr="in")
+    ship_type = CharInFilter(field_name="ship_type__name", lookup_expr="in")
 
     class Meta:
         model = Ship
