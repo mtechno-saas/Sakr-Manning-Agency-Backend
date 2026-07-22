@@ -84,24 +84,6 @@ class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
     pass
 
 
-class MultiValueIDFilter(django_filters.NumberFilter):
-    """
-    Number filter that handles repeated query params (?key=1&key=2) and joins
-    them with __in. We override `value()` to use getlist() because
-    django-filter's BaseInFilter doesn't always override it on older versions.
-    """
-    def value(self):
-        return self.parent.request.GET.getlist(self.field_name)
-
-    def filter(self, qs, value):
-        if not value:
-            return qs
-        ids = [int(v) for v in value if str(v).strip().isdigit()]
-        if not ids:
-            return qs.none()
-        return qs.filter(**{f"{self.field_name}__in": ids})
-
-
 class UsersFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(method='filter_by_name')
     age = django_filters.NumberFilter(field_name="age", lookup_expr="exact")
@@ -315,7 +297,7 @@ class IncidentReportFilter(django_filters.FilterSet):
 class ShipFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="ship_name", lookup_expr="icontains")
     imo_number = django_filters.CharFilter(field_name="imo_number", lookup_expr="icontains")
-    company = MultiValueIDFilter(field_name="company__id")
+    company = django_filters.CharFilter(method="filter_company")
     status = django_filters.AllValuesMultipleFilter(field_name="status")
     flag = CharInFilter(field_name="flag__name", lookup_expr="in")
     ship_type = CharInFilter(field_name="ship_type__name", lookup_expr="in")
@@ -323,6 +305,27 @@ class ShipFilter(django_filters.FilterSet):
     class Meta:
         model = Ship
         fields = ["name", "imo_number", "company", "status", "flag", "ship_type"]
+
+    def filter_company(self, queryset, name, value):
+        """
+        Handle ?company=2&company=10 (multi-select) and ?company=2 (single).
+        `name` here is the URL parameter name ('company'), and we have
+        direct access to the request via self.request.
+        """
+        if value in (None, "", []):
+            return queryset
+
+        # Always read the raw repeated values from the request.
+        # This works whether the frontend sent one or many.
+        all_values = self.request.GET.getlist(name)
+        if not all_values:
+            # Fallback: use the single value django-filter passed us
+            all_values = [value] if isinstance(value, str) else list(value)
+
+        ids = [int(v) for v in all_values if str(v).strip().isdigit()]
+        if not ids:
+            return queryset.none()
+        return queryset.filter(company__id__in=ids)
 
 
 class ContractFilter(django_filters.FilterSet):
