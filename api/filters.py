@@ -297,7 +297,7 @@ class IncidentReportFilter(django_filters.FilterSet):
 class ShipFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="ship_name", lookup_expr="icontains")
     imo_number = django_filters.CharFilter(field_name="imo_number", lookup_expr="icontains")
-    company = NumberInFilter(field_name="company__id", lookup_expr="in")
+    company = django_filters.CharFilter(method="filter_company")
     status = django_filters.AllValuesMultipleFilter(field_name="status")
     flag = CharInFilter(field_name="flag__name", lookup_expr="in")
     ship_type = CharInFilter(field_name="ship_type__name", lookup_expr="in")
@@ -305,6 +305,32 @@ class ShipFilter(django_filters.FilterSet):
     class Meta:
         model = Ship
         fields = ["name", "imo_number", "company", "status", "flag", "ship_type"]
+
+    def filter_company(self, queryset, name, value):
+        """
+        Accept company as:
+          - a list of IDs (?company=2&company=10)   ← multi-select
+          - a single ID (?company=2)
+          - a comma-separated string (?company=2,10) ← defensive fallback
+        """
+        if value in (None, "", []):
+            return queryset
+
+        if isinstance(value, list):
+            ids = [int(v) for v in value if str(v).strip().isdigit()]
+        elif isinstance(value, str):
+            if "," in value:
+                ids = [int(v.strip()) for v in value.split(",") if v.strip().isdigit()]
+            elif value.strip().isdigit():
+                ids = [int(value.strip())]
+            else:
+                return queryset.none()
+        else:
+            return queryset.none()
+
+        if not ids:
+            return queryset.none()
+        return queryset.filter(company__id__in=ids)
 
 
 class ContractFilter(django_filters.FilterSet):
