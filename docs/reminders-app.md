@@ -237,6 +237,17 @@ All endpoints require Bearer JWT auth.
 }
 ```
 
+**The `user` field accepts both `int` and `string-int`** so the frontend can submit a `<select>` value as-is:
+
+| Input | Result |
+|---|---|
+| `{"user": 42}` | ✅ accepted, resolved to `Users.objects.get(pk=42)` |
+| `{"user": "42"}` | ✅ accepted, coerced to int, then `Users.objects.get(pk=42)` |
+| `{"user": "not-a-number"}` | ❌ 400, "Invalid pk \"not-a-number\"" |
+| `{"user": 99999}` | ❌ 400, pk does not exist |
+
+This is implemented via a small custom field class, `UserFlexiblePrimaryKeyRelatedField` in `serializers.py`. The field is read as an integer on output (the standard FK representation), but tolerates a string on input — common when the form value comes from `<option value="42">`.
+
 **Response 201:**
 ```json
 {

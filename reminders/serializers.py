@@ -1,11 +1,47 @@
 """Serializers for the Reminders app."""
+from datetime import datetime
+
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import serializers
 
 from .models import Reminder
 
+User = get_user_model()
+
+
+class UserFlexiblePrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    """
+    A PrimaryKeyRelatedField for the User model that accepts BOTH:
+
+    - Integer id            → 42
+    - Stringified integer id → "42"
+
+    on write. On read, it still returns the integer id (the standard
+    ForeignKey representation). The frontend never needs to convert
+    "42" → 42 manually.
+
+    Email and username lookups are NOT supported by this field — the
+    frontend's "Crew Member" dropdown already knows the id it picked.
+    If you need email/username lookup later, add a custom resolver.
+    """
+
+    def to_internal_value(self, data):
+        # If the frontend sent the id as a string (e.g. from a form value),
+        # convert to int so the standard pk lookup works.
+        if isinstance(data, str) and data.isdigit():
+            data = int(data)
+        return super().to_internal_value(data)
+
 
 class ReminderSerializer(serializers.ModelSerializer):
     """Full serializer for the Reminder model."""
+
+    # Use the flexible field so the form can submit either 42 or "42".
+    user = UserFlexiblePrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        required=True,
+    )
 
     # Read-only computed fields
     user_name = serializers.SerializerMethodField()
@@ -32,7 +68,6 @@ class ReminderSerializer(serializers.ModelSerializer):
             'text': {'required': True, 'allow_blank': False},
             'reminder_date': {'required': True},
             'reminder_time': {'required': True},
-            'user': {'required': True},
         }
 
     def get_user_name(self, obj):
@@ -48,12 +83,9 @@ class ReminderSerializer(serializers.ModelSerializer):
 
     def get_is_overdue(self, obj):
         """True if the reminder is in the past AND not yet completed."""
-        from django.utils import timezone
         if obj.is_completed:
             return False
         now = timezone.localtime()
-        # Combine date+time into one datetime
-        from datetime import datetime
         try:
             reminder_dt = datetime.combine(obj.reminder_date, obj.reminder_time)
             return reminder_dt < now

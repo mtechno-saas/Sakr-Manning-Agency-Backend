@@ -200,3 +200,52 @@ class ReminderAPITestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         r.refresh_from_db()
         self.assertTrue(r.is_completed)
+
+    # ----- User field flexibility -----
+
+    def test_user_field_accepts_int(self):
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": self.crew.id,  # int
+            "text": "Int user id",
+            "reminder_date": (timezone.localdate() + timedelta(days=1)).isoformat(),
+            "reminder_time": "09:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.json()['user'], self.crew.id)
+
+    def test_user_field_accepts_string_int(self):
+        """Form may submit the id as a string from a <select> value."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": str(self.crew.id),  # stringified int
+            "text": "String user id",
+            "reminder_date": (timezone.localdate() + timedelta(days=1)).isoformat(),
+            "reminder_time": "10:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.json()['user'], self.crew.id)
+
+    def test_user_field_rejects_invalid(self):
+        """Bogus values return 400, not 500."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": "not-a-user-id",
+            "text": "Bogus user",
+            "reminder_date": (timezone.localdate() + timedelta(days=1)).isoformat(),
+            "reminder_time": "11:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('user', resp.json())
+
+    def test_user_field_rejects_nonexistent_int_string(self):
+        """String that looks like an int but doesn't exist → 400."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": "99999",
+            "text": "Nonexistent user",
+            "reminder_date": (timezone.localdate() + timedelta(days=1)).isoformat(),
+            "reminder_time": "12:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('user', resp.json())
