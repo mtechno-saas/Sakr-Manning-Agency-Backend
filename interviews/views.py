@@ -4,8 +4,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from api.models import Interview
 from api.serializer import InterviewSerializer
-from .models import Reminder
-from .serializers import ReminderSerializer
+from .models import Interview as InterviewLocal
+from .serializers import InterviewSerializer as InterviewLocalSerializer
+
+
+# NOTE: ReminderViewSet was moved to the new `reminders` app on 2026-07-25.
+# The endpoint is now at /api/reminders/ (was /api/interviews/reminders/).
 
 
 class InterviewViewSet(viewsets.ModelViewSet):
@@ -54,32 +58,3 @@ def interview_status(request):
             'error': str(e),
             'traceback': traceback.format_exc()
         }, status=500)
-
-
-class ReminderViewSet(viewsets.ModelViewSet):
-    """
-    CRUD for crew-member reminders.
-    - Admin / HR Manager / Recruiter: see all reminders
-    - Other users: see only their own (user=request.user)
-    """
-    queryset = Reminder.objects.all().select_related('user')
-    serializer_class = ReminderSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        qs = Reminder.objects.all().select_related('user')
-        if getattr(user, 'role', None) in ['Admin', 'HR Manager', 'Recruiter']:
-            return qs
-        return qs.filter(user=user)
-
-    @action(detail=False, methods=['get'], url_path='upcoming')
-    def upcoming(self, request):
-        """Return reminders scheduled for today or later, not yet completed."""
-        from django.utils import timezone
-        today = timezone.localdate()
-        qs = self.get_queryset().filter(
-            reminder_date__gte=today,
-            is_completed=False,
-        ).order_by('reminder_date', 'reminder_time')
-        return Response(ReminderSerializer(qs, many=True).data)

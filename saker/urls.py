@@ -37,6 +37,7 @@ urlpatterns = [
     path("api/companies/", include("companies.urls")),
     path("api/ships/", include("ships.urls")),
     path("api/expiring-documents/", include("expiring_documents.urls")),  # expiring documents aggregator
+    path("api/reminders/", include("reminders.urls")),  # per-user reminders (Interviews section)
     path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("api/core/", include("core.urls")),

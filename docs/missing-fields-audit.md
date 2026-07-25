@@ -106,9 +106,9 @@ This document covers **4 endpoints** across 2 Django apps. Every section follows
 
 ---
 
-## Endpoint 3: `POST / GET / PATCH / DELETE /api/interviews/reminders/`  *(NEW ENDPOINT)*
+## Endpoint 3: `POST / GET / PATCH / DELETE /api/reminders/`  *(now in its own `reminders` app)*
 
-A new `Reminder` resource has been added to the `interviews` app, exposed at `/api/interviews/reminders/`.
+A `Reminder` resource exposed at `/api/reminders/`. Was originally added to the `interviews` app on 2026-07-14, then moved to its own `reminders` app on 2026-07-25 for better separation. See `docs/reminders-app.md` for the full app reference.
 
 ### Fields Added (new `Reminder` model)
 
@@ -133,13 +133,13 @@ A new `Reminder` resource has been added to the `interviews` app, exposed at `/a
 
 | Method | Path | Purpose | Auth |
 |---|---|---|---|
-| GET | `/api/interviews/reminders/` | List all visible reminders | Bearer JWT |
-| POST | `/api/interviews/reminders/` | Create a new reminder | Bearer JWT |
-| GET | `/api/interviews/reminders/{id}/` | Retrieve one reminder | Bearer JWT |
-| PUT | `/api/interviews/reminders/{id}/` | Full update | Bearer JWT |
-| PATCH | `/api/interviews/reminders/{id}/` | Partial update | Bearer JWT |
-| DELETE | `/api/interviews/reminders/{id}/` | Delete a reminder | Bearer JWT |
-| GET | `/api/interviews/reminders/upcoming/` | List upcoming, not-completed reminders (custom action) | Bearer JWT |
+| GET | `/api/reminders/` | List all visible reminders | Bearer JWT |
+| POST | `/api/reminders/` | Create a new reminder | Bearer JWT |
+| GET | `/api/reminders/{id}/` | Retrieve one reminder | Bearer JWT |
+| PUT | `/api/reminders/{id}/` | Full update | Bearer JWT |
+| PATCH | `/api/reminders/{id}/` | Partial update | Bearer JWT |
+| DELETE | `/api/reminders/{id}/` | Delete a reminder | Bearer JWT |
+| GET | `/api/reminders/upcoming/` | List upcoming, not-completed reminders (custom action) | Bearer JWT |
 
 ### Authorization Rules
 
@@ -155,7 +155,7 @@ A new `Reminder` resource has been added to the `interviews` app, exposed at `/a
 ### Sample Request (POST)
 
 ```http
-POST /api/interviews/reminders/
+POST /api/reminders/
 Authorization: Bearer <token>
 Content-Type: application/json
 
@@ -189,8 +189,8 @@ Content-Type: application/json
 - Add 4 inputs in the **Add Reminder** modal mapped to `user`, `text`, `reminder_date`, `reminder_time`
 - Send the user as the integer `id` (not the name string)
 - Send dates as `YYYY-MM-DD`, times as `HH:MM:SS` (or `HH:MM`)
-- Use `/api/interviews/reminders/` for create, list, and delete
-- Use `/api/interviews/reminders/upcoming/` if you want a "today and later" feed
+- Use `/api/reminders/` for create, list, and delete
+- Use `/api/reminders/upcoming/` if you want a "today and later" feed
 - Optionally display `is_completed` with a checkbox to mark reminders done (PATCH `{"is_completed": true}`)
 
 ---
@@ -457,7 +457,7 @@ The current Settings UI is implemented as a **slide-out side panel** (drawer fro
 |---|---|---|---|---|
 | 1 | `/api/companies/{id}/` | `address`, `contact_person`, `alt_phone`, `notes` | `0013_company_address_contact_person_alt_phone_notes.py` | companies |
 | 2 | `/api/companies/job-positions/{id}/` | `created_at`, `updated_at` | `0014_joborderposition_created_at_and_more.py` | companies |
-| 3 | `/api/interviews/reminders/` *(new endpoint)* | `user`, `text`, `reminder_date`, `reminder_time`, `is_completed`, `created_at`, `updated_at` | `0002_reminder.py` | interviews |
+| 3 | `/api/reminders/` *(now in own `reminders` app)* | `user`, `text`, `reminder_date`, `reminder_time`, `is_completed`, `created_at`, `updated_at` | `reminders/0001_initial.py` | reminders |
 | 4 | `/api/interviews/` | `principal`, `position`, `type`, `duration_minutes`, `location`, `result`, `feedback` *(model)* + `candidate_email`, `interviewer_email` *(serializer)* | `0003_interview_more_fields.py` | interviews |
 
 ## Apply All Migrations (one command)

@@ -31,7 +31,7 @@ This document covers every endpoint that is **new** or **updated** in the curren
    - [PATCH  /api/interviews/{id}/](#patch-apiinterviewsid)
    - [DELETE /api/interviews/{id}/](#delete-apiinterviewsid)
    - [GET    /api/interviews/status/](#get-apiinterviewsstatus)
-   - [CRUD   /api/interviews/reminders/](#interview-reminders)  *(new endpoint)*
+   - [CRUD   /api/reminders/](#interview-reminders)  *(now in its own `reminders` app)*
 5. [Common Error Responses](#errors)
 6. [Migrations Index](#migrations)
 
@@ -58,8 +58,8 @@ This document covers every endpoint that is **new** or **updated** in the curren
 | Interviews | PATCH | `/api/interviews/{id}/` | Bearer | Partial update |
 | Interviews | DELETE | `/api/interviews/{id}/` | Bearer | Delete |
 | Interviews | GET | `/api/interviews/status/` | Bearer | Counts by status |
-| **Interviews** | **GET/POST/PUT/PATCH/DELETE** | **`/api/interviews/reminders/{id}/`** | **Bearer** | **🆕 New endpoint** |
-| **Interviews** | **GET** | **`/api/interviews/reminders/upcoming/`** | **Bearer** | **🆕 New endpoint** |
+| **Interviews** | **GET/POST/PUT/PATCH/DELETE** | **`/api/reminders/{id}/`** | **Bearer** | **🆕 New endpoint** |
+| **Interviews** | **GET** | **`/api/reminders/upcoming/`** | **Bearer** | **🆕 New endpoint** |
 
 🆕 = added in this build · ✏️ = updated in this build (new fields, behavior, or format)
 
@@ -634,7 +634,7 @@ Counts by status. Role-aware — admins see all, others see only their own.
 
 ---
 
-### 🆕 Interview Reminders <a id="interview-reminders"></a>
+### Reminders <a id="interview-reminders"></a> *(own `reminders` app since 2026-07-25)*
 
 **New endpoint in this build.** Resource: `Reminder` model added in migration `0002_reminder.py`.
 
@@ -643,9 +643,11 @@ Counts by status. Role-aware — admins see all, others see only their own.
 **Default permission:** `IsAuthenticated`
 **Role-based scoping:** Admin / HR Manager / Recruiter see all reminders. Other authenticated users see only their own (`user == request.user`).
 
-#### 🆕 `GET /api/interviews/reminders/`
+> **Note (2026-07-25):** This endpoint was moved from `/api/interviews/reminders/` to `/api/reminders/`. The full app reference is in `docs/reminders-app.md`.
 
-**Section:** Interviews / Reminders / List
+#### 🆕 `GET /api/reminders/`
+
+**Section:** Reminders / List
 
 **Permissions:** `IsAuthenticated`. Returns only the user's own reminders unless they're Admin/HR/Recruiter (in which case all).
 
@@ -669,9 +671,9 @@ Counts by status. Role-aware — admins see all, others see only their own.
 
 ---
 
-#### 🆕 `POST /api/interviews/reminders/`
+#### 🆕 `POST /api/reminders/`
 
-**Section:** Interviews / Reminders / Create
+**Section:** Reminders / Create
 
 **Permissions:** `IsAuthenticated`
 
@@ -692,9 +694,9 @@ Counts by status. Role-aware — admins see all, others see only their own.
 
 ---
 
-#### 🆕 `GET /api/interviews/reminders/{id}/`
+#### 🆕 `GET /api/reminders/{id}/`
 
-**Section:** Interviews / Reminders / Detail
+**Section:** Reminders / Detail
 
 **Permissions:** `IsAuthenticated`. Non-admin/HR/Recruiter users can only retrieve their own reminders.
 
@@ -703,9 +705,9 @@ Counts by status. Role-aware — admins see all, others see only their own.
 
 ---
 
-#### 🆕 `PUT /api/interviews/reminders/{id}/`
+#### 🆕 `PUT /api/reminders/{id}/`
 
-**Section:** Interviews / Reminders / Update
+**Section:** Reminders / Update
 
 **Permissions:** `IsAuthenticated`. Required fields must be present.
 
@@ -714,9 +716,9 @@ Counts by status. Role-aware — admins see all, others see only their own.
 
 ---
 
-#### 🆕 `PATCH /api/interviews/reminders/{id}/`
+#### 🆕 `PATCH /api/reminders/{id}/`
 
-**Section:** Interviews / Reminders / Update
+**Section:** Reminders / Update
 
 **Permissions:** `IsAuthenticated`
 
@@ -730,9 +732,9 @@ Counts by status. Role-aware — admins see all, others see only their own.
 
 ---
 
-#### 🆕 `DELETE /api/interviews/reminders/{id}/`
+#### 🆕 `DELETE /api/reminders/{id}/`
 
-**Section:** Interviews / Reminders / Delete
+**Section:** Reminders / Delete
 
 **Permissions:** `IsAuthenticated`. Non-admin users can only delete their own.
 
@@ -741,9 +743,9 @@ Counts by status. Role-aware — admins see all, others see only their own.
 
 ---
 
-#### 🆕 `GET /api/interviews/reminders/upcoming/`
+#### 🆕 `GET /api/reminders/upcoming/`
 
-**Section:** Interviews / Reminders / Upcoming
+**Section:** Reminders / Upcoming
 
 **Permissions:** `IsAuthenticated`. Returns only the user's own upcoming reminders unless they're Admin/HR/Recruiter.
 
@@ -830,8 +832,8 @@ python manage.py migrate interviews
 | `POST /api/companies/job-positions/...` | ❌ 401 | ❌ 403 | ✅ | ✅ |
 | `GET /api/interviews/...` | ❌ 401 | ✅ | ✅ | ✅ |
 | `POST /api/interviews/...` | ❌ 401 | ✅ | ✅ | ✅ |
-| `GET /api/interviews/reminders/...` | ❌ 401 | ✅ (own only) | ✅ (all) | ✅ (all) |
-| `POST /api/interviews/reminders/...` | ❌ 401 | ✅ | ✅ | ✅ |
+| `GET /api/reminders/...` | ❌ 401 | ✅ (own only) | ✅ (all) | ✅ (all) |
+| `POST /api/reminders/...` | ❌ 401 | ✅ | ✅ | ✅ |
 
 > ⚠️ Note: Companies POST/PUT/PATCH/DELETE currently allows any authenticated user. Recommended to add a role check (e.g. `IsAdminOrHR`).
 
@@ -844,5 +846,5 @@ python manage.py migrate interviews
   - ✏️ `Company.company_flag` — now serialized as string name (was int FK id)
   - ✏️ `JobOrderPosition` — added `created_at`, `updated_at`
   - ✏️ `Interview` — added 7 fields (principal, position, type, duration_minutes, location, result, feedback) + 2 computed (candidate_email, interviewer_email)
-  - 🆕 `Reminder` model + `/api/interviews/reminders/*` endpoints
-  - 🆕 `/api/interviews/reminders/upcoming/` custom action
+  - 🆕 `Reminder` model + `/api/reminders/*` endpoints
+  - 🆕 `/api/reminders/upcoming/` custom action

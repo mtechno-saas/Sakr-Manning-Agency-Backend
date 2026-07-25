@@ -53,27 +53,7 @@ class Interview(models.Model):
         return f"Interview with {self.candidate} on {self.date}"
 
 
-class Reminder(models.Model):
-    """
-    A reminder tied to a crew member (user).
-    Shown in the Interviews section of the dashboard for the assigned user.
-    """
-    user = models.ForeignKey(
-        Users,
-        on_delete=models.CASCADE,
-        related_name='reminders',
-        help_text='Crew member the reminder is for',
-    )
-    text = models.TextField(help_text='Reminder details / message body')
-    reminder_date = models.DateField()
-    reminder_time = models.TimeField()
-    is_completed = models.BooleanField(default=False)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['reminder_date', 'reminder_time']
-
-    def __str__(self):
-        return f"Reminder for {self.user} on {self.reminder_date} at {self.reminder_time}"
+# NOTE: The Reminder model was moved to its own `reminders` app on 2026-07-25.
+# The data still lives in the `interviews_reminder` table — left intact in
+# case any production records need to be migrated manually. The
+# `reminders.Reminder` model uses a fresh `reminders_reminder` table.
