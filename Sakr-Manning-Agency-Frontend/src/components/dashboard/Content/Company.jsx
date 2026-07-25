@@ -1373,6 +1373,7 @@ export function CompanyManagement({ scale = 1, isMobile = false, initialItemData
       key: "company",
       label: "Principal",
       type: "select",
+      multiple: true,
       placeholder: "All Principals",
       options: (referenceOptions?.companies || []),
     },
@@ -1380,6 +1381,7 @@ export function CompanyManagement({ scale = 1, isMobile = false, initialItemData
       key: "status",
       label: "Status",
       type: "select",
+      multiple: true,
       placeholder: "All Statuses",
       options: [
         { value: "Active", label: "Active" },
@@ -1391,6 +1393,7 @@ export function CompanyManagement({ scale = 1, isMobile = false, initialItemData
       key: "ship_type",
       label: "Vessel Type",
       type: "select",
+      multiple: true,
       placeholder: "All Types",
       options: [
         { value: "Container Vessels", label: "Container Vessels" },

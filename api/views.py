@@ -32,7 +32,6 @@ from django.utils.encoding import force_bytes, force_str
 from django.urls import reverse
 from rest_framework.views import APIView
 
-
 from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
     #Company, Interview, CVSubmission, Document,
@@ -93,7 +92,6 @@ class VerifyEmailView(APIView):
         else:
             return HttpResponseRedirect("https://test.sakrshipping.com/auth?error=invalid_token")
 
-
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -104,7 +102,6 @@ class LogoutView(APIView):
             return Response({"message": "Successfully logged out"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 # ========================
 # GOOGLE SIGN-IN / SIGN-UP
@@ -184,7 +181,6 @@ class GoogleAuthView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-
 
 class LanguageProficiencyViewSet(viewsets.ModelViewSet):
     serializer_class = LanguageProficiencySerializer
@@ -402,8 +398,6 @@ class UserViewSet(viewsets.ModelViewSet):
         if os.path.exists(file_path):
             return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
         return Response({'error': 'File not found'}, status=404)
-
-
 
     # ============================
     # HELPER: Owner or Admin check
@@ -713,7 +707,6 @@ class UserViewSet(viewsets.ModelViewSet):
             filename=os.path.basename(file_path)
         )
 
-
 # --- Function-based views with permission checks ---
 
 @api_view(['GET'])
@@ -725,7 +718,6 @@ def get_all_users(request):
     users = Users.objects.all()
     serializer = UsersSerializer(users, many=True)
     return Response({"users": serializer.data})
-
 
 @api_view(["POST"])
 @parser_classes([MultiPartParser, FormParser])
@@ -744,7 +736,6 @@ def create_user(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['GET'])
 def get_filter_users(request):
     """Filter users - Role-based access"""
@@ -757,7 +748,6 @@ def get_filter_users(request):
     )
     serializer = UsersSerializer(filterset.qs, many=True)
     return Response({"users": serializer.data})
-
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def user_detail(request, pk):
@@ -791,7 +781,6 @@ def user_detail(request, pk):
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
 @api_view(["POST"])
 def assign_rank(request, user_id, rank_id):
     """Assign rank - Admin/HR only"""
@@ -807,7 +796,6 @@ def assign_rank(request, user_id, rank_id):
     user_rank = UserRank.objects.create(user=user, rank=rank)
     serializer = UserRankSerializer(user_rank)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 
 # =====================
 # VIEWSETS WITH ROLE-BASED PERMISSIONS
@@ -935,7 +923,6 @@ class ContractViewSet(viewsets.ModelViewSet):
             'cancelled': contracts.filter(status='Cancelled').count(),
         })
 
-
 class CompanyViewSet(viewsets.ModelViewSet):
     """
     Companies Management - Role-based access:
@@ -961,7 +948,6 @@ class CompanyViewSet(viewsets.ModelViewSet):
             'active_companies': companies.filter(status='Active').count(),
             'total_open_positions': companies.aggregate(total=Sum('open_positions'))['total'] or 0,
         })
-
 
 class InterviewViewSet(viewsets.ModelViewSet):
     """
@@ -1037,7 +1023,6 @@ class InterviewViewSet(viewsets.ModelViewSet):
             'total': interviews.count(),
         })
 
-
 class FinanceRecordViewSet(viewsets.ModelViewSet):
     """
     Finance Records Management - Role-based access:
@@ -1079,7 +1064,6 @@ class FinanceRecordViewSet(viewsets.ModelViewSet):
         records = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(records, many=True)
         return Response(serializer.data)
-
 
 class CVSubmissionViewSet(viewsets.ModelViewSet):
     """
@@ -1312,7 +1296,6 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
 
         return FileResponse(open(file_path, 'rb'), as_attachment=True, filename=os.path.basename(file_path))
 
-
 class ReferenceViewSet(viewsets.ModelViewSet):
     queryset = Reference.objects.all()
     serializer_class = ReferenceSerializer
@@ -1330,7 +1313,6 @@ class ReferenceViewSet(viewsets.ModelViewSet):
             serializer.save(user_id=user_id)
         else:
             serializer.save(user=self.request.user)
-
 
 class SeaServiceViewSet(viewsets.ModelViewSet):
     """
@@ -1359,7 +1341,6 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
                 serializer.save(user=self.request.user)
             else:
                 serializer.save()
-
 
 class DocumentViewSet(viewsets.ModelViewSet):
     """
@@ -1740,14 +1721,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
         response = FileResponse(document.file.open(), as_attachment=False)
         return response
 
-
-
 class CertificateViewSet(viewsets.ModelViewSet):
     """Certificates - Admin/HR can edit, others read only"""
     queryset = Certificate.objects.all()
     serializer_class = CertificateSerializer
     permission_classes = [IsAuthenticated, IsHROrReadOnly]
-
 
 class RankViewSet(viewsets.ModelViewSet):
     """Ranks - All authenticated users can access"""
@@ -1766,7 +1744,6 @@ class RankViewSet(viewsets.ModelViewSet):
         ranks = Rank.objects.all().order_by('name')
         serializer = RankSerializer(ranks, many=True)
         return Response(serializer.data)
-
 
 # --- User-specific endpoints ---
 
@@ -1789,7 +1766,6 @@ def get_user_certificates(request, user_id):
         "certificates": serializer.data
     })
 
-
 @api_view(['GET'])
 def get_user_ranks(request, user_id):
     """Get user ranks - Owner or HR+"""
@@ -1808,7 +1784,6 @@ def get_user_ranks(request, user_id):
         "user_name": f"{user.first_name} {user.middle_name}",
         "ranks": serializer.data
     })
-
 
 @api_view(['POST'])
 def add_user_certificate(request, user_id):
@@ -1835,7 +1810,6 @@ def add_user_certificate(request, user_id):
         "message": f"Certificate '{certificate.name}' added to user {user.first_name} {user.middle_name}",
         "certificate": CertificateSerializer(certificate).data
     }, status=status.HTTP_201_CREATED)
-
 
 @api_view(['POST'])
 def add_user_rank(request, user_id):
@@ -1867,7 +1841,6 @@ def add_user_rank(request, user_id):
         "user_rank": serializer.data
     }, status=status.HTTP_201_CREATED)
 
-
 @api_view(['DELETE'])
 def remove_user_certificate(request, user_id, certificate_id):
     """Remove certificate from user - Admin/HR only"""
@@ -1886,7 +1859,6 @@ def remove_user_certificate(request, user_id, certificate_id):
     return Response({
         "message": f"Certificate '{certificate.name}' removed from user {user.first_name} {user.middle_name}"
     }, status=status.HTTP_200_OK)
-
 
 @api_view(['DELETE'])
 def remove_user_rank(request, user_id, rank_id):
@@ -1910,7 +1882,6 @@ def remove_user_rank(request, user_id, rank_id):
         }, status=status.HTTP_200_OK)
     except UserRank.DoesNotExist:
         return Response({"error": "User does not have this rank"}, status=status.HTTP_404_NOT_FOUND)
-
 
 # =====================
 # POSITION â†’ CODED RANK BRIDGE
@@ -2001,7 +1972,6 @@ POSITION_CODE_MAP = {
     'junior Accommodation Repairman': 'ER-18.000',
     'Other': 'OTH.000',
 }
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -2139,7 +2109,6 @@ class UserLanguageViewSet(viewsets.ModelViewSet):
                 raise ValidationError({"user": ["This field is required when creating a language record for another user."]})
             serializer.save()
 
-
 class PersonalDocumentViewSet(viewsets.ModelViewSet):
     """
     Personal/Travel Documents - Role-based access:
@@ -2165,7 +2134,6 @@ class PersonalDocumentViewSet(viewsets.ModelViewSet):
                 serializer.save(user=self.request.user)
             else:
                 serializer.save()
-
 
 class DeclarationViewSet(viewsets.ModelViewSet):
     """
@@ -2224,7 +2192,6 @@ class DeclarationViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("Only Admin and HR Manager can delete declarations")
         instance.delete()
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_positions(request):
@@ -2251,7 +2218,6 @@ def get_positions(request):
         ]
     return Response(positions)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_coc_choices(request):
@@ -2265,7 +2231,6 @@ def get_coc_choices(request):
     ]
     return Response(choices)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_document_types(request):
@@ -2278,7 +2243,6 @@ def get_document_types(request):
         for value, label in PersonalDocument.DOCUMENT_TYPE_CHOICES
     ]
     return Response(choices)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -2451,7 +2415,6 @@ def get_flags(request):
     ]
     return Response([{"value": val, "label": lab} for val, lab in FLAGS])
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_vessel_types(request):
@@ -2459,14 +2422,12 @@ def get_vessel_types(request):
     types = VesselType.objects.all().order_by('name')
     return Response([{"value": t.id, "label": t.name} for t in types])
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_company_types(request):
     """Return all available company types from dynamic core.models.CompanyType."""
     types = CompanyType.objects.all().order_by('name')
     return Response([{"value": t.id, "label": t.name} for t in types])
-
 
 class NextOfKinViewSet(viewsets.ModelViewSet):
     """
@@ -2514,7 +2475,6 @@ class NextOfKinViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("You can only delete your own emergency contacts")
         instance.delete()
-
 
 class GlobalSearchView(APIView):
     """
@@ -2587,181 +2547,6 @@ class GlobalSearchView(APIView):
 
         return Response(results)
 
-
-
 # =============================================================
 # Expiring Documents - Aggregated endpoint
-# =============================================================
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def expiring_documents(request):
-    """
-    Aggregate all expiring documents across users in a single response.
-    Combines:
-      - 9 expiry date fields on the Users model (passport, seaman book, COC, GOC, health, etc.)
-      - All rows in PersonalDocument (passport, visas, seaman books, etc.)
-    Returns a unified list with daysToExpiry and category per item.
-
-    Query params:
-      days (int, default 30): how far ahead to look
-      category (str, optional): filter - expired / critical / warning / notice / all
-    """
-    try:
-        # ---- parse query params ----
-        try:
-            days = int(request.query_params.get('days', 30))
-        except (TypeError, ValueError):
-            days = 30
-        if days < 1:
-            days = 30
-        if days > 365:
-            days = 365
-
-        category_filter = request.query_params.get('category', None)
-
-        # ---- role check ----
-        if not request.user.is_authenticated:
-            return Response(
-                {'error': 'Authentication required.'},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-        if getattr(request.user, 'role', None) not in ['Admin', 'HR Manager']:
-            return Response(
-                {'error': 'Only Admin and HR Manager can view expiring documents.'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        today = timezone.localdate()
-        soon = today + timedelta(days=days)
-
-        def categorize(days_to_expiry):
-            if days_to_expiry is None:
-                return 'unknown'
-            if days_to_expiry < 0:
-                return 'expired'
-            if days_to_expiry <= 14:
-                return 'critical'
-            if days_to_expiry <= 30:
-                return 'warning'
-            if days_to_expiry <= 90:
-                return 'notice'
-            return 'active'
-
-        all_items = []
-
-        # =============================================================
-        # Source 1: Users profile expiry fields (9 fields)
-        # =============================================================
-        from .models import Users, PersonalDocument
-
-        user_expiry_fields = [
-            ('passport_expiry_date',              'Passport',                          'passport_no'),
-            ('seaman_book_expiry_date',           "Seaman's Book",                      'seaman_book_no'),
-            ('other_seaman_book_expiry_date',     "Other Seaman's Book",                'other_seaman_book_no'),
-            ('coc_expiry_date',                   'Certificate of Competency (COC)',   'coc_certificate_number'),
-            ('goc_expiry_date',                   'General Operator Certificate (GOC)', 'goc_certificate_number'),
-            ('health_expiry_date',                'Health Certificate',                'health_number'),
-            ('international_medical_expiry_date', 'International Medical',              'international_medical_number'),
-            ('yellow_fever_expiry_date',          'Yellow Fever Vaccination',          'yellow_fever_number'),
-            ('cholera_expiry_date',               'Cholera Vaccination',               None),
-        ]
-
-        # Build Q for users with at least one field in range or expired
-        user_q = Q()
-        for field, _, _ in user_expiry_fields:
-            user_q |= Q(**{f'{field}__lt': today})
-            user_q |= Q(**{f'{field}__gte': today, f'{field}__lte': soon})
-
-        users_with_expiring = Users.objects.filter(user_q).distinct()
-
-        for user in users_with_expiring:
-            user_name = (
-                f"{getattr(user, 'first_name', '')} {getattr(user, 'middle_name', '')}"
-                .strip() or getattr(user, 'email', '')
-            )
-            for field, doc_type, number_field in user_expiry_fields:
-                expiry = getattr(user, field, None)
-                if not expiry:
-                    continue
-                if not (expiry < today or today <= expiry <= soon):
-                    continue
-
-                days_to_expiry = (expiry - today).days
-                cat = categorize(days_to_expiry)
-                if category_filter and category_filter != 'all' and cat != category_filter:
-                    continue
-
-                doc_number = getattr(user, number_field, None) if number_field else None
-                all_items.append({
-                    'id': f"user_{user.id}_{field}",
-                    'type': doc_type,
-                    'name': f"{doc_type} - {doc_number or 'N/A'}",
-                    'number': doc_number or 'N/A',
-                    'user': user_name,
-                    'userId': user.id,
-                    'userEmail': user.email,
-                    'expiryDate': expiry.isoformat(),
-                    'daysToExpiry': days_to_expiry,
-                    'category': cat,
-                    'source': 'user_profile',
-                })
-
-        # =============================================================
-        # Source 2: PersonalDocument table
-        # =============================================================
-        personal_docs = PersonalDocument.objects.select_related('user').filter(
-            expiry_date__lte=soon
-        )
-
-        for doc in personal_docs:
-            if not doc.expiry_date:
-                continue
-            days_to_expiry = (doc.expiry_date - today).days
-            cat = categorize(days_to_expiry)
-            if category_filter and category_filter != 'all' and cat != category_filter:
-                continue
-
-            user_name = (
-                f"{getattr(doc.user, 'first_name', '')} {getattr(doc.user, 'middle_name', '')}"
-                .strip() or getattr(doc.user, 'email', 'Unknown')
-            ) if doc.user else 'Unknown'
-            all_items.append({
-                'id': f"pd_{doc.id}",
-                'type': doc.document_type or 'Personal Document',
-                'name': f"{doc.document_type or 'Document'} - {doc.document_number or 'N/A'}",
-                'number': doc.document_number or 'N/A',
-                'user': user_name,
-                'userId': doc.user_id,
-                'userEmail': doc.user.email if doc.user else None,
-                'expiryDate': doc.expiry_date.isoformat(),
-                'daysToExpiry': days_to_expiry,
-                'category': cat,
-                'source': 'personal_document',
-            })
-
-        # ---- sort by urgency (most overdue first, then earliest expiry) ----
-        all_items.sort(key=lambda x: x['daysToExpiry'])
-
-        counts = {
-            'expired': sum(1 for x in all_items if x['category'] == 'expired'),
-            'critical': sum(1 for x in all_items if x['category'] == 'critical'),
-            'warning': sum(1 for x in all_items if x['category'] == 'warning'),
-            'notice': sum(1 for x in all_items if x['category'] == 'notice'),
-            'active': sum(1 for x in all_items if x['category'] == 'active'),
-            'total': len(all_items),
-        }
-
-        return Response({
-            'counts': counts,
-            'days_window': days,
-            'today': today.isoformat(),
-            'category_filter': category_filter or 'all',
-            'results': all_items,
-        })
-    except Exception as e:
-        import traceback
-        return Response(
-            {'error': str(e), 'traceback': traceback.format_exc()},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )

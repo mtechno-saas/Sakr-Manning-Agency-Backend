@@ -23,16 +23,15 @@ export const documentsApi = {
     try {
       const params = new URLSearchParams();
 
-      // Helper to append multiple values for array filters
+      // Append a value (or every value in an array) to the query string.
+      // Arrays are appended as repeated keys (?key=1&key=2) which the
+      // backend's NumberInFilter / AllValuesMultipleFilter expect.
       const appendFilter = (key, value) => {
-        if (!value) return;
+        if (value === undefined || value === null || value === "") return;
         if (Array.isArray(value)) {
-          if (value.length === 0) return;
-          if (key === "status" || key === "expiry_status") {
-            value.forEach(v => params.append(key, v));
-          } else {
-            params.append(key, value.join(","));
-          }
+          value.forEach((v) => {
+            if (v !== undefined && v !== null && v !== "") params.append(key, v);
+          });
         } else {
           params.append(key, value);
         }

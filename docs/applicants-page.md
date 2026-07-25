@@ -156,7 +156,7 @@ Same as the DocumentViewSet:
 ## Cross-references
 
 - **Related widget** (status-filtered): see `dashboard-needs-attention.md` → "Needs Attention" section
-- **Expiring docs from the same model:** `/api/users/expiring-documents/`
+- **Expiring docs from the same model:** `/api/expiring-documents/`
 - **CV submissions (different model):** `/api/cv-submissions/`
 
 ---

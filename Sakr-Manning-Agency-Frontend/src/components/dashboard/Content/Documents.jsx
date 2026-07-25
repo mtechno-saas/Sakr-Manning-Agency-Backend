@@ -168,16 +168,18 @@ export function DocumentManagement({ scale = 1, isMobile = false, initialItemDat
   );
 
   const filterFields = [
-    { 
-      key: "user", label: "User Name", type: "multi-select", placeholder: "All Seafarers",
-      options: allUsers.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` })) 
-    },
-    { 
-      key: "ship", label: "Vessel Name", type: "multi-select", placeholder: "All Vessels",
-      options: allShips.map(s => ({ value: s.id, label: s.ship_name || s.name || `Vessel #${s.id}` })) 
+    {
+      key: "user", label: "User Name", type: "multi-select", multiple: true,
+      placeholder: "All Seafarers",
+      options: allUsers.map(u => ({ value: u.id, label: `${u.first_name} ${u.last_name}` }))
     },
     {
-      key: "status", label: "Contract Status", type: "multi-select",
+      key: "ship", label: "Vessel Name", type: "multi-select", multiple: true,
+      placeholder: "All Vessels",
+      options: allShips.map(s => ({ value: s.id, label: s.ship_name || s.name || `Vessel #${s.id}` }))
+    },
+    {
+      key: "status", label: "Contract Status", type: "multi-select", multiple: true,
       placeholder: "All Statuses",
       options: [
         { value: "Signed", label: "Signed" },
@@ -189,12 +191,12 @@ export function DocumentManagement({ scale = 1, isMobile = false, initialItemDat
       ],
     },
     {
-      key: "company", label: "Principal", type: "multi-select",
+      key: "company", label: "Principal", type: "multi-select", multiple: true,
       placeholder: "All Principals",
       options: (allCompanies || []).map(c => ({ value: c.id, label: c.company_name || c.name || `Principal #${c.id}` }))
     },
     {
-      key: "expiry_status", label: "Expiry Status", type: "multi-select",
+      key: "expiry_status", label: "Expiry Status", type: "multi-select", multiple: true,
       placeholder: "All Expiry Statuses",
       options: [
         { value: "active", label: "Active" },

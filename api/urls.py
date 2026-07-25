@@ -38,8 +38,7 @@ from .views import (
     get_company_types,
     get_coc_choices,
     get_document_types,
-    NextOfKinViewSet,
-    expiring_documents
+    NextOfKinViewSet
 )
 from .application_views import SeafarerApplicationViewSet
 
@@ -93,5 +92,4 @@ urlpatterns = [
     path('vessel-types/', get_vessel_types, name='get-vessel-types'),
     path('coc-choices/', get_coc_choices, name='get-coc-choices'),
     path('document-types/', get_document_types, name='get-document-types'),
-    path('expiring-documents/', expiring_documents, name='expiring-documents'),
 ]

@@ -87,47 +87,99 @@ class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
 class UsersFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(method='filter_by_name')
     age = django_filters.NumberFilter(field_name="age", lookup_expr="exact")
-    marital_status = django_filters.CharFilter(field_name="marital_status", lookup_expr="iexact")
-    user_status = CharInFilter(field_name="user_status", lookup_expr="in")
-    nationality = CharInFilter(field_name="nationality", lookup_expr="in")
-    nearest_port = django_filters.CharFilter(field_name="Nearest_Port", lookup_expr="icontains")
-    
+    marital_status = django_filters.CharFilter(method="filter_marital_status")
+    user_status = django_filters.CharFilter(method="filter_user_status")
+    nationality = django_filters.CharFilter(method="filter_nationality")
+    nearest_port = django_filters.CharFilter(field_name="nearest_port", lookup_expr="icontains")
+
     def filter_by_name(self, queryset, name, value):
         if not value:
             return queryset
-        
+
         terms = value.split(',')
         query = Q()
-        
+
         for term in terms:
             term = term.strip()
             if not term:
                 continue
-            
+
             term_query = Q(first_name__icontains=term) | Q(middle_name__icontains=term) | Q(email__icontains=term)
-            
+
             parts = term.split()
             if len(parts) >= 2:
                 term_query |= (Q(first_name__icontains=parts[0]) & Q(middle_name__icontains=parts[-1]))
-            
+
             query |= term_query
-            
+
         return queryset.filter(query).distinct()
-    
+
+    def _strings_for(self, param_name):
+        """Pull repeated ?key=1&key=2 values from the request as strings."""
+        raw = self.request.GET.getlist(param_name)
+        if not raw:
+            return None
+        cleaned = [v.strip() for v in raw if v is not None and str(v).strip() != ""]
+        return cleaned if cleaned else []
+
+    def filter_marital_status(self, queryset, name, value):
+        vals = self._strings_for("marital_status")
+        if vals is None:
+            return queryset
+        if not vals:
+            return queryset.none()
+        return queryset.filter(marital_status__in=vals)
+
+    def filter_user_status(self, queryset, name, value):
+        vals = self._strings_for("user_status")
+        if vals is None:
+            return queryset
+        if not vals:
+            return queryset.none()
+        return queryset.filter(user_status__in=vals)
+
+    def filter_nationality(self, queryset, name, value):
+        vals = self._strings_for("nationality")
+        if vals is None:
+            return queryset
+        if not vals:
+            return queryset.none()
+        return queryset.filter(nationality__in=vals)
+
     rank_name = django_filters.CharFilter(field_name="codes__name", lookup_expr="icontains")
     assigned_code = django_filters.CharFilter(field_name="user_ranks__assigned_code", lookup_expr="icontains")
-    
-    role = CharInFilter(field_name="role", lookup_expr="in")
+
+    role = django_filters.CharFilter(method="filter_role")
     is_blacklisted = django_filters.BooleanFilter(field_name="is_blacklisted")
-    
-    company = django_filters.NumberFilter(field_name="contracts__company__id", lookup_expr="exact")
+
+    def filter_role(self, queryset, name, value):
+        vals = self._strings_for("role")
+        if vals is None:
+            return queryset
+        if not vals:
+            return queryset.none()
+        return queryset.filter(role__in=vals)
+
+    company = django_filters.CharFilter(method="filter_company")
     company_name = django_filters.CharFilter(field_name="contracts__company__company_name", lookup_expr="icontains")
-    
-    ship = django_filters.NumberFilter(field_name="contracts__ship__id", lookup_expr="exact")
+
+    def filter_company(self, queryset, name, value):
+        ids = [int(v) for v in self.request.GET.getlist("company") if str(v).strip().isdigit()]
+        if not ids:
+            return queryset
+        return queryset.filter(contracts__company__id__in=ids).distinct()
+
+    ship = django_filters.CharFilter(method="filter_ship")
     ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
     
     job_position_name = django_filters.CharFilter(field_name="contracts__job_position__rank__name", lookup_expr="icontains")
-    
+
+    def filter_ship(self, queryset, name, value):
+        ids = [int(v) for v in self.request.GET.getlist("ship") if str(v).strip().isdigit()]
+        if not ids:
+            return queryset
+        return queryset.filter(contracts__ship__id__in=ids).distinct()
+
     # Filter by Language - Search in both LanguageProficiency and UserLanguage models
     language = django_filters.CharFilter(method='filter_by_language')
 
@@ -148,9 +200,34 @@ class UsersFilter(django_filters.FilterSet):
     signed_off_from = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="gte")
     signed_off_to = django_filters.DateFilter(field_name="contracts__sign_off_date", lookup_expr="lte")
 
-    company_type = django_filters.CharFilter(field_name="contracts__company__company_type__name", lookup_expr="icontains")
-    ship_type = django_filters.CharFilter(field_name="contracts__ship__ship_type__name", lookup_expr="icontains")
-    
+    contract_status = django_filters.CharFilter(method="filter_contract_status")
+    company_type = django_filters.CharFilter(method="filter_company_type")
+    ship_type = django_filters.CharFilter(method="filter_ship_type")
+
+    def filter_contract_status(self, queryset, name, value):
+        vals = self._strings_for("contract_status")
+        if vals is None:
+            return queryset
+        if not vals:
+            return queryset.none()
+        return queryset.filter(contracts__status__in=vals).distinct()
+
+    def filter_company_type(self, queryset, name, value):
+        vals = self._strings_for("company_type")
+        if vals is None:
+            return queryset
+        if not vals:
+            return queryset.none()
+        return queryset.filter(contracts__company__company_type__name__in=vals).distinct()
+
+    def filter_ship_type(self, queryset, name, value):
+        vals = self._strings_for("ship_type")
+        if vals is None:
+            return queryset
+        if not vals:
+            return queryset.none()
+        return queryset.filter(contracts__ship__ship_type__name__in=vals).distinct()
+
     passport_no = django_filters.CharFilter(field_name="passport_no", lookup_expr="icontains")
     passport_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
     passport_expiry_from = django_filters.DateFilter(field_name="passport_expiry_date", lookup_expr="gte")
@@ -161,7 +238,15 @@ class UsersFilter(django_filters.FilterSet):
     seaman_book_expiry_from = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="gte")
     seaman_book_expiry_to = django_filters.DateFilter(field_name="seaman_book_expiry_date", lookup_expr="lte")
     
-    document_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
+    document_type = django_filters.CharFilter(method="filter_document_type")
+
+    def filter_document_type(self, queryset, name, value):
+        vals = self._strings_for("document_type")
+        if vals is None:
+            return queryset
+        if not vals:
+            return queryset.none()
+        return queryset.filter(personal_documents__document_type__in=vals).distinct()
     
     medical_no = django_filters.CharFilter(field_name="health_number", lookup_expr="icontains")
     medical_expiry_from = django_filters.DateFilter(field_name="health_expiry_date", lookup_expr="gte")
@@ -329,19 +414,61 @@ class ShipFilter(django_filters.FilterSet):
 
 
 class ContractFilter(django_filters.FilterSet):
-    user = NumberInFilter(field_name="user__id", lookup_expr="in")
-    ship = NumberInFilter(field_name="ship__id", lookup_expr="in")
-    company = NumberInFilter(field_name="company__id", lookup_expr="in")
-    rank = NumberInFilter(field_name="rank__id", lookup_expr="in")
+    user = django_filters.CharFilter(method="filter_user")
+    ship = django_filters.CharFilter(method="filter_ship")
+    company = django_filters.CharFilter(method="filter_company_id")
+    rank = django_filters.CharFilter(method="filter_rank_id")
     status = django_filters.AllValuesMultipleFilter(field_name="status")
-    
+
     sign_on_from = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="gte")
     sign_on_to = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="lte")
     sign_off_from = django_filters.DateFilter(field_name="sign_off_date", lookup_expr="gte")
     sign_off_to = django_filters.DateFilter(field_name="sign_off_date", lookup_expr="lte")
-    
+
     applicant_name = django_filters.CharFilter(field_name="user__first_name", lookup_expr="icontains")
 
     class Meta:
         model = Contract
         fields = ["user", "ship", "company", "rank", "status"]
+
+    def _ids_for(self, param_name):
+        """Pull repeated ?key=1&key=2 values from the request, parse as ints."""
+        raw = self.request.GET.getlist(param_name)
+        if not raw:
+            return None
+        ids = [int(v) for v in raw if str(v).strip().isdigit()]
+        if not ids:
+            return []
+        return ids
+
+    def filter_user(self, queryset, name, value):
+        ids = self._ids_for("user")
+        if ids is None:
+            return queryset
+        if not ids:
+            return queryset.none()
+        return queryset.filter(user__id__in=ids)
+
+    def filter_ship(self, queryset, name, value):
+        ids = self._ids_for("ship")
+        if ids is None:
+            return queryset
+        if not ids:
+            return queryset.none()
+        return queryset.filter(ship__id__in=ids)
+
+    def filter_company_id(self, queryset, name, value):
+        ids = self._ids_for("company")
+        if ids is None:
+            return queryset
+        if not ids:
+            return queryset.none()
+        return queryset.filter(company__id__in=ids)
+
+    def filter_rank_id(self, queryset, name, value):
+        ids = self._ids_for("rank")
+        if ids is None:
+            return queryset
+        if not ids:
+            return queryset.none()
+        return queryset.filter(rank__id__in=ids)

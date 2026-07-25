@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     'tickets_papers',
     'companies',
     'ships',
+    'expiring_documents',
     'core',
     'finance',
     'ai_agents',

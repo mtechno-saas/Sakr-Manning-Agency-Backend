@@ -818,6 +818,7 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
           key: "marital_status",
           label: "Marital Status",
           type: "multi-select",
+          multiple: true,
           colSpan: 4,
           options: [
             { value: "SINGLE", label: "Single" },
@@ -830,6 +831,7 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
           key: "user_status",
           label: "User Status",
           type: "multi-select",
+          multiple: true,
           colSpan: 4,
           options: [
             { value: "ON_SITE", label: "On Site" },
@@ -837,10 +839,11 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
             { value: "MEDICAL VACATION", label: "Medical Vacation" },
           ],
         },
-        { 
-          key: "nationality", 
-          label: "Nationality", 
-          type: "multi-select", 
+        {
+          key: "nationality",
+          label: "Nationality",
+          type: "multi-select",
+          multiple: true,
           colSpan: 4,
           options: referenceData?.flags?.map(f => ({ value: f.name || f.label, label: f.name || f.label })) || []
         },
@@ -863,10 +866,11 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
     {
       title: "Professional Details",
       fields: [
-        { 
-          key: "rank_name", 
-          label: "Rank Name", 
+        {
+          key: "rank_name",
+          label: "Rank Name",
           type: "multi-select",
+          multiple: true,
           options: referenceData?.ranks?.map(r => ({ value: r.name || r.label || r.rank_name, label: r.name || r.label || r.rank_name })) || []
         },
         { key: "assigned_code", label: "Assigned Code", type: "text" },
@@ -874,6 +878,7 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
           key: "role",
           label: "User Role",
           type: "multi-select",
+          multiple: true,
           options: [
             { value: "Employee", label: "Applicant" },
             { value: "HR Manager", label: "HR Manager" },
@@ -881,10 +886,11 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
             { value: "Crew", label: "Approved Crew" },
           ],
         },
-        { 
-          key: "position", 
-          label: "General Position", 
+        {
+          key: "position",
+          label: "General Position",
           type: "multi-select",
+          multiple: true,
           options: referenceData?.positions?.map(p => ({ value: p.label, label: p.label })) || []
         },
         { 
@@ -898,22 +904,25 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
     {
       title: "Assignment & Vessels",
       fields: [
-        { 
-          key: "company_name", 
-          label: "Principal Name", 
+        {
+          key: "company_name",
+          label: "Principal Name",
           type: "multi-select",
+          multiple: true,
           options: referenceData?.companies?.map(c => ({ value: c.name || c.label || c.company_name, label: c.name || c.label || c.company_name })) || []
         },
-        { 
-          key: "ship_name", 
-          label: "Vessel Name", 
+        {
+          key: "ship_name",
+          label: "Vessel Name",
           type: "multi-select",
+          multiple: true,
           options: referenceData?.ships?.map(s => ({ value: s.name || s.label || s.ship_name, label: s.name || s.label || s.ship_name })) || []
         },
-        { 
-          key: "company_type", 
-          label: "Principal Type", 
+        {
+          key: "company_type",
+          label: "Principal Type",
           type: "multi-select",
+          multiple: true,
           options: [
             { value: "Shipping Manning Principals", label: "Shipping Manning Principals" },
             { value: "Cargo Manning Principals", label: "Cargo Manning Principals" },
@@ -926,10 +935,11 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
             { value: "Full Crew Management Principals", label: "Full Crew Management Principals" },
           ]
         },
-        { 
-          key: "ship_type", 
-          label: "Vessel Type", 
+        {
+          key: "ship_type",
+          label: "Vessel Type",
           type: "multi-select",
+          multiple: true,
           options: [
             { value: "Container Vessels", label: "Container Vessels" },
             { value: "Bulk Carriers", label: "Bulk Carriers" },
@@ -958,6 +968,7 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
           key: "contract_status",
           label: "Contract Status",
           type: "multi-select",
+          multiple: true,
           colSpan: 12,
           options: [
             { value: "Draft", label: "Draft" },
@@ -997,10 +1008,11 @@ export function UserManagement({ scale = 1, isMobile, initialItemData }) {
         { key: "seaman_book_expiry_from", label: "Seaman Book Expiry From", type: "date", colSpan: 6 },
         { key: "seaman_book_expiry_to", label: "Seaman Book Expiry To", type: "date", colSpan: 6 },
         { key: "medical_no", label: "Medical No", type: "text", colSpan: 6 },
-        { 
-          key: "document_type", 
-          label: "General Document Type", 
-          type: "multi-select", 
+        {
+          key: "document_type",
+          label: "General Document Type",
+          type: "multi-select",
+          multiple: true,
           colSpan: 6,
           options: dynamicDocumentTypes
         },

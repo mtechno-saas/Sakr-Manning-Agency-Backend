@@ -315,7 +315,7 @@ This endpoint fills the gap left by `useDocumentExpiry.js`, which only checked `
 ### Endpoint
 
 ```
-GET /api/users/expiring-documents/
+GET /api/expiring-documents/
 ```
 
 ### Auth
@@ -344,16 +344,16 @@ GET /api/users/expiring-documents/
 
 ```bash
 # All expired + expiring within 30 days (default)
-GET /api/users/expiring-documents/
+GET /api/expiring-documents/
 
 # Next 60 days
-GET /api/users/expiring-documents/?days=60
+GET /api/expiring-documents/?days=60
 
 # Only critical (next 14 days)
-GET /api/users/expiring-documents/?category=critical
+GET /api/expiring-documents/?category=critical
 
 # Only already-expired
-GET /api/users/expiring-documents/?category=expired
+GET /api/expiring-documents/?category=expired
 ```
 
 ### Response 200
@@ -453,16 +453,18 @@ The `useDocumentExpiry` hook can be simplified to call this one endpoint instead
 const [personal, license, vaccine, contract] = await Promise.allSettled([...]);
 
 // After (1 call)
-const { data } = await api.get("/users/expiring-documents/?days=30");
+const { data } = await api.get("/expiring-documents/?days=30");
 // data.counts, data.results — both ready to render
 ```
 
 ### Backend locations
 
-- **View function:** `api/views.py:2598` (`def expiring_documents`)
-- **URL pattern:** `api/urls.py:104` (`path('expiring-documents/', expiring_documents, name='expiring-documents')`)
-- **Full URL (after both mounts in `saker/urls.py` resolve):** `/api/users/expiring-documents/`
-- **Why the inner path doesn't have a `users/` prefix:** `saker/urls.py` mounts `api/urls.py` at `path("api/users/", ...)` first, so any `users/...` inside `api/urls.py` would resolve to `/api/users/users/...` (double). The cleaner inner path `expiring-documents/` produces the correct full URL `/api/users/expiring-documents/`.
+- **View function:** `expiring_documents/views.py` (`def expiring_documents`)
+- **URL pattern:** `expiring_documents/urls.py` (`path('', views.expiring_documents, name='expiring-documents')`)
+- **App:** `expiring_documents/` (new dedicated Django app)
+- **Mounted at:** `saker/urls.py:43` — `path("api/expiring-documents/", include("expiring_documents.urls"))`
+- **Full URL:** `/api/expiring-documents/`
+- **Why a new app:** the previous version lived in `api/views.py` as a function-based view; moved here for better separation of concerns and to make it easy to add migrations / signals / tests later.
 
 ### Migration / deploy steps
 
@@ -479,7 +481,7 @@ sudo touch /opt/sakr/Sakr-Manning-Agency-Backend-New/saker/wsgi.py
 
 ```bash
 curl -H "Authorization: Bearer <admin-token>" \
-  "https://backend.sakrshipping.com/api/users/expiring-documents/?days=30" \
+  "https://backend.sakrshipping.com/api/expiring-documents/?days=30" \
   | python -m json.tool
 ```
 
@@ -493,7 +495,7 @@ Should return the full payload with `counts`, `days_window`, and `results` sorte
 |---|---|---|---|
 | Needs Attention — list | `/api/documents/?page=1&status=Pending` | GET | Paginated list of pending uploads |
 | Needs Attention — per item | `/api/documents/{id}/` | GET | Full document (use id, not `?search=`) |
-| **Expiring Documents** | **`/api/users/expiring-documents/`** | **GET** | **Single source for all 9 user-profile + 30 personal-doc types** |
+| **Expiring Documents** | **`/api/expiring-documents/`** | **GET** | **Dedicated `expiring_documents/` app; all 9 user-profile + 30 personal-doc types in one payload** |
 | Expiring Documents (legacy) | `/users/personal-documents/`, `/my-licenses/`, `/vaccinations/`, `/contracts/` | GET Ã— 4 | What `useDocumentExpiry` uses today — can be replaced by the new endpoint |
 | Document stats | `/api/documents/?status=Pending&page_size=1` (count) | GET | For the "X items need attention" badge |
 
