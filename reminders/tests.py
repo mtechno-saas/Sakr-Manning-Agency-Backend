@@ -249,3 +249,114 @@ class ReminderAPITestCase(TestCase):
         }, format="json")
         self.assertEqual(resp.status_code, 400)
         self.assertIn('user', resp.json())
+
+    def test_user_field_accepts_email(self):
+        """Frontend may submit email instead of id."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": self.crew.email,
+            "text": "Email-based user lookup",
+            "reminder_date": (timezone.localdate() + timedelta(days=1)).isoformat(),
+            "reminder_time": "13:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.json()['user'], self.crew.id)
+
+    def test_user_field_accepts_email_case_insensitive(self):
+        """Email lookup is case-insensitive."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": self.crew.email.upper(),
+            "text": "Uppercase email",
+            "reminder_date": (timezone.localdate() + timedelta(days=1)).isoformat(),
+            "reminder_time": "14:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.json()['user'], self.crew.id)
+
+    def test_user_field_accepts_full_name(self):
+        """Frontend may submit full name (first + middle)."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": "Hisham Hassan",  # first_name="Hisham", middle_name="Hassan"
+            "text": "Full name lookup",
+            "reminder_date": (timezone.localdate() + timedelta(days=1)).isoformat(),
+            "reminder_time": "15:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.json()['user'], self.crew.id)
+
+    def test_user_field_accepts_first_name_only(self):
+        """When the name is unique, first-name-only lookup works."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": "Hisham",
+            "text": "First name only",
+            "reminder_date": (timezone.localdate() + timedelta(days=1)).isoformat(),
+            "reminder_time": "16:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.json()['user'], self.crew.id)
+
+    # ----- Date format flexibility -----
+
+    def test_date_accepts_iso_format(self):
+        """YYYY-MM-DD (the default, should still work)."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": self.crew.id,
+            "text": "ISO date",
+            "reminder_date": "2026-08-15",
+            "reminder_time": "10:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+
+    def test_date_accepts_slash_format(self):
+        """YYYY/MM/DD — the format the frontend was sending."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": self.crew.id,
+            "text": "Slash date",
+            "reminder_date": "2026/11/11",
+            "reminder_time": "11:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+
+    def test_date_accepts_us_format(self):
+        """MM/DD/YYYY when unambiguous."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": self.crew.id,
+            "text": "US date",
+            "reminder_date": "08/15/2026",  # 15 > 12 → not US, but 15 is day, so EU
+            "reminder_time": "12:00:00",
+        }, format="json")
+        # 15/08/2026 (EU) or 08/15/2026 (US) — 15 > 12 so it's clearly day, EU
+        self.assertEqual(resp.status_code, 201, resp.content)
+
+    def test_date_accepts_eu_format(self):
+        """DD/MM/YYYY (day first) — common in Europe."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": self.crew.id,
+            "text": "EU date",
+            "reminder_date": "15/08/2026",
+            "reminder_time": "13:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 201, resp.content)
+
+    def test_date_rejects_invalid(self):
+        """Bogus date format returns 400 with helpful error."""
+        client = self._client(self.admin)
+        resp = client.post("/api/reminders/", {
+            "user": self.crew.id,
+            "text": "Invalid date",
+            "reminder_date": "not-a-date",
+            "reminder_time": "14:00:00",
+        }, format="json")
+        self.assertEqual(resp.status_code, 400)
+        data = resp.json()
+        self.assertIn('reminder_date', data)
+        # Error message should mention valid formats
+        error_text = str(data['reminder_date'])
+        self.assertTrue('YYYY' in error_text or 'format' in error_text.lower())

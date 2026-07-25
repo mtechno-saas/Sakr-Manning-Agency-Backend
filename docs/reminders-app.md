@@ -237,16 +237,35 @@ All endpoints require Bearer JWT auth.
 }
 ```
 
-**The `user` field accepts both `int` and `string-int`** so the frontend can submit a `<select>` value as-is:
+**The `user` field accepts BOTH integers and string identifiers** so the frontend can submit a `<select>` value as-is, or use any of the following:
 
-| Input | Result |
+| Input `user` value | How it's resolved |
 |---|---|
-| `{"user": 42}` | ✅ accepted, resolved to `Users.objects.get(pk=42)` |
-| `{"user": "42"}` | ✅ accepted, coerced to int, then `Users.objects.get(pk=42)` |
-| `{"user": "not-a-number"}` | ❌ 400, "Invalid pk \"not-a-number\"" |
-| `{"user": 99999}` | ❌ 400, pk does not exist |
+| `42` (int) | `Users.objects.get(pk=42)` |
+| `"42"` (numeric string) | Coerced to int, then `Users.objects.get(pk=42)` |
+| `"bassem@example.com"` (email) | `Users.objects.get(email__iexact=...)` — case-insensitive |
+| `"Hisham Hassan"` (full name) | `Users.objects.filter(first_name__iexact="Hisham", middle_name__iexact="Hassan")` |
+| `"Hisham"` (first name) | `Users.objects.filter(first_name__iexact="Hisham")` — only if unique |
+| `"hisham"` (username) | `Users.objects.get(username="hisham")` |
+| `99999` (nonexistent) | ❌ 400, "Invalid pk \"99999\"" |
+| `"not-a-user"` (unmatched) | ❌ 400, "No user matched 'not-a-user'" |
 
-This is implemented via a small custom field class, `UserFlexiblePrimaryKeyRelatedField` in `serializers.py`. The field is read as an integer on output (the standard FK representation), but tolerates a string on input — common when the form value comes from `<option value="42">`.
+This is implemented via `UserFlexiblePrimaryKeyRelatedField` in `serializers.py`. The field is read as an integer on output (the standard FK representation), but tolerates many string formats on input.
+
+**The `reminder_date` field accepts MULTIPLE formats** so the frontend doesn't have to convert before sending:
+
+| Input | How it's parsed |
+|---|---|
+| `"2026-08-15"` | ISO 8601 (default) |
+| `"2026/08/15"` | Slash variant of ISO |
+| `"15/08/2026"` | European (day first) — only when day > 12 to avoid ambiguity |
+| `"08/15/2026"` | US (month first) — only when day > 12 to avoid ambiguity |
+| `"15-08-2026"` | Dashed European |
+| `"2026-13-45"` (invalid) | ❌ 400 with helpful error |
+
+When the first numeric part is `> 12`, the parser assumes day-first (EU). When it's `<= 12`, it falls back to a more conservative parse and rejects truly ambiguous inputs.
+
+This is implemented via `FlexibleDateField` in `serializers.py`. The default DRF `DateField` is replaced with this one for `reminder_date`.
 
 **Response 201:**
 ```json
