@@ -429,6 +429,20 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
             for ur in user_ranks
         ]
 
+    def to_representation(self, instance):
+        # Fall back to the linked user's profile values when the CV
+        # submission's own columns (expected_salary / availability_date)
+        # are NULL. The source= mappings have already populated
+        # ret['salary'] from expected_salary and ret['available_date']
+        # from availability_date, so we only fill in the user-level
+        # value when those came out as None.
+        ret = super().to_representation(instance)
+        if ret.get('salary') is None and instance.user:
+            ret['salary'] = instance.user.salary
+        if ret.get('available_date') is None and instance.user:
+            ret['available_date'] = instance.user.available_date
+        return ret
+
 
 class CVSubmissionSerializer(serializers.ModelSerializer):
     user_first_name = serializers.CharField(write_only=True, required=False)
@@ -546,8 +560,16 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret['salary'] = instance.user.salary if instance.user else None
-        ret['available_date'] = instance.user.available_date if instance.user else None
+        # Fall back from the CV's own columns to the linked user's
+        # profile values when the CV didn't fill them. The source=
+        # mapping has already populated ret['salary'] from
+        # instance.expected_salary and ret['available_date'] from
+        # instance.availability_date, so we only override when those
+        # are None.
+        if ret.get('salary') is None and instance.user:
+            ret['salary'] = instance.user.salary
+        if ret.get('available_date') is None and instance.user:
+            ret['available_date'] = instance.user.available_date
         if instance.cv_file:
             path = f"/api/cv-submissions/{instance.id}/download-cv/"
             request = self.context.get('request')
