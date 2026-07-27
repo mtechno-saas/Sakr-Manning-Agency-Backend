@@ -1097,6 +1097,25 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
             else:
                 serializer.save()
 
+    def perform_update(self, serializer):
+        # Auto-stamp reviewed_date whenever reviewed_by is being set
+        # (or is already set) on a record. The update-status action
+        # also does this for the Approved/Rejected transitions, but
+        # PATCHing reviewed_by through the regular serializer was
+        # leaving reviewed_date NULL, so the table column rendered '-'.
+        if 'reviewed_by' in serializer.validated_data:
+            instance = serializer.instance
+            new_reviewer = serializer.validated_data.get('reviewed_by')
+            existing_reviewer = getattr(instance, 'reviewed_by_id', None)
+            # If the reviewer is being set (or changed) and no date was
+            # supplied, stamp it now.
+            if new_reviewer and (
+                not instance.reviewed_date
+                or existing_reviewer != (new_reviewer.id if hasattr(new_reviewer, 'id') else new_reviewer)
+            ) and 'reviewed_date' not in serializer.validated_data:
+                serializer.validated_data['reviewed_date'] = timezone.now()
+        serializer.save()
+
     def perform_destroy(self, instance):
         # If the applicant was assigned to the ship's crew for this CV submission, remove them
         if instance.ship and instance.user:
