@@ -1,29 +1,35 @@
 # companies/tests.py
 #
-# Regression tests for the trailing-slash-optional router behaviour.
+# Regression tests for the trailing-slash-optional router behaviour
+# (TrailingSlashOptionalRouter) and for the /api/companies/job-positions/
+# endpoint's field surface — confirms that the 9 columns the frontend
+# renders (RANK, PRINCIPAL, VESSEL, STATUS, REQUIRED, SIGNED, REMAINING,
+# ASSIGNED TO, SALARY RANGE) all round-trip cleanly with sample data.
 #
-# We hit the URL conf directly (no DB) and assert that the same view function
-# is reachable both with and without a trailing slash, for the standard
-# DRF ModelViewSet actions. This locks in the fix for the
-# APPEND_SLASH RuntimeError that was raised when a client POSTed to
-# /api/companies/job-positions (no trailing slash).
+# Run with: python manage.py test companies.tests --verbosity=2
 
-import re
-from django.test import SimpleTestCase, override_settings
-from django.urls import resolve, Resolver404
-from django.urls.resolvers import URLPattern
+import datetime
+from django.test import TestCase
+from django.urls import reverse
+from rest_framework.test import APIClient
+from rest_framework import status as http_status
 
 from companies.routers import TrailingSlashOptionalRouter
-from companies.views import JobOrderPositionViewSet, JobOrderViewSet, CompanyViewSet
+from companies.models import Company, JobOrder, JobOrderPosition
+from companies.views import CompanyViewSet, JobOrderViewSet, JobOrderPositionViewSet
+from core.models import CompanyType
+
+from api.models import Users, Rank, Contract
+from ships.models import Ship
 
 
-# Build a router the same way companies/urls.py does, so the tests reflect
-# production behaviour.
+# ============================================================================
+# TrailingSlashOptionalRouter unit tests (no DB needed)
+# ============================================================================
 
 
-# Build a router the same way companies/urls.py does, so the tests reflect
-# production behaviour.
 def _build_router():
+    """Build a router the same way companies/urls.py does."""
     router = TrailingSlashOptionalRouter()
     router.register(r'job-orders', JobOrderViewSet, basename='job-order')
     router.register(r'job-positions', JobOrderPositionViewSet, basename='job-position')
@@ -31,40 +37,20 @@ def _build_router():
     return router
 
 
-# Path prefixes the router would normally be mounted under. We resolve with
-# this stripped, just like Django's include() would.
-PREFIX = '/api/companies/'
-
-
-def _strip_prefix(path):
-    if not path.startswith(PREFIX):
-        raise ValueError(f"path {path!r} does not start with {PREFIX!r}")
-    return path[len(PREFIX):]
-
-
-@override_settings(SILENCED_SYSTEM_CHECKS=['urls.W001'])
-class TrailingSlashOptionalRouterTests(SimpleTestCase):
+class TrailingSlashOptionalRouterTests(TestCase):
     """The router should register each URL with AND without a trailing slash."""
 
     def setUp(self):
         self.router = _build_router()
-        # Each URL is a django.urls.resolvers.URLPattern with a compiled
-        # regex on url.pattern. Django's resolve() expects a full path
-        # (the prefix would normally be stripped by include()), so we
-        # iterate the patterns directly.
         self.patterns = self.router.urls
 
     def _pattern_str(self, p):
-        """Return the regex source string for a URLPattern, or None if missing."""
         try:
-            # url.pattern is a django.urls.resolvers.RegexPattern in Django 6.0;
-            # its compiled regex lives on .regex and the source string on .regex.pattern.
             return p.pattern.regex.pattern
         except AttributeError:
             return None
 
     def _find_pattern(self, regex_tail):
-        """Return the URLPattern whose regex ends with `regex_tail`."""
         for p in self.patterns:
             pat = self._pattern_str(p)
             if pat is None:
@@ -74,13 +60,11 @@ class TrailingSlashOptionalRouterTests(SimpleTestCase):
         self.fail(f"no URLPattern found ending with {regex_tail!r}")
 
     def test_router_emits_no_slash_variants(self):
-        """Every trailing-slash URL must have a matching `/?` URL."""
         no_slash = [
             p for p in self.patterns
             if (self._pattern_str(p) or "").endswith("/?$")
         ]
         self.assertGreater(len(no_slash), 0, "router did not emit any no-slash variants")
-        # And we should still have the canonical slash versions.
         with_slash = [
             p for p in self.patterns
             if (self._pattern_str(p) or "").endswith("/$")
@@ -88,18 +72,13 @@ class TrailingSlashOptionalRouterTests(SimpleTestCase):
         self.assertGreater(len(with_slash), 0)
 
     def test_job_positions_list_resolves_with_and_without_slash(self):
-        """POST /api/companies/job-positions and /api/companies/job-positions/ both work."""
-        # With trailing slash
-        matched = self._find_pattern(r"^job-positions/$")
-        self.assertIsNotNone(matched)
-        # Without trailing slash
-        matched_noslash = self._find_pattern(r"^job-positions/?$")
-        self.assertIsNotNone(matched_noslash)
-        # The two should be the same view function (no duplicate registration)
-        self.assertIs(matched.callback, matched_noslash.callback)
+        with_slash = self._find_pattern(r"^job-positions/$")
+        no_slash = self._find_pattern(r"^job-positions/?$")
+        self.assertIsNotNone(with_slash)
+        self.assertIsNotNone(no_slash)
+        self.assertIs(with_slash.callback, no_slash.callback)
 
     def test_job_positions_detail_resolves_with_and_without_slash(self):
-        """GET/PATCH/DELETE /api/companies/job-positions/42 and /42/ both work."""
         with_slash = self._find_pattern(r"^job-positions/(?P<pk>[^/.]+)/$")
         no_slash = self._find_pattern(r"^job-positions/(?P<pk>[^/.]+)/?$")
         self.assertIsNotNone(with_slash)
@@ -107,32 +86,22 @@ class TrailingSlashOptionalRouterTests(SimpleTestCase):
         self.assertIs(with_slash.callback, no_slash.callback)
 
     def test_no_slash_variant_named(self):
-        """The no-slash variant has a distinct name (suffix `_noslash`)."""
         with_slash = self._find_pattern(r"job-positions/$")
-        # Find a pattern with the same callback but a different name
         no_slash = [
             p for p in self.patterns
             if p.callback is with_slash.callback and p.name and p.name.endswith("_noslash")
         ]
-        self.assertEqual(len(no_slash), 1,
-                         "expected exactly one _noslash variant per route")
+        self.assertEqual(len(no_slash), 1, "expected exactly one _noslash variant per route")
 
 
-@override_settings(SILENCED_SYSTEM_CHECKS=['urls.W001'])
-class AppendSlashPostSafetyTests(SimpleTestCase):
-    """
-    End-to-end smoke test: simulate what the bug was — POSTing to
-    /api/companies/job-positions (no trailing slash). Before the fix this
-    raised RuntimeError at the Django middleware level. After the fix it
-    routes straight to the view.
-    """
+class AppendSlashPostSafetyTests(TestCase):
+    """Simulate the production bug: POST without trailing slash must not raise."""
 
     def setUp(self):
         self.router = _build_router()
         self.patterns = self.router.urls
 
     def _resolve_via_router(self, suffix):
-        """Resolve a path against the router's URL patterns directly."""
         for p in self.patterns:
             try:
                 compiled = p.pattern.regex
@@ -143,27 +112,259 @@ class AppendSlashPostSafetyTests(SimpleTestCase):
         return None
 
     def test_post_job_positions_no_slash_does_not_raise(self):
-        """The path that triggered the production RuntimeError should now resolve."""
-        # Real production path: POST /api/companies/job-positions
-        # (the trailing-slash was omitted)
-        matched = self._resolve_via_router("job-positions")
-        self.assertIsNotNone(
-            matched,
-            "POST /api/companies/job-positions (no slash) did not match any route — "
-            "Django would raise RuntimeError at request time."
-        )
+        self.assertIsNotNone(self._resolve_via_router("job-positions"))
 
     def test_post_job_positions_with_slash_still_works(self):
-        """The canonical form must keep working."""
-        matched = self._resolve_via_router("job-positions/")
-        self.assertIsNotNone(matched)
+        self.assertIsNotNone(self._resolve_via_router("job-positions/"))
 
     def test_post_job_positions_detail_no_slash(self):
-        """POST/PATCH /api/companies/job-positions/42 (no slash) also works."""
-        matched = self._resolve_via_router("job-positions/42")
-        self.assertIsNotNone(matched)
+        self.assertIsNotNone(self._resolve_via_router("job-positions/42"))
 
     def test_post_job_positions_detail_with_slash(self):
-        """The canonical form for the detail endpoint also works."""
-        matched = self._resolve_via_router("job-positions/42/")
-        self.assertIsNotNone(matched)
+        self.assertIsNotNone(self._resolve_via_router("job-positions/42/"))
+
+
+# ============================================================================
+# /api/companies/job-positions/ — field-surface smoke tests
+# ============================================================================
+
+
+def _make_user(email="seafarer1@example.com", first_name="Mahmoud", middle_name="Ali"):
+    """Create a user with the minimum required fields for Contract linkage.
+
+    Note: the api.Users model has first_name + middle_name, no last_name.
+    The 'full name' shown in serializers is f"{first} {middle}".strip().
+    """
+    return Users.objects.create_user(
+        email=email,
+        password="x",
+        first_name=first_name,
+        middle_name=middle_name or "",
+    )
+
+
+def _make_company(name="Test Principal Co.", **overrides):
+    defaults = {
+        "company_name": name,
+        "contact_email": "ops@example.com",
+        "status": "Active",
+    }
+    defaults.update(overrides)
+    return Company.objects.create(**defaults)
+
+
+def _make_ship(name="MV Test Ship", imo="9876543", company=None):
+    return Ship.objects.create(ship_name=name, imo_number=imo, company=company)
+
+
+def _make_rank(code="MAS-1", name="Master"):
+    return Rank.objects.create(code=code, name=name)
+
+
+def _make_job_order(company, ship, reference="JO-2026-001", status="Open"):
+    return JobOrder.objects.create(
+        company=company,
+        ship=ship,
+        reference_number=reference,
+        request_date=datetime.date.today(),
+        target_joining_date=datetime.date.today() + datetime.timedelta(days=30),
+        status=status,
+    )
+
+
+def _make_position(job_order, rank, quantity=3, salary_min=5000, salary_max=8000, currency="USD"):
+    return JobOrderPosition.objects.create(
+        job_order=job_order,
+        rank=rank,
+        quantity=quantity,
+        salary_min=salary_min,
+        salary_max=salary_max,
+        currency=currency,
+        contract_duration_months=6,
+        remarks="Smoke test position",
+    )
+
+
+def _make_contract(user, ship, company, rank, position, status="Active"):
+    return Contract.objects.create(
+        user=user,
+        ship=ship,
+        company=company,
+        rank=rank,
+        job_position=position,
+        sign_on_date=datetime.date.today(),
+        status=status,
+    )
+
+
+class JobPositionsEndpointFieldSurfaceTests(TestCase):
+    """
+    Smoke tests for the 9 columns the admin table renders in the
+    Crew Management / Job Positions page. Each test creates a minimal
+    dataset and asserts the endpoint returns the expected field shape.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.company = _make_company()
+        cls.ship = _make_ship(company=cls.company)
+        cls.rank = _make_rank()
+        cls.job_order = _make_job_order(cls.company, cls.ship, status="Open")
+        cls.position = _make_position(
+            cls.job_order, cls.rank,
+            quantity=3, salary_min=5000, salary_max=8000, currency="USD",
+        )
+        cls.user1 = _make_user("seafarer1@example.com", "Mahmoud", "Ali")
+        cls.user2 = _make_user("seafarer2@example.com", "Yusuf", "Khan")
+        # One Active contract (filled) + one Draft contract (not filled)
+        cls.active_contract = _make_contract(
+            cls.user1, cls.ship, cls.company, cls.rank, cls.position, status="Active"
+        )
+        cls.draft_contract = _make_contract(
+            cls.user2, cls.ship, cls.company, cls.rank, cls.position, status="Draft"
+        )
+
+    def setUp(self):
+        self.client = APIClient()
+        # Endpoint requires auth; force-authenticate so we don't need
+        # to set up a JWT in the smoke test.
+        self.client.force_authenticate(user=self.user1)
+
+    def _list_url(self):
+        return "/api/companies/job-positions/"
+
+    def _detail_url(self, pk):
+        return f"/api/companies/job-positions/{pk}/"
+
+    # ---- 1. RANK -----------------------------------------------------
+    def test_rank_column(self):
+        """rank_name and rank id are both returned."""
+        r = self.client.get(self._list_url())
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        body = r.data
+        # API may return a list or a paginated dict; normalise.
+        items = body if isinstance(body, list) else body.get("results", body)
+        self.assertGreaterEqual(len(items), 1)
+        item = next(i for i in items if i["id"] == self.position.id)
+        self.assertEqual(item["rank_name"], "Master")
+        self.assertEqual(item["rank"], self.rank.id)
+
+    # ---- 2. PRINCIPAL -----------------------------------------------
+    def test_principal_column(self):
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        self.assertEqual(item["company_name"], "Test Principal Co.")
+
+    # ---- 3. VESSEL ---------------------------------------------------
+    def test_vessel_column(self):
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        self.assertEqual(item["ship_name"], "MV Test Ship")
+
+    # ---- 4. STATUS ---------------------------------------------------
+    def test_status_column(self):
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        self.assertEqual(item["status"], "Open")
+
+    # ---- 5. REQUIRED (= quantity) -----------------------------------
+    def test_required_column(self):
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        self.assertEqual(item["quantity"], 3)
+
+    # ---- 6. SIGNED (= filled_slots) ---------------------------------
+    def test_signed_column_counts_active_and_signed(self):
+        """filled_slots counts Active + Signed contracts only."""
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        # One Active + Draft=0 → filled_slots must be 1
+        self.assertEqual(item["filled_slots"], 1)
+        # Promote the second contract to Signed and re-check.
+        self.draft_contract.status = "Signed"
+        self.draft_contract.save()
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        self.assertEqual(item["filled_slots"], 2)
+
+    # ---- 7. REMAINING (= quantity - filled_slots) ------------------
+    def test_remaining_column(self):
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        # 3 required - 1 signed = 2 remaining
+        self.assertEqual(item["remaining_slots"], 2)
+
+    # ---- 8. ASSIGNED TO ---------------------------------------------
+    def test_assigned_to_column(self):
+        """assigned_to returns full names of every Active/Signed crew member."""
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        self.assertIsInstance(item["assigned_to"], list)
+        # Only Mahmoud Ali (user1) is on the Active contract; Yusuf's
+        # contract is Draft and must NOT be in assigned_to. The
+        # serializer returns "First Middle" (api.Users has no
+        # last_name, just first + middle).
+        self.assertIn("Mahmoud Ali", item["assigned_to"])
+        self.assertNotIn("Yusuf Khan", item["assigned_to"])
+        self.assertNotIn("Yusuf", item["assigned_to"])
+
+    # ---- 9. SALARY RANGE (salary_min / salary_max / currency) ------
+    def test_salary_range_columns(self):
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        self.assertEqual(float(item["salary_min"]), 5000.0)
+        self.assertEqual(float(item["salary_max"]), 8000.0)
+        self.assertEqual(item["currency"], "USD")
+
+    # ---- all 9 at once (single round-trip) --------------------------
+    def test_all_nine_columns_present_in_single_response(self):
+        """The endpoint returns all 9 columns in a single row."""
+        r = self.client.get(self._list_url())
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        for column in (
+            "rank_name", "company_name", "ship_name", "status",
+            "quantity", "filled_slots", "remaining_slots",
+            "assigned_to", "salary_min", "salary_max", "currency",
+        ):
+            self.assertIn(column, item, f"missing column {column!r} in response")
+
+    # ---- detail endpoint returns the same fields --------------------
+    def test_detail_endpoint_returns_same_columns(self):
+        r = self.client.get(self._detail_url(self.position.id))
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        item = r.data
+        self.assertEqual(item["id"], self.position.id)
+        self.assertEqual(item["rank_name"], "Master")
+        self.assertEqual(item["quantity"], 3)
+        self.assertEqual(item["filled_slots"], 1)
+        self.assertEqual(item["remaining_slots"], 2)
+        self.assertEqual(item["currency"], "USD")
+
+    # ---- 0-contracts edge case --------------------------------------
+    def test_signed_and_remaining_zero_when_no_contracts(self):
+        """A position with no contracts must report filled=0, remaining=quantity."""
+        empty_position = _make_position(
+            self.job_order,
+            _make_rank(code="OFF-2", name="2nd Officer"),
+            quantity=2,
+            salary_min=3000, salary_max=4500, currency="EUR",
+        )
+        r = self.client.get(self._detail_url(empty_position.id))
+        item = r.data
+        self.assertEqual(item["filled_slots"], 0)
+        self.assertEqual(item["remaining_slots"], 2)
+        self.assertEqual(item["assigned_to"], [])
+        self.assertEqual(item["currency"], "EUR")
+        self.assertEqual(float(item["salary_min"]), 3000.0)
+        self.assertEqual(float(item["salary_max"]), 4500.0)
