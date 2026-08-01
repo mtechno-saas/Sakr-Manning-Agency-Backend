@@ -1,4 +1,5 @@
 from rest_framework import serializers, validators
+from django.contrib.auth.models import Permission, Group
 from .models import (
     Users, UserRank, Certificate, Rank, Contract, Reference, SeaService,
     Interview, CVSubmission, Document, UserLanguage, PersonalDocument
@@ -1869,6 +1870,22 @@ class UsersSerializer(serializers.ModelSerializer):
     # combines first + middle into the response's `first_name` so the
     # frontend's "full name in first_name" assumption keeps working.
 
+    # Exclude inherited M2M fields from `__all__` so we can declare
+    # them as proper PrimaryKeyRelatedField with the right queryset.
+    # They're still writable; the extra_kwargs / explicit declarations
+    # below just give DRF the queryset it needs to validate the IDs.
+    user_permissions = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Permission.objects.all(),
+        required=False,
+        help_text="List of Permission IDs to assign.",
+    )
+    groups = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Group.objects.all(),
+        required=False,
+        help_text="List of Group IDs to assign.",
+    )
 
     # Read-only nested serializers for detailed representation
     ranks = UserRankSerializer(source='user_ranks', many=True, read_only=True)
@@ -1897,7 +1914,8 @@ class UsersSerializer(serializers.ModelSerializer):
         help_text="List of Certificate IDs to assign."
     )
 
-    # Password field for user creation (write-only)
+    # Password field for user creation (write-only) — accepted on
+    # input, never echoed back in responses.
     password = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
 
     # Use FlexibleFileField for file fields to handle existing URLs from frontend
@@ -1907,56 +1925,22 @@ class UsersSerializer(serializers.ModelSerializer):
     passport_attachment = FlexibleFileField(required=False, allow_null=True)
     seaman_book_attachment = FlexibleFileField(required=False, allow_null=True)
     other_seaman_book_attachment = FlexibleFileField(required=False, allow_null=True)
+    file = FlexibleFileField(required=False, allow_null=True)
 
     class Meta:
         model = Users
-        fields = [
-            'id', 'email', 'first_name', 'middle_name', 'password','country', 'city',
-            'profile_image', 'age', 'blood_type', 'smoker', 'us_visa_status',
-            'schengen_visa_status', 'date_of_birth', 'marital_status', 'user_status',
-            'nationality', 'Place_Of_Birth', 'Nearest_Port', 'Height_Cm', 'Weight_Kg',
-            'college_or_school', 'marlins_test_issued_date', 'marlins_test_result',
-            'marlins_test_issued_by', 'marlins_test_issued_at', 'marlins_test_attachment',
-            'ces_test_result', 'ces_test_issued_date', 'ces_test_issued_at', 'ces_test_issued_by',
-            'ces_test_attachment', 'salary', 'address',
-            'phone_number', 'tel_number', 'created_at', 'updated_at', 'role', "register_code",
-            'register_date',
-            'last_updated_date',
-            'application_for_position', 'other_position', 'available_date',
-            'e_reg_no', 'license_no',
-            # Travel Documents
-            'passport_no', 'passport_issue_date', 'passport_expiry_date',
-            'passport_issued_by', 'passport_place_of_issue', 'passport_attachment',
-            'seaman_book_no', 'seaman_book_issue_date', 'seaman_book_expiry_date',
-            'seaman_book_issued_by', 'seaman_book_place_of_issue', 'seaman_book_attachment',
-            'other_seaman_book_no', 'other_seaman_book_issue_date', 'other_seaman_book_expiry_date',
-            'other_seaman_book_issued_by', 'other_seaman_book_place_of_issue', 'other_seaman_book_attachment',
-            # Professional Qualifications
-            'coc_certificate_name', 'coc_certificate_number', 'coc_issue_date',
-            'coc_expiry_date', 'coc_issued_by', 'coc_issued_at',
-            'goc_certificate_number', 'goc_issue_date', 'goc_expiry_date',
-            'goc_issued_by', 'goc_issued_at',
-            # Next of Kin
-            'next_of_kin_full_name', 'next_of_kin_relationship', 'next_of_kin_address_country',
-            'next_of_kin_phone', 'next_of_kin_phone2', 'next_of_kin_email',
-            # Health Certificates
-            'health_flag_state', 'health_number', 'health_issue_date', 'health_expiry_date',
-            'health_issued_by', 'health_issued_at', 'international_medical_number',
-            'international_medical_issue_date', 'international_medical_expiry_date',
-            'yellow_fever_number', 'yellow_fever_issue_date', 'yellow_fever_expiry_date',
-            'cholera_number', 'cholera_issue_date', 'cholera_expiry_date',
-            'covid_vaccine_name', 'covid_first_dose', 'covid_second_dose',
-            'covid_other_doses_or_remarks',
-            # New fields from Word document
-            'overall_size', 'shirt_size', 'trouser_size', 'shoes_size',
-            'english_language_level', 'other_language', 'other_language_level',
-            'disease_history', 'accident_history', 'psychiatric_treatment_history', 'addiction_history',
-            'declaration_consent', 'declaration_date', 'declaration_place',
-            'initial_assessment_comments', 'responsible_person_name', 'assessment_date',
-            # Relationships
-            'ranks', 'certificates', 'rank_ids', 'certificate_ids', 'references', 'sea_services',
-            'generated_id', 'user_documents', 'seafarer_application', 'coded_rank', 'salary_display'
-        ]
+        # fields = '__all__' makes every model column writable by
+        # default. The 5 explicitly-excluded fields below are controlled
+        # via extra_kwargs:
+        #   - id, created_at, updated_at : auto-managed by the model
+        #     (auto_now_add / auto_now / primary key). DRF picks them
+        #     up as read-only automatically.
+        #   - generated_id : read-only in extra_kwargs; the 12-digit
+        #     ID is assigned by a separate Document-approval flow.
+        #   - password : write-only in extra_kwargs; accepted on input,
+        #     never echoed back in responses. (Hashed on save by
+        #     the custom update() below.)
+        fields = '__all__'
         extra_kwargs = {
             'profile_image': {'required': False},
             'password': {'write_only': True, 'required': False},

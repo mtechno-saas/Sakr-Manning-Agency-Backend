@@ -672,3 +672,240 @@ class UsersListFilterTests(UsersEndpointFieldSurfaceTests):
         # The target user must be in the result set
         ids = [u["id"] for u in items]
         self.assertIn(self.target.id, ids)
+
+
+# ============================================================================
+# 8. All-fields-writable (every model column exposed)
+# ============================================================================
+#
+# After switching Meta.fields to '__all__', every Users column is
+# writable except:
+#   - id, created_at, updated_at  : auto-managed by the model
+#   - generated_id                : read_only in extra_kwargs
+#   - password (in response)      : write_only in extra_kwargs
+#
+# These tests lock in the new behaviour so a future refactor can't
+# silently drop a writable field.
+
+from django.contrib.auth.models import Group, Permission  # noqa: E402
+
+
+class UsersAllFieldsWritableTests(UsersEndpointFieldSurfaceTests):
+    """All model columns are writable except the 5 explicitly-excluded."""
+
+    # ---- Account / permissions (PermissionsMixin + abstract user) ----
+
+    def test_patch_is_active(self):
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"is_active": False},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.target.refresh_from_db()
+        self.assertFalse(self.target.is_active)
+
+    def test_patch_is_staff(self):
+        """is_staff is inherited from PermissionsMixin; now writable."""
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"is_staff": True},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.target.refresh_from_db()
+        self.assertTrue(self.target.is_staff)
+
+    def test_patch_is_superuser(self):
+        """is_superuser is inherited from PermissionsMixin; now writable."""
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"is_superuser": True},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.target.refresh_from_db()
+        self.assertTrue(self.target.is_superuser)
+
+    def test_patch_last_login(self):
+        """last_login is auto-set by Django on login, but is writable via API."""
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"last_login": "2026-08-01T10:00:00Z"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.target.refresh_from_db()
+        self.assertIsNotNone(self.target.last_login)
+
+    def test_patch_user_permissions(self):
+        """user_permissions (M2M from PermissionsMixin) is writable."""
+        perm = Permission.objects.first()
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"user_permissions": [perm.id]},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.target.refresh_from_db()
+        self.assertIn(perm, self.target.user_permissions.all())
+
+    def test_patch_user_permissions_empty_clears(self):
+        """Sending [] clears the M2M."""
+        perm = Permission.objects.first()
+        self.target.user_permissions.add(perm)
+        self.assertIn(perm, self.target.user_permissions.all())
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"user_permissions": []},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.target.refresh_from_db()
+        self.assertEqual(self.target.user_permissions.count(), 0)
+
+    def test_patch_groups(self):
+        """groups (M2M from PermissionsMixin) is writable."""
+        g = Group.objects.create(name="Test Group A")
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"groups": [g.id]},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.target.refresh_from_db()
+        self.assertIn(g, self.target.groups.all())
+
+    # ---- Blacklist ----
+
+    def test_patch_blacklist_reason(self):
+        """blacklist_reason was previously not in the serializer."""
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"blacklist_reason": "Failed background check"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.target.refresh_from_db()
+        self.assertEqual(self.target.blacklist_reason, "Failed background check")
+
+    # ---- "Synced from Document" fields ----
+
+    def test_patch_title(self):
+        """title (synced from Document) was previously not in the serializer."""
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"title": "Application for Master"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.target.refresh_from_db()
+        self.assertEqual(self.target.title, "Application for Master")
+
+    def test_patch_user_position(self):
+        """position (synced from Document, CharField on Users) is writable.
+
+        This is NOT the CVSubmission.position FK; the Users model has its
+        own CharField for the position synced from a Document.
+        """
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"position": "Master"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.target.refresh_from_db()
+        self.assertEqual(self.target.position, "Master")
+
+    def test_patch_user_file(self):
+        """file (synced from Document, FileField on Users) is writable."""
+        # Use a minimal text file to avoid touching the filesystem
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        uploaded = SimpleUploadedFile(
+            "test.txt", b"hello world", content_type="text/plain",
+        )
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"file": uploaded},
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.target.refresh_from_db()
+        self.assertTrue(self.target.file)
+        self.assertTrue(self.target.file.name.endswith(".txt"))
+
+    # ---- GET returns the new fields too ----
+
+    def test_get_returns_newly_exposed_fields(self):
+        r = self.client.get(DETAIL_URL_FMT.format(id=self.target.id))
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        body = r.data
+        # Each of these was missing from the explicit fields list; now
+        # they must all be present in the GET response.
+        for field in (
+            "is_active", "is_staff", "is_superuser",
+            "last_login", "user_permissions", "groups",
+            "blacklist_reason", "title", "position", "file",
+        ):
+            self.assertIn(field, body, f"missing {field!r} in GET response")
+
+    # ---- The 5 explicitly-excluded fields stay excluded ----
+
+    def test_generated_id_still_readonly(self):
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"generated_id": "999999999999"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.target.refresh_from_db()
+        self.assertNotEqual(self.target.generated_id, "999999999999")
+
+    def test_id_still_readonly(self):
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"id": 99999},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.target.refresh_from_db()
+        self.assertNotEqual(self.target.id, 99999)
+
+    def test_created_at_still_readonly(self):
+        # The target's created_at is set by setUpTestData. We snapshot it
+        # and then PATCH a different value; the DB value must not change.
+        original = self.target.created_at
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"created_at": "2000-01-01T00:00:00Z"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.target.refresh_from_db()
+        self.assertEqual(self.target.created_at, original)
+
+    def test_updated_at_is_auto_refreshed_on_save(self):
+        """updated_at is auto_now — every save refreshes it. PATCH
+        body value is irrelevant; the column is auto-managed."""
+        import time
+        before = self.target.updated_at
+        time.sleep(0.05)  # ensure a measurable timestamp diff
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"phone_number": "+201111111111"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.target.refresh_from_db()
+        # updated_at was auto-refreshed by the save (not 2000-01-01)
+        self.assertGreater(self.target.updated_at, before)
+
+    def test_password_still_write_only_in_response(self):
+        r = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.target.id),
+            {"password": "new-secret"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.assertNotIn("password", r.data)
+
