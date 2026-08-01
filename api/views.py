@@ -2111,6 +2111,15 @@ class UserLanguageViewSet(viewsets.ModelViewSet):
             self.permission_denied(request, message="Only Admin, HR Manager, and Employee roles can access this endpoint.")
 
     def get_queryset(self):
+        # Honour `?user=` so an admin/HR can list a specific crew
+        # member's language records from the form. Falls back to the
+        # original role-based filter.
+        target_id = self.request.query_params.get("user")
+        if target_id:
+            try:
+                return UserLanguage.objects.filter(user_id=int(target_id))
+            except (TypeError, ValueError):
+                pass
         user = self.request.user
         if user.role in ['Admin', 'HR Manager']:
             return UserLanguage.objects.all()
@@ -2460,6 +2469,14 @@ class NextOfKinViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # Honour `?user=` so an admin/HR/Recruiter can list a specific
+        # crew member's emergency contacts. Employees still get their own.
+        target_id = self.request.query_params.get("user")
+        if target_id:
+            try:
+                return NextOfKin.objects.filter(user_id=int(target_id))
+            except (TypeError, ValueError):
+                pass
         user = self.request.user
         if user.role in ['Admin', 'HR Manager', 'Recruiter']:
             return NextOfKin.objects.all()
@@ -2468,11 +2485,23 @@ class NextOfKinViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if self.request.user.role == 'Employee':
             serializer.save(user=self.request.user)
-        else:
-            if 'user' not in serializer.validated_data:
-                serializer.save(user=self.request.user)
-            else:
-                serializer.save()
+            return
+        # Honour `?user=` query param for admin/HR/Recruiter so they
+        # can create a record for a specific crew member even when
+        # the payload doesn't include `user`.
+        if 'user' not in serializer.validated_data:
+            qp_user = self.request.query_params.get('user')
+            if qp_user:
+                try:
+                    serializer.save(user_id=int(qp_user))
+                    return
+                except (TypeError, ValueError):
+                    pass
+            serializer.save(user=self.request.user)
+            return
+        # `user` IS in the payload — save with whatever the client
+        # sent (the serializer will validate it).
+        serializer.save()
 
     def perform_update(self, serializer):
         instance = self.get_object()
