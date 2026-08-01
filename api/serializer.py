@@ -1861,18 +1861,13 @@ class ContractSerializer(serializers.ModelSerializer):
 # =====================
 
 class UsersSerializer(serializers.ModelSerializer):
-    first_name = serializers.SerializerMethodField()
-    middle_name = serializers.SerializerMethodField()
-
-    def get_first_name(self, obj):
-        first = (obj.first_name or "").strip()
-        last = (getattr(obj, "last_name", "") or getattr(obj, "middle_name", "") or "").strip()
-        if last and not first.lower().endswith(last.lower()):
-            return f"{first} {last}".strip()
-        return first
-
-    def get_middle_name(self, obj):
-        return ""
+    # first_name and middle_name are declared as plain model fields so
+    # that POST / PUT / PATCH body values actually land on the model.
+    # (The previous SerializerMethodField declarations made them
+    # read-only, so the `to_internal_value` split logic never ran and
+    # writes were silently dropped.) `to_representation` below still
+    # combines first + middle into the response's `first_name` so the
+    # frontend's "full name in first_name" assumption keeps working.
 
 
     # Read-only nested serializers for detailed representation
@@ -2201,7 +2196,15 @@ class UsersSerializer(serializers.ModelSerializer):
         profile_image_data = validated_data.pop('profile_image', None)
 
         # Update standard fields using the default DRF update method
+        # Pop + hash the password first so DRF's default update doesn't
+        # store it in plaintext. (Without this, PATCH {password: "x"} would
+        # write the raw value into Users.password and the user couldn't
+        # log in.)
+        password = validated_data.pop('password', None)
         instance = super().update(instance, validated_data)
+        if password:
+            instance.set_password(password)
+            instance.save(update_fields=['password'])
 
         # Handle the profile image update separately if it was in the request (even if None)
         if has_profile_image:
