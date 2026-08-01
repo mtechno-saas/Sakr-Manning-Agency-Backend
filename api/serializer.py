@@ -999,15 +999,28 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             for ss in sea_services_qs
         ]
 
-        # Marine Courses
+        # Marine Courses — same field shape as seafarer_application
+        # `8_marine_courses` (api/seafarer_application_serializers.py)
+        # so the frontend doesn't have to merge two different
+        # representations of the same Course rows. We expose BOTH
+        # `course_number` (the model field name) and `number` (the
+        # legacy key the seafarer-application path uses, and the
+        # frontend CVSubmissionViewModal reads).
         from courses.models import Course
-        courses_qs = Course.objects.filter(user=user)
+        courses_qs = Course.objects.filter(user=user).order_by('-id')
         courses_data = [
             {
                 'id': c.id,
                 'course_name': c.course_name,
+                # canonical model field
+                'course_number': c.course_number,
+                # legacy alias used by the seafarer-application path
+                'number': c.course_number,
                 'issue_date': str(c.issue_date) if c.issue_date else None,
                 'expiry_date': str(c.expiry_date) if c.expiry_date else None,
+                'issued_by': c.issued_by,
+                'issued_at': c.issued_at,
+                'country_of_issue': c.country_of_issue,
                 'file_url': file_url(c.document, download_path=build_download_url('course', c.id)) if c.document else None,
                 'download_url': build_download_url('course', c.id) if c.document else None,
             }
@@ -2280,15 +2293,28 @@ class UsersSerializer(serializers.ModelSerializer):
             for ss in sea_services_qs
         ]
 
-        # Marine Courses
+        # Marine Courses — same field shape as seafarer_application
+        # `8_marine_courses` (api/seafarer_application_serializers.py)
+        # so the frontend doesn't have to merge two different
+        # representations of the same Course rows. We expose BOTH
+        # `course_number` (the model field name) and `number` (the
+        # legacy key the seafarer-application path uses, and the
+        # frontend CVSubmissionViewModal reads).
         from courses.models import Course
-        courses_qs = Course.objects.filter(user=user)
+        courses_qs = Course.objects.filter(user=user).order_by('-id')
         courses_data = [
             {
                 'id': c.id,
                 'course_name': c.course_name,
+                # canonical model field
+                'course_number': c.course_number,
+                # legacy alias used by the seafarer-application path
+                'number': c.course_number,
                 'issue_date': str(c.issue_date) if c.issue_date else None,
                 'expiry_date': str(c.expiry_date) if c.expiry_date else None,
+                'issued_by': c.issued_by,
+                'issued_at': c.issued_at,
+                'country_of_issue': c.country_of_issue,
                 'file_url': file_url(c.document, download_path=build_download_url('course', c.id)) if c.document else None,
                 'download_url': build_download_url('course', c.id) if c.document else None,
             }

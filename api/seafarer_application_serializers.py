@@ -632,16 +632,40 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         }
 
     def get_marine_courses(self, obj):
-        courses = obj.courses.all()
+        # Same field shape as user_documents.marine_courses (api/serializer.py
+        # `get_user_documents`) so the frontend doesn't have to merge two
+        # different representations of the same Course rows. We expose BOTH
+        # `number` (legacy key, the frontend CVSubmissionViewModal reads it)
+        # and `course_number` (the model field name, mirrors user_documents).
+        from django.urls import reverse
+        request = self.context.get("request") if hasattr(self, "context") else None
+
+        def abs_url(path):
+            if not path:
+                return None
+            if request is not None:
+                return request.build_absolute_uri(path)
+            return path
+
+        courses = obj.courses.all().order_by("-id")
         result = []
         for c in courses:
+            download_path = f"/api/courses/{c.id}/download/" if c.document else None
             result.append({
-                "course_name": c.course_name,
-                "number": c.course_number,
+                "id": c.id,
+                "course_name": c.course_name or "",
+                # legacy key — kept so existing frontend code (CVSubmissionViewModal)
+                # that reads `c.number` keeps working
+                "number": c.course_number or "",
+                # canonical key — matches the model field and user_documents path
+                "course_number": c.course_number or "",
                 "issue_date": c.issue_date if c.issue_date else "",
                 "expiry_date": c.expiry_date if c.expiry_date else "",
                 "issued_by": c.issued_by or "",
-                "issued_at": c.issued_at or ""
+                "issued_at": c.issued_at or "",
+                "country_of_issue": c.country_of_issue or "",
+                "download_url": abs_url(download_path),
+                "file_url": abs_url(download_path),
             })
         return result
 
