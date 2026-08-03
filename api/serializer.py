@@ -1240,7 +1240,8 @@ class ContractListSerializer(serializers.ModelSerializer):
         model = Contract
         fields = [
             'id', 'user', 'user_name', 'ship_name', 'company_name',
-            'rank_name', 'sign_on_date', 'sign_off_date', 'status'
+            'rank_name', 'sign_on_date', 'sign_off_date',
+            'duration', 'repatriation_terms', 'leave_pay_terms', 'status'
         ]
 
     def get_user_name(self, obj):
@@ -1304,7 +1305,9 @@ class ContractSerializer(serializers.ModelSerializer):
             'ship', 'ship_name', 'ship_details',
             'company', 'company_name', 'company_details',
             'rank', 'rank_name', 'assigned_code', 'job_position',
-            'sign_on_date', 'sign_off_date', 'salary', 'currency', 'status',
+            'sign_on_date', 'sign_off_date', 'duration',
+            'salary', 'currency', 'status',
+            'repatriation_terms', 'leave_pay_terms',
             'signed_file', 'signed_at',
             'certificates', 'coded_rank', 'user_documents', 'job_position_details',
             'seafarer_application', 'document_info', 'application_header', 'personal_details',

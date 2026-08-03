@@ -693,6 +693,11 @@ class Contract(models.Model):
 
     sign_on_date = models.DateField()
     sign_off_date = models.DateField(null=True, blank=True)
+    duration = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Contract duration in months (e.g. 6, 9, 12). May be derived from sign_on_date / sign_off_date if not set explicitly.",
+    )
     salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='USD')
     
