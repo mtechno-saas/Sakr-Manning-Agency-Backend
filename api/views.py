@@ -187,18 +187,35 @@ class LanguageProficiencyViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        This ensures users can ONLY see, edit, or delete 
-        their own language records.
-        """
+        # Honour `?user=` so an admin/HR/Recruiter can list a specific
+        # crew member's language records. Employees still get their own.
+        # Falls back to "own records" if the query param is missing or
+        # unparseable.
+        user_id = self.request.query_params.get('user')
+        if user_id:
+            try:
+                return LanguageProficiency.objects.filter(user_id=int(user_id))
+            except (TypeError, ValueError):
+                pass
         return LanguageProficiency.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        """
-        When a user adds a new language, this automatically 
-        links it to the person currently logged in.
-        """
-        serializer.save(user=self.request.user)
+        # Honour `user` in the payload OR `?user=` query param so an admin
+        # can add a language on behalf of a crew member. Without this,
+        # every language the admin adds is silently saved against the
+        # admin's own user_id — same bug pattern we already fixed for
+        # Course (7378078a), SeaService, NextOfKin and Reference.
+        user_id = self.request.data.get('user') or self.request.query_params.get('user')
+        if user_id:
+            try:
+                serializer.save(user_id=int(user_id))
+                return
+            except (TypeError, ValueError):
+                pass
+        if 'user' in serializer.validated_data:
+            serializer.save()
+        else:
+            serializer.save(user=self.request.user)
 class UserViewSet(viewsets.ModelViewSet):
     """
     User Management - Role-based access:

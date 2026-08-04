@@ -11,7 +11,28 @@ class VaccinationViewSet(ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
+        # Honour `?user=` so an admin/HR/Recruiter can list a specific
+        # crew member's vaccination records. Falls back to "own records"
+        # for an employee that does not supply ?user=.
+        user_id = self.request.query_params.get('user')
+        if user_id:
+            try:
+                return Vaccination.objects.filter(user_id=int(user_id))
+            except (TypeError, ValueError):
+                pass
         return Vaccination.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        # Honour `user` in the payload OR `?user=` query param so an admin
+        # can add a vaccination on behalf of a crew member. Without this,
+        # every vaccination the admin adds is silently saved against the
+        # admin's own user_id — same bug pattern we already fixed for
+        # Course (7378078a), SeaService, NextOfKin and Reference.
+        user_id = self.request.data.get('user') or self.request.query_params.get('user')
+        if user_id:
+            try:
+                serializer.save(user_id=int(user_id))
+                return
+            except (TypeError, ValueError):
+                pass
         serializer.save(user=self.request.user)

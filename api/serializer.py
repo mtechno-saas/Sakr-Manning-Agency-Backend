@@ -2466,12 +2466,16 @@ class UsersSerializer(serializers.ModelSerializer):
 class LanguageProficiencySerializer(serializers.ModelSerializer):
     class Meta:
         model = LanguageProficiency
-        # We exclude 'user' because we will inject the logged-in user automatically in the view
+        # `user` is writable so an admin can create / update a language
+        # for a specific crew member via payload `user` or `?user=`.
+        # The view's perform_create() still defaults to request.user when
+        # no user is supplied.
         fields = [
-            'id', 'language', 'general_remarks', 'speaking_level',
+            'id', 'user', 'language', 'general_remarks', 'speaking_level',
             'writing_level', 'reading_level', 'cefr_level', 'cefr_description',
             'attachment'
         ]
+        extra_kwargs = {'user': {'required': False}}
 
     def validate(self, attrs):
         lang = attrs.get('language')

@@ -362,8 +362,9 @@ class UserLicenseCRUDTests(_ModelCRUDBase, TestCase):
 class VaccinationCRUDTests(_ModelCRUDBase, TestCase):
     # NOTE: VaccinationViewSet only registers MultiPartParser + FormParser
     # (no JSONParser), so all requests must be sent as form-data / multipart.
-    # The view's perform_create() also always sets user=request.user (the
-    # `user` field is not part of the writable contract), so we omit it.
+    # `user` IS part of the writable contract now (admin can target a
+    # specific crew member via payload `user` or `?user=`). When omitted,
+    # perform_create() defaults to the logged-in user.
     list_url = "/api/vaccinations/"
     detail_fmt = "/api/vaccinations/{id}/"
     request_format = "multipart"
@@ -608,3 +609,206 @@ class FullCRUDLifecycleTest(TestCase):
         # 7. GET after delete → 404
         r_after = self.client.get(url_detail.format(id=nok_id))
         self.assertEqual(r_after.status_code, http_status.HTTP_404_NOT_FOUND)
+
+
+# ============================================================================
+# Regression: admin creates Language / Vaccination on behalf of a crew member
+# ============================================================================
+#
+# Both LanguageProficiency and Vaccination previously hard-coded
+# `user=request.user` in perform_create() and ignored `?user=` /
+# payload `user`. The result: an admin adding a record for a crew
+# member through the per-section modal saw the data silently saved
+# against the admin's own user_id. These tests pin the fix.
+
+
+class _AdminTargetsCrewMixin:
+    """
+    Reusable scaffolding: creates an admin and a crew member, logs the
+    test client in as the admin, and exposes the crew member's id as
+    `self.target_id` and `self.target` for the test body.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = Users.objects.create_user(
+            email="admin-regression@example.com",
+            password="x",
+            first_name="Admin",
+            middle_name="R",
+            role="Admin",
+            is_staff=True,
+            is_superuser=True,
+        )
+        cls.target = Users.objects.create_user(
+            email="crew-regression@example.com",
+            password="x",
+            first_name="Crew",
+            middle_name="R",
+            role="Employee",
+        )
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.admin)
+        self.target_id = self.target.id
+
+
+class LanguageProficiencyAdminRegressionTests(_AdminTargetsCrewMixin, TestCase):
+    """
+    Regression: an admin must be able to create / list languages for a
+    crew member via either the payload's `user` key OR the `?user=`
+    query string. Previously the backend hard-coded user=request.user
+    and the admin's own record was created instead.
+    """
+
+    list_url = "/api/my-languages/"
+
+    def _payload(self, **overrides):
+        base = {
+            "language": "English",
+            "general_remarks": 85,
+            "speaking_level": "Native",
+            "writing_level": "Advanced",
+            "reading_level": "Native",
+            "cefr_level": "C2",
+        }
+        base.update(overrides)
+        return base
+
+    def test_create_with_user_in_payload_saves_to_target(self):
+        r = self.client.post(
+            self.list_url,
+            {**self._payload(), "user": self.target_id},
+            format="json",
+        )
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["user"], self.target_id)
+        # Confirm at the DB level too
+        from api.models import LanguageProficiency
+        row = LanguageProficiency.objects.get(id=r.data["id"])
+        self.assertEqual(row.user_id, self.target_id)
+        self.assertNotEqual(row.user_id, self.admin.id)
+
+    def test_create_with_query_user_saves_to_target(self):
+        r = self.client.post(
+            f"{self.list_url}?user={self.target_id}",
+            self._payload(),
+            format="json",
+        )
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["user"], self.target_id)
+
+    def test_create_without_user_falls_back_to_admin(self):
+        r = self.client.post(self.list_url, self._payload(), format="json")
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        # No user supplied -> legacy behaviour, lands on the admin
+        self.assertEqual(r.data["user"], self.admin.id)
+
+    def test_list_with_query_user_returns_target_records(self):
+        # Create a record for the crew member
+        self.client.post(
+            self.list_url,
+            {**self._payload(language="Spanish"), "user": self.target_id},
+            format="json",
+        )
+        # Create another record for the admin
+        self.client.post(
+            self.list_url,
+            {**self._payload(language="German"), "user": self.admin.id},
+            format="json",
+        )
+        r = self.client.get(f"{self.list_url}?user={self.target_id}")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        # DRF pagination wraps rows under "results"
+        results = r.data["results"] if isinstance(r.data, dict) and "results" in r.data else r.data
+        # The crew-member list must contain ONLY the Spanish row, not
+        # the German one we created against the admin.
+        languages = [row["language"] for row in results]
+        self.assertIn("Spanish", languages)
+        self.assertNotIn("German", languages)
+        for row in results:
+            self.assertEqual(row["user"], self.target_id)
+
+
+class VaccinationAdminRegressionTests(_AdminTargetsCrewMixin, TestCase):
+    """
+    Regression: same as the LanguageProficiency admin regression. The
+    Vaccination endpoint previously forced user=request.user too.
+    """
+
+    list_url = "/api/vaccinations/"
+
+    def _payload(self, **overrides):
+        base = {
+            "name": "Yellow Fever Immunization",
+            "number": "YF-001",
+            "issue_date": "2026-01-01",
+            "expiry_date": "2042-01-01",
+            "issued_by": "MOH",
+            "issued_at": "Cairo",
+            "disease": "Yellow Fever",
+        }
+        base.update(overrides)
+        return base
+
+    def test_create_with_user_in_payload_saves_to_target(self):
+        # Vaccination only accepts multipart, not JSON
+        r = self.client.post(
+            self.list_url,
+            {**self._payload(), "user": self.target_id},
+            format="multipart",
+        )
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["user"], self.target_id)
+        from vaccinations.models import Vaccination
+        row = Vaccination.objects.get(id=r.data["id"])
+        self.assertEqual(row.user_id, self.target_id)
+        self.assertNotEqual(row.user_id, self.admin.id)
+
+    def test_create_with_query_user_saves_to_target(self):
+        r = self.client.post(
+            f"{self.list_url}?user={self.target_id}",
+            self._payload(),
+            format="multipart",
+        )
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["user"], self.target_id)
+
+    def test_create_without_user_falls_back_to_admin(self):
+        r = self.client.post(self.list_url, self._payload(), format="multipart")
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["user"], self.admin.id)
+
+    def test_list_with_query_user_returns_target_records(self):
+        self.client.post(
+            self.list_url,
+            {**self._payload(number="YF-CREW"), "user": self.target_id},
+            format="multipart",
+        )
+        self.client.post(
+            self.list_url,
+            {**self._payload(number="YF-ADMIN"), "user": self.admin.id},
+            format="multipart",
+        )
+        r = self.client.get(f"{self.list_url}?user={self.target_id}")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        # DRF pagination wraps rows under "results"
+        results = r.data["results"] if isinstance(r.data, dict) and "results" in r.data else r.data
+        numbers = [row["number"] for row in results]
+        self.assertIn("YF-CREW", numbers)
+        self.assertNotIn("YF-ADMIN", numbers)
+        for row in results:
+            self.assertEqual(row["user"], self.target_id)
