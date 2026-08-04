@@ -3113,3 +3113,1079 @@ Internal Server Error: /ai/upload/
 "POST /ai/upload/ HTTP/1.1" 500 140
 Internal Server Error: /ai/upload/
 "POST /ai/upload/ HTTP/1.1" 500 140
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 156, in to_internal_value
+    self.fail(
+    ~~~~~~~~~^
+        'invalid',
+        ^^^^^^^^^^
+    ...<3 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 600, in fail
+    message_string = msg.format(**kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\functional.py", line 188, in __wrapper__
+    return getattr(result, __method_name)(*args, **kw)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'format'
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 156, in to_internal_value
+    self.fail(
+    ~~~~~~~~~^
+        'invalid',
+        ^^^^^^^^^^
+    ...<3 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 600, in fail
+    message_string = msg.format(**kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\functional.py", line 188, in __wrapper__
+    return getattr(result, __method_name)(*args, **kw)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'format'
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
+Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\http\request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\http\request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\http\request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\http\request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\http\request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\deprecation.py", line 308, in __call__
+    response = self.process_request(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\http\request.py", line 206, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 156, in to_internal_value
+    self.fail(
+    ~~~~~~~~~^
+        'invalid',
+        ^^^^^^^^^^
+    ...<3 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 600, in fail
+    message_string = msg.format(**kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\functional.py", line 188, in __wrapper__
+    return getattr(result, __method_name)(*args, **kw)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'format'
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 156, in to_internal_value
+    self.fail(
+    ~~~~~~~~~^
+        'invalid',
+        ^^^^^^^^^^
+    ...<3 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 600, in fail
+    message_string = msg.format(**kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\functional.py", line 188, in __wrapper__
+    return getattr(result, __method_name)(*args, **kw)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'format'
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 156, in to_internal_value
+    self.fail(
+    ~~~~~~~~~^
+        'invalid',
+        ^^^^^^^^^^
+    ...<3 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 600, in fail
+    message_string = msg.format(**kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\utils\functional.py", line 188, in __wrapper__
+    return getattr(result, __method_name)(*args, **kw)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'format'
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
+Internal Server Error: /api/reminders/
+Traceback (most recent call last):
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\mixins.py", line 18, in create
+    serializer.is_valid(raise_exception=True)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 225, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 444, in run_validation
+    value = self.to_internal_value(data)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\serializers.py", line 501, in to_internal_value
+    validated_value = field.run_validation(primitive_value)
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\relations.py", line 155, in run_validation
+    return super().run_validation(data)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\rest_framework\fields.py", line 538, in run_validation
+    value = self.to_internal_value(data)
+  File "E:\2-TECHNO AQUARE\reminders\serializers.py", line 94, in to_internal_value
+    return User.objects.get(username=s)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 625, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+                                                        ~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1542, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1560, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\query.py", line 1570, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1676, in add_q
+    clause, _ = self._add_q(q_object, can_reuse)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1708, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1556, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1363, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mahmoud\anaconda3\Lib\site-packages\django\db\models\sql\query.py", line 1842, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'username' into field. Choices are: Height_Cm, Nearest_Port, Place_Of_Birth, Weight_Kg, accident_history, added_blacklist_records, addiction_history, address, age, apiresponselog, application_for_position, appraisals, assessment_date, auth_token, available_date, blacklist_reason, blacklist_records, blood_type, certificates, ces_test_attachment, ces_test_issued_at, ces_test_issued_by, ces_test_issued_date, ces_test_result, chat_sessions, cholera_expiry_date, cholera_issue_date, cholera_number, city, coc_certificate_name, coc_certificate_number, coc_expiry_date, coc_issue_date, coc_issued_at, coc_issued_by, codes, college_or_school, contracts, country, courses, covid_first_dose, covid_other_doses_or_remarks, covid_second_dose, covid_vaccine_name, created_at, created_interviews, cv_submissions, date_of_birth, declaration_consent, declaration_date, declaration_place, declarations, disease_history, documents, e_reg_no, email, english_language_level, file, finance_records, first_name, flight_bookings, generated_id, goc_certificate_number, goc_expiry_date, goc_issue_date, goc_issued_at, goc_issued_by, groups, health_expiry_date, health_flag_state, health_issue_date, health_issued_at, health_issued_by, health_number, id, incidents, initial_assessment_comments, international_medical_expiry_date, international_medical_issue_date, international_medical_number, interviews, interviews_as_candidate, interviews_as_interviewer, is_active, is_blacklisted, is_staff, is_superuser, joining_instructions, languages, last_login, last_updated_date, license_no, licenses, logentry, marital_status, marlins_test_attachment, marlins_test_issued_at, marlins_test_issued_by, marlins_test_issued_date, marlins_test_result, middle_name, nationality, next_of_kin_address_country, next_of_kin_email, next_of_kin_full_name, next_of_kin_phone, next_of_kin_phone2, next_of_kin_relationship, next_of_kins, other_language, other_language_level, other_position, other_seaman_book_attachment, other_seaman_book_expiry_date, other_seaman_book_issue_date, other_seaman_book_issued_by, other_seaman_book_no, other_seaman_book_place_of_issue, overall_size, passport_attachment, passport_expiry_date, passport_issue_date, passport_issued_by, passport_no, passport_place_of_issue, password, personal_documents, phone_number, position, profile_image, psychiatric_treatment_history, references, register_code, register_date, reminders, responsible_person_name, reviewed_submissions, role, salary, schengen_visa_status, sea_services, seaman_book_attachment, seaman_book_expiry_date, seaman_book_issue_date, seaman_book_issued_by, seaman_book_no, seaman_book_place_of_issue, search_preferences, search_queries, ships, shirt_size, shoes_size, smoker, tel_number, tickets, title, traveling_papers, trouser_size, updated_at, us_visa_status, user_languages, user_permissions, user_ranks, user_status, vaccinations, visa_applications, yellow_fever_expiry_date, yellow_fever_issue_date, yellow_fever_number
