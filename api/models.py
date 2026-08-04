@@ -283,7 +283,7 @@ class LanguageProficiency(models.Model):
     
     # Fields as requested
     language = models.CharField(max_length=100, choices=LANGUAGE_CHOICES)
-    general_marks = models.IntegerField(default=0)
+    general_remarks = models.IntegerField(default=0)
     
     # Proficiency Levels
     PROFICIENCY_CHOICES = [

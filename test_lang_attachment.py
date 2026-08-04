@@ -37,7 +37,7 @@ def run_test():
         # to block 'French', 90, 'B2', 'Advanced' as it's default test data from the frontend.
         data = {
             "language": "French",
-            "general_marks": 85,
+            "general_remarks": 85,
             "cefr_level": "B2",
             "speaking_level": "Advanced",
             "writing_level": "Intermediate",

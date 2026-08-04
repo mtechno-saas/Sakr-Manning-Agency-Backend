@@ -204,7 +204,7 @@ class LanguageProficiencyCRUDTests(_ModelCRUDBase, TestCase):
     def _post_payload(self, **overrides):
         base = {
             "language": "English",
-            "general_marks": 85,
+            "general_remarks": 85,
             "speaking_level": "Native",
             "writing_level": "Advanced",
             "reading_level": "Native",
@@ -213,7 +213,49 @@ class LanguageProficiencyCRUDTests(_ModelCRUDBase, TestCase):
         return base
 
     def _patch_payload(self):
-        return {"general_marks": 95}
+        return {"general_remarks": 95}
+
+    def test_general_remarks_round_trip(self):
+        """
+        Regression: LanguageProficiency.general_remarks must accept the
+        frontend's payload key (`general_remarks`) and round-trip it.
+        Previously the backend field was `general_marks`, so the value was
+        silently dropped on every save.
+        """
+        create = self.client.post(
+            self.list_url,
+            self._post_payload(general_remarks=88),
+            format=self.request_format,
+        )
+        self.assertEqual(
+            create.status_code,
+            http_status.HTTP_201_CREATED,
+            f"POST returned {create.status_code}: {create.data}",
+        )
+        new_id = create.data["id"]
+        self.assertEqual(create.data.get("general_remarks"), 88)
+        # The old backend key MUST NOT appear in the response
+        self.assertNotIn("general_marks", create.data)
+
+        detail = self.client.get(self.detail_fmt.format(id=new_id))
+        self.assertEqual(detail.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(detail.data.get("general_remarks"), 88)
+        self.assertNotIn("general_marks", detail.data)
+
+        # PATCH using only the frontend key
+        patch = self.client.patch(
+            self.detail_fmt.format(id=new_id),
+            {"general_remarks": 72},
+            format=self.request_format,
+        )
+        self.assertEqual(patch.status_code, http_status.HTTP_200_OK, patch.data)
+        self.assertEqual(patch.data.get("general_remarks"), 72)
+        self.assertNotIn("general_marks", patch.data)
+
+        # Confirm DB-level column rename
+        from api.models import LanguageProficiency
+        row = LanguageProficiency.objects.get(id=new_id)
+        self.assertEqual(row.general_remarks, 72)
 
 
 # ============================================================================

@@ -2468,22 +2468,22 @@ class LanguageProficiencySerializer(serializers.ModelSerializer):
         model = LanguageProficiency
         # We exclude 'user' because we will inject the logged-in user automatically in the view
         fields = [
-            'id', 'language', 'general_marks', 'speaking_level', 
+            'id', 'language', 'general_remarks', 'speaking_level',
             'writing_level', 'reading_level', 'cefr_level', 'cefr_description',
             'attachment'
         ]
 
     def validate(self, attrs):
         lang = attrs.get('language')
-        marks = attrs.get('general_marks')
+        remarks = attrs.get('general_remarks')
         cefr = attrs.get('cefr_level')
         speaking = attrs.get('speaking_level')
-        
-        # The frontend automatically sends this exact test record upon creation 
-        if lang == 'French' and marks == 90 and cefr == 'B2' and speaking == 'Advanced':
+
+        # The frontend automatically sends this exact test record upon creation
+        if lang == 'French' and remarks == 90 and cefr == 'B2' and speaking == 'Advanced':
             from rest_framework.exceptions import ValidationError
             raise ValidationError("Please provide your actual language proficiency details instead of the default test data.")
-            
+
         return attrs
 
 class RegisterSerializer(serializers.ModelSerializer):
