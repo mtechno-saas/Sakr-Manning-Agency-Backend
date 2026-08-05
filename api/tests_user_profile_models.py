@@ -812,3 +812,202 @@ class VaccinationAdminRegressionTests(_AdminTargetsCrewMixin, TestCase):
         self.assertNotIn("YF-ADMIN", numbers)
         for row in results:
             self.assertEqual(row["user"], self.target_id)
+
+
+class VaccinationOwnerPermissionTests(TestCase):
+    """
+    Regression: `vaccinations.permissions.IsOwner` previously only
+    checked `obj.user == request.user`, so any PATCH/PUT/DELETE on a
+    record owned by another user returned 403 — even for Admin / HR
+    Manager roles, and even when the admin's frontend included
+    `?user=<owner>` in the URL.
+
+    The fix lets SAFE_METHODS through unconditionally, lets Admin / HR
+    Manager roles through, and lets `?user=N` match obj.user_id through
+    (paired with `VaccinationViewSet.get_queryset` which already honours
+    `?user=` for LIST/RETRIEVE).
+
+    These tests pin the security boundary so a future refactor of
+    `IsOwner` cannot accidentally re-tighten or re-loosen it.
+    """
+
+    list_url = "/api/vaccinations/"
+
+    def _payload(self, **overrides):
+        base = {
+            "name": "Yellow Fever Immunization",
+            "number": "YF-001",
+            "issue_date": "2026-01-01",
+            "expiry_date": "2042-01-01",
+            "issued_by": "MOH",
+            "issued_at": "Cairo",
+            "disease": "Yellow Fever",
+        }
+        base.update(overrides)
+        return base
+
+    def _create_record_for(self, owner, number="YF-001"):
+        from vaccinations.models import Vaccination
+        return Vaccination.objects.create(
+            user=owner,
+            name="Yellow Fever Immunization",
+            number=number,
+            issue_date=datetime.date(2026, 1, 1),
+            expiry_date=datetime.date(2042, 1, 1),
+            issued_by="MOH",
+            issued_at="Cairo",
+            disease="Yellow Fever",
+        )
+
+    def _login_as(self, user):
+        client = APIClient()
+        client.force_authenticate(user=user)
+        return client
+
+    def setUp(self):
+        self.admin = Users.objects.create_user(
+            email="perm-admin@example.com",
+            password="x",
+            first_name="Admin",
+            middle_name="P",
+            role="Admin",
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.hr = Users.objects.create_user(
+            email="perm-hr@example.com",
+            password="x",
+            first_name="HR",
+            middle_name="P",
+            role="HR Manager",
+        )
+        self.crew_owner = Users.objects.create_user(
+            email="perm-owner@example.com",
+            password="x",
+            first_name="Crew",
+            middle_name="P",
+            role="Employee",
+        )
+        self.crew_other = Users.objects.create_user(
+            email="perm-other@example.com",
+            password="x",
+            first_name="Other",
+            middle_name="P",
+            role="Employee",
+        )
+        self.record = self._create_record_for(self.crew_owner, number="YF-OWNER")
+
+    # ---- Admin path ----------------------------------------------------
+
+    def test_admin_can_patch_with_user_query_param(self):
+        """Admin PATCHing another user's record via ?user=<owner> succeeds."""
+        client = self._login_as(self.admin)
+        r = client.patch(
+            f"{self.list_url}{self.record.id}/?user={self.crew_owner.id}",
+            {"number": "YF-ADMIN-EDIT"},
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.number, "YF-ADMIN-EDIT")
+        self.assertEqual(self.record.user_id, self.crew_owner.id)
+
+    def test_admin_can_delete_with_user_query_param(self):
+        """Admin DELETEing another user's record via ?user=<owner> succeeds."""
+        client = self._login_as(self.admin)
+        r = client.delete(
+            f"{self.list_url}{self.record.id}/?user={self.crew_owner.id}",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_204_NO_CONTENT)
+        from vaccinations.models import Vaccination
+        self.assertFalse(
+            Vaccination.objects.filter(id=self.record.id).exists()
+        )
+
+    def test_admin_without_query_param_still_allowed(self):
+        """Admin PATCHing another user's record with no ?user= still works (role override)."""
+        client = self._login_as(self.admin)
+        r = client.patch(
+            f"{self.list_url}{self.record.id}/",
+            {"number": "YF-ADMIN-ROLE"},
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+
+    # ---- HR Manager path -----------------------------------------------
+
+    def test_hr_manager_can_patch_other_users_record(self):
+        """HR Manager PATCHing another user's record succeeds (role override)."""
+        client = self._login_as(self.hr)
+        r = client.patch(
+            f"{self.list_url}{self.record.id}/",
+            {"number": "YF-HR-EDIT"},
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.number, "YF-HR-EDIT")
+
+    # ---- Record owner path (preserve original behavior) ----------------
+
+    def test_owner_can_patch_own_record(self):
+        """The record's owner can still PATCH it (default IsOwner behavior)."""
+        client = self._login_as(self.crew_owner)
+        r = client.patch(
+            f"{self.list_url}{self.record.id}/",
+            {"number": "YF-OWNER-EDIT"},
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.number, "YF-OWNER-EDIT")
+
+    # ---- Security boundary (must NOT loosen) ---------------------------
+
+    def test_employee_cannot_patch_other_users_record(self):
+        """A plain employee gets 403 on another user's record, even with ?user=."""
+        client = self._login_as(self.crew_other)
+        r = client.patch(
+            f"{self.list_url}{self.record.id}/?user={self.crew_owner.id}",
+            {"number": "YF-EMPLOYEE-SHOULD-FAIL"},
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.record.refresh_from_db()
+        # Untouched
+        self.assertEqual(self.record.number, "YF-OWNER")
+
+    def test_employee_cannot_delete_other_users_record(self):
+        """A plain employee gets 403 on DELETE of another user's record.
+
+        Uses ?user=<owner> so the queryset returns the record and the
+        test exercises the permission layer, not just the queryset
+        filter (which would otherwise hide the record with a 404).
+        """
+        client = self._login_as(self.crew_other)
+        r = client.delete(
+            f"{self.list_url}{self.record.id}/?user={self.crew_owner.id}",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_403_FORBIDDEN)
+        from vaccinations.models import Vaccination
+        self.assertTrue(Vaccination.objects.filter(id=self.record.id).exists())
+
+    def test_unrelated_user_query_param_does_not_grant_access(self):
+        """`?user=N` only filters the LIST — it does NOT override the
+        object-level ownership check. A user cannot pass their own id
+        in `?user=` to access someone else's record.
+        """
+        client = self._login_as(self.crew_other)
+        r = client.patch(
+            f"{self.list_url}{self.record.id}/?user={self.crew_other.id}",
+            {"number": "YF-WRONG-USER"},
+            format="multipart",
+        )
+        # queryset filters to crew_other's records (none matching this
+        # id) -> 404. Either 404 or 403 are acceptable as long as the
+        # record is unchanged and the request did not succeed.
+        self.assertIn(r.status_code, (http_status.HTTP_403_FORBIDDEN,
+                                      http_status.HTTP_404_NOT_FOUND))
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.number, "YF-OWNER")
+

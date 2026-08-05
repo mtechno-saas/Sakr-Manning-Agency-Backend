@@ -11,16 +11,25 @@ class VaccinationViewSet(ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
-        # Honour `?user=` so an admin/HR/Recruiter can list a specific
-        # crew member's vaccination records. Falls back to "own records"
-        # for an employee that does not supply ?user=.
+        user = self.request.user
+        # Honour `?user=` first so the admin-creates-for-crew workflow
+        # can list a specific crew member's vaccination records. This
+        # filter applies to everyone (including Admin/HR) — the
+        # security boundary is enforced by `IsOwner`, not here.
         user_id = self.request.query_params.get('user')
         if user_id:
             try:
                 return Vaccination.objects.filter(user_id=int(user_id))
             except (TypeError, ValueError):
                 pass
-        return Vaccination.objects.filter(user=self.request.user)
+        # No `?user=` supplied: Admin / HR Manager see all, everyone
+        # else sees only their own. Paired with `IsOwner`'s role
+        # override so Admin/HR can also PATCH/DELETE any record.
+        if user.is_authenticated and getattr(user, "role", None) in (
+            "Admin", "HR Manager"
+        ):
+            return Vaccination.objects.all()
+        return Vaccination.objects.filter(user=user)
 
     def perform_create(self, serializer):
         # Honour `user` in the payload OR `?user=` query param so an admin
