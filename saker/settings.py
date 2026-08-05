@@ -37,6 +37,11 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '_atbz5(f=a$b)-jfirl@z@0azu6(ya
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
+# Silence the 7 urls.W001 false positives emitted by TrailingSlashOptionalRouter
+# (the `$` at the end of `include()` routes is intentional — it's how the
+# optional-trailing-slash router pattern is registered)
+SILENCED_SYSTEM_CHECKS = ['urls.W001']
+
 # ==========================================
 # PRODUCTION SECURITY SETTINGS
 # ==========================================

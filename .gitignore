@@ -17,3 +17,7 @@ server_logs.txt
 json/
 json_processed/
 all_json_files_processed/
+
+# Django runtime logs (polluted by test runs, regenerated on every run)
+django_errors.log
+*.log
