@@ -909,3 +909,173 @@ class UsersAllFieldsWritableTests(UsersEndpointFieldSurfaceTests):
         self.assertEqual(r.status_code, http_status.HTTP_200_OK)
         self.assertNotIn("password", r.data)
 
+
+class UserNameSplitRegressionTests(TestCase):
+    """
+    Regression for the first_name / middle_name split in
+    `UsersSerializer.to_internal_value` (api/serializer.py:1968) and
+    `RegisterSerializer.to_internal_value` (api/serializer.py:2530).
+
+    Both serializers normalize an incoming `first_name` like
+    "Mohamed Sami Afifi" into:
+        first_name  = "Mohamed"
+        middle_name = "Sami Afifi"
+    by splitting on the FIRST space. This is paired with
+    `to_representation` which merges them back into `first_name` for
+    the API response, so a clean-data round-trip is idempotent.
+
+    These tests pin the contract so a future refactor of either
+    serializer cannot silently break the merge/split balance.
+    """
+
+    list_url = "/api/users/users/"
+
+    def _payload(self, **overrides):
+        base = {
+            "email": "namesplit@example.com",
+            "password": "x",
+            "role": "Employee",
+        }
+        base.update(overrides)
+        return base
+
+    def _login_as_admin(self):
+        admin = Users.objects.create_user(
+            email="admin-namesplit@example.com",
+            password="x",
+            first_name="A",
+            middle_name="d",
+            role="Admin",
+            is_staff=True,
+            is_superuser=True,
+        )
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        return client
+
+    # ---- Create path -------------------------------------------------
+
+    def test_create_with_multi_word_first_name_splits(self):
+        """POST with first_name='Mohamed Sami' stores first='Mohamed', middle='Sami'."""
+        client = self._login_as_admin()
+        r = client.post(
+            self.list_url,
+            self._payload(first_name="Mohamed Sami"),
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        user = Users.objects.get(id=r.data["id"])
+        self.assertEqual(user.first_name, "Mohamed")
+        self.assertEqual(user.middle_name, "Sami")
+        # And the API merges them back for the frontend
+        self.assertEqual(r.data["first_name"], "Mohamed Sami")
+        self.assertEqual(r.data["middle_name"], "Sami")
+
+    def test_create_with_single_word_first_name_leaves_middle_empty(self):
+        """POST with first_name='Karim' stores first='Karim', middle=''."""
+        client = self._login_as_admin()
+        r = client.post(
+            self.list_url,
+            self._payload(email="k@example.com", first_name="Karim"),
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        user = Users.objects.get(id=r.data["id"])
+        self.assertEqual(user.first_name, "Karim")
+        self.assertEqual(user.middle_name, "")
+
+    def test_create_with_3_part_name_splits_only_first_word(self):
+        """The split is on the FIRST space only — rest stays in middle_name."""
+        client = self._login_as_admin()
+        r = client.post(
+            self.list_url,
+            self._payload(email="three@example.com", first_name="Mohamed Sami Afifi"),
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        user = Users.objects.get(id=r.data["id"])
+        self.assertEqual(user.first_name, "Mohamed")
+        self.assertEqual(user.middle_name, "Sami Afifi")
+        self.assertEqual(r.data["first_name"], "Mohamed Sami Afifi")
+
+    # ---- Update path (round-trip) -----------------------------------
+
+    def test_clean_round_trip_is_idempotent(self):
+        """Reading then re-saving clean data must not change the DB state."""
+        user = Users.objects.create_user(
+            email="clean@example.com",
+            password="x",
+            first_name="Mohamed",
+            middle_name="Sami Afifi Soliman",
+            role="Employee",
+        )
+        client = self._login_as_admin()
+        r = client.get(f"{self.list_url}{user.id}/")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        # Frontend would re-send first_name and middle_name exactly as read
+        r = client.patch(
+            f"{self.list_url}{user.id}/",
+            {
+                "first_name": r.data["first_name"],
+                "middle_name": r.data["middle_name"],
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, "Mohamed")
+        self.assertEqual(user.middle_name, "Sami Afifi Soliman")
+
+    def test_patch_with_explicit_empty_middle_name_clears_it(self):
+        """
+        PATCH semantics: when the form sends middle_name="" (explicit
+        empty string), DRF writes the empty string — middle_name is
+        cleared, NOT preserved. This is the standard DRF ModelSerializer
+        PATCH behavior.
+
+        This is a KNOWN frontend contract requirement: the form must NOT
+        send middle_name="" unless the user actually wants to clear it.
+        A form that submits an empty middle_name on every save (e.g.
+        because the form binding lost the value) will silently wipe the
+        user's middle_name. The frontend must omit middle_name from the
+        payload when the user did not change it.
+        """
+        user = Users.objects.create_user(
+            email="emptymiddle@example.com",
+            password="x",
+            first_name="Mohamed",
+            middle_name="Sami",
+            role="Employee",
+        )
+        client = self._login_as_admin()
+        r = client.patch(
+            f"{self.list_url}{user.id}/",
+            {"first_name": "Karim", "middle_name": ""},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, "Karim")
+        # middle_name IS cleared because the form explicitly sent ""
+        self.assertEqual(user.middle_name, "")
+
+    def test_patch_without_middle_name_preserves_it(self):
+        """If the form omits middle_name, the existing value is preserved."""
+        user = Users.objects.create_user(
+            email="preservemiddle@example.com",
+            password="x",
+            first_name="Mohamed",
+            middle_name="Sami Afifi",
+            role="Employee",
+        )
+        client = self._login_as_admin()
+        # Only first_name in payload — middle_name is NOT touched
+        r = client.patch(
+            f"{self.list_url}{user.id}/",
+            {"first_name": "Karim"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, "Karim")
+        self.assertEqual(user.middle_name, "Sami Afifi")
