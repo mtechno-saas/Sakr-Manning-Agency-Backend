@@ -1377,3 +1377,89 @@ class ContractAdminAttachmentsEndpointTests(TestCase):
         s = ContractSerializer(contract)
         self.assertIn("admin_attachments", s.data)
         self.assertEqual(s.data["admin_attachments"], [])
+
+    # ---- Detail sub-action ---------------------------------------------
+
+    def _detail_url(self, contract_id, attachment_id):
+        return f"/api/contracts/{contract_id}/admin-attachments/{attachment_id}/"
+
+    def test_get_detail_returns_single_attachment(self):
+        from api.models import Document
+        client, _ = self._login_as_admin()
+        contract, _ = self._make_contract()
+        d = Document.objects.create(contract=contract, title="contract A only")
+
+        r = client.get(self._detail_url(contract.id, d.id))
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.assertEqual(r.data["id"], d.id)
+        self.assertEqual(r.data["title"], "contract A only")
+        self.assertEqual(r.data["contract"], contract.id)
+        self.assertIsNone(r.data["user"])
+
+    def test_get_detail_404_when_attachment_belongs_to_other_contract(self):
+        """An attachment bound to contract A must not be reachable via contract B."""
+        from api.models import Document
+        client, _ = self._login_as_admin()
+        contract_a, _ = self._make_contract(email="da@example.com")
+        contract_b, _ = self._make_contract(email="db@example.com")
+        d = Document.objects.create(contract=contract_a, title="A only")
+
+        r = client.get(self._detail_url(contract_b.id, d.id))
+        self.assertEqual(r.status_code, http_status.HTTP_404_NOT_FOUND)
+
+    def test_get_detail_404_for_nonexistent_attachment(self):
+        client, _ = self._login_as_admin()
+        contract, _ = self._make_contract()
+        r = client.get(self._detail_url(contract.id, 999999))
+        self.assertEqual(r.status_code, http_status.HTTP_404_NOT_FOUND)
+
+    def test_delete_detail_removes_only_that_attachment(self):
+        from api.models import Document
+        client, _ = self._login_as_admin()
+        contract, _ = self._make_contract()
+        d1 = Document.objects.create(contract=contract, title="keep me")
+        d2 = Document.objects.create(contract=contract, title="delete me")
+
+        r = client.delete(self._detail_url(contract.id, d2.id))
+        self.assertEqual(r.status_code, http_status.HTTP_204_NO_CONTENT)
+
+        # d1 still exists, d2 is gone
+        self.assertTrue(Document.objects.filter(id=d1.id).exists())
+        self.assertFalse(Document.objects.filter(id=d2.id).exists())
+
+    def test_delete_detail_404_for_attachment_of_other_contract(self):
+        """DELETE must also scope by contract — can't delete A's doc via B's URL."""
+        from api.models import Document
+        client, _ = self._login_as_admin()
+        contract_a, _ = self._make_contract(email="da2@example.com")
+        contract_b, _ = self._make_contract(email="db2@example.com")
+        d = Document.objects.create(contract=contract_a, title="A's doc")
+
+        r = client.delete(self._detail_url(contract_b.id, d.id))
+        self.assertEqual(r.status_code, http_status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Document.objects.filter(id=d.id).exists(), "Must not delete")
+
+    def test_patch_detail_updates_title(self):
+        from api.models import Document
+        client, _ = self._login_as_admin()
+        contract, _ = self._make_contract()
+        d = Document.objects.create(contract=contract, title="old name")
+
+        r = client.patch(
+            self._detail_url(contract.id, d.id),
+            {"title": "new name"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.assertEqual(r.data["title"], "new name")
+        d.refresh_from_db()
+        self.assertEqual(d.title, "new name")
+
+    def test_patch_detail_400_when_no_title(self):
+        from api.models import Document
+        client, _ = self._login_as_admin()
+        contract, _ = self._make_contract()
+        d = Document.objects.create(contract=contract, title="x")
+
+        r = client.patch(self._detail_url(contract.id, d.id), {}, format="json")
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST)

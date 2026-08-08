@@ -946,6 +946,58 @@ class ContractViewSet(viewsets.ModelViewSet):
         out = DocumentSerializer(document, context={'request': request}).data
         return Response(out, status=status.HTTP_201_CREATED)
 
+    @action(
+        detail=True,
+        methods=['get', 'delete', 'patch'],
+        url_path=r'admin-attachments/(?P<attachment_id>\d+)',
+    )
+    def admin_attachment_detail(self, request, pk=None, attachment_id=None):
+        """
+        Retrieve / update / delete a single admin-uploaded attachment.
+
+        GET    /api/contracts/{contract_id}/admin-attachments/{attachment_id}/
+        PATCH  /api/contracts/{contract_id}/admin-attachments/{attachment_id}/
+        DELETE /api/contracts/{contract_id}/admin-attachments/{attachment_id}/
+
+        The attachment must belong to the contract in the URL —
+        otherwise 404. This is the canonical detail path for the admin
+        attachments UI so it doesn't have to fall back to
+        /api/documents/{id}/ for single-item reads or deletes.
+        """
+        from api.models import Document
+        from api.serializer import DocumentSerializer
+
+        contract = self.get_object()
+        document = get_object_or_404(
+            Document,
+            pk=attachment_id,
+            contract=contract,
+        )
+
+        if request.method == 'GET':
+            return Response(
+                DocumentSerializer(document, context={'request': request}).data
+            )
+
+        if request.method == 'DELETE':
+            document.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # PATCH: only the title is editable in the admin attachments UI.
+        # File replacement is intentionally not supported here — clients
+        # should DELETE + re-POST if they want to swap the file.
+        new_title = request.data.get('title')
+        if new_title is None:
+            return Response(
+                {'detail': "Only the 'title' field can be updated via PATCH."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        document.title = new_title
+        document.save(update_fields=['title', 'updated_at'])
+        return Response(
+            DocumentSerializer(document, context={'request': request}).data
+        )
+
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
         """Contract statistics for Documents Management dashboard"""
