@@ -893,6 +893,59 @@ class ContractViewSet(viewsets.ModelViewSet):
             
         super().perform_destroy(instance)
 
+    @action(
+        detail=True,
+        methods=['get', 'post'],
+        url_path='admin-attachments',
+        parser_classes=[MultiPartParser, FormParser],
+    )
+    def admin_attachments(self, request, pk=None):
+        """
+        List/create admin-uploaded attachments for a specific contract.
+
+        GET  /api/contracts/{id}/admin-attachments/
+            Returns the list of `Document` rows linked to this contract
+            via `Document.contract` (the new FK from migration 0068).
+            This is the canonical read path for the admin attachments UI;
+            it replaces the previous `/api/documents/?user=<applicant>`
+            read path which leaked admin uploads into the applicant's CV
+            list.
+
+        POST /api/contracts/{id}/admin-attachments/
+            Multipart form data with `title` and `file` fields. Creates
+            a new `Document` row bound to this contract (no `user` set,
+            so it never appears in the Applicants page). The `user` and
+            `contract` fields in the payload are ignored — the contract
+            is always derived from the URL.
+        """
+        from api.models import Document
+        from api.serializer import DocumentSerializer
+
+        contract = self.get_object()
+
+        if request.method == 'GET':
+            docs = contract.admin_attachments.all().order_by('-created_at')
+            serializer = DocumentSerializer(docs, many=True, context={'request': request})
+            return Response(serializer.data)
+
+        # POST: create a new admin attachment bound to this contract
+        title = request.data.get('title')
+        file_obj = request.data.get('file')
+
+        if not title or not file_obj:
+            return Response(
+                {'detail': "Both 'title' and 'file' are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        document = Document.objects.create(
+            contract=contract,
+            title=title,
+            file=file_obj,
+        )
+        out = DocumentSerializer(document, context={'request': request}).data
+        return Response(out, status=status.HTTP_201_CREATED)
+
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
         """Contract statistics for Documents Management dashboard"""

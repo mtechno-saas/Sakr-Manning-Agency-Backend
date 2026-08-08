@@ -1283,6 +1283,7 @@ class ContractSerializer(serializers.ModelSerializer):
     job_position_details = serializers.SerializerMethodField()
     ship_details = serializers.SerializerMethodField()
     company_details = serializers.SerializerMethodField()
+    admin_attachments = serializers.SerializerMethodField()
 
     # Seafarer Application Integration (Capabilities)
     seafarer_application = serializers.SerializerMethodField()
@@ -1301,6 +1302,24 @@ class ContractSerializer(serializers.ModelSerializer):
     declaration = serializers.JSONField(required=False, write_only=True)
     for_office_use_only = serializers.JSONField(required=False, write_only=True)
 
+    def get_admin_attachments(self, obj):
+        """
+        Return admin-uploaded attachments that belong to this contract.
+
+        These are `Document` rows linked via `Document.contract` (the new FK
+        added in migration 0068). They were previously stored under
+        `/api/documents/?user=<applicant>` from the admin attachments UI;
+        we now surface them directly on the contract detail so the UI
+        can call a single endpoint per contract.
+        """
+        # DocumentSerializer is defined later in this same module. The
+        # method body only runs at request time (after the module is fully
+        # loaded), so referencing the name directly is safe and avoids
+        # the awkward self-import.
+        return DocumentSerializer(
+            obj.admin_attachments.all(), many=True, context=self.context
+        ).data
+
     class Meta:
         model = Contract
         fields = [
@@ -1315,6 +1334,7 @@ class ContractSerializer(serializers.ModelSerializer):
             'repatriation_terms', 'leave_pay_terms',
             'signed_file', 'signed_at',
             'certificates', 'coded_rank', 'user_documents', 'job_position_details',
+            'admin_attachments',
             'seafarer_application', 'document_info', 'application_header', 'personal_details',
             'education', 'contact_details', 'travel_documents', 'professional_qualification',
             'next_of_kin', 'health_certificates', 'marine_courses', 'sea_service_details',

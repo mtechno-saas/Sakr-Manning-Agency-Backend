@@ -1223,3 +1223,157 @@ class DocumentCreateRegressionTests(TestCase):
         from api.models import Document
         d = Document.objects.get(id=r.data["id"])
         self.assertEqual(d.user_id, employee.id)
+
+
+class ContractAdminAttachmentsEndpointTests(TestCase):
+    """
+    Regression for the contract-scoped admin-attachments endpoint:
+
+      GET  /api/contracts/{id}/admin-attachments/
+      POST /api/contracts/{id}/admin-attachments/
+
+    This endpoint replaces the previous /api/documents/?user=<id> read
+    path for admin-uploaded attachments, so the admin attachments UI
+    can call a single, contract-scoped endpoint instead of going
+    through the user-keyed Document list.
+    """
+
+    def _login_as_admin(self):
+        admin = Users.objects.create_user(
+            email="contract-admin@example.com",
+            password="x",
+            first_name="CA",
+            middle_name="dmin",
+            role="Admin",
+            is_staff=True,
+            is_superuser=True,
+        )
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        return client, admin
+
+    def _make_contract(self, applicant=None, email=None):
+        import datetime
+        from api.models import Contract
+        if applicant is None:
+            # Generate a unique-ish email so multiple contracts per test work.
+            if email is None:
+                email = f"c-applicant-{Users.objects.count()}@example.com"
+            applicant = Users.objects.create_user(
+                email=email,
+                password="x",
+                first_name="C",
+                middle_name="Applicant",
+                role="Employee",
+            )
+        return Contract.objects.create(
+            user=applicant,
+            sign_on_date=datetime.date(2026, 1, 1),
+            sign_off_date=datetime.date(2026, 6, 1),
+        ), applicant
+
+    def _multipart(self, **fields):
+        """Build a multipart payload, defaulting `file` to a tiny fake PDF."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        if "file" not in fields:
+            fields["file"] = SimpleUploadedFile(
+                "test.pdf", b"%PDF-1.4 fake", content_type="application/pdf"
+            )
+        return fields
+
+    # ---- POST ----------------------------------------------------------
+
+    def test_post_creates_document_bound_to_contract(self):
+        """POST without `user` should create a Document bound to the contract."""
+        from api.models import Document
+        client, _ = self._login_as_admin()
+        contract, _ = self._make_contract()
+
+        url = f"/api/contracts/{contract.id}/admin-attachments/"
+        r = client.post(url, self._multipart(title="background check"), format="multipart")
+
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        self.assertEqual(Document.objects.count(), 1)
+        d = Document.objects.get(id=r.data["id"])
+        self.assertEqual(d.contract_id, contract.id)
+        self.assertIsNone(d.user_id, "Admin attachments must not be linked to a user")
+        self.assertEqual(d.title, "background check")
+
+    def test_post_requires_title_and_file(self):
+        """Missing title or file -> 400."""
+        client, _ = self._login_as_admin()
+        contract, _ = self._make_contract()
+
+        url = f"/api/contracts/{contract.id}/admin-attachments/"
+        r = client.post(url, format="multipart")
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+        self.assertIn("title", str(r.data).lower() + " " + str(r.data.get("detail", "")).lower())
+
+        r = client.post(url, {"title": "no file"}, format="multipart")
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+
+    def test_post_user_field_in_payload_is_ignored(self):
+        """
+        Even if a malicious client supplies `user` in the payload, the
+        document must be bound to the contract (not the user). This
+        keeps admin attachments from ever leaking into a user profile.
+        """
+        from api.models import Document
+        client, admin = self._login_as_admin()
+        contract, applicant = self._make_contract()
+
+        url = f"/api/contracts/{contract.id}/admin-attachments/"
+        r = client.post(
+            url,
+            self._multipart(title="hijack", user=applicant.id),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        d = Document.objects.get(id=r.data["id"])
+        self.assertEqual(d.contract_id, contract.id)
+        self.assertIsNone(d.user_id)
+
+    def test_post_to_nonexistent_contract_returns_404(self):
+        client, _ = self._login_as_admin()
+        url = "/api/contracts/999999/admin-attachments/"
+        r = client.post(url, self._multipart(title="orphan"), format="multipart")
+        self.assertEqual(r.status_code, http_status.HTTP_404_NOT_FOUND)
+
+    # ---- GET -----------------------------------------------------------
+
+    def test_get_lists_only_documents_bound_to_this_contract(self):
+        """GET should only return this contract's admin attachments."""
+        from api.models import Document
+        client, _ = self._login_as_admin()
+        contract_a, _ = self._make_contract(email="a@example.com")
+        contract_b, _ = self._make_contract(email="b@example.com")
+
+        # Two attachments on contract A, one on contract B
+        Document.objects.create(contract=contract_a, title="A1")
+        Document.objects.create(contract=contract_a, title="A2")
+        Document.objects.create(contract=contract_b, title="B1")
+
+        url_a = f"/api/contracts/{contract_a.id}/admin-attachments/"
+        r = client.get(url_a)
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        titles = sorted(d["title"] for d in r.data)
+        self.assertEqual(titles, ["A1", "A2"])
+        for d in r.data:
+            self.assertEqual(d["contract"], contract_a.id)
+
+    def test_get_returns_empty_list_when_no_attachments(self):
+        client, _ = self._login_as_admin()
+        contract, _ = self._make_contract()
+        r = client.get(f"/api/contracts/{contract.id}/admin-attachments/")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(r.data, [])
+
+    # ---- Serializer field on ContractSerializer ------------------------
+
+    def test_contract_serializer_includes_admin_attachments_field(self):
+        """ContractSerializer must expose `admin_attachments` in detail view."""
+        from api.serializer import ContractSerializer
+        contract, applicant = self._make_contract()
+        s = ContractSerializer(contract)
+        self.assertIn("admin_attachments", s.data)
+        self.assertEqual(s.data["admin_attachments"], [])
