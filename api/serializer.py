@@ -222,7 +222,9 @@ class UserMeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['first_name'] = f"{instance.first_name} {instance.middle_name}".strip()
+        # See UsersSerializer.to_representation for why we no longer
+        # merge first_name + middle_name here. `full_name` is exposed
+        # for callers that need the pre-merged value.
         return representation
 
 
@@ -307,7 +309,10 @@ class InterviewCalendarSerializer(serializers.ModelSerializer):
         ]
 
     def get_candidate_name(self, obj):
-        return f"{obj.candidate.first_name} {obj.candidate.middle_name}".strip()
+        # Use the canonical `full_name` property on the model so we
+        # don't double-concatenate first_name + middle_name (which can
+        # already contain a merged string from previous writes).
+        return obj.candidate.full_name
 
 
 # =====================
@@ -332,7 +337,7 @@ class FinanceRecordSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return obj.user.full_name
 
 
 # =====================
@@ -382,7 +387,7 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return obj.user.full_name
 
     def get_job_position_details(self, obj):
         if not obj.job_position:
@@ -914,7 +919,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         return value
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return obj.user.full_name
 
     def get_generated_id(self, obj):
         """
@@ -1245,7 +1250,7 @@ class ContractListSerializer(serializers.ModelSerializer):
         ]
 
     def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return obj.user.full_name
 
 
 class ContractSerializer(serializers.ModelSerializer):
@@ -1623,7 +1628,7 @@ class ContractSerializer(serializers.ModelSerializer):
 
     def get_user_name(self, obj):
         if not obj.user: return ""
-        return f"{obj.user.first_name} {obj.user.middle_name}".strip()
+        return obj.user.full_name
 
     def get_assigned_code(self, obj):
         if not obj.user or not obj.rank:
@@ -1885,6 +1890,14 @@ class UsersSerializer(serializers.ModelSerializer):
     # writes were silently dropped.) `to_representation` below still
     # combines first + middle into the response's `first_name` so the
     # frontend's "full name in first_name" assumption keeps working.
+    #
+    # `full_name` is a new read-only convenience field that returns
+    # `first_name + " " + middle_name` already merged, so the frontend
+    # doesn't have to concatenate them (which caused visible
+    # duplication when first_name was already a merged string). Prefer
+    # `full_name` for display, keep `first_name` and `middle_name` for
+    # round-trip writes.
+    full_name = serializers.CharField(read_only=True)
 
     # Exclude inherited M2M fields from `__all__` so we can declare
     # them as proper PrimaryKeyRelatedField with the right queryset.
@@ -2013,8 +2026,16 @@ class UsersSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Override to ensure proper serialization of nested fields"""
         representation = super().to_representation(instance)
-        # Combine first_name and middle_name for the frontend which binds full_name to first_name
-        representation['first_name'] = f"{instance.first_name} {instance.middle_name}".strip()
+        # NOTE: do NOT merge first_name + middle_name here. Earlier this
+        # method set `representation['first_name']` to the merged string,
+        # and the frontend's `Users.jsx:157` concatenated it AGAIN with
+        # `middle_name`, producing visible duplication ("Mohamed Sami
+        # Afifi Soliman Afifi Soliman"). With the merge removed, the
+        # frontend's existing `first_name + " " + middle_name` produces
+        # the correct full name for clean data, and dirty rows need to
+        # be cleaned with `python manage.py clean_user_names` instead.
+        # `full_name` (a read-only property on the model) is still
+        # exposed for any caller that wants the pre-merged value.
 
         # Hide generated_id for non-privileged users
         request = self.context.get('request')
@@ -2589,8 +2610,8 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Document
-        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'position_id', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details']
-        read_only_fields = ['user', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'position_id', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details', 'contract']
+        read_only_fields = ['user', 'contract', 'created_at', 'updated_at']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

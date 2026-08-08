@@ -619,6 +619,22 @@ class Users(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+    @property
+    def full_name(self):
+        """
+        Canonical full name: first_name + middle_name, joined with a
+        single space and stripped. Falls back to first_name if
+        middle_name is empty.
+
+        Use this anywhere the UI wants to display a single name string.
+        Do NOT concatenate `first_name` and `middle_name` in the
+        frontend or in another serializer — the API now exposes
+        `full_name` for that, and double-concatenating it (the old
+        pattern in `Users.jsx`) created visible duplication for users
+        whose first_name already contained the merged string.
+        """
+        return f"{self.first_name or ''} {self.middle_name or ''}".strip()
+
 
 # =====================
 # COMPANY MODEL
@@ -910,8 +926,13 @@ class PerformanceAppraisal(models.Model):
 class Document(models.Model):
     """
     Document model for storing user uploaded files (PDF/DOCX).
+
+    `user` is the applicant whose CV the document represents. `contract`
+    is the contract this admin-uploaded attachment belongs to. At least
+    one of them should be set; the API rejects POSTs that supply
+    neither (see `DocumentViewSet.perform_create`).
     """
-    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='documents')
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='documents', null=True, blank=True)
     title = models.CharField(max_length=255)
     file = models.FileField(
         upload_to='documents/',
@@ -921,6 +942,12 @@ class Document(models.Model):
     )
     company = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='documents')
     job_position = models.ForeignKey('companies.JobOrderPosition', on_delete=models.SET_NULL, null=True, blank=True, related_name='documents')
+    contract = models.ForeignKey(
+        'api.Contract',
+        on_delete=models.CASCADE,
+        null=True, blank=True,
+        related_name='admin_attachments',
+    )
     
     POSITION_CHOICES = [
         ('Master / Captain', 'Master / Captain'),

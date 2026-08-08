@@ -967,9 +967,13 @@ class UserNameSplitRegressionTests(TestCase):
         user = Users.objects.get(id=r.data["id"])
         self.assertEqual(user.first_name, "Mohamed")
         self.assertEqual(user.middle_name, "Sami")
-        # And the API merges them back for the frontend
-        self.assertEqual(r.data["first_name"], "Mohamed Sami")
+        # The API now returns the split values directly (no more
+        # to_representation merge) so the frontend's
+        # `first_name + " " + middle_name` produces the right display.
+        # The `full_name` property is the canonical merged form.
+        self.assertEqual(r.data["first_name"], "Mohamed")
         self.assertEqual(r.data["middle_name"], "Sami")
+        self.assertEqual(r.data["full_name"], "Mohamed Sami")
 
     def test_create_with_single_word_first_name_leaves_middle_empty(self):
         """POST with first_name='Karim' stores first='Karim', middle=''."""
@@ -996,7 +1000,11 @@ class UserNameSplitRegressionTests(TestCase):
         user = Users.objects.get(id=r.data["id"])
         self.assertEqual(user.first_name, "Mohamed")
         self.assertEqual(user.middle_name, "Sami Afifi")
-        self.assertEqual(r.data["first_name"], "Mohamed Sami Afifi")
+        # API returns the split (no merge in to_representation) plus
+        # the canonical full_name property for callers that want it.
+        self.assertEqual(r.data["first_name"], "Mohamed")
+        self.assertEqual(r.data["middle_name"], "Sami Afifi")
+        self.assertEqual(r.data["full_name"], "Mohamed Sami Afifi")
 
     # ---- Update path (round-trip) -----------------------------------
 
@@ -1079,3 +1087,139 @@ class UserNameSplitRegressionTests(TestCase):
         user.refresh_from_db()
         self.assertEqual(user.first_name, "Karim")
         self.assertEqual(user.middle_name, "Sami Afifi")
+class DocumentCreateRegressionTests(TestCase):
+    """
+    Regression for the auto-create-placeholder-user bug in
+    `DocumentViewSet.perform_create`.
+
+    Old behavior: any admin upload to `/api/documents/` without an
+    explicit `user` field would silently create a new
+    `applicant_<uuid>@placeholder.sakrshipping.com` user. These ghost
+    users showed up as "Unknown" rows in the Applicants dashboard.
+
+    New behavior: the endpoint requires EITHER `user` OR `contract`
+    on POST. If neither is provided and the uploader is not an
+    Employee uploading for themselves, the endpoint returns 400.
+    """
+
+    list_url = "/api/documents/"
+
+    def _login_as_admin(self):
+        admin = Users.objects.create_user(
+            email="doc-admin@example.com",
+            password="x",
+            first_name="A",
+            middle_name="d",
+            role="Admin",
+            is_staff=True,
+            is_superuser=True,
+        )
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        return client
+
+    def _multipart(self, **fields):
+        """Helper to build multipart form data. Drop empty values."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        if "file" not in fields:
+            fields["file"] = SimpleUploadedFile(
+                "test.pdf", b"%PDF-1.4 fake", content_type="application/pdf"
+            )
+        return fields
+
+    # ---- Old bug: ghost user creation is GONE ------------------------
+
+    def test_post_without_user_or_contract_returns_400(self):
+        """No user, no contract, Admin uploader -> 400, no user created."""
+        from api.models import Users as _Users
+        before = _Users.objects.filter(email__regex=r"^applicant_").count()
+        client = self._login_as_admin()
+        r = client.post(self.list_url, self._multipart(title="orphan"), format="multipart")
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+        after = _Users.objects.filter(email__regex=r"^applicant_").count()
+        self.assertEqual(after, before, "No placeholder user should be created")
+
+    def test_post_with_user_succeeds_and_uses_that_user(self):
+        client = self._login_as_admin()
+        user = Users.objects.create_user(
+            email="target@example.com", password="x", first_name="Target",
+            middle_name="User", role="Employee",
+        )
+        r = client.post(
+            self.list_url,
+            self._multipart(user=user.id, title="cv"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        from api.models import Document
+        d = Document.objects.get(id=r.data["id"])
+        self.assertEqual(d.user_id, user.id)
+        self.assertIsNone(d.contract_id)
+
+    def test_post_with_contract_succeeds_and_uses_that_contract(self):
+        """Admin attachment flow: contract FK works without requiring a user."""
+        client = self._login_as_admin()
+        from api.models import Contract
+        import datetime
+        applicant = Users.objects.create_user(
+            email="applicant@example.com", password="x", first_name="A",
+            middle_name="p", role="Employee",
+        )
+        contract = Contract.objects.create(
+            user=applicant,
+            sign_on_date=datetime.date(2026, 1, 1),
+            sign_off_date=datetime.date(2026, 6, 1),
+        )
+        r = client.post(
+            self.list_url,
+            self._multipart(contract=contract.id, title="background check"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        from api.models import Document
+        d = Document.objects.get(id=r.data["id"])
+        self.assertIsNone(d.user_id)
+        self.assertEqual(d.contract_id, contract.id)
+
+    def test_post_with_both_user_and_contract_uses_both(self):
+        client = self._login_as_admin()
+        from api.models import Contract
+        import datetime
+        applicant = Users.objects.create_user(
+            email="applicant2@example.com", password="x", first_name="A2",
+            middle_name="p2", role="Employee",
+        )
+        contract = Contract.objects.create(
+            user=applicant,
+            sign_on_date=datetime.date(2026, 1, 1),
+            sign_off_date=datetime.date(2026, 6, 1),
+        )
+        r = client.post(
+            self.list_url,
+            self._multipart(user=applicant.id, contract=contract.id, title="witness stmt"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        from api.models import Document
+        d = Document.objects.get(id=r.data["id"])
+        self.assertEqual(d.user_id, applicant.id)
+        self.assertEqual(d.contract_id, contract.id)
+
+    def test_post_by_employee_without_user_defaults_to_themselves(self):
+        """Employee uploads without explicit user -> attached to themselves."""
+        from rest_framework.test import APIClient
+        employee = Users.objects.create_user(
+            email="emp@example.com", password="x", first_name="E",
+            middle_name="p", role="Employee",
+        )
+        client = APIClient()
+        client.force_authenticate(user=employee)
+        r = client.post(
+            self.list_url,
+            self._multipart(title="my doc"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        from api.models import Document
+        d = Document.objects.get(id=r.data["id"])
+        self.assertEqual(d.user_id, employee.id)

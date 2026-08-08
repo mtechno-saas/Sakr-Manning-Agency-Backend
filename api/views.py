@@ -1423,102 +1423,52 @@ class DocumentViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        """
+        Resolve the owner of a new Document.
+
+        Accepts EITHER:
+          - `user` (applicant CV flow): FK to Users
+          - `contract` (admin attachment flow): FK to Contract
+
+        If neither is provided, returns 400. This replaces the previous
+        behavior of auto-creating a placeholder `applicant_xxxx@
+        placeholder.sakrshipping.com` user, which leaked "Unknown" rows
+        into the Applicants page whenever the upload was triggered from
+        a context without a real user.
+        """
+        from rest_framework.exceptions import ValidationError
+
         user_id = self.request.data.get('user')
+        contract_id = self.request.data.get('contract')
+
+        # If neither is supplied, fall back to the request user when
+        # the uploader is an Employee (preserves the previous
+        # "employee uploads their own document" UX).
+        if not user_id and not contract_id:
+            if (
+                self.request.user
+                and self.request.user.is_authenticated
+                and self.request.user.role == 'Employee'
+                and not self.request.user.is_superuser
+            ):
+                serializer.save(user=self.request.user)
+                return
+            raise ValidationError(
+                {"detail": "Either 'user' or 'contract' is required."}
+            )
+
+        save_kwargs = {}
         if user_id:
-            serializer.save(user_id=user_id)
-            return
-
-        # Assign current user if not Admin/HR or if they want to
-        # Generally for this endpoint, we assume the uploader is the owner unless specified otherwise
-        # But if employee, they can only upload for themselves
-        if self.request.user.is_authenticated and self.request.user.role == 'Employee' and not self.request.user.is_superuser:
-            serializer.save(user=self.request.user)
-        else:
-            # For Admin/HR/Recruiter/Superuser:
-            # If 'user' is explicitly provided, use it.
-            if 'user' in serializer.validated_data:
-                serializer.save()
-            else:
-                # If no user specified, try to link via email
-                email = serializer.validated_data.get('email')
-                name = serializer.validated_data.get('name')
-                
-                # Server-side fallback: extract name from filename if missing
-                if not name and 'file' in self.request.FILES:
-                    import re
-                    filename = self.request.FILES['file'].name
-                    clean_name = re.sub(r'\.pdf$|\.docx$', '', filename, flags=re.IGNORECASE)
-                    clean_name = re.sub(r'_Application|_CV|\d+', '', clean_name, flags=re.IGNORECASE)
-                    clean_name = clean_name.replace('_', ' ').strip()
-                    if clean_name:
-                        name = clean_name
-                        serializer.validated_data['name'] = clean_name
-                
-                if email:
-                    # Check if user exists
-                    existing_user = Users.objects.filter(email=email).first()
-                    if existing_user:
-                        # Update user's name if it was empty or defaulted to "Applicant"
-                        if name and (not existing_user.first_name or existing_user.first_name == 'Applicant'):
-                            parts = name.split(' ', 1)
-                            existing_user.first_name = parts[0]
-                            existing_user.middle_name = parts[1] if len(parts) > 1 else ""
-                            existing_user.save()
-                        
-                        # Auto-fill document fields from user if they are missing
-                        if not name and existing_user.first_name and existing_user.first_name != 'Applicant':
-                            serializer.validated_data['name'] = f"{existing_user.first_name} {existing_user.middle_name}".strip()
-                        if not serializer.validated_data.get('phone_number') and existing_user.phone_number:
-                            serializer.validated_data['phone_number'] = existing_user.phone_number
-
-                        serializer.save(user=existing_user)
-                    else:
-                        # Create new user for this applicant
-                        print(f"DEBUG: Creating new user for Quick Applier: {email}")
-                        parts = name.split(' ', 1) if name else ["Applicant"]
-                        first_name = parts[0]
-                        middle_name = parts[1] if len(parts) > 1 else ""
-                        
-                        new_user = Users.objects.create_user(
-                            email=email,
-                            first_name=first_name,
-                            middle_name=middle_name,
-                            role='Employee', # Default role for applicants
-                            password=None, # Unusable password until they set it
-                            # user_status='Active' # Removed invalid choice
-                        )
-                        serializer.save(user=new_user)
-                else:
-                    # No email provided
-                    if self.request.user and self.request.user.is_authenticated and self.request.user.role == 'Employee' and not self.request.user.is_superuser:
-                        # If an employee uploads their own document without an email, attach to them
-                        serializer.save(user=self.request.user)
-                    elif self.request.user and self.request.user.is_authenticated:
-                        # If Admin/HR uploads a CV and AI failed to extract email, create a new applicant profile
-                        # with a placeholder email so it doesn't get attached to the Admin's profile.
-                        import uuid
-                        placeholder_email = f"applicant_{uuid.uuid4().hex[:8]}@placeholder.sakrshipping.com"
-                        print(f"DEBUG: Creating new user with placeholder email: {placeholder_email}")
-                        
-                        parts = name.split(' ', 1) if name else ["Applicant"]
-                        first_name = parts[0]
-                        middle_name = parts[1] if len(parts) > 1 else ""
-                        
-                        new_user = Users.objects.create_user(
-                            email=placeholder_email,
-                            first_name=first_name,
-                            middle_name=middle_name,
-                            role='Employee',
-                            password=None,
-                        )
-                        serializer.validated_data['email'] = placeholder_email
-                        serializer.save(user=new_user)
-                    else:
-                        from rest_framework.exceptions import ValidationError
-                        raise ValidationError({"email": "Email is required for unregistered users to process application."})
+            save_kwargs['user_id'] = user_id
+        if contract_id:
+            save_kwargs['contract_id'] = contract_id
+        serializer.save(**save_kwargs)
 
     def _sync_user_data(self, document):
         """Helper to sync Document data to User profile when Active"""
+        # Admin attachments (no `user` set) have nothing to sync.
+        if not document.user:
+            return
         print(f"DEBUG: Syncing user data for document {document.id} to user {document.user.id}")
         user = document.user
         
@@ -1552,6 +1502,10 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     def _check_id_generation(self, document, new_status):
         """Helper to generate User ID if status becomes Active"""
+        # Admin attachments (no `user` set) have nothing to generate an
+        # ID for — they belong to a contract, not a user profile.
+        if not document.user:
+            return
         print(f"DEBUG: Checking ID generation for doc {document.id}, status {new_status}")
         if new_status == 'Active':
             user = document.user
@@ -1724,8 +1678,9 @@ class DocumentViewSet(viewsets.ModelViewSet):
             raise e
         
         # Refresh the user object to ensure generated_id is picked up by serializer
-        document.user.refresh_from_db()
-        
+        if document.user:
+            document.user.refresh_from_db()
+
         return Response(self.get_serializer(document).data)
 
     @action(detail=False, methods=['get'], url_path='stats')
