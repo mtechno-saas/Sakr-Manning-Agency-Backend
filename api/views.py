@@ -1531,43 +1531,136 @@ class DocumentViewSet(viewsets.ModelViewSet):
         """
         Resolve the owner of a new Document.
 
-        Accepts EITHER:
+        Accepts any of:
           - `user` (applicant CV flow): FK to Users
           - `contract` (admin attachment flow): FK to Contract
+          - `name` + `email` (admin "Add CV" for a NEW applicant):
+            auto-creates a real `Users` row from these fields. If
+            `email` is already in the DB, that existing user is used
+            (idempotent re-upload for the same applicant).
 
-        If neither is provided, returns 400. This replaces the previous
-        behavior of auto-creating a placeholder `applicant_xxxx@
-        placeholder.sakrshipping.com` user, which leaked "Unknown" rows
-        into the Applicants page whenever the upload was triggered from
-        a context without a real user.
+        If none of the above is provided, returns 400. This replaces
+        the previous behavior of auto-creating a placeholder
+        `applicant_xxxx@placeholder.sakrshipping.com` user, which
+        leaked "Unknown" rows into the Applicants page.
         """
         from rest_framework.exceptions import ValidationError
 
         user_id = self.request.data.get('user')
         contract_id = self.request.data.get('contract')
-
-        # If neither is supplied, fall back to the request user when
-        # the uploader is an Employee (preserves the previous
-        # "employee uploads their own document" UX).
-        if not user_id and not contract_id:
-            if (
-                self.request.user
-                and self.request.user.is_authenticated
-                and self.request.user.role == 'Employee'
-                and not self.request.user.is_superuser
-            ):
-                serializer.save(user=self.request.user)
-                return
-            raise ValidationError(
-                {"detail": "Either 'user' or 'contract' is required."}
-            )
-
         save_kwargs = {}
+
+        # 1. Explicit `user` — saved on the document
         if user_id:
             save_kwargs['user_id'] = user_id
+
+        # 2. Explicit `contract` — saved alongside (both can be set)
         if contract_id:
             save_kwargs['contract_id'] = contract_id
-        serializer.save(**save_kwargs)
+
+        # If we have either, save and return.
+        if save_kwargs:
+            serializer.save(**save_kwargs)
+            return
+
+        # 3. Employee uploading for themselves (preserves the
+        #    "my own document" UX)
+        req_user = self.request.user
+        if (
+            req_user
+            and req_user.is_authenticated
+            and req_user.role == 'Employee'
+            and not req_user.is_superuser
+        ):
+            serializer.save(user=req_user)
+            return
+
+        # 4. Admin/HR "Add CV" for a NEW applicant: create a real
+        #    Users row from the document's name + email.
+        doc_name = (self.request.data.get('name') or '').strip()
+        doc_email = (self.request.data.get('email') or '').strip().lower()
+
+        if doc_name or doc_email:
+            new_user = self._create_or_get_applicant_user(
+                name=doc_name, email=doc_email
+            )
+            if new_user is not None:
+                serializer.save(user_id=new_user.id)
+                return
+
+        # 5. Nothing usable supplied — reject.
+        raise ValidationError(
+            {"detail": (
+                "Either 'user', 'contract', or applicant details "
+                "('name' + 'email') must be provided."
+            )}
+        )
+
+    def _create_or_get_applicant_user(self, name: str, email: str):
+        """
+        Find-or-create a Users row for the "Add CV for new applicant"
+        flow. Idempotent: if `email` matches an existing user, return
+        that one. If `email` is missing, generate a deterministic
+        placeholder email from the name (no longer flagged as
+        'placeholder' — it's a real Users row that admin can later
+        update via the profile UI).
+
+        Returns the Users instance, or None if creation failed
+        (e.g. unique-email conflict on the generated address).
+        """
+        from api.models import Users
+        import re
+
+        # 1. Email provided and already in DB? Use it.
+        if email:
+            existing = Users.objects.filter(email__iexact=email).first()
+            if existing:
+                # Backfill name fields if they're empty on the existing user
+                # (helps when admin re-uploads a CV with the same email
+                # but a fuller name than what the user had on file).
+                if name and not (existing.first_name or existing.middle_name):
+                    parts = name.split(' ', 1)
+                    existing.first_name = parts[0][:100]
+                    if len(parts) > 1:
+                        existing.middle_name = parts[1][:100]
+                    existing.save(update_fields=['first_name', 'middle_name'])
+                return existing
+
+        # 2. Need to create a new user. Derive an email if not given.
+        if not email:
+            base = re.sub(r'[^a-z0-9]+', '.', (name or 'applicant').lower()).strip('.')
+            base = base[:60] or 'applicant'
+            candidate = f"{base}@sakrshipping.com"
+            # Avoid collision by appending a counter if needed.
+            n = 1
+            while Users.objects.filter(email__iexact=candidate).exists():
+                n += 1
+                candidate = f"{base}{n}@sakrshipping.com"
+                if n > 999:
+                    return None
+            email = candidate
+
+        # 3. Split name and create.
+        first_name = ''
+        middle_name = ''
+        if name:
+            parts = name.split(' ', 1)
+            first_name = parts[0][:100]
+            if len(parts) > 1:
+                middle_name = parts[1][:100]
+
+        try:
+            new_user = Users.objects.create_user(
+                email=email,
+                password=None,  # unusable until IT sets a password
+                first_name=first_name or 'Applicant',
+                middle_name=middle_name,
+                role='Employee',
+                is_active=True,
+            )
+            return new_user
+        except Exception:
+            return None
 
     def _sync_user_data(self, document):
         """Helper to sync Document data to User profile when Active"""

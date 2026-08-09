@@ -1225,6 +1225,200 @@ class DocumentCreateRegressionTests(TestCase):
         self.assertEqual(d.user_id, employee.id)
 
 
+class AddCVAutoCreateUserRegressionTests(TestCase):
+    """
+    Regression for the "Add CV for a new applicant" flow.
+
+    The frontend's Add CV form posts to /api/documents/ with
+    `name`, `email`, `phone_number`, `position`, `title`, `file` —
+    but no `user` field, because the applicant doesn't exist yet.
+
+    The endpoint must auto-create a real `Users` row from those
+    fields (not a placeholder pattern) and link the document to
+    that user. If `email` already exists, reuse that user instead
+    of creating a duplicate.
+    """
+
+    list_url = "/api/documents/"
+
+    def _login_as_admin(self):
+        admin = Users.objects.create_user(
+            email="addcv-admin@example.com",
+            password="x",
+            first_name="A",
+            middle_name="a",
+            role="Admin",
+            is_staff=True,
+            is_superuser=True,
+        )
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        return client, admin
+
+    def _multipart(self, **fields):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        if "file" not in fields:
+            fields["file"] = SimpleUploadedFile(
+                "cv.pdf", b"%PDF-1.4 fake", content_type="application/pdf"
+            )
+        return fields
+
+    # ---- Happy paths -------------------------------------------------
+
+    def test_admin_adds_cv_with_name_and_email_creates_user(self):
+        """POST with name+email, no user -> creates a new Users row."""
+        client, _ = self._login_as_admin()
+        r = client.post(
+            self.list_url,
+            self._multipart(
+                name="John Smith",
+                email="john.smith@example.com",
+                title="CV",
+            ),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+
+        from api.models import Document
+        d = Document.objects.get(id=r.data["id"])
+        self.assertIsNotNone(d.user_id, "Document must be linked to a user")
+
+        # The new user was created with the supplied name + email
+        new_user = Users.objects.get(id=d.user_id)
+        self.assertEqual(new_user.email, "john.smith@example.com")
+        self.assertEqual(new_user.first_name, "John")
+        self.assertEqual(new_user.middle_name, "Smith")
+        self.assertEqual(new_user.role, "Employee")
+
+    def test_admin_adds_cv_with_only_name_generates_email(self):
+        """POST with just a name (no email) -> user created with derived email."""
+        client, _ = self._login_as_admin()
+        r = client.post(
+            self.list_url,
+            self._multipart(name="Jane Doe", title="CV"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+
+        from api.models import Document
+        d = Document.objects.get(id=r.data["id"])
+        new_user = Users.objects.get(id=d.user_id)
+        self.assertEqual(new_user.first_name, "Jane")
+        self.assertEqual(new_user.middle_name, "Doe")
+        self.assertTrue(
+            new_user.email.endswith("@sakrshipping.com"),
+            f"Generated email should use @sakrshipping.com, got {new_user.email!r}"
+        )
+
+    def test_admin_adds_cv_existing_email_reuses_user(self):
+        """If email matches an existing user, link to that user (no dup)."""
+        client, _ = self._login_as_admin()
+        existing = Users.objects.create_user(
+            email="known@example.com",
+            password="x",
+            first_name="Known",
+            middle_name="User",
+            role="Employee",
+        )
+        r = client.post(
+            self.list_url,
+            self._multipart(
+                name="Known User",
+                email="known@example.com",
+                title="CV",
+            ),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+
+        from api.models import Document
+        d = Document.objects.get(id=r.data["id"])
+        self.assertEqual(d.user_id, existing.id)
+        # No duplicate Users row was created
+        self.assertEqual(
+            Users.objects.filter(email="known@example.com").count(),
+            1,
+        )
+
+    def test_employee_without_user_field_uses_self(self):
+        """Employee path is unchanged: no user field -> attach to self."""
+        from rest_framework.test import APIClient
+        employee = Users.objects.create_user(
+            email="selfie@example.com",
+            password="x",
+            first_name="Self",
+            middle_name="Emp",
+            role="Employee",
+        )
+        client = APIClient()
+        client.force_authenticate(user=employee)
+        r = client.post(
+            self.list_url,
+            self._multipart(title="My CV"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        from api.models import Document
+        d = Document.objects.get(id=r.data["id"])
+        self.assertEqual(d.user_id, employee.id)
+
+    # ---- Edge cases --------------------------------------------------
+
+    def test_admin_post_with_no_user_contract_or_applicant_fields_400(self):
+        """Admin posts with no identifying fields -> 400, no user created."""
+        client, _ = self._login_as_admin()
+        before = Users.objects.count()
+        r = client.post(
+            self.list_url,
+            self._multipart(title="orphan"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+        self.assertEqual(Users.objects.count(), before, "No user should be created")
+
+    def test_three_part_name_splits_correctly(self):
+        """'John Michael Smith' -> first='John', middle='Michael Smith'."""
+        client, _ = self._login_as_admin()
+        r = client.post(
+            self.list_url,
+            self._multipart(
+                name="John Michael Smith",
+                email="jms@example.com",
+                title="CV",
+            ),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        from api.models import Document
+        d = Document.objects.get(id=r.data["id"])
+        new_user = Users.objects.get(id=d.user_id)
+        self.assertEqual(new_user.first_name, "John")
+        self.assertEqual(new_user.middle_name, "Michael Smith")
+
+    def test_unique_generated_email_on_collision(self):
+        """Two name-only uploads with the same name get distinct emails."""
+        client, _ = self._login_as_admin()
+        r1 = client.post(
+            self.list_url,
+            self._multipart(name="Same Name", title="CV1"),
+            format="multipart",
+        )
+        r2 = client.post(
+            self.list_url,
+            self._multipart(name="Same Name", title="CV2"),
+            format="multipart",
+        )
+        self.assertEqual(r1.status_code, http_status.HTTP_201_CREATED, r1.data)
+        self.assertEqual(r2.status_code, http_status.HTTP_201_CREATED, r2.data)
+        from api.models import Document
+        d1 = Document.objects.get(id=r1.data["id"])
+        d2 = Document.objects.get(id=r2.data["id"])
+        self.assertNotEqual(
+            d1.user_id, d2.user_id,
+            "Two uploads with the same name must produce two distinct users"
+        )
+
+
 class ContractAdminAttachmentsEndpointTests(TestCase):
     """
     Regression for the contract-scoped admin-attachments endpoint:
