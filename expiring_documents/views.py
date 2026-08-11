@@ -205,11 +205,10 @@ class ExpiringDocumentsView(APIView):
         )
 
         for user in users_with_expiring:
-            user_name = (
-                f"{getattr(user, 'first_name', '')} {getattr(user, 'middle_name', '')}"
-                .strip()
-                or getattr(user, "email", "")
-            )
+            # Use the canonical full_name property (first + middle,
+            # joined with a single space, stripped). Falls back to
+            # email if both are empty.
+            user_name = (getattr(user, "full_name", "") or "").strip() or getattr(user, "email", "")
             user_position = _user_position(user)
             for field, doc_type, number_field in USER_EXPIRY_FIELDS:
                 expiry = getattr(user, field, None)
@@ -258,11 +257,9 @@ class ExpiringDocumentsView(APIView):
                 continue
 
             if doc.user:
-                user_name = (
-                    f"{getattr(doc.user, 'first_name', '')} {getattr(doc.user, 'middle_name', '')}"
-                    .strip()
-                    or getattr(doc.user, "email", "Unknown")
-                )
+                # Use the canonical full_name property (see comment
+                # in the user_profile branch above).
+                user_name = (getattr(doc.user, "full_name", "") or "").strip() or getattr(doc.user, "email", "Unknown")
                 user_email = doc.user.email
                 user_id = doc.user_id
                 user_position = _user_position(doc.user)
