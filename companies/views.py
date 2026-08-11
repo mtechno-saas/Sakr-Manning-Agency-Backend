@@ -1,10 +1,12 @@
+from datetime import timedelta
+
 from rest_framework import viewsets, status
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Count, Sum
-from .models import Company, JobOrder, JobOrderPosition
+from django.db.models import Count, Q, Sum
+from django.utils import timezone
 from .models import Company, JobOrder, JobOrderPosition
 from .serializers import CompanySerializer, JobOrderSerializer, JobOrderPositionSerializer
 from .filters import CompanyFilter, JobOrderPositionFilter
@@ -66,6 +68,128 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 'companies_with_openings': companies_with_positions
             },
             'recent_companies': list(recent_companies)
+        })
+
+    @action(detail=False, methods=['get'], url_path='open-positions-status')
+    def open_positions_status(self, request):
+        """
+        Open Positions Status report.
+
+        Returns one row per open JobOrderPosition, with the
+        principal (company), position title (rank), vacancies
+        (remaining slots), and the job order's status / dates.
+        Used by the Open Positions Status UI.
+
+        GET /api/companies/open-positions-status/
+
+        Optional query params
+        ---------------------
+        status (str, optional)
+            Filter by job order status. Allowed: Pending, Open, Hold,
+            In Progress, Active, Fulfilled, Cancelled, Closed.
+            Default: only open/active (Pending, Open, Hold, In
+            Progress, Active).
+        principal (int, optional)
+            Filter by company id.
+        position_title (str, optional)
+            Case-insensitive contains-match on the rank name.
+
+        Response 200 OK
+        ---------------
+        {
+          "total_records": 12,
+          "report_date": "2026-08-11",
+          "results": [
+            {
+              "reference_number": "JO-2024-001",
+              "principal": "Maersk Line",
+              "position_title": "Master / Captain",
+              "vacancies": 2,
+              "status": "Open",
+              "job_order_number": 1,
+              "request_date": "2026-01-15",
+              "target_join_date": "2026-03-01"
+            },
+            ...
+          ]
+        }
+        """
+        # Default: only positions whose parent job order is in a
+        # still-open status. Cancelled / Fulfilled / Closed orders
+        # are excluded.
+        default_open_statuses = ['Pending', 'Open', 'Hold',
+                                 'In Progress', 'Active']
+        allowed_statuses = default_open_statuses + ['Fulfilled',
+                                                   'Cancelled', 'Closed']
+
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            if status_filter not in allowed_statuses:
+                return Response(
+                    {"error": (
+                        f"Invalid status {status_filter!r}. "
+                        f"Allowed: {allowed_statuses}"
+                    )},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            statuses = [status_filter]
+        else:
+            statuses = default_open_statuses
+
+        # Base queryset: positions linked to job orders in the
+        # allowed status set. We annotate filled_slots so we can
+        # compute vacancies (= quantity - filled).
+        qs = (
+            JobOrderPosition.objects
+            .select_related('job_order__company', 'rank')
+            .annotate(
+                filled_slots=Count(
+                    'contracts',
+                    filter=Q(contracts__status__in=['Active', 'Signed']),
+                ),
+            )
+            .filter(job_order__status__in=statuses)
+        )
+
+        # Optional filters
+        principal_id = request.query_params.get('principal')
+        if principal_id and str(principal_id).strip().isdigit():
+            qs = qs.filter(job_order__company_id=int(principal_id))
+
+        title_filter = request.query_params.get('position_title')
+        if title_filter:
+            qs = qs.filter(rank__name__icontains=title_filter)
+
+        results = []
+        for pos in qs.order_by('job_order__request_date',
+                                'job_order__reference_number',
+                                'rank__name'):
+            vacancies = max(0, pos.quantity - pos.filled_slots)
+            if vacancies <= 0:
+                # Skip fully-filled positions even if the parent
+                # job order is still nominally open.
+                continue
+            results.append({
+                "reference_number": pos.job_order.reference_number,
+                "principal": pos.job_order.company.company_name,
+                "position_title": pos.rank.name if pos.rank else "",
+                "vacancies": vacancies,
+                "status": pos.job_order.status,
+                "job_order_number": pos.job_order_id,
+                "request_date": (
+                    pos.job_order.request_date.isoformat()
+                    if pos.job_order.request_date else None
+                ),
+                "target_join_date": (
+                    pos.job_order.target_joining_date.isoformat()
+                    if pos.job_order.target_joining_date else None
+                ),
+            })
+
+        return Response({
+            "total_records": len(results),
+            "report_date": timezone.localdate().isoformat(),
+            "results": results,
         })
 
 

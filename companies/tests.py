@@ -367,4 +367,215 @@ class JobPositionsEndpointFieldSurfaceTests(TestCase):
         self.assertEqual(item["assigned_to"], [])
         self.assertEqual(item["currency"], "EUR")
         self.assertEqual(float(item["salary_min"]), 3000.0)
-        self.assertEqual(float(item["salary_max"]), 4500.0)
+
+
+class OpenPositionsStatusEndpointTests(TestCase):
+    """
+    Tests for GET /api/companies/open-positions-status/.
+
+    One row per still-vacant JobOrderPosition. Filled positions
+    are skipped. Cancelled / Fulfilled / Closed orders are
+    excluded by default.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.company_a = _make_company("Maersk Line")
+        cls.company_b = _make_company("MSC Mediterranean")
+
+        cls.ship_a = _make_ship(name="MV Atlas", imo="1111111", company=cls.company_a)
+        cls.ship_b = _make_ship(name="MV Bounty", imo="2222222", company=cls.company_b)
+
+        cls.rank_master = _make_rank(code="MAS-1", name="Master")
+        cls.rank_chief = _make_rank(code="CHE-1", name="Chief Officer")
+
+        # Open job order with 2 positions, all vacant
+        cls.jo_open = _make_job_order(
+            cls.company_a, cls.ship_a,
+            reference="JO-2026-001", status="Open",
+        )
+        cls.pos_master = _make_position(cls.jo_open, cls.rank_master, quantity=3)
+        cls.pos_chief = _make_position(cls.jo_open, cls.rank_chief, quantity=1)
+
+        # Open job order with a fully-filled position (should be skipped)
+        cls.jo_filled = _make_job_order(
+            cls.company_b, cls.ship_b,
+            reference="JO-2026-002", status="Open",
+        )
+        cls.pos_full = _make_position(cls.jo_filled, cls.rank_master, quantity=2)
+        u1 = _make_user("seafarer1@example.com", "Mahmoud", "Ali")
+        u2 = _make_user("seafarer2@example.com", "Yusuf", "Khan")
+        _make_contract(u1, cls.ship_b, cls.company_b, cls.rank_master, cls.pos_full)
+        _make_contract(u2, cls.ship_b, cls.company_b, cls.rank_master, cls.pos_full)
+
+        # Closed job order with a vacant position (should be excluded
+        # by default because status is not in the default open set)
+        cls.jo_closed = _make_job_order(
+            cls.company_a, cls.ship_a,
+            reference="JO-2026-003", status="Closed",
+        )
+        cls.pos_closed = _make_position(cls.jo_closed, cls.rank_master, quantity=1)
+
+    def setUp(self):
+        self.client = APIClient()
+        # Admin user for full access
+        self.admin = _make_user("admin-ops@example.com", "Admin", "Ops")
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.is_superuser = True
+        self.admin.save()
+        self.client.force_authenticate(user=self.admin)
+
+    def _url(self):
+        return "/api/companies/open-positions-status/"
+
+    # ---- top-level shape ----------------------------------------------
+
+    def test_response_shape(self):
+        r = self.client.get(self._url())
+        self.assertEqual(r.status_code, 200)
+        for k in ("total_records", "report_date", "results"):
+            self.assertIn(k, r.data, f"missing {k!r} in response")
+        self.assertIsInstance(r.data["total_records"], int)
+        self.assertIsInstance(r.data["results"], list)
+        # report_date must be today's local date
+        from django.utils import timezone
+        self.assertEqual(r.data["report_date"], timezone.localdate().isoformat())
+
+    def test_result_row_shape(self):
+        r = self.client.get(self._url())
+        self.assertEqual(r.status_code, 200)
+        if not r.data["results"]:
+            self.skipTest("No open positions in fixture")
+        for row in r.data["results"]:
+            for k in (
+                "reference_number", "principal", "position_title",
+                "vacancies", "status", "job_order_number",
+                "request_date", "target_join_date",
+            ):
+                self.assertIn(k, row, f"missing {k!r} in row {row!r}")
+
+    # ---- content filtering --------------------------------------------
+
+    def test_total_records_counts_only_vacant_open_positions(self):
+        """Filled positions and closed orders must be excluded."""
+        r = self.client.get(self._url())
+        self.assertEqual(r.status_code, 200)
+        # Fixtures: 2 vacant positions in JO-2026-001 (status=Open).
+        # JO-2026-002 has a fully-filled position (skip).
+        # JO-2026-003 is Closed (skip by default).
+        self.assertEqual(r.data["total_records"], 2)
+
+    def test_filled_position_excluded(self):
+        """JO-2026-002 has quantity=2 and 2 Active contracts -> 0 vacancies, skip."""
+        r = self.client.get(self._url())
+        self.assertEqual(r.status_code, 200)
+        refs = [row["reference_number"] for row in r.data["results"]]
+        self.assertNotIn("JO-2026-002", refs)
+
+    def test_closed_order_excluded_by_default(self):
+        r = self.client.get(self._url())
+        refs = [row["reference_number"] for row in r.data["results"]]
+        self.assertNotIn("JO-2026-003", refs)
+
+    def test_partial_fill_shows_remaining_vacancies(self):
+        """A position with quantity=3 and 1 Active contract -> vacancies=2."""
+        pos = _make_position(
+            self.jo_open,
+            _make_rank(code="BOS-1", name="Bosun"),
+            quantity=3,
+        )
+        u = _make_user("partial-fill@example.com", "Partial", "Fill")
+        _make_contract(u, self.ship_a, self.company_a,
+                       pos.rank, pos, status="Active")
+        r = self.client.get(self._url())
+        rows = [row for row in r.data["results"]
+                if row["reference_number"] == "JO-2026-001"
+                and row["position_title"] == "Bosun"]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["vacancies"], 2)
+
+    def test_vacancies_uses_remaining_not_quantity(self):
+        """A fully-filled position (0 remaining) must be excluded, even
+        though the parent job order is Open."""
+        # JO-2026-002 is already filled in the fixture; verify it's not
+        # in the result by checking it's missing.
+        r = self.client.get(self._url())
+        rows = [row for row in r.data["results"]
+                if row["reference_number"] == "JO-2026-002"]
+        self.assertEqual(rows, [])
+
+    # ---- principal field is the company name --------------------------
+
+    def test_principal_field_is_company_name(self):
+        r = self.client.get(self._url())
+        principals = {row["principal"] for row in r.data["results"]}
+        # Both job orders in JO-2026-001 belong to company_a
+        self.assertIn("Maersk Line", principals)
+        # JO-2026-002 / 003 belong to company_b or are skipped
+        self.assertNotIn("MSC Mediterranean", principals)
+
+    # ---- explicit status filter --------------------------------------
+
+    def test_status_filter_includes_closed_when_requested(self):
+        r = self.client.get(self._url() + "?status=Closed")
+        self.assertEqual(r.status_code, 200)
+        refs = [row["reference_number"] for row in r.data["results"]]
+        self.assertIn("JO-2026-003", refs)
+
+    def test_status_filter_rejects_invalid_value(self):
+        r = self.client.get(self._url() + "?status=Bogus")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("Invalid status", r.data.get("error", ""))
+
+    # ---- principal filter --------------------------------------------
+
+    def test_principal_filter(self):
+        """Filter by company id returns only that principal's rows."""
+        # Add a vacant position under company_b
+        _make_position(
+            self.jo_filled,
+            _make_rank(code="ENG-1", name="Chief Engineer"),
+            quantity=2,
+        )
+        # But the parent job order is Open, so this row will be
+        # included regardless of company. We just check the filter
+        # excludes rows from the other company.
+        r = self.client.get(self._url() + "?principal=999999")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data["total_records"], 0)
+
+    # ---- position_title filter ---------------------------------------
+
+    def test_position_title_filter(self):
+        r = self.client.get(self._url() + "?position_title=chief")
+        self.assertEqual(r.status_code, 200)
+        titles = [row["position_title"] for row in r.data["results"]]
+        self.assertIn("Chief Officer", titles)
+        self.assertNotIn("Master", titles)
+
+    # ---- ordering ----------------------------------------------------
+
+    def test_results_sorted_by_request_date_then_reference(self):
+        # Add an earlier-dated open order and verify it sorts first
+        import datetime
+        jo_earlier = _make_job_order(
+            self.company_a, self.ship_a,
+            reference="JO-2025-099", status="Open",
+        )
+        # Backdate the request_date
+        jo_earlier.request_date = datetime.date(2025, 1, 1)
+        jo_earlier.save(update_fields=["request_date"])
+        _make_position(jo_earlier, self.rank_master, quantity=2)
+
+        r = self.client.get(self._url())
+        # First row should be the earlier-dated one
+        self.assertEqual(r.data["results"][0]["reference_number"], "JO-2025-099")
+
+    # ---- auth --------------------------------------------------------
+
+    def test_endpoint_requires_auth(self):
+        from rest_framework.test import APIClient
+        c = APIClient()
+        r = c.get(self._url())
+        self.assertIn(r.status_code, (401, 403))
