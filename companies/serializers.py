@@ -48,11 +48,28 @@ class CompanySerializer(serializers.ModelSerializer):
             },
         }
 
+    # Override the model field's URLField with a plain CharField so
+    # bare domains ("www.example.com") are accepted without forcing a
+    # scheme. The frontend / user owns the protocol; we just store
+    # the string. The CharField keeps the same max_length as the
+    # underlying column so DB writes still pass.
+    website = serializers.CharField(
+        max_length=200, required=False, allow_null=True, allow_blank=True,
+    )
+
     def to_internal_value(self, data):
         """
         Normalise `company_flag` (accepts an integer ID, a string name, or
-        auto-creates a new Flag if the name is unknown) and `website`
-        (auto-prefix https:// if missing) before DRF field validation.
+        auto-creates a new Flag if the name is unknown) before DRF
+        field validation.
+
+        Note
+        ----
+        `website` is stored as the user submitted it — no auto-prefix,
+        no protocol stripping. This keeps the form round-trip clean:
+        type "www.example.com", save, re-edit, see "www.example.com".
+        If you want a protocol guaranteed on the value, do it on
+        the frontend or in a separate normaliser.
         `company_type` is handled natively by SlugRelatedField.
         """
         if 'company_flag' in data:
@@ -76,17 +93,6 @@ class CompanySerializer(serializers.ModelSerializer):
                 else:
                     data = dict(data)
                 data['company_flag'] = flag.name
-
-        if 'website' in data and data['website']:
-            website_val = data['website']
-            if isinstance(website_val, str) and website_val.strip():
-                website_val = website_val.strip()
-                if not website_val.startswith(('http://', 'https://')):
-                    if hasattr(data, 'copy'):
-                        data = data.copy()
-                    else:
-                        data = dict(data)
-                    data['website'] = f'https://{website_val}'
 
         return super().to_internal_value(data)
 

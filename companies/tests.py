@@ -579,3 +579,69 @@ class OpenPositionsStatusEndpointTests(TestCase):
         c = APIClient()
         r = c.get(self._url())
         self.assertIn(r.status_code, (401, 403))
+
+
+class CompanyWebsiteFieldNoAutoPrefixTests(TestCase):
+    """
+    Regression: the company serializer's to_internal_value used to
+    auto-prepend 'https://' to the website field, so users who typed
+    'www.example.com' had it silently re-prefixed on every save and
+    saw 'https://www.example.com' in the form on every edit. Now the
+    field is stored exactly as submitted.
+    """
+
+    def setUp(self):
+        from rest_framework.test import APIClient
+        self.user = _make_user("website-admin@example.com", "Web", "Admin")
+        self.user.role = "Admin"
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save()
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+        self.company = _make_company("Test Co.")
+
+    def _patch(self, website):
+        return self.client.patch(
+            f"/api/companies/{self.company.id}/",
+            {"website": website},
+            format="json",
+        )
+
+    def test_bare_domain_stays_bare(self):
+        r = self._patch("www.example.com")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.company.refresh_from_db()
+        self.assertEqual(self.company.website, "www.example.com")
+
+    def test_https_stays_https(self):
+        r = self._patch("https://www.example.com")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.company.refresh_from_db()
+        self.assertEqual(self.company.website, "https://www.example.com")
+
+    def test_http_stays_http(self):
+        r = self._patch("http://www.example.com")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.company.refresh_from_db()
+        self.assertEqual(self.company.website, "http://www.example.com")
+
+    def test_empty_string_is_allowed(self):
+        r = self._patch("")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.company.refresh_from_db()
+        # URLField with blank=True stores empty as ''
+        self.assertIn(self.company.website or "", ("", None))
+
+    def test_no_loop_after_save(self):
+        """Save with bare domain, re-edit, value is still bare."""
+        self._patch("www.example.com")
+        self.company.refresh_from_db()
+        self.assertEqual(self.company.website, "www.example.com")
+        # Re-PATCH the same value
+        self._patch("www.example.com")
+        self.company.refresh_from_db()
+        self.assertEqual(
+            self.company.website, "www.example.com",
+            "Re-saving must not add a 'https://' prefix",
+        )
