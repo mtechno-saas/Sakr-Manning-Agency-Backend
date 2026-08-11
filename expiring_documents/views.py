@@ -311,7 +311,7 @@ class ExpiringDocumentsView(APIView):
     # POST  -> create a NEW personal document
     # ------------------------------------------------------------------------
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         """
         Create a new PersonalDocument row. The body is the same as
         `POST /api/personal-documents/` — multipart with at minimum
@@ -319,7 +319,27 @@ class ExpiringDocumentsView(APIView):
 
         The newly created row will show up in subsequent GET
         responses with id `pd_<new_id>`.
+
+        Note
+        ----
+        POST must be sent to the BASE URL (`/api/expiring-documents/`).
+        If the requester hits a detail URL by mistake (e.g.
+        `/api/expiring-documents/56/`) we return 400 with a clear
+        message instead of crashing the view. The base URL has no
+        URL kwargs; the detail URL always has `item_id`.
         """
+        # Reject POSTs sent to the detail URL by mistake. The
+        # `item_id` kwarg is only present on the detail route.
+        if kwargs.get("item_id"):
+            return Response(
+                {"error": (
+                    "POST must be sent to /api/expiring-documents/ "
+                    "(no id in the URL). The 'user' field belongs in "
+                    "the request body, not the URL."
+                )},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         role_err = self._role_check(request)
         if role_err is not None:
             return role_err

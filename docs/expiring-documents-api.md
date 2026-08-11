@@ -147,6 +147,12 @@ Invalid strings fall back to the default.
 
 ## Upload — `POST /api/expiring-documents/`
 
+> **Important:** POST must go to the **base URL** — no `id` in the
+> path. If you POST to `/api/expiring-documents/56/` you'll get
+> `400 {"error": "POST must be sent to /api/expiring-documents/ (no
+> id in the URL). The 'user' field belongs in the request body, not
+> the URL."}`. The `user` is in the body, not the URL.
+
 Creates a new `PersonalDocument` row. Multipart form data, same body
 as `POST /api/personal-documents/`.
 

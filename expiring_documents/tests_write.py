@@ -132,6 +132,28 @@ class ExpiringDocumentsCreateTests(TestCase):
         )
         self.assertIn(r.status_code, (401, 403))
 
+    def test_post_to_detail_url_returns_400_not_500(self):
+        """
+        Regression: posting to /api/expiring-documents/<id>/ (a
+        detail URL meant for PATCH/DELETE) used to crash with
+        TypeError because post() didn't accept the item_id kwarg.
+        Now it returns a clean 400 explaining the right URL.
+        """
+        client, _ = _login_as("Admin")
+        r = client.post(
+            f"/api/expiring-documents/{self.user.id}/",
+            self._multipart(
+                user=self.user.id,
+                document_type="Australian Visa Crew",
+                expiry_date="2027-06-30",
+            ),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, 400, r.data)
+        self.assertIn("/api/expiring-documents/", r.data.get("error", ""))
+        # Nothing should have been created
+        self.assertEqual(PersonalDocument.objects.count(), 0)
+
 
 class ExpiringDocumentsUpdateTests(TestCase):
     """PATCH /api/expiring-documents/<id>/ updates by id."""
