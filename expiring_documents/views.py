@@ -404,3 +404,49 @@ class ExpiringDocumentsView(APIView):
             )},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    # ------------------------------------------------------------------------
+    # DELETE /<id>/  -> delete an existing item
+    # ------------------------------------------------------------------------
+
+    def delete(self, request, item_id):
+        """
+        Delete the item identified by `id`.
+
+        - `pd_<doc_id>`: hard-deletes the PersonalDocument row. The
+          row stops appearing in subsequent GET responses.
+        - `user_<id>_<field>`: returns 400 — you cannot "delete" a
+          user-profile field, only clear it (use PATCH with
+          `{"expiry_date": null}` for that).
+        """
+        role_err = self._role_check(request)
+        if role_err is not None:
+            return role_err
+
+        from api.models import PersonalDocument
+
+        m_pd = _ID_PD_RE.match(item_id or "")
+        if m_pd:
+            doc_id = int(m_pd.group(1))
+            doc = get_object_or_404(PersonalDocument, pk=doc_id)
+            doc.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        m_user = _ID_USER_RE.match(item_id or "")
+        if m_user:
+            return Response(
+                {"error": (
+                    "Cannot DELETE a user_profile row. To clear an "
+                    "expiry date on a user field, use PATCH with "
+                    "{\"expiry_date\": null}."
+                )},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {"error": (
+                f"Unrecognised id {item_id!r}. Expected "
+                f"'user_<user_id>_<field>' or 'pd_<doc_id>'."
+            )},
+            status=status.HTTP_400_BAD_REQUEST,
+        )

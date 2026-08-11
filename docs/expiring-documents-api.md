@@ -34,14 +34,19 @@ Admin or HR Manager role required. Employee and Recruiter return 403.
 | `GET` | `/api/expiring-documents/` | List all expiring/expired items |
 | `POST` | `/api/expiring-documents/` | Upload a new personal document |
 | `PATCH` | `/api/expiring-documents/{id}/` | Update expiry on an existing item |
+| `DELETE` | `/api/expiring-documents/{id}/` | Delete a personal document (`pd_<id>` only) |
 
-The `id` in the PATCH URL is the same one returned by GET, and
+The `id` in the PATCH/DELETE URL is the same one returned by GET, and
 encodes which source table to update:
 
-| `id` pattern | Routes to |
-|--------------|-----------|
-| `user_<user_id>_<field>` | `Users.<field>` (one of 9 expiry fields) |
-| `pd_<doc_id>` | `PersonalDocument` row |
+| `id` pattern | `GET` | `PATCH` | `DELETE` |
+|--------------|------|---------|----------|
+| `user_<user_id>_<field>` | ✓ | ✓ | ✗ (400) |
+| `pd_<doc_id>` | ✓ | ✓ | ✓ |
+
+DELETE on a `user_<id>_<field>` returns 400 — you cannot "delete" a
+user-profile field, only clear it. Use PATCH with
+`{"expiry_date": null}` to clear.
 
 ---
 
@@ -206,6 +211,31 @@ Any subset of `PersonalDocument` fields. The response is the full
 updated row.
 
 **404 Not Found** — user/document doesn't exist.
+
+---
+
+## Delete — `DELETE /api/expiring-documents/{id}/`
+
+Hard-deletes a `PersonalDocument` row. Use it when a visa/PAN/other
+personal doc was uploaded by mistake and needs to disappear from
+the expiring list.
+
+### A. Delete a personal document (`pd_<id>`)
+
+```bash
+curl -X DELETE 'https://backend.sakrshipping.com/api/expiring-documents/pd_87/' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response 204 No Content** — row deleted, no body.
+
+### B. `user_<id>_<field>` is rejected (400)
+
+```json
+{
+  "error": "Cannot DELETE a user_profile row. To clear an expiry date on a user field, use PATCH with {\"expiry_date\": null}."
+}
+```
 
 ---
 

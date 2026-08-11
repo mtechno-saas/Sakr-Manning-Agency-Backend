@@ -295,6 +295,77 @@ class ExpiringDocumentsUpdateTests(TestCase):
         self.assertEqual(r.status_code, 400, r.data)
 
 
+class ExpiringDocumentsDeleteTests(TestCase):
+    """DELETE /api/expiring-documents/<id>/ removes a PersonalDocument."""
+
+    def setUp(self):
+        self.user = Users.objects.create_user(
+            email="crew-del@example.com",
+            password="x",
+            first_name="Del",
+            middle_name="Eter",
+        )
+        self.doc = PersonalDocument.objects.create(
+            user=self.user,
+            document_type="Australian Visa Crew",
+            document_number="V-DEL-1",
+            expiry_date=timezone.localdate() + timedelta(days=10),
+        )
+
+    # ---- pd_<id> delete -----------------------------------------------
+
+    def test_delete_pd_removes_row(self):
+        client, _ = _login_as("Admin")
+        r = client.delete(f"/api/expiring-documents/pd_{self.doc.id}/")
+        self.assertEqual(r.status_code, 204)
+        self.assertFalse(
+            PersonalDocument.objects.filter(pk=self.doc.id).exists(),
+            "PersonalDocument row must be hard-deleted",
+        )
+
+    def test_deleted_doc_no_longer_in_get(self):
+        client, _ = _login_as("Admin")
+        doc_id = self.doc.id
+        client.delete(f"/api/expiring-documents/pd_{doc_id}/")
+        r = client.get("/api/expiring-documents/?days=60")
+        ids = [item["id"] for item in r.data["results"]]
+        self.assertNotIn(f"pd_{doc_id}", ids)
+
+    def test_delete_pd_404_for_nonexistent(self):
+        client, _ = _login_as("Admin")
+        r = client.delete("/api/expiring-documents/pd_999999/")
+        self.assertEqual(r.status_code, 404)
+
+    # ---- user_profile delete is rejected ------------------------------
+
+    def test_delete_user_profile_returns_400(self):
+        """Cannot DELETE a user_profile row — must PATCH to null instead."""
+        client, _ = _login_as("Admin")
+        url = f"/api/expiring-documents/user_{self.user.id}_passport_expiry_date/"
+        r = client.delete(url)
+        self.assertEqual(r.status_code, 400, r.data)
+        self.assertIn("PATCH", r.data.get("error", ""))
+
+    # ---- Auth ----------------------------------------------------------
+
+    def test_delete_rejects_employee(self):
+        client, _ = _login_as("Employee")
+        r = client.delete(f"/api/expiring-documents/pd_{self.doc.id}/")
+        self.assertEqual(r.status_code, 403)
+
+    def test_delete_rejects_unauthenticated(self):
+        client = APIClient()
+        r = client.delete(f"/api/expiring-documents/pd_{self.doc.id}/")
+        self.assertIn(r.status_code, (401, 403))
+
+    # ---- Bad id format -------------------------------------------------
+
+    def test_delete_invalid_id_format_returns_400(self):
+        client, _ = _login_as("Admin")
+        r = client.delete("/api/expiring-documents/garbage_id/")
+        self.assertEqual(r.status_code, 400)
+
+
 class ExpiringDocumentsGetStillWorksTests(TestCase):
     """Sanity check that the GET endpoint behavior is unchanged after refactor."""
 
