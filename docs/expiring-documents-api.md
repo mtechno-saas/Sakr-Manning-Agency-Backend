@@ -56,8 +56,20 @@ user-profile field, only clear it. Use PATCH with
 
 | Name | Default | Notes |
 |------|---------|-------|
-| `days` | `30` | Look-ahead window (1–365). Includes items already expired PLUS items expiring in the next N days. |
+| `days` | `EXPIRING_DOCUMENTS_DEFAULT_DAYS` (30) | Look-ahead window. Includes items already expired PLUS items expiring in the next N days. Clamped to `[MIN, MAX]` from settings. |
 | `category` | `all` | One of: `expired`, `critical`, `warning`, `notice`, `active`, `all` |
+
+**Defaults are configurable** via three Django settings (env-var overridable):
+
+| Setting | Default | Env var |
+|---------|---------|---------|
+| `EXPIRING_DOCUMENTS_DEFAULT_DAYS` | `30` | `EXPIRING_DOCUMENTS_DEFAULT_DAYS` |
+| `EXPIRING_DOCUMENTS_MIN_DAYS` | `1` | `EXPIRING_DOCUMENTS_MIN_DAYS` |
+| `EXPIRING_DOCUMENTS_MAX_DAYS` | `365` | `EXPIRING_DOCUMENTS_MAX_DAYS` |
+
+The `?days=N` query param still wins on a per-request basis. Out-of-range
+values are clamped (above max) or fall back to the default (below min).
+Invalid strings fall back to the default.
 
 **Response 200 OK:**
 

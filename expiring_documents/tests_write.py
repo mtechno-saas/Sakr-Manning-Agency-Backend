@@ -396,3 +396,64 @@ class ExpiringDocumentsGetStillWorksTests(TestCase):
         ]
         self.assertEqual(len(passport_items), 1)
         self.assertEqual(passport_items[0]["category"], "critical")
+
+
+class ExpiringDocumentsDaysWindowConfigTests(TestCase):
+    """
+    Verify the ?days=N query param and Django settings
+    (EXPIRING_DOCUMENTS_DEFAULT_DAYS / MIN_DAYS / MAX_DAYS) interact
+    correctly. The view reads the limits from settings and clamps
+    out-of-range values, falling back to the default.
+    """
+
+    def setUp(self):
+        self.user = Users.objects.create_user(
+            email="crew-window@example.com",
+            password="x",
+            first_name="W",
+            middle_name="indow",
+        )
+        # Passport in 5 days (always in the critical bucket
+        # regardless of the window)
+        self.user.passport_expiry_date = (
+            timezone.localdate() + timedelta(days=5)
+        )
+        self.user.save()
+
+    def test_default_window_echoed_in_response(self):
+        client, _ = _login_as("Admin")
+        r = client.get("/api/expiring-documents/")
+        self.assertEqual(r.status_code, 200)
+        # Default from settings is 30 (or whatever override)
+        from django.conf import settings as dj_settings
+        self.assertEqual(
+            r.data["days_window"],
+            getattr(dj_settings, "EXPIRING_DOCUMENTS_DEFAULT_DAYS", 30),
+        )
+
+    def test_explicit_days_param_wins(self):
+        client, _ = _login_as("Admin")
+        r = client.get("/api/expiring-documents/?days=7")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data["days_window"], 7)
+
+    def test_days_below_min_falls_back_to_default(self):
+        client, _ = _login_as("Admin")
+        from django.conf import settings as dj_settings
+        default = getattr(dj_settings, "EXPIRING_DOCUMENTS_DEFAULT_DAYS", 30)
+        r = client.get("/api/expiring-documents/?days=0")
+        self.assertEqual(r.data["days_window"], default)
+
+    def test_days_above_max_clamps_to_max(self):
+        client, _ = _login_as("Admin")
+        from django.conf import settings as dj_settings
+        max_d = getattr(dj_settings, "EXPIRING_DOCUMENTS_MAX_DAYS", 365)
+        r = client.get("/api/expiring-documents/?days=99999")
+        self.assertEqual(r.data["days_window"], max_d)
+
+    def test_invalid_days_string_falls_back_to_default(self):
+        client, _ = _login_as("Admin")
+        from django.conf import settings as dj_settings
+        default = getattr(dj_settings, "EXPIRING_DOCUMENTS_DEFAULT_DAYS", 30)
+        r = client.get("/api/expiring-documents/?days=notanumber")
+        self.assertEqual(r.data["days_window"], default)

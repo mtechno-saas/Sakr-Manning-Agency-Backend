@@ -220,6 +220,23 @@ REST_FRAMEWORK = {
     'MAX_PAGE_SIZE': 1000,
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
+
+# ==========================================
+# EXPIRING DOCUMENTS ENDPOINT SETTINGS
+# ==========================================
+# Controls the look-ahead window for /api/expiring-documents/.
+# All three are env-overridable; the ?days=N query param still
+# wins on a per-request basis (clamped to [MIN, MAX]).
+EXPIRING_DOCUMENTS_DEFAULT_DAYS = int(
+    os.environ.get("EXPIRING_DOCUMENTS_DEFAULT_DAYS", 30)
+)
+EXPIRING_DOCUMENTS_MIN_DAYS = int(
+    os.environ.get("EXPIRING_DOCUMENTS_MIN_DAYS", 1)
+)
+EXPIRING_DOCUMENTS_MAX_DAYS = int(
+    os.environ.get("EXPIRING_DOCUMENTS_MAX_DAYS", 365)
+)
+
 # --- Add this new configuration block for Simple JWT ---
 SIMPLE_JWT = {
     # This is the lifetime of the short-lived access token.

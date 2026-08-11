@@ -3,6 +3,7 @@ import re
 
 from datetime import timedelta
 
+from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -161,14 +162,24 @@ class ExpiringDocumentsView(APIView):
             return role_err
 
         # ---- parse query params ----
+        # Read the look-ahead window defaults from Django settings so
+        # ops can tune them via env vars without a code change.
+        default_days = getattr(
+            settings, "EXPIRING_DOCUMENTS_DEFAULT_DAYS", 30
+        )
+        min_days = max(1, getattr(settings, "EXPIRING_DOCUMENTS_MIN_DAYS", 1))
+        max_days = max(min_days, getattr(
+            settings, "EXPIRING_DOCUMENTS_MAX_DAYS", 365
+        ))
+
         try:
-            days = int(request.query_params.get("days", 30))
+            days = int(request.query_params.get("days", default_days))
         except (TypeError, ValueError):
-            days = 30
-        if days < 1:
-            days = 30
-        if days > 365:
-            days = 365
+            days = default_days
+        if days < min_days:
+            days = default_days
+        if days > max_days:
+            days = max_days
 
         category_filter = request.query_params.get("category", None)
 
