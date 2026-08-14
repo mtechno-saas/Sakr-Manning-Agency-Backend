@@ -3,6 +3,20 @@ from .models import Company, JobOrder, JobOrderPosition
 from core.models import CompanyType, Flag
 
 
+def _filled(position):
+    """
+    Mirror of JobOrderPositionSerializer.get_filled_slots().
+
+    Counts contracts whose status is Active or Signed. Used by the
+    vacancy rollups on JobOrderSerializer to avoid double-querying
+    through the nested serializer just to read filled_slots.
+    """
+    return sum(
+        1 for c in position.contracts.all()
+        if c.status in ("Active", "Signed")
+    )
+
+
 class CompanySerializer(serializers.ModelSerializer):
     ships = serializers.SerializerMethodField()
 
@@ -218,7 +232,51 @@ class JobOrderSerializer(serializers.ModelSerializer):
     ship_name = serializers.CharField(source='ship.ship_name', read_only=True)
     positions = JobOrderPositionSerializer(many=True, read_only=True)
 
+    # Vacancy rollups across the nested positions. Computed via
+    # SerializerMethodFields so they stay in sync with whatever
+    # positions are currently nested under this job order.
+    #
+    #   total_open_vacancies       — count of positions still
+    #                                recruiting (remaining_slots > 0)
+    #   total_closed_vacancies     — count of positions no longer
+    #                                recruiting (remaining_slots == 0)
+    #   total_fully_filled_vacancies — count of positions where
+    #                                every requested slot has been
+    #                                filled (filled_slots == quantity
+    #                                and quantity > 0)
+    total_open_vacancies = serializers.SerializerMethodField()
+    total_closed_vacancies = serializers.SerializerMethodField()
+    total_fully_filled_vacancies = serializers.SerializerMethodField()
+
     class Meta:
         model = JobOrder
         fields = '__all__'
+
+    def _positions(self, obj):
+        # `positions` is the reverse-relation from JobOrderPosition.
+        # Use `.all()` to avoid double-querying through the nested
+        # serializer (which prefetches via the `positions` field on
+        # the serializer's Meta.source).
+        return obj.positions.all()
+
+    def get_total_open_vacancies(self, obj):
+        return sum(
+            1 for p in self._positions(obj) if (p.quantity - _filled(p)) > 0
+        )
+
+    def get_total_closed_vacancies(self, obj):
+        # remaining_slots <= 0 covers both the "all filled" case
+        # and the broken-data case (quantity=0, filled>0 → negative
+        # remaining). Either way the position is no longer
+        # recruiting.
+        return sum(
+            1 for p in self._positions(obj) if (p.quantity - _filled(p)) <= 0
+        )
+
+    def get_total_fully_filled_vacancies(self, obj):
+        n = 0
+        for p in self._positions(obj):
+            if p.quantity > 0 and _filled(p) >= p.quantity:
+                n += 1
+        return n
 

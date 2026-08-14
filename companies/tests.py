@@ -645,3 +645,140 @@ class CompanyWebsiteFieldNoAutoPrefixTests(TestCase):
             self.company.website, "www.example.com",
             "Re-saving must not add a 'https://' prefix",
         )
+
+
+class JobOrderVacancyRollupsTests(TestCase):
+    """
+    Tests for the three vacancy rollup fields on JobOrderSerializer:
+    total_open_vacancies, total_closed_vacancies, total_fully_filled_vacancies.
+
+    Counts are over the nested positions list (i.e. over the
+    JobOrderPositions belonging to this JobOrder). A position is
+    counted as:
+      - "open"     if remaining_slots > 0  (quantity - filled > 0)
+      - "closed"   if remaining_slots == 0
+      - "fully filled" if filled_slots >= quantity AND quantity > 0
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.company = _make_company("Vacancy Test Co.")
+        cls.ship = _make_ship(name="MV Vacancy", imo="9999999", company=cls.company)
+        cls.rank_a = _make_rank(code="VAC-A", name="Vacancy A")
+        cls.rank_b = _make_rank(code="VAC-B", name="Vacancy B")
+        cls.rank_c = _make_rank(code="VAC-C", name="Vacancy C")
+        cls.rank_d = _make_rank(code="VAC-D", name="Vacancy D")
+
+    def setUp(self):
+        from rest_framework.test import APIClient
+        self.user = _make_user("vacancy-admin@example.com", "Vac", "Admin")
+        self.user.role = "Admin"
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save()
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+        self.job_order = _make_job_order(
+            self.company, self.ship,
+            reference="JO-VAC-001", status="Open",
+        )
+
+    def _row(self, jo_id):
+        r = self.client.get(f"/api/companies/job-orders/{jo_id}/")
+        self.assertEqual(r.status_code, 200, r.data)
+        return r.data
+
+    # ---- counts -------------------------------------------------------
+
+    def test_all_open_three_positions(self):
+        # Three positions, all with remaining > 0
+        _make_position(self.job_order, self.rank_a, quantity=2)
+        _make_position(self.job_order, self.rank_b, quantity=1)
+        _make_position(self.job_order, self.rank_c, quantity=3)
+
+        row = self._row(self.job_order.id)
+        self.assertEqual(row["total_open_vacancies"], 3)
+        self.assertEqual(row["total_closed_vacancies"], 0)
+        self.assertEqual(row["total_fully_filled_vacancies"], 0)
+
+    def test_mix_of_open_closed_and_fully_filled(self):
+        # A: 1 open (quantity 2, 0 filled -> 2 remaining -> open)
+        _make_position(self.job_order, self.rank_a, quantity=2)
+        # B: 1 closed (quantity 0 -> 0 remaining)
+        _make_position(self.job_order, self.rank_b, quantity=0)
+        # C: 1 fully filled (quantity 1, 1 filled -> 0 remaining, fully filled)
+        pos_c = _make_position(self.job_order, self.rank_c, quantity=1)
+        u = _make_user("vac-fully@example.com", "Vac", "Full")
+        _make_contract(u, self.ship, self.company, self.rank_c, pos_c)
+        # D: 1 closed (quantity 3, 3 filled -> 0 remaining, fully filled)
+        pos_d = _make_position(self.job_order, self.rank_d, quantity=3)
+        for i in range(3):
+            _make_contract(
+                _make_user(f"vac-d-{i}@example.com", f"User{i}", "D"),
+                self.ship, self.company, self.rank_d, pos_d,
+            )
+
+        row = self._row(self.job_order.id)
+        # 1 open (A), 3 closed (B, C, D), 2 fully filled (C, D)
+        self.assertEqual(row["total_open_vacancies"], 1)
+        self.assertEqual(row["total_closed_vacancies"], 3)
+        self.assertEqual(row["total_fully_filled_vacancies"], 2)
+
+    def test_partially_filled_position_is_open_not_closed(self):
+        # quantity 5, 1 filled -> 4 remaining -> open AND not fully filled
+        pos = _make_position(self.job_order, self.rank_a, quantity=5)
+        u = _make_user("vac-partial@example.com", "Partial", "Fill")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos)
+
+        row = self._row(self.job_order.id)
+        self.assertEqual(row["total_open_vacancies"], 1)
+        self.assertEqual(row["total_closed_vacancies"], 0)
+        self.assertEqual(row["total_fully_filled_vacancies"], 0)
+
+    def test_no_positions_all_zeros(self):
+        row = self._row(self.job_order.id)
+        self.assertEqual(row["total_open_vacancies"], 0)
+        self.assertEqual(row["total_closed_vacancies"], 0)
+        self.assertEqual(row["total_fully_filled_vacancies"], 0)
+
+    def test_quantity_zero_with_filled_is_closed_not_fully_filled(self):
+        """The bug case from the user's screenshot: quantity=0, filled=1.
+        Must be closed (remaining=0) but NOT fully filled (quantity=0
+        means there was no vacancy to fill in the first place)."""
+        pos = _make_position(self.job_order, self.rank_a, quantity=0)
+        u = _make_user("vac-zeroqty@example.com", "Zero", "Qty")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos)
+
+        row = self._row(self.job_order.id)
+        self.assertEqual(row["total_open_vacancies"], 0)
+        self.assertEqual(row["total_closed_vacancies"], 1)
+        # NOT counted as fully filled: quantity is 0 (no vacancy to fill)
+        self.assertEqual(row["total_fully_filled_vacancies"], 0)
+
+    def test_draft_contract_does_not_count_as_filled(self):
+        """Only Active/Signed contracts count as filled.
+        A Draft contract must leave the position open."""
+        pos = _make_position(self.job_order, self.rank_a, quantity=1)
+        u = _make_user("vac-draft@example.com", "Draft", "Only")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos,
+                       status="Draft")
+
+        row = self._row(self.job_order.id)
+        # position still has remaining=1 (Draft doesn't count)
+        self.assertEqual(row["total_open_vacancies"], 1)
+        self.assertEqual(row["total_closed_vacancies"], 0)
+        self.assertEqual(row["total_fully_filled_vacancies"], 0)
+
+    def test_list_endpoint_also_returns_rollups(self):
+        """The list endpoint must include the new fields too."""
+        _make_position(self.job_order, self.rank_a, quantity=2)
+        r = self.client.get("/api/companies/job-orders/")
+        self.assertEqual(r.status_code, 200)
+        item = next(
+            i for i in r.data.get("results", r.data)
+            if i["id"] == self.job_order.id
+        )
+        self.assertIn("total_open_vacancies", item)
+        self.assertIn("total_closed_vacancies", item)
+        self.assertIn("total_fully_filled_vacancies", item)
+        self.assertEqual(item["total_open_vacancies"], 1)
