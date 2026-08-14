@@ -4,9 +4,9 @@ Signals for the companies app.
 The most important one: when a Contract becomes Active/Signed (or
 loses that status) OR when a JobOrderPosition's quantity changes,
 re-check the parent JobOrder and auto-transition its status to
-"Fulfilled" if all positions are fully filled.
+"Full Filled" if all positions are fully filled.
 
-One-way only: we do NOT auto-revert Fulfilled back to Open. The
+One-way only: we do NOT auto-revert Full Filled back to Open. The
 admin can manually flip it if a position reopens.
 """
 from django.db.models.signals import post_save, post_delete
@@ -16,24 +16,23 @@ from api.models import Contract
 from .models import JobOrder, JobOrderPosition
 
 
-# Statuses that can auto-promote to Fulfilled. Cancelled / Closed /
-# Hold are intentionally excluded so a manual override sticks.
-_AUTO_PROMOTABLE_STATUSES = {
-    "Pending", "Open", "In Progress", "Active",
-}
+# Statuses that can auto-promote to "Full Filled". "Close" and
+# already-"Full Filled" are intentionally excluded so a manual
+# override sticks.
+_AUTO_PROMOTABLE_STATUSES = {"Open"}
 
 
 def _maybe_promote_to_fulfilled(job_order: JobOrder) -> None:
     """
     If every position under `job_order` is fully filled, AND the
-    current status is one of the auto-promotable ones, set the
-    status to "Fulfilled" and save. No-op otherwise.
+    current status is "Open", set the status to "Full Filled" and
+    save. No-op otherwise.
     """
     if job_order.status not in _AUTO_PROMOTABLE_STATUSES:
         return
     if not job_order.is_fully_filled():
         return
-    job_order.status = "Fulfilled"
+    job_order.status = "Full Filled"
     # update_fields avoids touching unrelated columns.
     job_order.save(update_fields=["status", "updated_at"])
 

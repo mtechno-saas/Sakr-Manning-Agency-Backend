@@ -65,14 +65,9 @@ class JobOrder(models.Model):
     Represents a formal manpower request from a Shipowner/Manager.
     """
     STATUS_CHOICES = [
-        ('Pending', 'Pending Review'),
         ('Open', 'Open / Sourcing'),
-        ('Hold', 'On Hold'),
-        ('Closed', 'Closed'),
-        ('Active', 'Active'),
-        ('In Progress', 'In Progress / Interviewing'),
-        ('Fulfilled', 'Fulfilled'),
-        ('Cancelled', 'Cancelled'),
+        ('Close', 'Closed'),
+        ('Full Filled', 'Full Filled'),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='job_orders')
@@ -80,12 +75,12 @@ class JobOrder(models.Model):
     reference_number = models.CharField(max_length=50, unique=True, help_text="e.g. JO-2024-001")
     request_date = models.DateField()
     target_joining_date = models.DateField()
-    
+
     # Details from workflow Step 1B
     vessel_type_override = models.CharField(max_length=100, blank=True, help_text="Override if different from ship's default")
     trading_area = models.CharField(max_length=100, blank=True)
-    
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending')
+
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Open')
     notes = models.TextField(blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)

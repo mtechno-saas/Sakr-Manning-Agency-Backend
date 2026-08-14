@@ -1,10 +1,9 @@
 """
 One-shot backfill: scan every JobOrder and, for any whose
-positions are all fully filled, set its status to "Fulfilled".
+positions are all fully filled, set its status to "Full Filled".
 
-Idempotent and additive: only transitions from the
-auto-promotable statuses (Pending, Open, In Progress, Active).
-Cancelled / Closed / Hold / Fulfilled are left alone so the
+Idempotent and additive: only transitions from "Open". Anything
+else ("Close", already "Full Filled") is left alone so the
 command can be re-run safely.
 
 Run with:
@@ -16,12 +15,12 @@ from django.core.management.base import BaseCommand
 from companies.models import JobOrder
 
 
-AUTO_PROMOTABLE_STATUSES = {"Pending", "Open", "In Progress", "Active"}
+AUTO_PROMOTABLE_STATUSES = {"Open"}
 
 
 class Command(BaseCommand):
     help = (
-        "Backfill JobOrder.status = 'Fulfilled' for any job order "
+        "Backfill JobOrder.status = 'Full Filled' for any job order "
         "whose positions are all fully filled. Idempotent."
     )
 
@@ -47,24 +46,24 @@ class Command(BaseCommand):
                 if dry:
                     self.stdout.write(
                         f"  [dry-run] WOULD promote: {jo.reference_number} "
-                        f"({jo.status} -> Fulfilled)"
+                        f"({jo.status} -> Full Filled)"
                     )
                 else:
-                    jo.status = "Fulfilled"
+                    jo.status = "Full Filled"
                     jo.save(update_fields=["status", "updated_at"])
                     self.stdout.write(self.style.SUCCESS(
-                        f"  Promoted: {jo.reference_number} -> Fulfilled"
+                        f"  Promoted: {jo.reference_number} -> Full Filled"
                     ))
                 promoted += 1
             else:
                 skipped += 1
 
-        # How many are already Fulfilled?
-        already = JobOrder.objects.filter(status="Fulfilled").count()
+        # How many are already Full Filled?
+        already = JobOrder.objects.filter(status="Full Filled").count()
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS(
-            f"Done. Promoted: {promoted}, already Fulfilled: {already}, "
+            f"Done. Promoted: {promoted}, already Full Filled: {already}, "
             f"skipped (not full): {skipped}"
         ))
         if dry:

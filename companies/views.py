@@ -42,15 +42,15 @@ class CompanyViewSet(viewsets.ModelViewSet):
         # Open positions stats
         from django.db.models import Q
         all_positions = JobOrderPosition.objects.filter(
-            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
+            job_order__status__in=['Open']
         ).annotate(
             filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
         )
-        
+
         total_open_positions = sum(max(0, p.quantity - p.filled_slots) for p in all_positions)
-        
+
         companies_with_positions = Company.objects.filter(
-            job_orders__status__in=['Open', 'Active', 'Pending', 'In Progress'],
+            job_orders__status__in=['Open'],
             job_orders__positions__in=[p.id for p in all_positions if p.quantity > p.filled_slots]
         ).distinct().count()
         
@@ -114,13 +114,10 @@ class CompanyViewSet(viewsets.ModelViewSet):
           ]
         }
         """
-        # Default: only positions whose parent job order is in a
-        # still-open status. Cancelled / Fulfilled / Closed orders
-        # are excluded.
-        default_open_statuses = ['Pending', 'Open', 'Hold',
-                                 'In Progress', 'Active']
-        allowed_statuses = default_open_statuses + ['Fulfilled',
-                                                   'Cancelled', 'Closed']
+        # Default: only positions whose parent job order is "Open".
+        # "Close" and "Full Filled" orders are excluded.
+        default_open_statuses = ['Open']
+        allowed_statuses = ['Open', 'Close', 'Full Filled']
 
         status_filter = request.query_params.get('status')
         if status_filter:

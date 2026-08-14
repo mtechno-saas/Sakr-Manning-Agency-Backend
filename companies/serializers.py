@@ -119,7 +119,7 @@ class CompanySerializer(serializers.ModelSerializer):
         
         positions = JobOrderPosition.objects.filter(
             job_order__company=obj,
-            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
+            job_order__status__in=['Open']
         ).annotate(
             filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
         )
@@ -136,7 +136,7 @@ class CompanySerializer(serializers.ModelSerializer):
         
         positions = JobOrderPosition.objects.filter(
             job_order__company=obj,
-            job_order__status__in=['Open', 'Active', 'Pending', 'In Progress']
+            job_order__status__in=['Open']
         ).select_related('rank').annotate(
             filled_slots=Count('contracts', filter=Q(contracts__status__in=['Active', 'Signed']))
         )

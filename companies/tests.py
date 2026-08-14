@@ -374,7 +374,7 @@ class OpenPositionsStatusEndpointTests(TestCase):
     Tests for GET /api/companies/open-positions-status/.
 
     One row per still-vacant JobOrderPosition. Filled positions
-    are skipped. Cancelled / Fulfilled / Closed orders are
+    are skipped. Cancelled / Full Filled / Closed orders are
     excluded by default.
     """
 
@@ -412,7 +412,7 @@ class OpenPositionsStatusEndpointTests(TestCase):
         # by default because status is not in the default open set)
         cls.jo_closed = _make_job_order(
             cls.company_a, cls.ship_a,
-            reference="JO-2026-003", status="Closed",
+            reference="JO-2026-003", status="Close",
         )
         cls.pos_closed = _make_position(cls.jo_closed, cls.rank_master, quantity=1)
 
@@ -517,8 +517,8 @@ class OpenPositionsStatusEndpointTests(TestCase):
 
     # ---- explicit status filter --------------------------------------
 
-    def test_status_filter_includes_closed_when_requested(self):
-        r = self.client.get(self._url() + "?status=Closed")
+    def test_status_filter_includes_close_when_requested(self):
+        r = self.client.get(self._url() + "?status=Close")
         self.assertEqual(r.status_code, 200)
         refs = [row["reference_number"] for row in r.data["results"]]
         self.assertIn("JO-2026-003", refs)
@@ -656,7 +656,7 @@ class JobOrderVacancyRollupsTests(TestCase):
     JobOrderPositions belonging to this JobOrder). A position is
     counted as:
       - "open"     if remaining_slots > 0  (quantity - filled > 0)
-      - "closed"   if remaining_slots == 0
+      - "Close"   if remaining_slots == 0
       - "fully filled" if filled_slots >= quantity AND quantity > 0
     """
 
@@ -787,7 +787,7 @@ class JobOrderVacancyRollupsTests(TestCase):
 class JobOrderAutoFulfilledSignalTests(TestCase):
     """
     Tests for the auto-transition signal: when all positions under
-    a JobOrder are fully filled, status auto-flips to "Fulfilled"
+    a JobOrder are fully filled, status auto-flips to "Full Filled"
     (one-way). Triggered by Contract post_save/post_delete and by
     JobOrderPosition post_save/post_delete.
     """
@@ -817,7 +817,7 @@ class JobOrderAutoFulfilledSignalTests(TestCase):
         _make_contract(u2, self.ship, self.company, self.rank_b, pos_b)
 
         jo.refresh_from_db()
-        self.assertEqual(jo.status, "Fulfilled")
+        self.assertEqual(jo.status, "Full Filled")
 
     def test_partial_fill_does_not_promote(self):
         jo = self._make_open_jo()
@@ -840,7 +840,7 @@ class JobOrderAutoFulfilledSignalTests(TestCase):
 
         _make_contract(u2, self.ship, self.company, self.rank_a, pos)
         jo.refresh_from_db()
-        self.assertEqual(jo.status, "Fulfilled", "should flip after 2/2")
+        self.assertEqual(jo.status, "Full Filled", "should flip after 2/2")
 
     def test_draft_contract_does_not_count(self):
         """Draft contracts don't fill slots, so they don't trigger."""
@@ -856,13 +856,13 @@ class JobOrderAutoFulfilledSignalTests(TestCase):
         """Pending is auto-promotable too."""
         jo = _make_job_order(
             self.company, self.ship,
-            reference="JO-FUL-PEND", status="Pending",
+            reference="JO-FUL-PEND", status="Open",
         )
         pos = _make_position(jo, self.rank_a, quantity=1)
         u = _make_user("ful-pend@example.com", "Pend", "Ful")
         _make_contract(u, self.ship, self.company, self.rank_a, pos)
         jo.refresh_from_db()
-        self.assertEqual(jo.status, "Fulfilled")
+        self.assertEqual(jo.status, "Full Filled")
 
     def test_cancelled_status_does_not_promote(self):
         """Cancelled orders stay Cancelled even if positions fill up."""
@@ -919,4 +919,6 @@ class JobOrderAutoFulfilledSignalTests(TestCase):
         pos.quantity = 1
         pos.save(update_fields=["quantity"])
         jo.refresh_from_db()
-        self.assertEqual(jo.status, "Fulfilled")
+        self.assertEqual(jo.status, "Full Filled")
+
+
