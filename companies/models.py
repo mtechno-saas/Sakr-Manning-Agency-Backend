@@ -97,6 +97,27 @@ class JobOrder(models.Model):
     def __str__(self):
         return f"{self.reference_number} - {self.company.company_name}"
 
+    def is_fully_filled(self) -> bool:
+        """
+        True when every position under this job order has been fully
+        filled. A position counts as fully filled only when its
+        quantity > 0 AND the number of Active/Signed contracts linked
+        to it is >= quantity. Positions with quantity=0 (data quality
+        edge case) are NOT counted as fully filled.
+        """
+        for pos in self.positions.all():
+            if pos.quantity <= 0:
+                return False
+            filled = sum(
+                1 for c in pos.contracts.all()
+                if c.status in ("Active", "Signed")
+            )
+            if filled < pos.quantity:
+                return False
+        # No positions at all -> not "fully filled" (no work was
+        # requested to begin with).
+        return self.positions.exists()
+
 
 class JobOrderPosition(models.Model):
     """

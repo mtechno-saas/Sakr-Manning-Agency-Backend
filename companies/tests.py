@@ -782,3 +782,141 @@ class JobOrderVacancyRollupsTests(TestCase):
         self.assertIn("total_closed_vacancies", item)
         self.assertIn("total_fully_filled_vacancies", item)
         self.assertEqual(item["total_open_vacancies"], 1)
+
+
+class JobOrderAutoFulfilledSignalTests(TestCase):
+    """
+    Tests for the auto-transition signal: when all positions under
+    a JobOrder are fully filled, status auto-flips to "Fulfilled"
+    (one-way). Triggered by Contract post_save/post_delete and by
+    JobOrderPosition post_save/post_delete.
+    """
+
+    def setUp(self):
+        from companies.models import JobOrder
+        self.company = _make_company("Fulfill Test Co.")
+        self.ship = _make_ship(name="MV Fulfill", imo="8888888", company=self.company)
+        self.rank_a = _make_rank(code="FUL-A", name="Fulfill A")
+        self.rank_b = _make_rank(code="FUL-B", name="Fulfill B")
+
+    def _make_open_jo(self, reference="JO-FUL-001"):
+        return _make_job_order(
+            self.company, self.ship,
+            reference=reference, status="Open",
+        )
+
+    # ---- core transition tests ---------------------------------------
+
+    def test_open_with_two_positions_promotes_when_both_filled(self):
+        jo = self._make_open_jo()
+        pos_a = _make_position(jo, self.rank_a, quantity=1)
+        pos_b = _make_position(jo, self.rank_b, quantity=1)
+        u1 = _make_user("ful-1@example.com", "Ful", "One")
+        u2 = _make_user("ful-2@example.com", "Ful", "Two")
+        _make_contract(u1, self.ship, self.company, self.rank_a, pos_a)
+        _make_contract(u2, self.ship, self.company, self.rank_b, pos_b)
+
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Fulfilled")
+
+    def test_partial_fill_does_not_promote(self):
+        jo = self._make_open_jo()
+        pos = _make_position(jo, self.rank_a, quantity=3)
+        u = _make_user("ful-partial@example.com", "Partial", "Ful")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos)
+
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Open")
+
+    def test_fully_fills_on_second_contract(self):
+        """Order stays Open until the LAST slot is filled, then flips."""
+        jo = self._make_open_jo()
+        pos = _make_position(jo, self.rank_a, quantity=2)
+        u1 = _make_user("ful-half1@example.com", "Half", "One")
+        u2 = _make_user("ful-half2@example.com", "Half", "Two")
+        _make_contract(u1, self.ship, self.company, self.rank_a, pos)
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Open", "should still be Open after 1/2")
+
+        _make_contract(u2, self.ship, self.company, self.rank_a, pos)
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Fulfilled", "should flip after 2/2")
+
+    def test_draft_contract_does_not_count(self):
+        """Draft contracts don't fill slots, so they don't trigger."""
+        jo = self._make_open_jo()
+        pos = _make_position(jo, self.rank_a, quantity=1)
+        u = _make_user("ful-draft@example.com", "Draft", "Only")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos,
+                       status="Draft")
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Open")
+
+    def test_pending_status_also_promotes(self):
+        """Pending is auto-promotable too."""
+        jo = _make_job_order(
+            self.company, self.ship,
+            reference="JO-FUL-PEND", status="Pending",
+        )
+        pos = _make_position(jo, self.rank_a, quantity=1)
+        u = _make_user("ful-pend@example.com", "Pend", "Ful")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos)
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Fulfilled")
+
+    def test_cancelled_status_does_not_promote(self):
+        """Cancelled orders stay Cancelled even if positions fill up."""
+        jo = _make_job_order(
+            self.company, self.ship,
+            reference="JO-FUL-CANC", status="Cancelled",
+        )
+        pos = _make_position(jo, self.rank_a, quantity=1)
+        u = _make_user("ful-canc@example.com", "Canc", "Ful")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos)
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Cancelled")
+
+    def test_hold_status_does_not_promote(self):
+        """Hold is a manual override; signal must not flip it."""
+        jo = _make_job_order(
+            self.company, self.ship,
+            reference="JO-FUL-HOLD", status="Hold",
+        )
+        pos = _make_position(jo, self.rank_a, quantity=1)
+        u = _make_user("ful-hold@example.com", "Hold", "Ful")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos)
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Hold")
+
+    def test_no_positions_does_not_promote(self):
+        """A job order with zero positions is not 'fully filled'."""
+        jo = self._make_open_jo(reference="JO-FUL-EMPTY")
+        # No positions at all
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Open")
+
+    def test_position_quantity_zero_does_not_promote(self):
+        """Broken data: quantity=0 must not count as fully filled."""
+        jo = self._make_open_jo(reference="JO-FUL-ZERO")
+        pos = _make_position(jo, self.rank_a, quantity=0)
+        u = _make_user("ful-zero@example.com", "Zero", "Qty")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos)
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Open")
+
+    def test_position_quantity_change_triggers_recheck(self):
+        """Reducing an open position's quantity to 0 with a filled
+        contract does NOT promote (because quantity=0 is not a real
+        vacancy)."""
+        jo = self._make_open_jo(reference="JO-FUL-QTY")
+        pos = _make_position(jo, self.rank_a, quantity=2)
+        u = _make_user("ful-qty@example.com", "Qty", "Ful")
+        _make_contract(u, self.ship, self.company, self.rank_a, pos)
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Open", "1/2 still leaves 1 open")
+
+        # Now reduce quantity to 1 — should fill
+        pos.quantity = 1
+        pos.save(update_fields=["quantity"])
+        jo.refresh_from_db()
+        self.assertEqual(jo.status, "Fulfilled")
