@@ -2,16 +2,21 @@
 Tests for the notifications app.
 
 Coverage:
-  1. ``Reminder`` post_save sends an email to the admin (request user).
+  1. ``Reminder`` post_save sends an email to the shared admin inbox.
   2. ``Reminder`` post_save on UPDATE is silent (no email).
-  3. ``PersonalDocument`` post_save sends an email to the admin.
+  3. ``PersonalDocument`` post_save sends an email to the shared inbox.
   4. ``PersonalDocument`` post_save on UPDATE is silent.
   5. No actor (anonymous / management command) -> no email, no crash.
-  6. Actor has no email -> no email, no crash.
-  7. SMTP failure does not propagate (best-effort sender).
-  8. Thread-local cleanup between requests.
-  9. End-to-end: POST /api/reminders/ as an authenticated admin -> 1 email
-     in mail.outbox.
+  6. NOTIFICATIONS_ADMIN_EMAIL setting missing -> no email, no crash.
+  7. NOTIFICATIONS_ADMIN_EMAIL can be overridden via override_settings.
+  8. SMTP failure does not propagate (best-effort sender).
+  9. Thread-local cleanup between requests.
+ 10. End-to-end: POST /api/reminders/ as an authenticated admin -> 1 email
+     in mail.outbox to the shared inbox.
+
+The actor (request user) is still used for the email body greeting and
+the "Hi <actor>, you set ..." line — only the recipient is now a
+single shared inbox, not the actor's own email.
 
 Run with: python manage.py test notifications --keepdb
 """
@@ -26,6 +31,10 @@ from api.models import PersonalDocument, Users
 from reminders.models import Reminder
 
 from core import threadlocals
+
+
+# All admin notifications land here by default.
+ADMIN_INBOX = "crew@sakrshipping.com"
 
 
 # ---------------------------------------------------------------------------
@@ -89,7 +98,10 @@ class ReminderNotificationTests(TestCase):
         )
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
-        self.assertEqual(msg.to, [self.admin.email])
+        # Recipient is the SHARED admin inbox, not the actor's email.
+        self.assertEqual(msg.to, [ADMIN_INBOX])
+        # Body still names the actor for traceability.
+        self.assertIn("Admin Root", msg.body)
         self.assertIn("John", msg.subject)
         self.assertIn(str(r.id), msg.body)
         self.assertIn("2026-09-01", msg.body)
@@ -109,7 +121,13 @@ class ReminderNotificationTests(TestCase):
         r.save()
         self.assertEqual(len(mail.outbox), 0)
 
-    def test_no_actor_no_email(self):
+    def test_no_actor_still_sends_to_shared_inbox(self):
+        """
+        With a shared inbox, the recipient is the setting value, not
+        the actor. So a write from an anonymous / management-command
+        context still produces a notification, just with a generic
+        greeting ("Hi An admin,") instead of a specific actor name.
+        """
         _clear_actor()
         Reminder.objects.create(
             user=self.crew,
@@ -117,9 +135,17 @@ class ReminderNotificationTests(TestCase):
             reminder_date=datetime.date(2026, 9, 1),
             reminder_time=datetime.time(10, 30),
         )
-        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [ADMIN_INBOX])
+        self.assertIn("An admin", mail.outbox[0].body)
 
-    def test_actor_with_no_email_skips(self):
+    def test_actor_with_no_email_still_sends(self):
+        """
+        Per spec, the recipient is the shared inbox, not the actor's
+        own email. So even an actor with no email still triggers a
+        notification to the inbox. The body just falls back to a
+        generic greeting.
+        """
         anon_admin = Users.objects.create_user(
             email="no-email@example.com",
             password="x",
@@ -127,8 +153,9 @@ class ReminderNotificationTests(TestCase):
             middle_name="Email",
             role="Admin",
         )
-        anon_admin.email = ""
-        anon_admin.save(update_fields=["email"])
+        # Blank the email AFTER creation (model has unique=True).
+        Users.objects.filter(pk=anon_admin.pk).update(email="")
+        anon_admin.refresh_from_db()
         _set_actor(anon_admin)
         Reminder.objects.create(
             user=self.crew,
@@ -136,7 +163,31 @@ class ReminderNotificationTests(TestCase):
             reminder_date=datetime.date(2026, 9, 1),
             reminder_time=datetime.time(10, 30),
         )
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [ADMIN_INBOX])
+
+    @override_settings(NOTIFICATIONS_ADMIN_EMAIL="")
+    def test_missing_admin_email_setting_skips(self):
+        """If NOTIFICATIONS_ADMIN_EMAIL is empty, no email is sent."""
+        Reminder.objects.create(
+            user=self.crew,
+            text="No inbox",
+            reminder_date=datetime.date(2026, 9, 1),
+            reminder_time=datetime.time(10, 30),
+        )
         self.assertEqual(len(mail.outbox), 0)
+
+    @override_settings(NOTIFICATIONS_ADMIN_EMAIL="alerts@sakrshipping.com")
+    def test_admin_email_override_via_setting(self):
+        """The recipient is the setting value, configurable per deploy."""
+        Reminder.objects.create(
+            user=self.crew,
+            text="Override me",
+            reminder_date=datetime.date(2026, 9, 1),
+            reminder_time=datetime.time(10, 30),
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["alerts@sakrshipping.com"])
 
     def test_smtp_failure_does_not_break_signal(self):
         with mock.patch(
@@ -181,7 +232,7 @@ class ExpiringDocumentNotificationTests(TestCase):
         )
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
-        self.assertEqual(msg.to, [self.admin.email])
+        self.assertEqual(msg.to, [ADMIN_INBOX])
         self.assertIn("Passport", msg.subject)
         # Subject uses the human label (full_name) of the crew member.
         self.assertIn("John Smith", msg.subject)
@@ -201,14 +252,16 @@ class ExpiringDocumentNotificationTests(TestCase):
         doc.save()
         self.assertEqual(len(mail.outbox), 0)
 
-    def test_no_actor_no_email(self):
+    def test_no_actor_still_sends_to_shared_inbox(self):
+        """See ReminderNotificationTests.test_no_actor_still_sends..."""
         _clear_actor()
         PersonalDocument.objects.create(
             user=self.crew,
             document_type="Passport",
             expiry_date=datetime.date(2027, 1, 1),
         )
-        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [ADMIN_INBOX])
 
     def test_smtp_failure_does_not_break_signal(self):
         with mock.patch(
@@ -237,19 +290,13 @@ class ThreadLocalActorTests(TestCase):
 
         # We just need a lightweight endpoint that authenticates — list reminders.
         # The middleware should set the actor, then clear it on the way out.
-        # We can't easily observe the threadlocal from outside, but the email
-        # side-effect is the proof: an authenticated request should produce
-        # exactly one email.
         _clear_actor()
-        mail.outbox = []
-        r = Reminder.objects.create(
-            user=admin,  # crew can be the admin themselves for simplicity
-            text="via API path",
-            reminder_date=datetime.date(2026, 9, 1),
-            reminder_time=datetime.time(10, 30),
-        )
-        # Created via the ORM, not via HTTP — the threadlocal is empty.
-        self.assertEqual(len(mail.outbox), 0)
+        # No ORM write here — we just want to verify the threadlocal is
+        # cleared after the request. (Under the old per-user design this
+        # also asserted no email; with the shared inbox we can't make
+        # that assertion any more, so we just check the threadlocal.)
+        resp = client.get("/api/reminders/")
+        self.assertEqual(resp.status_code, 200)
         self.assertIsNone(threadlocals.get_current_user())
 
     def test_middleware_sets_actor_for_authenticated_request(self):
@@ -305,7 +352,7 @@ class NotificationsEndToEndTests(TestCase):
             # Signal fires inside the request, so by the time the
             # response is returned, the email is already in mail.outbox.
             self.assertEqual(len(mail.outbox), 1)
-            self.assertEqual(mail.outbox[0].to, [admin.email])
+            self.assertEqual(mail.outbox[0].to, [ADMIN_INBOX])
             self.assertIn("E2E test reminder", mail.outbox[0].body)
         finally:
             _clear_actor()
@@ -332,7 +379,7 @@ class NotificationsEndToEndTests(TestCase):
             )
             self.assertIn(resp.status_code, (200, 201), resp.content)
             self.assertEqual(len(mail.outbox), 1)
-            self.assertEqual(mail.outbox[0].to, [admin.email])
+            self.assertEqual(mail.outbox[0].to, [ADMIN_INBOX])
             self.assertIn("Passport", mail.outbox[0].body)
             self.assertIn("P-999", mail.outbox[0].body)
         finally:

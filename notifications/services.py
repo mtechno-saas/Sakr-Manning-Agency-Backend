@@ -37,8 +37,8 @@ def _actor() -> Optional[User]:
     Return the user who triggered the current request, or None.
 
     The ``CurrentUserMiddleware`` mirrors ``request.user`` into a
-    thread-local. Signal handlers call this so the email can be
-    addressed to the admin who actually did the work.
+    thread-local. Signal handlers call this so the email body can
+    say "Hi <actor name>, you set ..." for traceability.
     """
     actor = get_current_user()
     if actor is None or not getattr(actor, "is_authenticated", False):
@@ -46,13 +46,24 @@ def _actor() -> Optional[User]:
     return actor
 
 
-def _actor_email_or_none(actor) -> Optional[str]:
-    if not actor:
+def _recipient_email() -> Optional[str]:
+    """
+    Return the address that should receive admin notifications.
+
+    All admin notifications go to a single shared inbox (the
+    ``NOTIFICATIONS_ADMIN_EMAIL`` setting, defaults to
+    ``crew@sakrshipping.com``). This gives the team one place to
+    monitor what was recorded, regardless of which admin/HR/Recruiter
+    did the work. The actual actor is still recorded in the email body.
+    """
+    to = getattr(settings, "NOTIFICATIONS_ADMIN_EMAIL", None)
+    if not to or not isinstance(to, str) or not to.strip():
+        logger.warning(
+            "notifications: NOTIFICATIONS_ADMIN_EMAIL is not set; "
+            "no admin notification will be sent."
+        )
         return None
-    email = getattr(actor, "email", None)
-    if not email:
-        return None
-    return email
+    return to.strip()
 
 
 def _send(
@@ -131,18 +142,21 @@ def _crew_label(user) -> str:
 
 def send_reminder_notification(reminder) -> bool:
     """
-    Email the admin who created ``reminder`` (the request user).
+    Email the shared admin inbox about a new ``reminder``.
 
-    Includes a short receipt-style summary so the admin can confirm the
-    reminder landed in the right place. The crew member the reminder
-    is for is NOT emailed (per product decision: admin-only).
+    The recipient is the team's shared inbox
+    (``settings.NOTIFICATIONS_ADMIN_EMAIL``) so the whole admin/HR team
+    sees every reminder that gets set. The actual actor (the
+    request user) is recorded in the email body ("Hi <actor>, you
+    set ...") for traceability. The crew member the reminder is for
+    is NOT emailed.
     """
     actor = _actor()
-    to_email = _actor_email_or_none(actor)
+    to_email = _recipient_email()
     if not to_email:
         logger.info(
-            "notifications: no actor email; skipping reminder notification "
-            "for Reminder id=%s",
+            "notifications: no NOTIFICATIONS_ADMIN_EMAIL; skipping "
+            "reminder notification for Reminder id=%s",
             getattr(reminder, "id", None),
         )
         return False
@@ -173,17 +187,17 @@ def send_reminder_notification(reminder) -> bool:
 
 def send_expiring_document_notification(doc) -> bool:
     """
-    Email the admin who uploaded ``doc`` (a PersonalDocument).
+    Email the shared admin inbox about a new ``doc`` (a PersonalDocument).
 
-    Includes the document type, owner, and expiry date so the admin
-    has a paper trail of what was recorded.
+    Recipient is the team's shared inbox. The actor (request user)
+    is recorded in the body.
     """
     actor = _actor()
-    to_email = _actor_email_or_none(actor)
+    to_email = _recipient_email()
     if not to_email:
         logger.info(
-            "notifications: no actor email; skipping expiring-document "
-            "notification for PersonalDocument id=%s",
+            "notifications: no NOTIFICATIONS_ADMIN_EMAIL; skipping "
+            "expiring-document notification for PersonalDocument id=%s",
             getattr(doc, "id", None),
         )
         return False

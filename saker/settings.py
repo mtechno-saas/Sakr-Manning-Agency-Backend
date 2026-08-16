@@ -350,6 +350,23 @@ EMAIL_HOST_USER = 'mtechsaas@gmail.com'
 EMAIL_HOST_PASSWORD = 'udnw dixo vjsq yuqw'
 DEFAULT_FROM_EMAIL = 'Sakr Manning Agency <crew@sakrshipping.com>'
 
+# ----------------------------------------------------------------------------
+# Notifications
+# ----------------------------------------------------------------------------
+# Single shared inbox that receives every Reminder and PersonalDocument
+# admin notification. All admin/HR/Recruiter activity lands here so the
+# team has one place to monitor what was recorded. The user who actually
+# triggered the write is still recorded in the email body ("You set ...")
+# so traceability isn't lost.
+#
+# Override with the env var NOTIFICATIONS_ADMIN_EMAIL if you need to
+# redirect to a different mailbox without code changes.
+import os
+NOTIFICATIONS_ADMIN_EMAIL = os.environ.get(
+    'NOTIFICATIONS_ADMIN_EMAIL',
+    'crew@sakrshipping.com',
+)
+
 # Logging configuration - captures Django errors to a file
 import os
 
