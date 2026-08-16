@@ -449,11 +449,103 @@ class OpenPositionsStatusEndpointTests(TestCase):
             self.skipTest("No open positions in fixture")
         for row in r.data["results"]:
             for k in (
-                "reference_number", "principal", "position_title",
-                "vacancies", "status", "job_order_number",
+                "reference_number", "principal", "position_title", "position",
+                "vacancies", "count", "salary", "remarks",
+                "status", "job_order_number",
                 "request_date", "target_join_date",
             ):
                 self.assertIn(k, row, f"missing {k!r} in row {row!r}")
+            # salary is an object with min/max/currency
+            for sk in ("min", "max", "currency"):
+                self.assertIn(sk, row["salary"], f"missing salary.{sk}")
+
+    def test_position_field_mirrors_position_title(self):
+        """``position`` is an alias for the rank name (position_title)."""
+        r = self.client.get(self._url())
+        if not r.data["results"]:
+            self.skipTest("No open positions in fixture")
+        for row in r.data["results"]:
+            self.assertEqual(row["position"], row["position_title"])
+
+    def test_count_field_is_total_quantity(self):
+        """``count`` is the position's requested quantity (total slots)."""
+        r = self.client.get(self._url())
+        if not r.data["results"]:
+            self.skipTest("No open positions in fixture")
+        by_ref = {row["reference_number"]: row for row in r.data["results"]}
+        # pos_master (q=3) and pos_chief (q=1) under JO-2026-001
+        self.assertIn("JO-2026-001", by_ref)
+        counts_for_jo = [
+            row["count"] for row in r.data["results"]
+            if row["reference_number"] == "JO-2026-001"
+        ]
+        self.assertEqual(sorted(counts_for_jo), [1, 3])
+
+    def test_salary_object_serialized_with_currency(self):
+        """``salary`` carries min, max and currency as strings."""
+        # Override salary on one position so we can assert exact values.
+        self.pos_master.salary_min = "4500.00"
+        self.pos_master.salary_max = "8000.00"
+        self.pos_master.currency = "USD"
+        self.pos_master.save(update_fields=["salary_min", "salary_max", "currency"])
+
+        r = self.client.get(self._url())
+        if not r.data["results"]:
+            self.skipTest("No open positions in fixture")
+        master_row = next(
+            row for row in r.data["results"]
+            if row["position_title"] == "Master"
+            and row["reference_number"] == "JO-2026-001"
+        )
+        self.assertEqual(master_row["salary"], {
+            "min": "4500.00",
+            "max": "8000.00",
+            "currency": "USD",
+        })
+
+    def test_salary_object_null_when_unset(self):
+        """If salary_min/max are not set, they come back as null."""
+        # pos_chief was created with default helper salary_min=5000,
+        # salary_max=8000; clear them to test the null path.
+        self.pos_chief.salary_min = None
+        self.pos_chief.salary_max = None
+        self.pos_chief.save(update_fields=["salary_min", "salary_max"])
+
+        r = self.client.get(self._url())
+        chief_row = next(
+            row for row in r.data["results"]
+            if row["position_title"] == "Chief Officer"
+            and row["reference_number"] == "JO-2026-001"
+        )
+        self.assertIsNone(chief_row["salary"]["min"])
+        self.assertIsNone(chief_row["salary"]["max"])
+        # currency still has the model default
+        self.assertEqual(chief_row["salary"]["currency"], "USD")
+
+    def test_remarks_field(self):
+        """``remarks`` mirrors JobOrderPosition.remarks (string, '' when blank)."""
+        self.pos_chief.remarks = "Must have GMDSS cert"
+        self.pos_chief.save(update_fields=["remarks"])
+        # Clear the default helper-set remark on the master position
+        # so we can verify the empty-string fallback.
+        self.pos_master.remarks = ""
+        self.pos_master.save(update_fields=["remarks"])
+
+        r = self.client.get(self._url())
+        chief_row = next(
+            row for row in r.data["results"]
+            if row["position_title"] == "Chief Officer"
+            and row["reference_number"] == "JO-2026-001"
+        )
+        self.assertEqual(chief_row["remarks"], "Must have GMDSS cert")
+        # Empty remarks on the model surface as "" (not null) for
+        # stable JSON shape.
+        master_row = next(
+            row for row in r.data["results"]
+            if row["position_title"] == "Master"
+            and row["reference_number"] == "JO-2026-001"
+        )
+        self.assertEqual(master_row["remarks"], "")
 
     # ---- content filtering --------------------------------------------
 

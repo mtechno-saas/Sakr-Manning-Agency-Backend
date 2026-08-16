@@ -166,11 +166,27 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 # Skip fully-filled positions even if the parent
                 # job order is still nominally open.
                 continue
+            # ``salary`` is a Decimal on the position; serialise as
+            # a plain string to avoid float/decimal ambiguity.
+            salary_min = (
+                str(pos.salary_min) if pos.salary_min is not None else None
+            )
+            salary_max = (
+                str(pos.salary_max) if pos.salary_max is not None else None
+            )
             results.append({
                 "reference_number": pos.job_order.reference_number,
                 "principal": pos.job_order.company.company_name,
                 "position_title": pos.rank.name if pos.rank else "",
+                "position": pos.rank.name if pos.rank else "",
+                "count": pos.quantity,
                 "vacancies": vacancies,
+                "salary": {
+                    "min": salary_min,
+                    "max": salary_max,
+                    "currency": pos.currency or None,
+                },
+                "remarks": pos.remarks or "",
                 "status": pos.job_order.status,
                 "job_order_number": pos.job_order_id,
                 "request_date": (

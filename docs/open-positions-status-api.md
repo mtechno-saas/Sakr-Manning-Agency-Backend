@@ -1,65 +1,27 @@
-# Open Positions Status API
+# Open Positions Status
 
-`GET /api/companies/open-positions-status/` — flat report listing
-one row per vacant `JobOrderPosition`, with the principal
-(company), position title (rank), remaining vacancies, and the
-parent job order's status / dates. Drives the Open Positions
-Status UI.
+`GET /api/companies/open-positions-status/` — one row per still-vacant `JobOrderPosition`. Used by the Open Positions Status UI.
 
----
-
-## Base URL
-
-```
-https://backend.sakrshipping.com
-```
-
-## Auth
-
-```
-Authorization: Bearer <access_token>
-```
-
-Any authenticated user.
-
----
-
-## Method
-
-| Method | Path |
-|--------|------|
-| `GET` | `/api/companies/open-positions-status/` |
-
-## Query params (all optional)
-
-| Name | Default | Notes |
-|------|---------|-------|
-| `status` | `Pending`, `Open`, `Hold`, `In Progress`, `Active` | Restrict to one of: `Pending`, `Open`, `Hold`, `In Progress`, `Active`, `Fulfilled`, `Cancelled`, `Closed`. |
-| `principal` | (all) | Numeric company id; only that principal's rows. |
-| `position_title` | (all) | Case-insensitive contains-match on rank name. |
-
-## Response 200 OK
+## Response shape (200 OK)
 
 ```json
 {
   "total_records": 2,
-  "report_date": "2026-08-11",
+  "report_date": "2026-08-16",
   "results": [
     {
       "reference_number": "JO-2026-001",
       "principal": "Maersk Line",
-      "position_title": "Master / Captain",
+      "position_title": "Master",
+      "position": "Master",
+      "count": 3,
       "vacancies": 3,
-      "status": "Open",
-      "job_order_number": 1,
-      "request_date": "2026-01-15",
-      "target_join_date": "2026-03-01"
-    },
-    {
-      "reference_number": "JO-2026-001",
-      "principal": "Maersk Line",
-      "position_title": "Chief Officer",
-      "vacancies": 1,
+      "salary": {
+        "min": "4500.00",
+        "max": "8000.00",
+        "currency": "USD"
+      },
+      "remarks": "Must have GMDSS cert",
       "status": "Open",
       "job_order_number": 1,
       "request_date": "2026-01-15",
@@ -69,62 +31,43 @@ Any authenticated user.
 }
 ```
 
-### Field map
+## Field-by-field
 
 | Field | Source | Notes |
-|-------|--------|-------|
-| `reference_number` | `JobOrder.reference_number` | e.g. `"JO-2024-001"` |
-| `principal` | `JobOrder.company.company_name` | The principal's display name |
-| `position_title` | `JobOrderPosition.rank.name` | The rank for this position |
-| `vacancies` | `quantity - filled_slots` | Remaining slots, **only rows with `vacancies > 0` are returned** |
-| `status` | `JobOrder.status` | Parent job order's status |
-| `job_order_number` | `JobOrder.id` (numeric PK) | Distinct from the human-readable `reference_number` |
-| `request_date` | `JobOrder.request_date` | ISO 8601 (`YYYY-MM-DD`) |
-| `target_join_date` | `JobOrder.target_joining_date` | ISO 8601 (`YYYY-MM-DD`) |
+|---|---|---|
+| `reference_number` | `JobOrder.reference_number` | The job order's reference, e.g. `JO-2026-001` |
+| `principal` | `JobOrder.company.company_name` | The company that issued the job order |
+| `position_title` | `JobOrderPosition.rank.name` | The rank title |
+| `position` | `JobOrderPosition.rank.name` | Alias of `position_title` (same value) |
+| `count` | `JobOrderPosition.quantity` | Total slots requested for this position |
+| `vacancies` | `quantity - filled_slots` (max 0) | Remaining unfilled slots |
+| `salary.min` | `JobOrderPosition.salary_min` (string) | `null` when not set on the position |
+| `salary.max` | `JobOrderPosition.salary_max` (string) | `null` when not set on the position |
+| `salary.currency` | `JobOrderPosition.currency` | e.g. `USD`, `EUR` |
+| `remarks` | `JobOrderPosition.remarks` | `""` (empty string, not `null`) when blank |
+| `status` | `JobOrder.status` | One of `Open` / `Close` / `Full Filled` |
+| `job_order_number` | `JobOrder.id` | The job order's database pk |
+| `request_date` | `JobOrder.request_date` (ISO 8601) | |
+| `target_join_date` | `JobOrder.target_joining_date` (ISO 8601) | |
 
-### Top-level
+## Filtering
 
-| Field | Notes |
-|-------|-------|
-| `total_records` | `len(results)`, i.e. the number of *vacant* positions in the filtered set |
-| `report_date` | Today's local date — captures the moment the report was generated |
-| `results` | Array of position rows as above |
+Optional query params:
 
-## Examples
+- `?status=Open` — change the default filter (default: only `Open` job orders). Allowed: `Open`, `Close`, `Full Filled`. Invalid values return 400.
+- `?principal=12` — filter by company id.
+- `?position_title=Master` — case-insensitive contains-match on the rank name.
 
-```bash
-# Default — all currently open positions
-curl 'https://backend.sakrshipping.com/api/companies/open-positions-status/' \
-  -H "Authorization: Bearer $TOKEN"
+## Default behavior
 
-# Only one company
-curl '.../api/companies/open-positions-status/?principal=3' \
-  -H "Authorization: Bearer $TOKEN"
+- Excludes `Close` and `Full Filled` job orders by default — only `Open` ones show up.
+- Skips fully-filled positions even if the parent job order is still nominally open (so a `quantity=3, filled=3` position won't appear).
 
-# Only a specific rank
-curl '.../api/companies/open-positions-status/?position_title=chief' \
-  -H "Authorization: Bearer $TOKEN"
+## Sorting
 
-# Include closed/cancelled orders
-curl '.../api/companies/open-positions-status/?status=Closed' \
-  -H "Authorization: Bearer $TOKEN"
-```
+Results are ordered by `request_date` ASC, then `reference_number` ASC, then `rank.name` ASC.
 
-## What's NOT included
+## Files
 
-- **Salary range** (covered by `GET /api/companies/job-positions/`)
-- **Vessel name** (covered by `GET /api/companies/job-orders/`)
-- **Assigned crew** (covered by `GET /api/companies/job-positions/`)
-- **Historical changes** (this is a current-state snapshot, not a log)
-
-## Error responses
-
-```json
-{ "error": "Invalid status 'Bogus'. Allowed: ['Pending', 'Open', 'Hold', 'In Progress', 'Active', 'Fulfilled', 'Cancelled', 'Closed']" }
-```
-
-| Status | When |
-|--------|------|
-| 400 | Invalid `status` value |
-| 401 | No token / invalid token |
-| 500 | Server error |
+- `companies/views.py` — `CompanyViewSet.open_positions_status` action.
+- `companies/tests.py` — `OpenPositionsStatusEndpointTests` (19 tests).
