@@ -25,8 +25,13 @@
       "ship_name": "MV Pacific",
       "rank": "Master",
       "contract_status": "Active",
+      "salary": "4500.00",
+      "currency": "USD",
+      "availability_date": "2026-09-01",
       "sign_on_date": "2026-08-01",
-      "sign_off_date": null
+      "sign_off_date": null,
+      "request_number": "JO-2026-042",
+      "target_join_date": "2026-12-15"
     },
     {
       "contract_id": 18,
@@ -37,8 +42,13 @@
       "ship_name": "MV Atlantic",
       "rank": "Chief Officer",
       "contract_status": "Signed",
+      "salary": "5200.00",
+      "currency": "USD",
+      "availability_date": null,
       "sign_on_date": "2026-08-15",
-      "sign_off_date": null
+      "sign_off_date": null,
+      "request_number": "JO-2026-042",
+      "target_join_date": "2026-12-15"
     }
   ]
 }
@@ -62,12 +72,17 @@ One row per `Contract` whose `job_position` belongs to this JobOrder. Every cont
 | `ship_name` | `Contract.ship.ship_name` | |
 | `rank` | `JobOrderPosition.rank.name` | Falls back to the contract's stored rank if the position has no rank |
 | `contract_status` | `Contract.status` | |
+| `salary` | `Contract.salary` (string) | `null` when not set on the contract. Serialized as a plain string (e.g. `"4500.00"`) to avoid float/decimal ambiguity |
+| `currency` | `Contract.currency` | e.g. `USD`, `EUR` |
+| `availability_date` | `Users.available_date` (ISO 8601) or `null` | When the crew member is free to join |
 | `sign_on_date` | `Contract.sign_on_date` (ISO 8601) | |
 | `sign_off_date` | `Contract.sign_off_date` (ISO 8601) or `null` | |
+| `request_number` | `JobOrder.reference_number` | Repeated on every crew row so the flat list is self-describing |
+| `target_join_date` | `JobOrder.target_joining_date` (ISO 8601) or `null` | Repeated on every crew row for the same reason |
 
 ## Performance
 
-The viewset's `get_queryset` prefetches `positions__contracts__user`, `__ship`, and `__job_position__rank` so the field is computed with a constant number of queries regardless of how many crew are assigned.
+The viewset's `get_queryset` prefetches `positions__contracts__user`, `__ship`, `__job_position__rank`, and `__job_position__job_order` so the field is computed with a constant number of queries regardless of how many crew are assigned.
 
 ## When `assigned_crew` is `[]`
 
@@ -76,5 +91,6 @@ The common case for a brand-new "Open" JobOrder — no contracts have been creat
 ## Files touched
 
 - `companies/serializers.py` — new `assigned_crew` `SerializerMethodField` and `_user_name` helper on `JobOrderSerializer`
-- `companies/views.py` — viewset prefetch extended with `__ship` and `__job_position__rank`
-- `companies/tests.py` — 7 new tests in `JobOrderAssignedCrewTests`
+- `companies/views.py` — viewset prefetch extended with `__ship`, `__job_position__rank`, `__job_position__job_order`
+- `companies/tests.py` — 12 tests in `JobOrderAssignedCrewTests`
+

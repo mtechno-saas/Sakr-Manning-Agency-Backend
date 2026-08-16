@@ -217,6 +217,7 @@ class JobOrderViewSet(viewsets.ModelViewSet):
         'positions__contracts__user',
         'positions__contracts__ship',
         'positions__contracts__job_position__rank',
+        'positions__contracts__job_position__job_order',
     )
     serializer_class = JobOrderSerializer
     filterset_class = JobOrderFilter

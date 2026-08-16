@@ -322,11 +322,25 @@ class JobOrderSerializer(serializers.ModelSerializer):
         Returns [] when nothing is assigned yet (the common case for a
         brand-new "Open" job order).
         """
+        # Pulled off `obj` once so each crew row can re-use it.
+        request_number = getattr(obj, "reference_number", None)
+        target_joining_date = (
+            obj.target_joining_date.isoformat()
+            if getattr(obj, "target_joining_date", None)
+            else None
+        )
+
         rows = []
         for pos in self._positions(obj):
             for c in pos.contracts.all():
                 user = getattr(c, "user", None)
                 ship = getattr(c, "ship", None)
+                # ``salary`` is a Decimal on the contract; we want it
+                # to serialize as a plain string so the API doesn't
+                # surprise clients with float-vs-decimal quirks.
+                salary = getattr(c, "salary", None)
+                salary_str = str(salary) if salary is not None else None
+                currency = getattr(c, "currency", None) or None
                 rows.append({
                     "contract_id": c.id,
                     "user_id": getattr(user, "id", None),
@@ -340,6 +354,14 @@ class JobOrderSerializer(serializers.ModelSerializer):
                         and getattr(c.rank, "name", None)
                     ),
                     "contract_status": c.status,
+                    "salary": salary_str,
+                    "currency": currency,
+                    "availability_date": (
+                        user.available_date.isoformat()
+                        if user is not None
+                        and getattr(user, "available_date", None)
+                        else None
+                    ),
                     "sign_on_date": (
                         c.sign_on_date.isoformat()
                         if getattr(c, "sign_on_date", None)
@@ -350,6 +372,10 @@ class JobOrderSerializer(serializers.ModelSerializer):
                         if getattr(c, "sign_off_date", None)
                         else None
                     ),
+                    # Job-order context, repeated on every crew row so
+                    # the flat list is self-describing.
+                    "request_number": request_number,
+                    "target_join_date": target_joining_date,
                 })
         return rows
 

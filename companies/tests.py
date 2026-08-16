@@ -916,6 +916,69 @@ class JobOrderAssignedCrewTests(TestCase):
         self.assertRegex(row["sign_on_date"], r"^\d{4}-\d{2}-\d{2}$")
         self.assertIsNone(row["sign_off_date"])
 
+    def test_assigned_crew_includes_salary_currency(self):
+        """Contract salary + currency come through as strings."""
+        jo = _make_job_order(self.company, self.ship_a, reference="JO-SAL-1")
+        pos = _make_position(jo, self.rank, quantity=1)
+        c = _make_contract(self.crew1, self.ship_a, self.company, self.rank, pos, status="Active")
+        c.salary = "4500.00"
+        c.currency = "USD"
+        c.save()
+        r = self.client.get(self._detail_url(jo.id))
+        row = r.data["assigned_crew"][0]
+        self.assertEqual(row["salary"], "4500.00")
+        self.assertEqual(row["currency"], "USD")
+
+    def test_assigned_crew_salary_nullable(self):
+        """If salary isn't set on the contract, the field is null."""
+        jo = _make_job_order(self.company, self.ship_a, reference="JO-NOSAL-1")
+        pos = _make_position(jo, self.rank, quantity=1)
+        _make_contract(self.crew1, self.ship_a, self.company, self.rank, pos, status="Active")
+        r = self.client.get(self._detail_url(jo.id))
+        row = r.data["assigned_crew"][0]
+        self.assertIsNone(row["salary"])
+        # currency defaults to "USD" on the model
+        self.assertEqual(row["currency"], "USD")
+
+    def test_assigned_crew_availability_date(self):
+        """availability_date comes from Users.available_date."""
+        # available_date is on Users; set it directly after creation.
+        self.crew1.available_date = datetime.date(2026, 9, 1)
+        self.crew1.save(update_fields=["available_date"])
+        jo = _make_job_order(self.company, self.ship_a, reference="JO-AVAIL-1")
+        pos = _make_position(jo, self.rank, quantity=1)
+        _make_contract(self.crew1, self.ship_a, self.company, self.rank, pos, status="Active")
+        r = self.client.get(self._detail_url(jo.id))
+        row = r.data["assigned_crew"][0]
+        self.assertEqual(row["availability_date"], "2026-09-01")
+
+    def test_assigned_crew_availability_date_null_when_unset(self):
+        jo = _make_job_order(self.company, self.ship_a, reference="JO-NAVAIL-1")
+        pos = _make_position(jo, self.rank, quantity=1)
+        _make_contract(self.crew1, self.ship_a, self.company, self.rank, pos, status="Active")
+        r = self.client.get(self._detail_url(jo.id))
+        row = r.data["assigned_crew"][0]
+        self.assertIsNone(row["availability_date"])
+
+    def test_assigned_crew_request_number_and_target_join_date(self):
+        """Per-crew row carries the parent JO's reference_number and
+        target_joining_date so the flat list is self-describing."""
+        jo = _make_job_order(
+            self.company, self.ship_a, reference="JO-CTX-001",
+        )
+        # Override the default 30-day target with something explicit
+        jo.target_joining_date = datetime.date(2026, 12, 15)
+        jo.save(update_fields=["target_joining_date"])
+        pos = _make_position(jo, self.rank, quantity=1)
+        _make_contract(self.crew1, self.ship_a, self.company, self.rank, pos, status="Active")
+        _make_contract(self.crew2, self.ship_a, self.company, self.rank, pos, status="Draft")
+        r = self.client.get(self._detail_url(jo.id))
+        crew = r.data["assigned_crew"]
+        self.assertEqual(len(crew), 2)
+        for row in crew:
+            self.assertEqual(row["request_number"], "JO-CTX-001")
+            self.assertEqual(row["target_join_date"], "2026-12-15")
+
 
 class JobOrderAutoFulfilledSignalTests(TestCase):
     """
