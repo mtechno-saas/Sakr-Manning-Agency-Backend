@@ -672,6 +672,111 @@ class OpenPositionsStatusEndpointTests(TestCase):
         r = c.get(self._url())
         self.assertIn(r.status_code, (401, 403))
 
+    # ---- extra filters -----------------------------------------------
+
+    def test_company_name_filter(self):
+        """?company_name=maersk matches case-insensitive contains."""
+        r = self.client.get(self._url(), {"company_name": "maersk"})
+        self.assertEqual(r.status_code, 200)
+        refs = [row["reference_number"] for row in r.data["results"]]
+        self.assertIn("JO-2026-001", refs)
+        self.assertNotIn("JO-2026-002", refs)  # under MSC, not Maersk
+
+    def test_company_name_filter_no_match_returns_empty(self):
+        r = self.client.get(self._url(), {"company_name": "NonexistentCo"})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.data["total_records"], 0)
+        self.assertEqual(r.data["results"], [])
+
+    def test_vessel_name_filter(self):
+        """?vessel_name=Atlas matches case-insensitive contains on ship name."""
+        r = self.client.get(self._url(), {"vessel_name": "atlas"})
+        self.assertEqual(r.status_code, 200)
+        refs = [row["reference_number"] for row in r.data["results"]]
+        self.assertIn("JO-2026-001", refs)  # MV Atlas
+        self.assertNotIn("JO-2026-002", refs)  # MV Bounty
+
+    def test_salary_min_filter(self):
+        """?salary_min=6000 only includes positions offering >= 6000."""
+        # Set distinctive salary ranges on the fixture positions.
+        self.pos_master.salary_min = "5000"
+        self.pos_master.salary_max = "8000"
+        self.pos_master.save(update_fields=["salary_min", "salary_max"])
+        self.pos_chief.salary_min = "7000"
+        self.pos_chief.salary_max = "9000"
+        self.pos_chief.save(update_fields=["salary_min", "salary_max"])
+
+        r = self.client.get(self._url(), {"salary_min": "6000"})
+        titles = {row["position_title"] for row in r.data["results"]}
+        self.assertNotIn("Master", titles)        # 5000 < 6000
+        self.assertIn("Chief Officer", titles)    # 7000 >= 6000
+
+    def test_salary_max_filter(self):
+        """?salary_max=6000 only includes positions with max <= 6000."""
+        self.pos_master.salary_min = "5000"
+        self.pos_master.salary_max = "8000"
+        self.pos_master.save(update_fields=["salary_min", "salary_max"])
+        self.pos_chief.salary_min = "3000"
+        self.pos_chief.salary_max = "5500"
+        self.pos_chief.save(update_fields=["salary_min", "salary_max"])
+
+        r = self.client.get(self._url(), {"salary_max": "6000"})
+        titles = {row["position_title"] for row in r.data["results"]}
+        self.assertNotIn("Master", titles)        # 8000 > 6000
+        self.assertIn("Chief Officer", titles)    # 5500 <= 6000
+
+    def test_salary_min_invalid_returns_400(self):
+        r = self.client.get(self._url(), {"salary_min": "not-a-number"})
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("salary_min", r.data["error"])
+
+    def test_request_date_range(self):
+        """?request_date_from / ?request_date_to filter by job order request_date."""
+        # Set distinctive request_dates on the fixture JOs.
+        self.jo_open.request_date = datetime.date(2026, 6, 1)
+        self.jo_open.save(update_fields=["request_date"])
+        self.jo_filled.request_date = datetime.date(2026, 8, 1)
+        self.jo_filled.save(update_fields=["request_date"])
+
+        r = self.client.get(self._url(), {
+            "request_date_from": "2026-05-01",
+            "request_date_to": "2026-07-01",
+        })
+        refs = [row["reference_number"] for row in r.data["results"]]
+        self.assertIn("JO-2026-001", refs)    # 2026-06-01 in range
+        self.assertNotIn("JO-2026-002", refs)  # 2026-08-01 out of range
+
+    def test_target_join_date_range(self):
+        """?target_join_date_from / ?target_join_date_to filter by target_join_date."""
+        self.jo_open.target_joining_date = datetime.date(2026, 9, 15)
+        self.jo_open.save(update_fields=["target_joining_date"])
+        self.jo_filled.target_joining_date = datetime.date(2027, 1, 15)
+        self.jo_filled.save(update_fields=["target_joining_date"])
+
+        r = self.client.get(self._url(), {
+            "target_join_date_from": "2026-09-01",
+            "target_join_date_to": "2026-12-31",
+        })
+        refs = [row["reference_number"] for row in r.data["results"]]
+        self.assertIn("JO-2026-001", refs)    # 2026-09-15 in range
+        self.assertNotIn("JO-2026-002", refs)  # 2027-01-15 out of range
+
+    def test_request_date_from_invalid_format_returns_400(self):
+        r = self.client.get(self._url(), {"request_date_from": "2026/01/01"})
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("request_date_from", r.data["error"])
+
+    def test_filters_combine(self):
+        """Multiple filters can be applied at once."""
+        r = self.client.get(self._url(), {
+            "company_name": "maersk",
+            "vessel_name": "atlas",
+            "position_title": "master",
+        })
+        self.assertEqual(r.status_code, 200)
+        refs = [row["reference_number"] for row in r.data["results"]]
+        self.assertIn("JO-2026-001", refs)
+
 
 class CompanyWebsiteFieldNoAutoPrefixTests(TestCase):
     """

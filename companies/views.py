@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, date
 
 from rest_framework import viewsets, status
 from rest_framework.permissions import BasePermission, SAFE_METHODS
@@ -85,14 +85,31 @@ class CompanyViewSet(viewsets.ModelViewSet):
         Optional query params
         ---------------------
         status (str, optional)
-            Filter by job order status. Allowed: Pending, Open, Hold,
-            In Progress, Active, Fulfilled, Cancelled, Closed.
-            Default: only open/active (Pending, Open, Hold, In
-            Progress, Active).
+            Filter by job order status. Allowed: Open, Close, Full
+            Filled. Default: only Open.
         principal (int, optional)
             Filter by company id.
         position_title (str, optional)
             Case-insensitive contains-match on the rank name.
+        company_name (str, optional)
+            Case-insensitive contains-match on the company name.
+        vessel_name (str, optional)
+            Case-insensitive contains-match on the ship name (the
+            vessel the job order is for).
+        salary_min (decimal, optional)
+            Only include positions with salary_min >= this value.
+        salary_max (decimal, optional)
+            Only include positions with salary_max <= this value.
+        request_date_from (YYYY-MM-DD, optional)
+            Only include JOs requested on or after this date.
+        request_date_to (YYYY-MM-DD, optional)
+            Only include JOs requested on or before this date.
+        target_join_date_from (YYYY-MM-DD, optional)
+            Only include JOs whose target_joining_date is on or
+            after this date.
+        target_join_date_to (YYYY-MM-DD, optional)
+            Only include JOs whose target_joining_date is on or
+            before this date.
 
         Response 200 OK
         ---------------
@@ -104,13 +121,20 @@ class CompanyViewSet(viewsets.ModelViewSet):
               "reference_number": "JO-2024-001",
               "principal": "Maersk Line",
               "position_title": "Master / Captain",
+              "position": "Master / Captain",
+              "count": 3,
               "vacancies": 2,
+              "salary": {
+                "min": "4500.00",
+                "max": "8000.00",
+                "currency": "USD"
+              },
+              "remarks": "",
               "status": "Open",
               "job_order_number": 1,
               "request_date": "2026-01-15",
               "target_join_date": "2026-03-01"
-            },
-            ...
+            }
           ]
         }
         """
@@ -156,6 +180,85 @@ class CompanyViewSet(viewsets.ModelViewSet):
         title_filter = request.query_params.get('position_title')
         if title_filter:
             qs = qs.filter(rank__name__icontains=title_filter)
+
+        company_name_filter = request.query_params.get('company_name')
+        if company_name_filter:
+            qs = qs.filter(
+                job_order__company__company_name__icontains=company_name_filter
+            )
+
+        vessel_name_filter = request.query_params.get('vessel_name')
+        if vessel_name_filter:
+            # The job order's ship is the vessel the crew will join.
+            # Match case-insensitive contains on ship_name.
+            qs = qs.filter(
+                job_order__ship__ship_name__icontains=vessel_name_filter
+            )
+
+        # Salary range: positions whose salary_min/salary_max overlap
+        # the user-supplied range. Both are optional and can be used
+        # independently. Use Decimal so we don't get float comparisons
+        # silently missing rows.
+        from decimal import Decimal, InvalidOperation
+        salary_min_filter = request.query_params.get('salary_min')
+        if salary_min_filter:
+            try:
+                qs = qs.filter(salary_min__gte=Decimal(salary_min_filter))
+            except (InvalidOperation, ValueError):
+                return Response(
+                    {"error": f"Invalid salary_min {salary_min_filter!r}; must be a number."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        salary_max_filter = request.query_params.get('salary_max')
+        if salary_max_filter:
+            try:
+                qs = qs.filter(salary_max__lte=Decimal(salary_max_filter))
+            except (InvalidOperation, ValueError):
+                return Response(
+                    {"error": f"Invalid salary_max {salary_max_filter!r}; must be a number."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Date range on the job order's request_date.
+        req_from = request.query_params.get('request_date_from')
+        req_to = request.query_params.get('request_date_to')
+        if req_from:
+            try:
+                qs = qs.filter(job_order__request_date__gte=date.fromisoformat(req_from))
+            except ValueError:
+                return Response(
+                    {"error": f"Invalid request_date_from {req_from!r}; use YYYY-MM-DD."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        if req_to:
+            try:
+                qs = qs.filter(job_order__request_date__lte=date.fromisoformat(req_to))
+            except ValueError:
+                return Response(
+                    {"error": f"Invalid request_date_to {req_to!r}; use YYYY-MM-DD."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        # Date range on the job order's target_joining_date.
+        tgt_from = request.query_params.get('target_join_date_from')
+        tgt_to = request.query_params.get('target_join_date_to')
+        if tgt_from:
+            try:
+                qs = qs.filter(job_order__target_joining_date__gte=date.fromisoformat(tgt_from))
+            except ValueError:
+                return Response(
+                    {"error": f"Invalid target_join_date_from {tgt_from!r}; use YYYY-MM-DD."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        if tgt_to:
+            try:
+                qs = qs.filter(job_order__target_joining_date__lte=date.fromisoformat(tgt_to))
+            except ValueError:
+                return Response(
+                    {"error": f"Invalid target_join_date_to {tgt_to!r}; use YYYY-MM-DD."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         results = []
         for pos in qs.order_by('job_order__request_date',

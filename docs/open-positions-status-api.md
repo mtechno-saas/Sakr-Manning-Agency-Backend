@@ -57,6 +57,14 @@ Optional query params:
 - `?status=Open` — change the default filter (default: only `Open` job orders). Allowed: `Open`, `Close`, `Full Filled`. Invalid values return 400.
 - `?principal=12` — filter by company id.
 - `?position_title=Master` — case-insensitive contains-match on the rank name.
+- `?company_name=Maersk` — case-insensitive contains-match on the company name.
+- `?vessel_name=Atlas` — case-insensitive contains-match on the ship's name (the vessel the job order is for).
+- `?salary_min=5000` — only positions with `salary_min >= 5000`. Decimal value. Invalid → 400.
+- `?salary_max=10000` — only positions with `salary_max <= 10000`. Decimal value. Invalid → 400.
+- `?request_date_from=2026-01-01` & `?request_date_to=2026-12-31` — date range on the job order's `request_date`. Format `YYYY-MM-DD`. Invalid → 400.
+- `?target_join_date_from=2026-01-01` & `?target_join_date_to=2026-12-31` — date range on the job order's `target_joining_date`. Format `YYYY-MM-DD`. Invalid → 400.
+
+All filters can be combined. An empty result set is `{"total_records": 0, "results": []}` with status 200, not 404.
 
 ## Default behavior
 
