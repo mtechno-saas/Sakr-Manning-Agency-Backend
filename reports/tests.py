@@ -949,3 +949,30 @@ class ReportsDropdownOptionsTests(TestCase):
             set(r.data["enum_options"]["user_statuses"]),
             {c.value for c in User_Status},
         )
+
+    def test_nationalities_dropdown_from_distinct_users(self):
+        # Two users with nationalities, one with no nationality, one
+        # with an empty nationality string. The empty / null ones
+        # must NOT appear in the dropdown.
+        Users.objects.create_user(
+            email="egyptian@example.com", password="x",
+            first_name="E", middle_name="E",
+            nationality="Egyptian",
+        )
+        Users.objects.create_user(
+            email="indian@example.com", password="x",
+            first_name="I", middle_name="I",
+            nationality="Indian",
+        )
+        Users.objects.create_user(
+            email="blank@example.com", password="x",
+            first_name="B", middle_name="L",
+            nationality="",
+        )
+        r = _client(self.admin).get(self.URL_DROPDOWN)
+        names = {n["name"] for n in r.data["options"]["nationalities"]}
+        self.assertIn("Egyptian", names)
+        self.assertIn("Indian", names)
+        self.assertNotIn("", names)
+        # The "blank" user added nationality="" which is excluded.
+        self.assertEqual(len(r.data["options"]["nationalities"]), 2)

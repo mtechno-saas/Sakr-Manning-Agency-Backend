@@ -240,6 +240,31 @@ class ReportsDropdownOptionsView(APIView):
             Rank.objects.order_by("code").values("id", "name", "code")[:self._CAP]
         )
 
+        # Nationalities: Users.nationality is a free-form char field,
+        # not an FK to a nationalities table. Build the dropdown from
+        # the distinct values already present on the Users rows so the
+        # frontend can offer "what's in the DB right now" without a
+        # separate lookup. Empty / null nationalities are excluded.
+        from django.db.models import F, Value
+        from django.db.models.functions import Coalesce
+        nationalities = list(
+            Users.objects
+            .exclude(nationality__isnull=True)
+            .exclude(nationality__exact="")
+            .annotate(name=Coalesce("nationality", Value("")))
+            .order_by("name")
+            .values_list("name", flat=True)
+            .distinct()[:self._CAP]
+        )
+        # Normalise to the same {id, name} shape the other options
+        # use, so the frontend has a single render path. We don't have
+        # a stable id for nationalities (it's free-form), so we
+        # synthesise one from the index — the filter endpoint still
+        # matches on the name.
+        nationalities = [
+            {"id": idx, "name": n} for idx, n in enumerate(nationalities)
+        ]
+
         return Response({
             "generated_at": timezone.now().isoformat(),
             "options": {
@@ -249,6 +274,7 @@ class ReportsDropdownOptionsView(APIView):
                 "flags": flags,
                 "company_types": company_types,
                 "ranks": ranks,
+                "nationalities": nationalities,
             },
             "enum_options": {
                 # Static choices for the value-based filters

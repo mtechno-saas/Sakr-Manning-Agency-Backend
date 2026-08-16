@@ -24,7 +24,8 @@ Returns the lists the Reports page uses to populate its filter dropdowns. The fr
     "ship_types":     [{ "id": 7, "name": "Tanker" }, ...],
     "flags":          [{ "id": 11, "name": "Panama" }, ...],
     "company_types":  [{ "id": 3, "name": "Ship Owner" }, ...],
-    "ranks":          [{ "id": 42, "name": "Master", "code": "MAS-1" }, ...]
+    "ranks":          [{ "id": 42, "name": "Master", "code": "MAS-1" }, ...],
+    "nationalities":  [{ "id": 0, "name": "Egyptian" }, { "id": 1, "name": "Indian" }, ...]
   },
   "enum_options": {
     "job_order_statuses": ["Open", "Close", "Full Filled"],
@@ -36,7 +37,37 @@ Returns the lists the Reports page uses to populate its filter dropdowns. The fr
 }
 ```
 
-Each list is capped at 1000 entries (more than any sane UI shows). Ranks include both `name` and `code` so the dropdown can render "Master (MAS-1)".
+Each list is capped at 1000 entries (more than any sane UI shows). Ranks include both `name` and `code` so the dropdown can render "Master (MAS-1)". **Nationalities** is built from the distinct non-null values on `Users.nationality` (no FK table backs it). Its `id` is the synthetic index; the filter endpoint still matches on `name` (use `users.nationalities=["Egyptian"]`).
+
+### Filter → dropdown coverage
+
+Every filterable field in the reports endpoint now has a corresponding dropdown source. The dates (`request_date_from/to`, `target_join_date_from/to`, `year_built_from/to`) and the booleans (`is_blacklisted`) are not dropdowns — they're date pickers and toggles.
+
+| Filter | Dropdown |
+|---|---|
+| `job_orders.company_ids` / `company_names` | `options.companies` |
+| `job_orders.ship_ids` / `ship_names` | `options.ships` |
+| `job_orders.statuses` | `enum_options.job_order_statuses` |
+| `job_orders.rank_ids` / `rank_names` | `options.ranks` (name or code) |
+| `job_orders.request_date_from/to` | (date picker) |
+| `job_orders.target_join_date_from/to` | (date picker) |
+| `job_positions.position_ids` | (not a dropdown — direct PK) |
+| `job_positions.position_rank_names` | `options.ranks` |
+| `job_positions.position_company_ids` / `company_names` | `options.companies` |
+| `job_positions.position_ship_ids` / `ship_names` | `options.ships` |
+| `job_positions.position_statuses` | `enum_options.job_order_statuses` |
+| `companies.company_type_ids` / `company_type_names` | `options.company_types` |
+| `companies.country_ids` / `country_names` | `options.flags` |
+| `companies.statuses` | `enum_options.company_statuses` |
+| `ships.company_ids` / `company_names` | `options.companies` |
+| `ships.ship_type_ids` / `ship_type_names` | `options.ship_types` |
+| `ships.flag_ids` / `flag_names` | `options.flags` |
+| `ships.year_built_from/to` | (year input) |
+| `users.roles` | `enum_options.user_roles` |
+| `users.user_statuses` | `enum_options.user_statuses` |
+| `users.rank_ids` / `rank_names` | `options.ranks` |
+| `users.nationalities` | `options.nationalities` |
+| `users.is_blacklisted` | (toggle) |
 
 ---
 
