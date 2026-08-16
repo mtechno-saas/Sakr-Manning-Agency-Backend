@@ -1,16 +1,20 @@
 from django.urls import path
 
-from .views import ReportsGenerateView
+from .views import ReportsDropdownOptionsView, ReportsGenerateView
 
 app_name = "reports"
 
 urlpatterns = [
-    # POST a filter spec, get a generated report back.
-    # We mount at /api/reports/generate/ — see saker/urls.py for the
-    # include() that wires the prefix.
+    # POST/GET a filter spec, get a generated report back.
     path(
         "generate/",
         ReportsGenerateView.as_view(),
         name="generate",
+    ),
+    # GET all dropdown options for the Reports page UI.
+    path(
+        "dropdown-options/",
+        ReportsDropdownOptionsView.as_view(),
+        name="dropdown-options",
     ),
 ]

@@ -2,14 +2,47 @@
 
 The Reports page on the frontend posts a filter spec to this endpoint and renders the returned sections. There is no DB-side "saved report" model — each request is self-contained and idempotent.
 
-## Endpoint
+## Endpoints
 
-`POST /api/reports/generate/` (JSON body)
-`GET  /api/reports/generate/` (query params)
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` / `GET` | `/api/reports/generate/` | Run a filter spec, get rows back. Same shape for both. |
+| `GET` | `/api/reports/dropdown-options/` | One-shot list of every filter dropdown option, populated from the database. The Reports page calls this once on load. |
+
+Auth on both: any authenticated user.
+
+### `GET /api/reports/dropdown-options/`
+
+Returns the lists the Reports page uses to populate its filter dropdowns. The frontend fetches this once when the page loads, then uses the returned `id`s or `name`s as filter values.
+
+```json
+{
+  "generated_at": "2026-08-17T00:00:00+00:00",
+  "options": {
+    "companies":      [{ "id": 1, "name": "Maersk Line" }, ...],
+    "ships":          [{ "id": 5, "name": "MV Pacific" }, ...],
+    "ship_types":     [{ "id": 7, "name": "Tanker" }, ...],
+    "flags":          [{ "id": 11, "name": "Panama" }, ...],
+    "company_types":  [{ "id": 3, "name": "Ship Owner" }, ...],
+    "ranks":          [{ "id": 42, "name": "Master", "code": "MAS-1" }, ...]
+  },
+  "enum_options": {
+    "job_order_statuses": ["Open", "Close", "Full Filled"],
+    "company_statuses":   ["Active", "Inactive", "Prospect"],
+    "ship_statuses":      ["Active", "Under Maintenance", "Inactive"],
+    "user_roles":         ["Admin", "HR Manager", "Recruiter", "Employee"],
+    "user_statuses":      ["ON_SITE", "ON_BOARD", "VACATION", "MEDICAL_VACATION", "NEW_APPLICANT"]
+  }
+}
+```
+
+Each list is capped at 1000 entries (more than any sane UI shows). Ranks include both `name` and `code` so the dropdown can render "Master (MAS-1)".
+
+---
+
+## `POST` / `GET /api/reports/generate/`
 
 Both methods produce the **same response shape**. Use POST for the full Reports page (large multi-select spec), use GET for ad-hoc Postman debugging or for bookmarkable / cacheable URLs with smaller filter specs.
-
-Auth: any authenticated user.
 
 ## ID-or-name filtering
 
@@ -35,10 +68,11 @@ Empty / whitespace-only name strings are accepted by the serializer and silently
 
 ```json
 {
-  "job_orders": { ... optional filters ... },
-  "companies":  { ... optional filters ... },
-  "ships":      { ... optional filters ... },
-  "users":      { ... optional filters ... }
+  "job_orders":    { ... optional filters ... },
+  "job_positions": { ... optional filters ... },
+  "companies":     { ... optional filters ... },
+  "ships":         { ... optional filters ... },
+  "users":         { ... optional filters ... }
 }
 ```
 
@@ -111,15 +145,16 @@ If you pass multiple values for a scalar (e.g. `?is_blacklisted=true&is_blacklis
   "generated_at": "2026-08-16T23:10:00+00:00",
   "limit_per_section": 500,
   "sections": {
-    "job_orders": { "total_records": 12, "rows": [ ... ] },
-    "companies":  { "total_records": 5,  "rows": [ ... ] },
-    "ships":      { "total_records": 8,  "rows": [ ... ] },
-    "users":      { "total_records": 25, "rows": [ ... ] }
+    "job_orders":    { "total_records": 12, "rows": [ ... ] },
+    "job_positions": { "total_records": 7,  "rows": [ ... ] },
+    "companies":     { "total_records": 5,  "rows": [ ... ] },
+    "ships":         { "total_records": 8,  "rows": [ ... ] },
+    "users":         { "total_records": 25, "rows": [ ... ] }
   }
 }
 ```
 
-Each `rows` array uses the existing list-endpoint serializer.
+Each `rows` array uses the existing list-endpoint serializer. `job_positions.rows` uses `JobOrderPositionSerializer` (flat position-level view).
 
 ## Per-entity filter dimensions
 
@@ -133,6 +168,32 @@ Each `rows` array uses the existing list-endpoint serializer.
 | `rank_ids` / `rank_names` | list | Job orders with at least one position with one of these ranks (name matches `Rank.name` or `Rank.code`) |
 | `request_date_from` / `to` | `YYYY-MM-DD` | Range on `JobOrder.request_date` |
 | `target_join_date_from` / `to` | `YYYY-MM-DD` | Range on `JobOrder.target_joining_date` |
+
+### `job_positions`
+
+Filter at the **position** level (not the parent JO). Each row in the response is a `JobOrderPosition`, so you get a flat list of every position matching the criteria across all job orders.
+
+| Field | Type | Notes |
+|---|---|---|
+| `position_ids` | list of int | Direct PK lookup |
+| `position_rank_names` | list of str | Case-insensitive contains on `Rank.name` OR `Rank.code` |
+| `position_company_ids` / `position_company_names` | list | Filter by the parent job order's company |
+| `position_ship_ids` / `position_ship_names` | list | Filter by the parent job order's ship |
+| `position_statuses` | list of str | The status of the PARENT job order. So `position_statuses=["Open"]` returns positions under Open job orders. |
+
+**Example** — "every open Motorman slot in the system":
+
+```
+POST /api/reports/generate/
+{
+  "job_positions": {
+    "position_rank_names": ["Motorman"],
+    "position_statuses": ["Open"]
+  }
+}
+```
+
+Response: a flat list of every Motorman position under an Open job order. Compare to `job_orders.rank_names=["Motorman"]` which returns the PARENT job order (and all its positions in the nested array).
 
 ### `companies`
 
@@ -180,10 +241,10 @@ Each `rows` array uses the existing list-endpoint serializer.
 
 ## Files
 
-- `reports/views.py` — `ReportsGenerateView` (POST).
-- `reports/serializers.py` — per-entity filter validation, `_NormalisedStatusField`.
-- `reports/services.py` — `generate_report()` and the four `_xxx_qs` queryset builders; `_or_id_name` helper for the id/name merge.
+- `reports/views.py` — `ReportsGenerateView` (POST/GET), `ReportsDropdownOptionsView` (GET).
+- `reports/serializers.py` — per-entity filter validation (`JobOrder`, `JobPosition`, `Company`, `Ship`, `User`); `_NormalisedStatusField`.
+- `reports/services.py` — `generate_report()` and the five `_xxx_qs` queryset builders; `_or_id_name` helper for the id/name merge.
 - `reports/urls.py` — routes under `/api/reports/`.
-- `reports/tests.py` — 50 tests across 11 test classes.
+- `reports/tests.py` — 75 tests across 13 test classes.
 - `saker/urls.py` — `path("api/reports/", include("reports.urls"))`.
 - `saker/settings.py` — `'reports'` added to `INSTALLED_APPS`.

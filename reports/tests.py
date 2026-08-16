@@ -714,9 +714,10 @@ class ReportsEndpointGetMethodTests(TestCase):
     def test_get_no_params_returns_all_sections(self):
         r = self._get({})
         self.assertEqual(r.status_code, 200)
-        # All 4 sections come back since none have filters
-        self.assertEqual(set(r.data["sections"].keys()),
-                         {"job_orders", "companies", "ships", "users"})
+        # All 5 sections come back since none have filters
+        self.assertEqual(set(r.data["sections"].keys()), {
+            "job_orders", "job_positions", "companies", "ships", "users",
+        })
 
     def test_get_with_statuses(self):
         r = self._get({"job_orders.statuses": ["Open"]})
@@ -780,3 +781,171 @@ class ReportsEndpointGetMethodTests(TestCase):
         get_refs = {row["reference_number"]
                     for row in r_get.data["sections"]["job_orders"]["rows"]}
         self.assertEqual(post_refs, get_refs)
+
+
+# ===========================================================================
+# Job positions section — returns matching JobOrderPosition rows directly.
+# ===========================================================================
+
+
+class JobPositionsSectionTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = _admin()
+        cls.co_alpha = _company("Alpha")
+        cls.co_bravo = _company("Bravo")
+        cls.ship_alpha = _ship("MV Alpha Star", company=cls.co_alpha)
+        cls.ship_bravo = _ship("MV Bravo", company=cls.co_bravo)
+        cls.rank_motor = Rank.objects.create(code="MOT-1", name="Motorman")
+        cls.rank_chief = Rank.objects.create(code="CHIEF-1", name="Chief Officer")
+        cls.rank_oiler = Rank.objects.create(code="OIL-1", name="Oiler")
+
+        # Two JOs, three positions total
+        cls.jo_a = _job_order(cls.co_alpha, cls.ship_alpha,
+                              reference="JO-A", status="Open")
+        _position(cls.jo_a, cls.rank_motor)
+        _position(cls.jo_a, cls.rank_oiler)
+        cls.jo_b = _job_order(cls.co_bravo, cls.ship_bravo,
+                              reference="JO-B", status="Close")
+        _position(cls.jo_b, cls.rank_chief)
+
+    def _post(self, body):
+        return _client(self.admin).post(URL, body, format="json")
+
+    def test_filter_by_position_rank_names_returns_positions_directly(self):
+        r = self._post({"job_positions": {"position_rank_names": ["Motorman"]}})
+        self.assertEqual(r.status_code, 200)
+        positions = r.data["sections"]["job_positions"]["rows"]
+        self.assertEqual(len(positions), 1)
+        self.assertEqual(positions[0]["rank_name"], "Motorman")
+
+    def test_filter_by_position_rank_code(self):
+        r = self._post({"job_positions": {"position_rank_names": ["MOT-1"]}})
+        positions = r.data["sections"]["job_positions"]["rows"]
+        self.assertEqual(len(positions), 1)
+        self.assertEqual(positions[0]["rank_name"], "Motorman")
+
+    def test_filter_by_position_company_names(self):
+        r = self._post({
+            "job_positions": {"position_company_names": ["Alpha"]},
+        })
+        positions = r.data["sections"]["job_positions"]["rows"]
+        # Two positions under JO-A (Motorman + Oiler)
+        self.assertEqual(len(positions), 2)
+
+    def test_filter_by_position_company_ids(self):
+        r = self._post({
+            "job_positions": {"position_company_ids": [self.co_bravo.id]},
+        })
+        positions = r.data["sections"]["job_positions"]["rows"]
+        self.assertEqual(len(positions), 1)
+        self.assertEqual(positions[0]["rank_name"], "Chief Officer")
+
+    def test_filter_by_position_ship_names(self):
+        r = self._post({
+            "job_positions": {"position_ship_names": ["Bravo"]},
+        })
+        positions = r.data["sections"]["job_positions"]["rows"]
+        self.assertEqual(len(positions), 1)
+
+    def test_filter_by_position_statuses(self):
+        """position_statuses is the status of the parent JO."""
+        r = self._post({
+            "job_positions": {"position_statuses": ["Open"]},
+        })
+        positions = r.data["sections"]["job_positions"]["rows"]
+        # JO-A is Open (2 positions), JO-B is Close (1 position)
+        self.assertEqual(len(positions), 2)
+
+    def test_filter_by_position_ids(self):
+        # Pick the Oiler position id and look it up directly
+        oiler = self.jo_a.positions.get(rank=self.rank_oiler)
+        r = self._post({
+            "job_positions": {"position_ids": [oiler.id]},
+        })
+        positions = r.data["sections"]["job_positions"]["rows"]
+        self.assertEqual(len(positions), 1)
+        self.assertEqual(positions[0]["rank_name"], "Oiler")
+
+    def test_combined_filters(self):
+        """AND within section, OR within a multi-value field."""
+        r = self._post({
+            "job_positions": {
+                "position_company_names": ["Alpha", "Bravo"],
+                "position_rank_names": ["Motorman", "Chief"],
+            },
+        })
+        positions = r.data["sections"]["job_positions"]["rows"]
+        # Motorman (Alpha) + Chief (Bravo) = 2
+        self.assertEqual(len(positions), 2)
+
+    def test_empty_filter_block_returns_all_positions(self):
+        """An empty job_positions block is treated as 'no filter', so
+        the section IS in the response with all positions. Same
+        convention as the other sections."""
+        r = self._post({"job_positions": {}})
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("job_positions", r.data["sections"])
+        self.assertEqual(r.data["sections"]["job_positions"]["total_records"], 3)
+
+
+# ===========================================================================
+# Dropdown options endpoint.
+# ===========================================================================
+
+
+class ReportsDropdownOptionsTests(TestCase):
+    URL_DROPDOWN = "/api/reports/dropdown-options/"
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = _admin()
+        cls.co = _company("Maersk")
+        cls.ship = _ship("MV Maersk Star", company=cls.co)
+        cls.t_bulk = VesselType.objects.create(name="Bulk Carrier")
+        cls.flag = Flag.objects.create(name=f"Panama-{id(cls)}")
+        cls.t_owner = CompanyType.objects.create(name="Ship Owner")
+        cls.rank = Rank.objects.create(code="MAS-1", name="Master")
+
+    def test_requires_auth(self):
+        r = _client().get(self.URL_DROPDOWN)
+        self.assertIn(r.status_code, (401, 403))
+
+    def test_response_shape(self):
+        r = _client(self.admin).get(self.URL_DROPDOWN)
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("options", r.data)
+        self.assertIn("enum_options", r.data)
+        # All the static options are present
+        opts = r.data["enum_options"]
+        for key in ("job_order_statuses", "company_statuses", "ship_statuses",
+                    "user_roles", "user_statuses"):
+            self.assertIn(key, opts)
+        # All the dynamic options are present
+        for key in ("companies", "ships", "ship_types", "flags",
+                    "company_types", "ranks"):
+            self.assertIn(key, r.data["options"])
+
+    def test_companies_appear_in_options(self):
+        r = _client(self.admin).get(self.URL_DROPDOWN)
+        names = {c["name"] for c in r.data["options"]["companies"]}
+        self.assertIn("Maersk", names)
+
+    def test_ships_appear_in_options(self):
+        r = _client(self.admin).get(self.URL_DROPDOWN)
+        names = {s["name"] for s in r.data["options"]["ships"]}
+        self.assertIn("MV Maersk Star", names)
+
+    def test_ranks_include_code(self):
+        r = _client(self.admin).get(self.URL_DROPDOWN)
+        ranks = {r["code"]: r for r in r.data["options"]["ranks"]}
+        self.assertIn("MAS-1", ranks)
+        self.assertEqual(ranks["MAS-1"]["name"], "Master")
+
+    def test_enum_options_match_model(self):
+        from api.models import User_Status
+        r = _client(self.admin).get(self.URL_DROPDOWN)
+        self.assertEqual(
+            set(r.data["enum_options"]["user_statuses"]),
+            {c.value for c in User_Status},
+        )

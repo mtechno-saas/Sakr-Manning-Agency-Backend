@@ -84,6 +84,55 @@ class JobOrderReportFilters(serializers.Serializer):
     target_join_date_to = serializers.DateField(required=False, allow_null=True)
 
 
+class JobPositionReportFilters(serializers.Serializer):
+    """
+    Filters that return matching ``JobOrderPosition`` rows directly.
+
+    Whereas ``job_orders.rank_names`` matches the PARENT job order
+    (one match per JO), the filters here match individual
+    positions. Use this when the UI wants a flat list of positions
+    (e.g. "show me every open Motorman slot in the system").
+    """
+    position_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False, default=list,
+    )
+    position_rank_names = serializers.ListField(
+        child=serializers.CharField(allow_blank=True),
+        required=False, default=list,
+        help_text="Case-insensitive contains on Rank.name OR Rank.code.",
+    )
+    position_company_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False, default=list,
+    )
+    position_company_names = serializers.ListField(
+        child=serializers.CharField(allow_blank=True),
+        required=False, default=list,
+        help_text="Case-insensitive contains on Company.company_name.",
+    )
+    position_ship_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        required=False, default=list,
+    )
+    position_ship_names = serializers.ListField(
+        child=serializers.CharField(allow_blank=True),
+        required=False, default=list,
+        help_text="Case-insensitive contains on Ship.ship_name.",
+    )
+    position_statuses = serializers.ListField(
+        child=serializers.ChoiceField(choices=[
+            "Open", "Close", "Full Filled",
+        ]),
+        required=False, default=list,
+        help_text=(
+            "Status of the PARENT job order. So if you want open "
+            "positions, pass status=Open and only positions under "
+            "Open job orders are returned."
+        ),
+    )
+
+
 class CompanyReportFilters(serializers.Serializer):
     company_type_ids = serializers.ListField(
         child=serializers.IntegerField(min_value=1),
@@ -205,6 +254,7 @@ class ReportGenerateRequestSerializer(serializers.Serializer):
     BOTH forms in the same request — the service ORs them.
     """
     job_orders = JobOrderReportFilters(required=False)
+    job_positions = JobPositionReportFilters(required=False)
     companies = CompanyReportFilters(required=False)
     ships = ShipReportFilters(required=False)
     users = UserReportFilters(required=False)

@@ -16,11 +16,17 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
 
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from api.models import User_Status, Users
+from companies.models import Company, JobOrder, JobOrderPosition
+from core.models import CompanyType, Flag, VesselType
+from ships.models import Ship
 
 from .serializers import ReportGenerateRequestSerializer
 from .services import generate_report
@@ -37,6 +43,12 @@ _GET_FIELDS_BY_SECTION: Dict[str, List[str]] = {
         "rank_ids", "rank_names",
         "request_date_from", "request_date_to",
         "target_join_date_from", "target_join_date_to",
+    ],
+    "job_positions": [
+        "position_ids", "position_rank_names",
+        "position_company_ids", "position_company_names",
+        "position_ship_ids", "position_ship_names",
+        "position_statuses",
     ],
     "companies": [
         "company_type_ids", "company_type_names",
@@ -167,3 +179,83 @@ class ReportsGenerateView(APIView):
         serializer.is_valid(raise_exception=True)
         report = generate_report(serializer.validated_data)
         return Response(report, status=status.HTTP_200_OK)
+
+
+class ReportsDropdownOptionsView(APIView):
+    """
+    GET /api/reports/dropdown-options/
+
+    Lightweight, single-shot response that the Reports page uses to
+    populate every filter dropdown. The frontend calls this once
+    when the page loads, then uses the returned ids / names as the
+    values for the multi-select filter UI.
+
+    Each list is a flat ``[{"id": ..., "name": ...}]`` (or
+    ``{"id": ..., "name": ..., "code": ...}`` for ranks, since
+    Ranks have a structured code as well as a human name) so the
+    dropdown can show either, and the request can use either form.
+
+    Auth: IsAuthenticated (same as the rest of the reports app).
+    Caching: this endpoint is cache-friendly. The data only
+    changes when an admin adds a new Company / Rank / Ship etc.
+    If you want server-side caching, the recommended TTL is 1 hour
+    with cache invalidation on the corresponding admin POSTs.
+    """
+    permission_classes = [IsAuthenticated]
+
+    # Hard caps so a misconfigured deployment can't return megabytes
+    # of dropdown options. The page is for human filter selection;
+    # 1000 entries is already more than any sane UI shows.
+    _CAP = 1000
+
+    def get(self, request: Request, *args, **kwargs):
+        companies = list(
+            Company.objects.order_by("company_name").values(
+                "id", "company_name"
+            )[:self._CAP]
+        )
+        companies = [
+            {"id": c["id"], "name": c["company_name"]} for c in companies
+        ]
+
+        ships = list(
+            Ship.objects.order_by("ship_name").values(
+                "id", "ship_name"
+            )[:self._CAP]
+        )
+        ships = [{"id": s["id"], "name": s["ship_name"]} for s in ships]
+
+        ship_types = list(
+            VesselType.objects.order_by("name").values("id", "name")[:self._CAP]
+        )
+        flags = list(
+            Flag.objects.order_by("name").values("id", "name")[:self._CAP]
+        )
+        company_types = list(
+            CompanyType.objects.order_by("name").values("id", "name")[:self._CAP]
+        )
+        # Ranks: include code so the dropdown can show "Master (MAS-1)"
+        from api.models import Rank
+        ranks = list(
+            Rank.objects.order_by("code").values("id", "name", "code")[:self._CAP]
+        )
+
+        return Response({
+            "generated_at": timezone.now().isoformat(),
+            "options": {
+                "companies": companies,
+                "ships": ships,
+                "ship_types": ship_types,
+                "flags": flags,
+                "company_types": company_types,
+                "ranks": ranks,
+            },
+            "enum_options": {
+                # Static choices for the value-based filters
+                "job_order_statuses": [c[0] for c in JobOrder.STATUS_CHOICES],
+                "company_statuses":   [c[0] for c in Company.STATUS_CHOICES],
+                "ship_statuses":      [c[0] for c in Ship.SHIP_STATUS],
+                "user_roles":         ["Admin", "HR Manager", "Recruiter", "Employee"],
+                "user_statuses":      [c.value for c in User_Status],
+            },
+        })

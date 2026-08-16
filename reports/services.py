@@ -22,7 +22,7 @@ from django.utils import timezone
 
 from api.models import Contract, User_Status, Users
 from companies.models import Company, JobOrder, JobOrderPosition
-from companies.serializers import CompanySerializer, JobOrderSerializer
+from companies.serializers import CompanySerializer, JobOrderPositionSerializer, JobOrderSerializer
 from core.models import Flag
 from ships.models import Ship
 from ships.serializers import ShipSerializer
@@ -230,6 +230,52 @@ def _ships_qs(filters: Dict[str, Any]) -> QuerySet:
     return qs.order_by("ship_name")[:DEFAULT_LIMIT]
 
 
+def _job_positions_qs(filters: Dict[str, Any]) -> QuerySet:
+    """
+    Build the ``JobOrderPosition`` queryset for the ``job_positions``
+    section. Unlike ``_job_orders_qs`` which matches at the parent
+    JO level, this one matches at the position level — every row
+    is an individual position.
+    """
+    qs = JobOrderPosition.objects.select_related(
+        "job_order__company",
+        "job_order__ship",
+        "rank",
+    )
+    if filters.get("position_ids"):
+        qs = qs.filter(id__in=filters["position_ids"])
+
+    rank_names = [n for n in (filters.get("position_rank_names") or []) if str(n).strip()]
+    if rank_names:
+        or_q = Q()
+        for n in rank_names:
+            or_q |= Q(rank__name__icontains=n) | Q(rank__code__icontains=n)
+        qs = qs.filter(or_q)
+
+    if filters.get("position_company_ids"):
+        qs = qs.filter(job_order__company_id__in=filters["position_company_ids"])
+    company_names = [n for n in (filters.get("position_company_names") or []) if str(n).strip()]
+    if company_names:
+        or_q = Q()
+        for n in company_names:
+            or_q |= Q(job_order__company__company_name__icontains=n)
+        qs = qs.filter(or_q)
+
+    if filters.get("position_ship_ids"):
+        qs = qs.filter(job_order__ship_id__in=filters["position_ship_ids"])
+    ship_names = [n for n in (filters.get("position_ship_names") or []) if str(n).strip()]
+    if ship_names:
+        or_q = Q()
+        for n in ship_names:
+            or_q |= Q(job_order__ship__ship_name__icontains=n)
+        qs = qs.filter(or_q)
+
+    if filters.get("position_statuses"):
+        qs = qs.filter(job_order__status__in=filters["position_statuses"])
+
+    return qs.order_by("job_order__request_date", "rank__name")[:DEFAULT_LIMIT]
+
+
 def _users_qs(filters: Dict[str, Any]) -> QuerySet:
     """
     Build the user queryset. For ``user_statuses`` we filter on the
@@ -342,6 +388,16 @@ def generate_report(validated: Dict[str, Any]) -> Dict[str, Any]:
     if jo_filters:
         rows = JobOrderSerializer(_job_orders_qs(jo_filters), many=True).data
         sections["job_orders"] = {
+            "total_records": len(rows),
+            "rows": rows,
+        }
+
+    jp_filters = validated.get("job_positions") or {}
+    if jp_filters:
+        rows = JobOrderPositionSerializer(
+            _job_positions_qs(jp_filters), many=True
+        ).data
+        sections["job_positions"] = {
             "total_records": len(rows),
             "rows": rows,
         }
