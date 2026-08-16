@@ -199,8 +199,29 @@ class JobOrderPositionSerializer(serializers.ModelSerializer):
         return max(0, obj.quantity - filled)
 
     def get_assigned_to(self, obj):
-        contracts = [c for c in obj.contracts.all() if c.status in ['Active', 'Signed']]
-        return [f"{c.user.first_name} {c.user.middle_name}".strip() for c in contracts if c.user]
+        """
+        One entry per Active/Signed contract under this position,
+        each entry being the assigned crew member's full name.
+
+        We use the canonical ``Users.full_name`` property rather than
+        hand-rolling ``f"{first} {middle}"`` because Users.full_name
+        is the single source of truth for the display name and
+        already handles blank / missing pieces. If for any reason
+        full_name is empty (legacy row with no first/middle), we
+        fall back to email so the UI still has something to show.
+        """
+        rows = []
+        for c in obj.contracts.all():
+            if c.status not in ('Active', 'Signed'):
+                continue
+            user = getattr(c, "user", None)
+            if not user:
+                continue
+            name = (getattr(user, "full_name", "") or "").strip()
+            if not name:
+                name = getattr(user, "email", None) or f"user#{user.id}"
+            rows.append(name)
+        return rows
 
     def to_internal_value(self, data):
         """

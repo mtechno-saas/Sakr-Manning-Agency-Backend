@@ -316,6 +316,30 @@ class JobPositionsEndpointFieldSurfaceTests(TestCase):
         self.assertNotIn("Yusuf Khan", item["assigned_to"])
         self.assertNotIn("Yusuf", item["assigned_to"])
 
+    def test_assigned_to_falls_back_to_email_when_full_name_blank(self):
+        """If a user has no first/middle name, fall back to email."""
+        # Create a third user with no name fields set, on an Active
+        # contract, and assert assigned_to falls back to the email.
+        anon = Users.objects.create_user(
+            email="noname@example.com",
+            password="x",
+            first_name="",
+            middle_name="",
+        )
+        Contract.objects.create(
+            user=anon,
+            ship=self.ship,
+            company=self.company,
+            rank=self.rank,
+            job_position=self.position,
+            sign_on_date=datetime.date.today(),
+            status="Active",
+        )
+        r = self.client.get(self._list_url())
+        items = r.data if isinstance(r.data, list) else r.data.get("results", r.data)
+        item = next(i for i in items if i["id"] == self.position.id)
+        self.assertIn("noname@example.com", item["assigned_to"])
+
     # ---- 9. SALARY RANGE (salary_min / salary_max / currency) ------
     def test_salary_range_columns(self):
         r = self.client.get(self._list_url())
