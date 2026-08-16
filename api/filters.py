@@ -131,12 +131,129 @@ class UsersFilter(django_filters.FilterSet):
         return queryset.filter(marital_status__in=vals)
 
     def filter_user_status(self, queryset, name, value):
+        """
+        Filter by effective user status.
+
+        Accepts any of the 5 values defined in api.models.User_Status:
+          ON_SITE, ON_BOARD, VACATION, MEDICAL_VACATION, NEW_APPLICANT
+
+        ON_SITE / VACATION / MEDICAL_VACATION filter on the stored
+        field. ON_BOARD and NEW_APPLICANT are derived from contracts:
+          ON_BOARD       = stored != VACATION/MEDICAL_VACATION
+                           AND has Active/Signed contract (no sign-off
+                           or sign-off in the future)
+          NEW_APPLICANT  = stored != VACATION/MEDICAL_VACATION
+                           AND has no contracts at all
+        """
+        from django.utils import timezone
+        from django.db.models import Exists, OuterRef
+        from api.models import User_Status
+        from api.models import Contract
+
         vals = self._strings_for("user_status")
         if vals is None:
             return queryset
         if not vals:
             return queryset.none()
-        return queryset.filter(user_status__in=vals)
+
+        # Normalize: accept case-insensitive input, and translate
+        # "MEDICAL VACATION" (the human label) to the stored value
+        # "MEDICAL_VACATION".
+        norm = []
+        for v in vals:
+            up = v.strip().upper().replace(" ", "_")
+            norm.append(up)
+        # Manual overrides (always-on, no contracts logic)
+        manual = {
+            User_Status.ON_SITE.value,
+            User_Status.VACATION.value,
+            User_Status.MEDICAL_VACATION.value,
+        }
+        # Computed values
+        computed = {
+            User_Status.ON_BOARD.value,
+            User_Status.NEW_APPLICANT.value,
+        }
+        invalid = [v for v in norm if v not in manual and v not in computed]
+        if invalid:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({
+                "user_status": (
+                    f"Invalid value(s): {invalid}. "
+                    f"Allowed: {sorted(manual | computed)}"
+                )
+            })
+
+        stored_vals = [v for v in norm if v in manual]
+        wants_on_board = User_Status.ON_BOARD.value in norm
+        wants_new_applicant = User_Status.NEW_APPLICANT.value in norm
+
+        # Subqueries for "has any contract" and "has an active contract".
+        # We always need these for the manual stored values too:
+        # ON_SITE only matches users with NO active contract AND with
+        # AT LEAST ONE past contract (otherwise they're NEW_APPLICANT).
+        has_any_contract = Exists(
+            Contract.objects.filter(user=OuterRef("pk"))
+        )
+        today = timezone.localdate()
+        has_active_contract = Exists(
+            Contract.objects.filter(
+                user=OuterRef("pk"),
+                status__in=("Active", "Signed"),
+            ).filter(
+                Q(sign_off_date__isnull=True)
+                | Q(sign_off_date__gte=today)
+            )
+        )
+
+        # Build a single OR'd Q so the values combine into "match any
+        # of these effective statuses" semantics.
+        effective_q = Q()
+
+        if "ON_SITE" in stored_vals:
+            # Effective ON_SITE = stored is ON_SITE, AND user has at
+            # least one contract (so they're not NEW_APPLICANT), AND
+            # has no active contract (so they're not ON_BOARD).
+            effective_q |= Q(user_status=User_Status.ON_SITE.value) & Q(
+                pk__in=queryset.model.objects.filter(has_any_contract).values("pk")
+            ) & ~Q(
+                pk__in=queryset.model.objects.filter(has_active_contract).values("pk")
+            )
+        for v in stored_vals:
+            if v == User_Status.ON_SITE.value:
+                continue
+            # VACATION and MEDICAL_VACATION are admin overrides;
+            # they apply regardless of contract state.
+            effective_q |= Q(user_status=v)
+
+        manual_block = (
+            Q(user_status=User_Status.VACATION.value)
+            | Q(user_status=User_Status.MEDICAL_VACATION.value)
+        )
+        if wants_on_board:
+            # Has an Active/Signed contract that hasn't been signed off.
+            today = timezone.localdate()
+            contract_q = (
+                Q(contracts__status__in=("Active", "Signed"))
+                & (Q(contracts__sign_off_date__isnull=True)
+                   | Q(contracts__sign_off_date__gte=today))
+            )
+            effective_q |= (~manual_block & contract_q)
+        if wants_new_applicant:
+            # "No contracts at all" — Django's contracts__isnull=True
+            # checks the FK on the related row, not the absence of
+            # related rows, so we need a subquery.
+            no_contracts = ~Exists(
+                Contract.objects.filter(user=OuterRef("pk"))
+            )
+            # Run the subquery against the queryset's model so this
+            # works for any model the filter is mounted on (Users
+            # today, possibly others later).
+            effective_q |= (~manual_block & Q(
+                pk__in=queryset.model.objects.filter(no_contracts).values("pk")
+            ))
+
+        return queryset.filter(effective_q).distinct()
 
     def filter_nationality(self, queryset, name, value):
         vals = self._strings_for("nationality")

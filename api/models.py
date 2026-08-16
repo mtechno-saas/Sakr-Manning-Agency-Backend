@@ -19,9 +19,27 @@ class Marital_Status(models.TextChoices):
 
 
 class User_Status(models.TextChoices):
-    VACATION = 'VACATION', 'VACATION'
+    """
+    User status — admin-settable availability state.
+
+    Manual values (the admin sets these via PATCH):
+      - ON_SITE          : free / available
+      - VACATION         : on vacation
+      - MEDICAL_VACATION : on medical leave
+
+    Computed values (derived from contracts, see Users.get_effective_status):
+      - ON_BOARD         : currently on a ship with an Active/Signed contract
+      - NEW_APPLICANT    : no contract history at all (never been placed)
+
+    Manual values always win over computed values — a user on
+    VACATION who happens to have an Active contract is still shown
+    as VACATION until the admin lifts that override.
+    """
     ON_SITE = 'ON_SITE', 'ON_SITE'
-    MEDICAL_VACATION = 'MEDICAL VACATION', 'MEDICAL VACATION'
+    ON_BOARD = 'ON_BOARD', 'ON BOARD'
+    VACATION = 'VACATION', 'VACATION'
+    MEDICAL_VACATION = 'MEDICAL_VACATION', 'MEDICAL VACATION'
+    NEW_APPLICANT = 'NEW_APPLICANT', 'NEW APPLICANT'
 
 
 
@@ -634,6 +652,55 @@ class Users(AbstractBaseUser, PermissionsMixin):
         whose first_name already contained the merged string.
         """
         return f"{self.first_name or ''} {self.middle_name or ''}".strip()
+
+    def get_effective_status(self):
+        """
+        Return the effective availability status for this user.
+
+        Resolution order (first match wins):
+          1. If the admin has set VACATION              -> 'VACATION'
+          2. If the admin has set MEDICAL_VACATION     -> 'MEDICAL_VACATION'
+          3. If the user has any Active or Signed
+             contract whose sign_off_date is null or
+             in the future                            -> 'ON_BOARD'
+          4. If the user has no contract history at
+             all (never been placed)                  -> 'NEW_APPLICANT'
+          5. Otherwise                                 -> 'ON_SITE'
+
+        Manual overrides (1, 2) always win over the contract-derived
+        values (3, 4) so an admin can flag a user as on vacation
+        even if they technically have an open contract.
+        """
+        stored = (self.user_status or "").strip()
+        if stored == User_Status.VACATION:
+            return User_Status.VACATION
+        if stored == User_Status.MEDICAL_VACATION:
+            return User_Status.MEDICAL_VACATION
+
+        # Lazy import: api.models is imported by lots of things, and
+        # Contract lives in the same module so it's already loaded.
+        try:
+            active_contracts = self.contracts.filter(
+                status__in=("Active", "Signed"),
+            )
+        except Exception:
+            active_contracts = None
+        if active_contracts is not None:
+            from django.utils import timezone as _tz
+            today = _tz.localdate()
+            on_board = active_contracts.filter(
+                sign_off_date__isnull=True,
+            ) | active_contracts.filter(sign_off_date__gte=today)
+            if on_board.exists():
+                return User_Status.ON_BOARD
+
+        # No active contract. If they have NO contract history at all
+        # (Draft / Cancelled / Completed / nothing) they're a fresh
+        # applicant. Otherwise they finished a contract and are back
+        # to "free" = ON_SITE.
+        if not self.contracts.exists():
+            return User_Status.NEW_APPLICANT
+        return User_Status.ON_SITE
 
 
 # =====================

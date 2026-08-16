@@ -1657,3 +1657,247 @@ class ContractAdminAttachmentsEndpointTests(TestCase):
 
         r = client.patch(self._detail_url(contract.id, d.id), {}, format="json")
         self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST)
+
+
+class UserStatusFiveStateTests(TestCase):
+    """
+    Tests for the 5-state user_status expansion:
+
+      ON_SITE, ON_BOARD, VACATION, MEDICAL_VACATION, NEW_APPLICANT
+
+    The first three are stored (admin-settable). ON_BOARD and
+    NEW_APPLICANT are computed from contracts. The serializer
+    exposes ``effective_user_status`` (computed) alongside
+    ``user_status`` (stored).
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        # Need a Company + Rank + Ship for Contract rows.
+        from api.models import Contract
+        from companies.models import Company, JobOrder, JobOrderPosition
+        from ships.models import Ship
+        cls.Contract = Contract
+        cls.Ship = Ship
+        cls.company = Company.objects.create(
+            company_name="Test Co",
+            contact_email="co@example.com",
+            status="Active",
+        )
+        cls.ship = cls.Ship.objects.create(
+            ship_name="MV Test", imo_number="9876543", company=cls.company,
+        )
+        cls.rank = Rank.objects.create(code="MAS-1", name="Master")
+
+        # u_newapplicant: no contracts at all -> NEW_APPLICANT
+        cls.u_newapplicant = Users.objects.create_user(
+            email="fresh@example.com", password="x",
+            first_name="New", middle_name="Applicant",
+        )
+        # u_onsite: completed contract history, no active -> ON_SITE
+        cls.u_onsite = Users.objects.create_user(
+            email="free@example.com", password="x",
+            first_name="Free", middle_name="Again",
+        )
+        # u_onboard: Active contract, no sign_off -> ON_BOARD
+        cls.u_onboard = Users.objects.create_user(
+            email="onboard@example.com", password="x",
+            first_name="On", middle_name="Board",
+        )
+        # u_vacation: stored VACATION
+        cls.u_vacation = Users.objects.create_user(
+            email="vacation@example.com", password="x",
+            first_name="On", middle_name="Vacation",
+            user_status="VACATION",
+        )
+        # u_medical: stored MEDICAL_VACATION
+        cls.u_medical = Users.objects.create_user(
+            email="medical@example.com", password="x",
+            first_name="On", middle_name="Medical",
+            user_status="MEDICAL_VACATION",
+        )
+
+        # Job order + position (needed to satisfy Contract FKs)
+        cls.jo = JobOrder.objects.create(
+            company=cls.company, ship=cls.ship,
+            reference_number="JO-STATUS-TEST-1",
+            request_date=datetime.date.today(),
+            target_joining_date=datetime.date.today(),
+        )
+        cls.pos = JobOrderPosition.objects.create(
+            job_order=cls.jo, rank=cls.rank, quantity=1,
+        )
+
+        # u_onsite: completed contract in the past -> back to ON_SITE
+        Contract.objects.create(
+            user=cls.u_onsite, ship=cls.ship, company=cls.company,
+            rank=cls.rank, job_position=cls.pos,
+            sign_on_date=datetime.date.today() - datetime.timedelta(days=180),
+            sign_off_date=datetime.date.today() - datetime.timedelta(days=1),
+            status="Completed",
+        )
+        # u_onboard: Active contract, no sign_off -> ON_BOARD
+        Contract.objects.create(
+            user=cls.u_onboard, ship=cls.ship, company=cls.company,
+            rank=cls.rank, job_position=cls.pos,
+            sign_on_date=datetime.date.today(),
+            status="Active",
+        )
+
+    def test_enum_has_five_values(self):
+        from api.models import User_Status
+        values = {c.value for c in User_Status}
+        self.assertEqual(
+            values,
+            {
+                "ON_SITE", "ON_BOARD",
+                "VACATION", "MEDICAL_VACATION", "NEW_APPLICANT",
+            },
+        )
+
+    def test_effective_status_no_contracts_is_new_applicant(self):
+        self.assertEqual(
+            self.u_newapplicant.get_effective_status(), "NEW_APPLICANT"
+        )
+
+    def test_effective_status_completed_contract_is_on_site(self):
+        self.assertEqual(
+            self.u_onsite.get_effective_status(), "ON_SITE"
+        )
+
+    def test_effective_status_onboard_user_is_on_board(self):
+        self.assertEqual(self.u_onboard.get_effective_status(), "ON_BOARD")
+
+    def test_effective_status_vacation_overrides_contract(self):
+        """A user marked VACATION wins even if they have an active contract."""
+        Contract = self.Contract
+        Contract.objects.create(
+            user=self.u_vacation, ship=self.ship, company=self.company,
+            rank=self.rank, job_position=self.pos,
+            sign_on_date=datetime.date.today(),
+            status="Active",
+        )
+        self.assertEqual(self.u_vacation.get_effective_status(), "VACATION")
+
+    def test_effective_status_medical_vacation_overrides_contract(self):
+        Contract = self.Contract
+        Contract.objects.create(
+            user=self.u_medical, ship=self.ship, company=self.company,
+            rank=self.rank, job_position=self.pos,
+            sign_on_date=datetime.date.today(),
+            status="Active",
+        )
+        self.assertEqual(
+            self.u_medical.get_effective_status(), "MEDICAL_VACATION"
+        )
+
+    def test_effective_status_signed_off_in_future_is_on_board(self):
+        """An Active contract with a future sign-off date is still ON_BOARD."""
+        future = Users.objects.create_user(
+            email="future@example.com", password="x",
+            first_name="Still", middle_name="Sailing",
+        )
+        Contract = self.Contract
+        Contract.objects.create(
+            user=future, ship=self.ship, company=self.company,
+            rank=self.rank, job_position=self.pos,
+            sign_on_date=datetime.date.today() - datetime.timedelta(days=10),
+            sign_off_date=datetime.date.today() + datetime.timedelta(days=20),
+            status="Active",
+        )
+        self.assertEqual(future.get_effective_status(), "ON_BOARD")
+
+    def test_serializer_exposes_effective_user_status(self):
+        client, _ = self._login_as_admin()
+        r = client.get(f"/api/users/users/{self.u_onboard.id}/")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.assertIn("effective_user_status", r.data)
+        self.assertEqual(r.data["effective_user_status"], "ON_BOARD")
+        # Stored value still exposed
+        self.assertIn("user_status", r.data)
+        self.assertEqual(r.data["user_status"], "ON_SITE")
+
+    # ---- filter ?user_status=... ----------------------------------
+
+    def _list(self, qs):
+        client, _ = self._login_as_admin()
+        return client.get(LIST_URL, qs)
+
+    def _ids(self, response):
+        items = response.data
+        if isinstance(items, dict) and "results" in items:
+            items = items["results"]
+        return {u["id"] for u in items}
+
+    def test_filter_by_on_site(self):
+        r = self._list({"user_status": "ON_SITE"})
+        ids = self._ids(r)
+        # finished user (has contract history but no active) is ON_SITE
+        self.assertIn(self.u_onsite.id, ids)
+        # onboard user is NOT (they have an active contract)
+        self.assertNotIn(self.u_onboard.id, ids)
+        # vacation/medical users are NOT (they're manually flagged)
+        self.assertNotIn(self.u_vacation.id, ids)
+        self.assertNotIn(self.u_medical.id, ids)
+        # no-contracts user is NOT (they're NEW_APPLICANT)
+        self.assertNotIn(self.u_newapplicant.id, ids)
+
+    def test_filter_by_on_board(self):
+        r = self._list({"user_status": "ON_BOARD"})
+        ids = self._ids(r)
+        self.assertIn(self.u_onboard.id, ids)
+        self.assertNotIn(self.u_onsite.id, ids)
+        self.assertNotIn(self.u_newapplicant.id, ids)
+        self.assertNotIn(self.u_vacation.id, ids)
+        self.assertNotIn(self.u_medical.id, ids)
+
+    def test_filter_by_vacation(self):
+        r = self._list({"user_status": "VACATION"})
+        ids = self._ids(r)
+        self.assertIn(self.u_vacation.id, ids)
+        self.assertNotIn(self.u_onsite.id, ids)
+        self.assertNotIn(self.u_medical.id, ids)
+
+    def test_filter_by_medical_vacation_accepts_human_label(self):
+        """The human label 'MEDICAL VACATION' (with space) is accepted."""
+        r = self._list({"user_status": "MEDICAL VACATION"})
+        ids = self._ids(r)
+        self.assertIn(self.u_medical.id, ids)
+
+    def test_filter_by_medical_vacation_accepts_stored_value(self):
+        """And the stored value 'MEDICAL_VACATION' is also accepted."""
+        r = self._list({"user_status": "MEDICAL_VACATION"})
+        ids = self._ids(r)
+        self.assertIn(self.u_medical.id, ids)
+
+    def test_filter_by_new_applicant(self):
+        r = self._list({"user_status": "NEW_APPLICANT"})
+        ids = self._ids(r)
+        self.assertIn(self.u_newapplicant.id, ids)
+        self.assertNotIn(self.u_onsite.id, ids)
+        self.assertNotIn(self.u_onboard.id, ids)
+        self.assertNotIn(self.u_vacation.id, ids)
+        self.assertNotIn(self.u_medical.id, ids)
+
+    def test_filter_invalid_value_returns_400(self):
+        r = self._list({"user_status": "BOGUS_VALUE"})
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST)
+
+    def test_filter_multi_value_or_logic(self):
+        """?user_status=A&user_status=B returns users matching either."""
+        r = self._list({"user_status": ["VACATION", "MEDICAL_VACATION"]})
+        ids = self._ids(r)
+        self.assertIn(self.u_vacation.id, ids)
+        self.assertIn(self.u_medical.id, ids)
+        self.assertNotIn(self.u_onsite.id, ids)
+
+    def _login_as_admin(self):
+        admin = Users.objects.create_user(
+            email="admin-status@example.com", password="x",
+            first_name="Admin", middle_name="Ops", role="Admin",
+            is_staff=True, is_superuser=True,
+        )
+        from rest_framework.test import APIClient
+        c = APIClient()
+        c.force_authenticate(user=admin)
+        return c, admin

@@ -1919,6 +1919,13 @@ class UsersSerializer(serializers.ModelSerializer):
     # round-trip writes.
     full_name = serializers.CharField(read_only=True)
 
+    # Effective status: one of ON_SITE / ON_BOARD / VACATION /
+    # MEDICAL_VACATION / NEW_APPLICANT. Computed from the stored
+    # user_status (admin override) and the user's contract history.
+    # Read-only; use user_status on the request side to set the
+    # stored value.
+    effective_user_status = serializers.SerializerMethodField()
+
     # Exclude inherited M2M fields from `__all__` so we can declare
     # them as proper PrimaryKeyRelatedField with the right queryset.
     # They're still writable; the extra_kwargs / explicit declarations
@@ -2042,6 +2049,16 @@ class UsersSerializer(serializers.ModelSerializer):
                     data['application_for_position'] = str(val)
 
         return super().to_internal_value(data)
+
+    def get_effective_user_status(self, obj):
+        """
+        Return the computed 5-state availability for the user.
+
+        Delegates to Users.get_effective_status. See that method
+        for the resolution order (VACATION / MEDICAL_VACATION
+        manual overrides win; otherwise derived from contracts).
+        """
+        return obj.get_effective_status()
 
     def to_representation(self, instance):
         """Override to ensure proper serialization of nested fields"""
