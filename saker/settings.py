@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     'vaccinations',
     'contracts',
     'courses',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -114,6 +115,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'api.middleware.ActiveUserMiddleware',
+    'core.middleware.CurrentUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
