@@ -8,10 +8,14 @@ list of matching rows.
 Sections are built independently — there's no cross-entity JOIN.
 The frontend can render each section however it likes (table, list,
 side-by-side columns, etc.).
+
+For any feature with both a numeric id and a human name (e.g.
+``company_ids`` and ``company_names``), the two forms are
+OR'd into a single Q so the user can mix and match.
 """
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, Iterable, List
 
 from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
@@ -32,6 +36,33 @@ DEFAULT_LIMIT = 500
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _or_id_name(
+    *,
+    ids: Iterable,
+    names: Iterable,
+    id_q: Q,
+    name_q_for: List[Q],
+) -> Q:
+    """
+    Build ``id_q | OR(name_q)``.
+
+    Returns an empty Q when both inputs are empty, so callers can
+    use ``qs = qs.filter(q) if q else qs`` to keep the queryset
+    untouched when the caller didn't supply either form.
+    """
+    q = Q()
+    if ids:
+        q |= id_q
+    for nq in name_q_for:
+        q |= nq
+    return q
+
+
+# ---------------------------------------------------------------------------
 # Per-entity queryset builders
 # ---------------------------------------------------------------------------
 
@@ -40,22 +71,76 @@ def _job_orders_qs(filters: Dict[str, Any]) -> QuerySet:
     qs = JobOrder.objects.select_related("company", "ship").prefetch_related(
         "positions__rank",
     )
-    if filters.get("company_ids"):
-        qs = qs.filter(company_id__in=filters["company_ids"])
-    if filters.get("ship_ids"):
-        qs = qs.filter(ship_id__in=filters["ship_ids"])
+
+    # Company: id OR name
+    company_q = _or_id_name(
+        ids=filters.get("company_ids"),
+        names=filters.get("company_names"),
+        id_q=Q(company_id__in=list(filters.get("company_ids") or [])),
+        name_q_for=[
+            Q(company__company_name__icontains=n)
+            for n in (filters.get("company_names") or [])
+            if str(n).strip()
+        ],
+    )
+    qs = qs.filter(company_q) if company_q else qs
+
+    # Ship: id OR name
+    ship_q = _or_id_name(
+        ids=filters.get("ship_ids"),
+        names=filters.get("ship_names"),
+        id_q=Q(ship_id__in=list(filters.get("ship_ids") or [])),
+        name_q_for=[
+            Q(ship__ship_name__icontains=n)
+            for n in (filters.get("ship_names") or [])
+            if str(n).strip()
+        ],
+    )
+    qs = qs.filter(ship_q) if ship_q else qs
+
     if filters.get("statuses"):
         qs = qs.filter(status__in=filters["statuses"])
-    if filters.get("rank_ids"):
-        # Job order has at least one position with one of these ranks.
-        qs = qs.filter(
-            Exists(
+
+    # Rank: id OR name (name matches either Rank.name or Rank.code)
+    rank_ids = filters.get("rank_ids") or []
+    rank_names = [n for n in (filters.get("rank_names") or []) if str(n).strip()]
+    if rank_ids or rank_names:
+        rank_filter = Q()
+        if rank_ids:
+            # Job order has at least one position with one of these ranks.
+            rank_filter |= Exists(
                 JobOrderPosition.objects.filter(
                     job_order=OuterRef("pk"),
-                    rank_id__in=filters["rank_ids"],
+                    rank_id__in=rank_ids,
                 )
             )
-        )
+        if rank_names:
+            name_q = Q()
+            for n in rank_names:
+                name_q |= Q(positions__rank__name__icontains=n) | Q(
+                    positions__rank__code__icontains=n
+                )
+            # Wrap as a single Exists for the position-with-rank subquery
+            rank_filter &= Exists(
+                JobOrderPosition.objects.filter(
+                    Q(job_order=OuterRef("pk")) & (
+                        Q(rank__name__icontains=rank_names[0])
+                        | Q(rank__code__icontains=rank_names[0])
+                    )
+                )
+            )
+            # If multiple names, OR them inside the Exists
+            if len(rank_names) > 1:
+                or_q = Q()
+                for n in rank_names:
+                    or_q |= Q(rank__name__icontains=n) | Q(rank__code__icontains=n)
+                rank_filter = Exists(
+                    JobOrderPosition.objects.filter(
+                        Q(job_order=OuterRef("pk")) & or_q
+                    )
+                )
+        qs = qs.filter(rank_filter)
+
     if filters.get("request_date_from"):
         qs = qs.filter(request_date__gte=filters["request_date_from"])
     if filters.get("request_date_to"):
@@ -69,10 +154,31 @@ def _job_orders_qs(filters: Dict[str, Any]) -> QuerySet:
 
 def _companies_qs(filters: Dict[str, Any]) -> QuerySet:
     qs = Company.objects.select_related("company_type", "company_flag")
-    if filters.get("company_type_ids"):
-        qs = qs.filter(company_type_id__in=filters["company_type_ids"])
-    if filters.get("country_ids"):
-        qs = qs.filter(company_flag_id__in=filters["country_ids"])
+
+    company_type_q = _or_id_name(
+        ids=filters.get("company_type_ids"),
+        names=filters.get("company_type_names"),
+        id_q=Q(company_type_id__in=list(filters.get("company_type_ids") or [])),
+        name_q_for=[
+            Q(company_type__name__icontains=n)
+            for n in (filters.get("company_type_names") or [])
+            if str(n).strip()
+        ],
+    )
+    qs = qs.filter(company_type_q) if company_type_q else qs
+
+    country_q = _or_id_name(
+        ids=filters.get("country_ids"),
+        names=filters.get("country_names"),
+        id_q=Q(company_flag_id__in=list(filters.get("country_ids") or [])),
+        name_q_for=[
+            Q(company_flag__name__icontains=n)
+            for n in (filters.get("country_names") or [])
+            if str(n).strip()
+        ],
+    )
+    qs = qs.filter(country_q) if country_q else qs
+
     if filters.get("statuses"):
         qs = qs.filter(status__in=filters["statuses"])
     return qs.order_by("company_name")[:DEFAULT_LIMIT]
@@ -80,12 +186,43 @@ def _companies_qs(filters: Dict[str, Any]) -> QuerySet:
 
 def _ships_qs(filters: Dict[str, Any]) -> QuerySet:
     qs = Ship.objects.select_related("company", "ship_type", "flag")
-    if filters.get("company_ids"):
-        qs = qs.filter(company_id__in=filters["company_ids"])
-    if filters.get("ship_type_ids"):
-        qs = qs.filter(ship_type_id__in=filters["ship_type_ids"])
-    if filters.get("flag_ids"):
-        qs = qs.filter(flag_id__in=filters["flag_ids"])
+
+    company_q = _or_id_name(
+        ids=filters.get("company_ids"),
+        names=filters.get("company_names"),
+        id_q=Q(company_id__in=list(filters.get("company_ids") or [])),
+        name_q_for=[
+            Q(company__company_name__icontains=n)
+            for n in (filters.get("company_names") or [])
+            if str(n).strip()
+        ],
+    )
+    qs = qs.filter(company_q) if company_q else qs
+
+    ship_type_q = _or_id_name(
+        ids=filters.get("ship_type_ids"),
+        names=filters.get("ship_type_names"),
+        id_q=Q(ship_type_id__in=list(filters.get("ship_type_ids") or [])),
+        name_q_for=[
+            Q(ship_type__name__icontains=n)
+            for n in (filters.get("ship_type_names") or [])
+            if str(n).strip()
+        ],
+    )
+    qs = qs.filter(ship_type_q) if ship_type_q else qs
+
+    flag_q = _or_id_name(
+        ids=filters.get("flag_ids"),
+        names=filters.get("flag_names"),
+        id_q=Q(flag_id__in=list(filters.get("flag_ids") or [])),
+        name_q_for=[
+            Q(flag__name__icontains=n)
+            for n in (filters.get("flag_names") or [])
+            if str(n).strip()
+        ],
+    )
+    qs = qs.filter(flag_q) if flag_q else qs
+
     if filters.get("year_built_from") is not None:
         qs = qs.filter(year_built__gte=filters["year_built_from"])
     if filters.get("year_built_to") is not None:
@@ -100,25 +237,31 @@ def _users_qs(filters: Dict[str, Any]) -> QuerySet:
     api.filters.filter_user_status — duplicated here so the report
     can run without going through the list endpoint.
     """
+    from api.models import UserRank
     qs = Users.objects.all()
+
     if filters.get("roles"):
         qs = qs.filter(role__in=filters["roles"])
-    if filters.get("rank_ids"):
-        # Users with a UserRank row pointing at any of these ranks.
-        from api.models import UserRank
+
+    # Rank: id OR name (name matches Rank.name OR Rank.code)
+    rank_ids = filters.get("rank_ids") or []
+    rank_names = [n for n in (filters.get("rank_names") or []) if str(n).strip()]
+    if rank_ids or rank_names:
+        or_q = Q()
+        if rank_ids:
+            or_q |= Q(rank_id__in=rank_ids)
+        for n in rank_names:
+            or_q |= Q(rank__name__icontains=n) | Q(rank__code__icontains=n)
         qs = qs.filter(
-            Exists(
-                UserRank.objects.filter(
-                    user=OuterRef("pk"),
-                    rank_id__in=filters["rank_ids"],
-                )
-            )
+            Exists(UserRank.objects.filter(Q(user=OuterRef("pk")) & or_q))
         )
+
     if filters.get("nationalities"):
         nat_q = Q()
         for n in filters["nationalities"]:
             nat_q |= Q(nationality__icontains=n)
         qs = qs.filter(nat_q)
+
     if filters.get("is_blacklisted") is not None:
         qs = qs.filter(is_blacklisted=filters["is_blacklisted"])
 

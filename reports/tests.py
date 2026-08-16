@@ -482,3 +482,206 @@ class ReportResponseShapeTests(TestCase):
         self.assertIn("generated_at", r.data)
         self.assertIn("limit_per_section", r.data)
         self.assertEqual(r.data["limit_per_section"], 500)
+
+
+# ===========================================================================
+# Name-based filter tests (parallel to the ID-based ones above).
+# ===========================================================================
+
+
+class NameBasedJobOrderFilterTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = _admin()
+        cls.co_alpha = _company("Alpha Shipping")
+        cls.co_bravo = _company("Bravo Shipping")
+        cls.ship_alpha = _ship("MV Alpha Star", company=cls.co_alpha)
+        cls.ship_bravo = _ship("MV Bravo", company=cls.co_bravo)
+        cls.rank = Rank.objects.create(code="MAS-1", name="Master")
+        cls.rank_chief = Rank.objects.create(code="CHIEF-1", name="Chief Officer")
+        cls.jo_a = _job_order(cls.co_alpha, cls.ship_alpha,
+                              reference="JO-A", status="Open")
+        cls.jo_b = _job_order(cls.co_bravo, cls.ship_bravo,
+                              reference="JO-B", status="Open")
+        _position(cls.jo_a, cls.rank)
+        _position(cls.jo_b, cls.rank_chief)
+
+    def _post(self, body):
+        return _client(self.admin).post(URL, body, format="json")
+
+    def test_filter_by_company_names_case_insensitive(self):
+        r = self._post({"job_orders": {"company_names": ["alpha"]}})
+        refs = {row["reference_number"] for row in
+                r.data["sections"]["job_orders"]["rows"]}
+        self.assertEqual(refs, {"JO-A"})
+
+    def test_filter_by_company_names_substring(self):
+        r = self._post({"job_orders": {"company_names": ["Shipping"]}})
+        refs = {row["reference_number"] for row in
+                r.data["sections"]["job_orders"]["rows"]}
+        self.assertEqual(refs, {"JO-A", "JO-B"})
+
+    def test_filter_by_ship_names(self):
+        r = self._post({"job_orders": {"ship_names": ["Alpha"]}})
+        refs = {row["reference_number"] for row in
+                r.data["sections"]["job_orders"]["rows"]}
+        self.assertEqual(refs, {"JO-A"})
+
+    def test_filter_by_rank_names(self):
+        r = self._post({"job_orders": {"rank_names": ["Chief"]}})
+        refs = {row["reference_number"] for row in
+                r.data["sections"]["job_orders"]["rows"]}
+        self.assertEqual(refs, {"JO-B"})
+
+    def test_filter_by_rank_code(self):
+        r = self._post({"job_orders": {"rank_names": ["MAS-1"]}})
+        refs = {row["reference_number"] for row in
+                r.data["sections"]["job_orders"]["rows"]}
+        self.assertEqual(refs, {"JO-A"})
+
+    def test_ids_and_names_combine_with_or(self):
+        """Passing both ids=[b.id] and names=["alpha"] should match both rows."""
+        r = self._post({
+            "job_orders": {
+                "company_ids": [self.co_bravo.id],
+                "company_names": ["Alpha"],
+            }
+        })
+        refs = {row["reference_number"] for row in
+                r.data["sections"]["job_orders"]["rows"]}
+        self.assertEqual(refs, {"JO-A", "JO-B"})
+
+
+class NameBasedCompanyFilterTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = _admin()
+        cls.t_owner = CompanyType.objects.create(name="Ship Owner")
+        cls.t_manager = CompanyType.objects.create(name="Ship Manager")
+        cls.flag = Flag.objects.create(name=f"Egypt-{id(cls)}")
+        cls.co_a = _company("Owner Alpha", company_type=cls.t_owner, flag=cls.flag)
+        cls.co_b = _company("Manager Bravo", company_type=cls.t_manager, flag=cls.flag)
+
+    def _post(self, body):
+        return _client(self.admin).post(URL, body, format="json")
+
+    def test_filter_by_company_type_names(self):
+        r = self._post({"companies": {"company_type_names": ["Owner"]}})
+        names = {row["company_name"] for row in
+                 r.data["sections"]["companies"]["rows"]}
+        self.assertEqual(names, {"Owner Alpha"})
+
+    def test_filter_by_country_names(self):
+        r = self._post({"companies": {"country_names": ["Egypt"]}})
+        names = {row["company_name"] for row in
+                 r.data["sections"]["companies"]["rows"]}
+        self.assertEqual(names, {"Owner Alpha", "Manager Bravo"})
+
+    def test_ids_and_names_combine_with_or(self):
+        r = self._post({
+            "companies": {
+                "company_type_ids": [self.t_manager.id],
+                "company_type_names": ["Owner"],
+            }
+        })
+        names = {row["company_name"] for row in
+                 r.data["sections"]["companies"]["rows"]}
+        self.assertEqual(names, {"Owner Alpha", "Manager Bravo"})
+
+
+class NameBasedShipFilterTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = _admin()
+        cls.co = _company("Owner Inc")
+        cls.t_bulk = VesselType.objects.create(name="Bulk Carrier")
+        cls.t_tanker = VesselType.objects.create(name="Tanker")
+        cls.flag_pa = Flag.objects.create(name=f"Panama-{id(cls)}")
+        cls.ship_bulk = _ship("MV Bulk Star", company=cls.co,
+                              ship_type=cls.t_bulk, flag=cls.flag_pa)
+        cls.ship_tanker = _ship("MV Tanker", company=cls.co,
+                                ship_type=cls.t_tanker, flag=cls.flag_pa)
+
+    def _post(self, body):
+        return _client(self.admin).post(URL, body, format="json")
+
+    def test_filter_by_ship_type_names(self):
+        r = self._post({"ships": {"ship_type_names": ["Tanker"]}})
+        names = {row["ship_name"] for row in
+                 r.data["sections"]["ships"]["rows"]}
+        self.assertEqual(names, {"MV Tanker"})
+
+    def test_filter_by_flag_names(self):
+        r = self._post({"ships": {"flag_names": ["Panama"]}})
+        names = {row["ship_name"] for row in
+                 r.data["sections"]["ships"]["rows"]}
+        self.assertEqual(names, {"MV Bulk Star", "MV Tanker"})
+
+    def test_filter_by_company_names(self):
+        r = self._post({"ships": {"company_names": ["Owner"]}})
+        names = {row["ship_name"] for row in
+                 r.data["sections"]["ships"]["rows"]}
+        self.assertEqual(names, {"MV Bulk Star", "MV Tanker"})
+
+    def test_ids_and_names_combine_with_or(self):
+        r = self._post({
+            "ships": {
+                "ship_type_ids": [self.t_tanker.id],
+                "ship_type_names": ["Bulk"],
+            }
+        })
+        names = {row["ship_name"] for row in
+                 r.data["sections"]["ships"]["rows"]}
+        self.assertEqual(names, {"MV Bulk Star", "MV Tanker"})
+
+
+class NameBasedUserFilterTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import UserRank
+        cls.admin = _admin()
+        cls.rank_master = Rank.objects.create(code="MAS-1", name="Master")
+        cls.rank_chief = Rank.objects.create(code="CHIEF-1", name="Chief Officer")
+        cls.u_master = Users.objects.create_user(
+            email="master@example.com", password="x",
+            first_name="Master", middle_name="User",
+            role="Employee", nationality="Egyptian",
+        )
+        UserRank.objects.create(user=cls.u_master, rank=cls.rank_master)
+        cls.u_chief = Users.objects.create_user(
+            email="chief@example.com", password="x",
+            first_name="Chief", middle_name="User",
+            role="Employee", nationality="Indian",
+        )
+        UserRank.objects.create(user=cls.u_chief, rank=cls.rank_chief)
+
+    def _post(self, body):
+        return _client(self.admin).post(URL, body, format="json")
+
+    def test_filter_by_rank_names(self):
+        r = self._post({"users": {"rank_names": ["Chief"]}})
+        emails = {row["email"] for row in
+                  r.data["sections"]["users"]["rows"]}
+        self.assertEqual(emails, {"chief@example.com"})
+
+    def test_filter_by_rank_code(self):
+        r = self._post({"users": {"rank_names": ["MAS-1"]}})
+        emails = {row["email"] for row in
+                  r.data["sections"]["users"]["rows"]}
+        self.assertEqual(emails, {"master@example.com"})
+
+    def test_ids_and_names_combine_with_or(self):
+        r = self._post({
+            "users": {
+                "rank_ids": [self.rank_chief.id],
+                "rank_names": ["Master"],
+            }
+        })
+        emails = {row["email"] for row in
+                  r.data["sections"]["users"]["rows"]}
+        self.assertEqual(emails, {"master@example.com", "chief@example.com"})
+
+    def test_rank_names_empty_string_is_ignored(self):
+        r = self._post({"users": {"rank_names": ["", "  "]}})
+        # No filter active, both users come back
+        self.assertEqual(r.status_code, 200)

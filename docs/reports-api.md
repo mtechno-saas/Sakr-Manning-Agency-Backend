@@ -6,7 +6,27 @@ The Reports page on the frontend posts a filter spec to this endpoint and render
 
 `POST /api/reports/generate/`
 
-Auth: any authenticated user. (Add a custom permission class if the team later wants server-side role gating.)
+Auth: any authenticated user.
+
+## ID-or-name filtering
+
+For every feature that has a numeric id **and** a human name, the filter accepts BOTH forms:
+
+| IDs form | Names form | Match |
+|---|---|---|
+| `company_ids: [1, 2]` | `company_names: ["Maersk"]` | company 1 OR 2 OR whose name contains "Maersk" |
+| `ship_ids: [5]` | `ship_names: ["Atlas"]` | ship 5 OR whose name contains "Atlas" |
+| `company_type_ids: [3]` | `company_type_names: ["Owner"]` | type 3 OR whose name contains "Owner" |
+| `country_ids: [10]` | `country_names: ["Egypt"]` | flag 10 OR whose name contains "Egypt" |
+| `ship_type_ids: [7]` | `ship_type_names: ["Tanker"]` | type 7 OR whose name contains "Tanker" |
+| `flag_ids: [11]` | `flag_names: ["Panama"]` | flag 11 OR whose name contains "Panama" |
+| `rank_ids: [42]` | `rank_names: ["Master"]` or `["MAS-1"]` | rank 42 OR whose name/code contains the value |
+
+Name matching is **case-insensitive contains** (so "alpha" matches both "Alpha Shipping" and "Alphaline"). Rank names also match against `Rank.code` (so "MAS-1" matches rank "Master" / code "MAS-1").
+
+If you pass BOTH `_ids` and `_names` for the same feature in one request, they OR together. The frontend can pick whichever form is easier to display in its multi-select UI.
+
+Empty / whitespace-only name strings are accepted by the serializer and silently ignored at the service layer.
 
 ## Request body
 
@@ -28,93 +48,79 @@ Each top-level block is optional. A block that is present but empty (`{}`) retur
   "generated_at": "2026-08-16T23:10:00+00:00",
   "limit_per_section": 500,
   "sections": {
-    "job_orders": {
-      "total_records": 12,
-      "rows": [ ...JobOrder rows... ]
-    },
-    "companies": {
-      "total_records": 5,
-      "rows": [ ...Company rows... ]
-    },
-    "ships": {
-      "total_records": 8,
-      "rows": [ ...Ship rows... ]
-    },
-    "users": {
-      "total_records": 25,
-      "rows": [ ...User rows... ]
-    }
+    "job_orders": { "total_records": 12, "rows": [ ... ] },
+    "companies":  { "total_records": 5,  "rows": [ ... ] },
+    "ships":      { "total_records": 8,  "rows": [ ... ] },
+    "users":      { "total_records": 25, "rows": [ ... ] }
   }
 }
 ```
 
-Each section's `rows` is the same shape as the corresponding list endpoint's rows (uses the existing serializers: `JobOrderSerializer`, `CompanySerializer`, `ShipSerializer`, `UsersSerializer`).
+Each `rows` array uses the existing list-endpoint serializer.
 
-## Filter dimensions
+## Per-entity filter dimensions
 
 ### `job_orders`
 
 | Field | Type | Notes |
 |---|---|---|
-| `company_ids` | list of int | Job orders whose `company_id` is in this list |
-| `ship_ids` | list of int | Job orders whose `ship_id` is in this list |
-| `statuses` | list of str | One or more of `Open`, `Close`, `Full Filled` |
-| `rank_ids` | list of int | Job orders that have at least one `JobOrderPosition` with one of these ranks |
-| `request_date_from` | `YYYY-MM-DD` | `JobOrder.request_date >= this` |
-| `request_date_to` | `YYYY-MM-DD` | `JobOrder.request_date <= this` |
-| `target_join_date_from` | `YYYY-MM-DD` | `JobOrder.target_joining_date >= this` |
-| `target_join_date_to` | `YYYY-MM-DD` | `JobOrder.target_joining_date <= this` |
+| `company_ids` / `company_names` | list | Job orders whose company matches either form |
+| `ship_ids` / `ship_names` | list | Job orders whose ship matches either form |
+| `statuses` | list of str | `Open`, `Close`, `Full Filled` |
+| `rank_ids` / `rank_names` | list | Job orders with at least one position with one of these ranks (name matches `Rank.name` or `Rank.code`) |
+| `request_date_from` / `to` | `YYYY-MM-DD` | Range on `JobOrder.request_date` |
+| `target_join_date_from` / `to` | `YYYY-MM-DD` | Range on `JobOrder.target_joining_date` |
 
 ### `companies`
 
 | Field | Type | Notes |
 |---|---|---|
-| `company_type_ids` | list of int | FK to `core.CompanyType` |
-| `country_ids` | list of int | FK to `core.Flag` (the `company_flag` on the company) |
-| `statuses` | list of str | One or more of `Active`, `Inactive`, `Prospect` |
+| `company_type_ids` / `company_type_names` | list | FK to `core.CompanyType` |
+| `country_ids` / `country_names` | list | FK to `core.Flag` (the `company_flag`) |
+| `statuses` | list of str | `Active`, `Inactive`, `Prospect` |
 
 ### `ships`
 
 | Field | Type | Notes |
 |---|---|---|
-| `company_ids` | list of int | Ships under these companies |
-| `ship_type_ids` | list of int | FK to `core.VesselType` |
-| `flag_ids` | list of int | FK to `core.Flag` |
-| `year_built_from` | int | `year_built >= this` |
-| `year_built_to` | int | `year_built <= this` |
+| `company_ids` / `company_names` | list | |
+| `ship_type_ids` / `ship_type_names` | list | FK to `core.VesselType` |
+| `flag_ids` / `flag_names` | list | FK to `core.Flag` |
+| `year_built_from` / `to` | int | |
 
 ### `users`
 
 | Field | Type | Notes |
 |---|---|---|
-| `roles` | list of str | One or more of `Admin`, `HR Manager`, `Recruiter`, `Employee` |
-| `user_statuses` | list of str | The effective 5-state status. Accepts `ON_SITE`, `ON_BOARD`, `VACATION`, `MEDICAL_VACATION` / `MEDICAL VACATION` (both forms accepted; we normalize), `NEW_APPLICANT`. Logic mirrors `?user_status=` on the users list endpoint. |
-| `rank_ids` | list of int | Users that have a `UserRank` row pointing at any of these ranks |
-| `nationalities` | list of str | Case-insensitive contains-match on `Users.nationality` (OR'd across the list) |
-| `is_blacklisted` | bool | `true` / `false` (null = no filter) |
+| `roles` | list of str | `Admin`, `HR Manager`, `Recruiter`, `Employee` |
+| `user_statuses` | list of str | The effective 5-state status. Accepts `MEDICAL_VACATION` or `MEDICAL VACATION` (normalized). |
+| `rank_ids` / `rank_names` | list | Users with a `UserRank` row pointing at one of these (name matches `Rank.name` or `Rank.code`) |
+| `nationalities` | list of str | Case-insensitive contains-match on `Users.nationality` (OR'd) |
+| `is_blacklisted` | bool | `true` / `false` (omit = no filter) |
 
 ## Semantics
 
 - **AND within a section**: all provided filters AND together.
-- **OR within a multi-value field**: e.g. `company_ids=[1,2]` matches companies 1 OR 2.
-- **Sections are independent**: filtering `job_orders.company_ids` does not affect the `companies` section. Each section is a self-contained filtered list.
+- **OR within a multi-value field**: e.g. `company_ids=[1,2]` matches 1 OR 2.
+- **OR across `_ids` and `_names` for the same feature**: pass `company_ids=[1]` and `company_names=["Maersk"]` and you get companies 1 OR any whose name contains "Maersk".
+- **Sections are independent**: filtering `job_orders.company_ids` does not affect the `companies` section.
 - **No cross-entity JOIN**: a job order row doesn't expand into the assigned crew; if the frontend wants that, it follows up with `/api/companies/job-orders/{id}/` which already exposes `assigned_crew`.
 
 ## Limits
 
-- `limit_per_section: 500` — the most rows any one section can return in a single request. The frontend can refine its filters for more, or follow up with the list endpoint with pagination for deeper drill-down.
+`limit_per_section: 500` — the most rows any one section can return in a single request. The frontend can refine its filters for more, or follow up with the list endpoint with pagination for deeper drill-down.
 
 ## Error responses
 
 - 400 with a clear field-level message for any invalid filter value (e.g. an unsupported status, a malformed date).
-- 401/403 if the request isn't authenticated (or the user is blocked, etc.).
+- 401/403 if the request isn't authenticated.
 
 ## Files
 
 - `reports/views.py` — `ReportsGenerateView` (POST).
-- `reports/serializers.py` — per-entity filter validation.
-- `reports/services.py` — `generate_report()` and the four `_xxx_qs` queryset builders.
+- `reports/serializers.py` — per-entity filter validation, `_NormalisedStatusField`.
+- `reports/services.py` — `generate_report()` and the four `_xxx_qs` queryset builders; `_or_id_name` helper for the id/name merge.
 - `reports/urls.py` — routes under `/api/reports/`.
-- `reports/tests.py` — 33 tests across 7 test classes.
+- `reports/tests.py` — 50 tests across 11 test classes.
 - `saker/urls.py` — `path("api/reports/", include("reports.urls"))`.
 - `saker/settings.py` — `'reports'` added to `INSTALLED_APPS`.
