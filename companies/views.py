@@ -213,7 +213,11 @@ class JobOrderViewSet(viewsets.ModelViewSet):
     - Admin/HR/Recruiter: Full CRUD
     - Employee: Read-only (browse open job orders)
     """
-    queryset = JobOrder.objects.all().prefetch_related('positions__contracts__user')
+    queryset = JobOrder.objects.all().prefetch_related(
+        'positions__contracts__user',
+        'positions__contracts__ship',
+        'positions__contracts__job_position__rank',
+    )
     serializer_class = JobOrderSerializer
     filterset_class = JobOrderFilter
     permission_classes = [PublicJobOrderPermission]

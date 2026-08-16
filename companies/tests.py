@@ -784,6 +784,139 @@ class JobOrderVacancyRollupsTests(TestCase):
         self.assertEqual(item["total_open_vacancies"], 1)
 
 
+class JobOrderAssignedCrewTests(TestCase):
+    """
+    Tests for the ``assigned_crew`` field on JobOrderSerializer.
+
+    The list endpoint at /api/companies/job-orders/ should expose a
+    flat list of every crew member assigned to a position under the
+    job order, including their user id, name, email, and the ship
+    recorded on the contract.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.company = _make_company()
+        cls.ship_a = _make_ship(company=cls.company, name="MV Pacific", imo="1111111")
+        cls.ship_b = _make_ship(company=cls.company, name="MV Atlantic", imo="2222222")
+        cls.rank = _make_rank()
+        cls.crew1 = _make_user("crew1@example.com", "John", "Smith")
+        cls.crew2 = _make_user("crew2@example.com", "Jane", "Doe")
+        cls.crew3 = _make_user("crew3@example.com", "Bob", "Marley")
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.crew1)
+
+    def _detail_url(self, jo_id):
+        return f"/api/companies/job-orders/{jo_id}/"
+
+    def _list_url(self):
+        return "/api/companies/job-orders/"
+
+    def _row(self, jo_id, response):
+        body = response.data
+        items = body if isinstance(body, list) else body.get("results", body)
+        return next(i for i in items if i["id"] == jo_id)
+
+    def test_assigned_crew_empty_when_no_contracts(self):
+        jo = _make_job_order(self.company, self.ship_a)
+        _make_position(jo, self.rank, quantity=3)
+        r = self.client.get(self._detail_url(jo.id))
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(r.data["assigned_crew"], [])
+
+    def test_assigned_crew_includes_user_id_name_email_ship(self):
+        jo = _make_job_order(self.company, self.ship_a)
+        pos = _make_position(jo, self.rank, quantity=2)
+        c = _make_contract(
+            self.crew1, self.ship_a, self.company, self.rank, pos, status="Active"
+        )
+        r = self.client.get(self._detail_url(jo.id))
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        crew = r.data["assigned_crew"]
+        self.assertEqual(len(crew), 1)
+        row = crew[0]
+        self.assertEqual(row["contract_id"], c.id)
+        self.assertEqual(row["user_id"], self.crew1.id)
+        self.assertEqual(row["user_name"], "John Smith")
+        self.assertEqual(row["user_email"], "crew1@example.com")
+        self.assertEqual(row["ship_id"], self.ship_a.id)
+        self.assertEqual(row["ship_name"], "MV Pacific")
+        self.assertEqual(row["rank"], "Master")
+        self.assertEqual(row["contract_status"], "Active")
+
+    def test_assigned_crew_flattens_across_positions(self):
+        """Multiple positions and multiple contracts under one JO."""
+        rank2 = _make_rank(code="CHIEF-1", name="Chief Officer")
+        jo = _make_job_order(self.company, self.ship_a, reference="JO-MULTI-1")
+        pos1 = _make_position(jo, self.rank, quantity=2)
+        pos2 = _make_position(jo, rank2, quantity=1)
+        _make_contract(self.crew1, self.ship_a, self.company, self.rank, pos1, status="Active")
+        _make_contract(self.crew2, self.ship_b, self.company, rank2, pos2, status="Signed")
+        r = self.client.get(self._detail_url(jo.id))
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        crew = r.data["assigned_crew"]
+        self.assertEqual(len(crew), 2)
+        # Order isn't guaranteed, so check both rows
+        by_user = {row["user_email"]: row for row in crew}
+        self.assertIn("crew1@example.com", by_user)
+        self.assertIn("crew2@example.com", by_user)
+        self.assertEqual(by_user["crew1@example.com"]["ship_name"], "MV Pacific")
+        self.assertEqual(by_user["crew2@example.com"]["ship_name"], "MV Atlantic")
+        self.assertEqual(by_user["crew1@example.com"]["rank"], "Master")
+        self.assertEqual(by_user["crew2@example.com"]["rank"], "Chief Officer")
+
+    def test_assigned_crew_includes_all_statuses(self):
+        """Draft / Pending / Cancelled contracts are still listed."""
+        jo = _make_job_order(self.company, self.ship_a, reference="JO-STATUS-1")
+        pos = _make_position(jo, self.rank, quantity=3)
+        _make_contract(self.crew1, self.ship_a, self.company, self.rank, pos, status="Active")
+        _make_contract(self.crew2, self.ship_a, self.company, self.rank, pos, status="Draft")
+        _make_contract(self.crew3, self.ship_a, self.company, self.rank, pos, status="Pending Signature")
+        r = self.client.get(self._detail_url(jo.id))
+        crew = r.data["assigned_crew"]
+        self.assertEqual(len(crew), 3)
+        statuses = {row["contract_status"] for row in crew}
+        self.assertEqual(statuses, {"Active", "Draft", "Pending Signature"})
+
+    def test_assigned_crew_on_list_endpoint(self):
+        """The list endpoint also returns the field per row."""
+        jo = _make_job_order(self.company, self.ship_a, reference="JO-LIST-1")
+        pos = _make_position(jo, self.rank, quantity=1)
+        _make_contract(self.crew1, self.ship_a, self.company, self.rank, pos, status="Active")
+        r = self.client.get(self._list_url())
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        row = self._row(jo.id, r)
+        self.assertIn("assigned_crew", row)
+        self.assertEqual(len(row["assigned_crew"]), 1)
+        self.assertEqual(row["assigned_crew"][0]["user_email"], "crew1@example.com")
+
+    def test_assigned_crew_user_with_no_full_name_falls_back(self):
+        """If full_name / first_name are blank, return email or username."""
+        anon_user = _make_user("only@email.com", "", "")
+        # full_name is computed; an empty first/middle yields ''.
+        jo = _make_job_order(self.company, self.ship_a, reference="JO-NONAME-1")
+        pos = _make_position(jo, self.rank, quantity=1)
+        _make_contract(anon_user, self.ship_a, self.company, self.rank, pos, status="Active")
+        r = self.client.get(self._detail_url(jo.id))
+        row = r.data["assigned_crew"][0]
+        self.assertEqual(row["user_id"], anon_user.id)
+        self.assertEqual(row["user_name"], "only@email.com")
+        self.assertEqual(row["user_email"], "only@email.com")
+
+    def test_assigned_crew_dates_serialized_as_iso(self):
+        jo = _make_job_order(self.company, self.ship_a, reference="JO-DATE-1")
+        pos = _make_position(jo, self.rank, quantity=1)
+        _make_contract(self.crew1, self.ship_a, self.company, self.rank, pos, status="Active")
+        r = self.client.get(self._detail_url(jo.id))
+        row = r.data["assigned_crew"][0]
+        self.assertIsNotNone(row["sign_on_date"])
+        # ISO format: YYYY-MM-DD
+        self.assertRegex(row["sign_on_date"], r"^\d{4}-\d{2}-\d{2}$")
+        self.assertIsNone(row["sign_off_date"])
+
+
 class JobOrderAutoFulfilledSignalTests(TestCase):
     """
     Tests for the auto-transition signal: when all positions under

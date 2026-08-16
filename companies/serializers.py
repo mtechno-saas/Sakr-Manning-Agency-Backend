@@ -248,6 +248,17 @@ class JobOrderSerializer(serializers.ModelSerializer):
     total_closed_vacancies = serializers.SerializerMethodField()
     total_fully_filled_vacancies = serializers.SerializerMethodField()
 
+    # Flat list of every crew member that has been assigned to a
+    # position under this job order, regardless of contract status.
+    # Each row carries the user's id / name / email and the ship
+    # recorded on the contract (i.e. the vessel they were placed on),
+    # plus the rank, contract status and sign-on/off dates for context.
+    #
+    # Viewset prefetches positions__contracts__user, __ship and
+    # __job_position__rank so this stays a constant number of queries
+    # regardless of how many crew are assigned.
+    assigned_crew = serializers.SerializerMethodField()
+
     class Meta:
         model = JobOrder
         fields = '__all__'
@@ -279,4 +290,66 @@ class JobOrderSerializer(serializers.ModelSerializer):
             if p.quantity > 0 and _filled(p) >= p.quantity:
                 n += 1
         return n
+
+    # ----------------------------------------------------------------
+    # assigned_crew
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def _user_name(user):
+        """Best-effort human label for a Users row."""
+        if not user:
+            return None
+        full = getattr(user, "full_name", "") or ""
+        if not full:
+            first = getattr(user, "first_name", "") or ""
+            middle = getattr(user, "middle_name", "") or ""
+            full = f"{first} {middle}".strip()
+        if full:
+            return full
+        return (
+            getattr(user, "email", None)
+            or getattr(user, "username", None)
+            or f"user#{getattr(user, 'id', '?')}"
+        )
+
+    def get_assigned_crew(self, obj):
+        """
+        One row per Contract that points to a position under this job
+        order. The list is flat (not nested under positions) so the
+        frontend can render it directly as a single table.
+
+        Returns [] when nothing is assigned yet (the common case for a
+        brand-new "Open" job order).
+        """
+        rows = []
+        for pos in self._positions(obj):
+            for c in pos.contracts.all():
+                user = getattr(c, "user", None)
+                ship = getattr(c, "ship", None)
+                rows.append({
+                    "contract_id": c.id,
+                    "user_id": getattr(user, "id", None),
+                    "user_name": self._user_name(user),
+                    "user_email": getattr(user, "email", None),
+                    "ship_id": getattr(ship, "id", None),
+                    "ship_name": getattr(ship, "ship_name", None),
+                    "rank": (
+                        getattr(getattr(pos, "rank", None), "name", None)
+                        or getattr(c, "rank", None)
+                        and getattr(c.rank, "name", None)
+                    ),
+                    "contract_status": c.status,
+                    "sign_on_date": (
+                        c.sign_on_date.isoformat()
+                        if getattr(c, "sign_on_date", None)
+                        else None
+                    ),
+                    "sign_off_date": (
+                        c.sign_off_date.isoformat()
+                        if getattr(c, "sign_off_date", None)
+                        else None
+                    ),
+                })
+        return rows
 
