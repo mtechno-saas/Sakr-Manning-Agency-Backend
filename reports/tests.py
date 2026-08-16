@@ -685,3 +685,98 @@ class NameBasedUserFilterTests(TestCase):
         r = self._post({"users": {"rank_names": ["", "  "]}})
         # No filter active, both users come back
         self.assertEqual(r.status_code, 200)
+
+
+# ===========================================================================
+# GET-method tests (query-param form, same response shape as POST).
+# ===========================================================================
+
+
+class ReportsEndpointGetMethodTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = _admin()
+        cls.co = _company("Maersk Test Co")
+        cls.ship = _ship("MV Maersk Star", company=cls.co)
+        cls.rank = Rank.objects.create(code="MAS-1", name="Master")
+        cls.jo = _job_order(cls.co, cls.ship, reference="JO-GET-1", status="Open")
+        _position(cls.jo, cls.rank)
+        cls.jo_closed = _job_order(cls.co, cls.ship,
+                                   reference="JO-GET-2", status="Close")
+
+    def _get(self, qs):
+        return _client(self.admin).get(URL, qs)
+
+    def test_get_requires_auth(self):
+        r = _client().get(URL)
+        self.assertIn(r.status_code, (401, 403))
+
+    def test_get_no_params_returns_all_sections(self):
+        r = self._get({})
+        self.assertEqual(r.status_code, 200)
+        # All 4 sections come back since none have filters
+        self.assertEqual(set(r.data["sections"].keys()),
+                         {"job_orders", "companies", "ships", "users"})
+
+    def test_get_with_statuses(self):
+        r = self._get({"job_orders.statuses": ["Open"]})
+        self.assertEqual(r.status_code, 200)
+        rows = r.data["sections"]["job_orders"]["rows"]
+        refs = {row["reference_number"] for row in rows}
+        self.assertIn("JO-GET-1", refs)
+        self.assertNotIn("JO-GET-2", refs)
+
+    def test_get_with_company_names(self):
+        r = self._get({"job_orders.company_names": ["Maersk"]})
+        rows = r.data["sections"]["job_orders"]["rows"]
+        self.assertEqual(len(rows), 2)
+
+    def test_get_with_repeated_param(self):
+        """?key=v1&key=v2 is supported."""
+        r = self._get({
+            "job_orders.company_names": ["Maersk", "Other"],
+        })
+        self.assertEqual(r.status_code, 200)
+
+    def test_get_with_comma_separated(self):
+        """?key=v1,v2 is also supported."""
+        r = self._get({
+            "job_orders.company_names": "Maersk,Other",
+        })
+        self.assertEqual(r.status_code, 200)
+        # The comma-separated form is exploded into the same list
+        # the repeated-param form produces.
+
+    def test_get_with_mixed_repeated_and_comma(self):
+        """?key=v1&key=v2,v3 -> 3 values total."""
+        r = self._get({
+            "job_orders.company_names": ["Maersk", "Other,Third"],
+        })
+        self.assertEqual(r.status_code, 200)
+
+    def test_get_with_date_range(self):
+        self.jo.request_date = datetime.date(2026, 1, 15)
+        self.jo.save(update_fields=["request_date"])
+        r = self._get({
+            "job_orders.request_date_from": "2026-01-01",
+            "job_orders.request_date_to": "2026-12-31",
+        })
+        self.assertEqual(r.status_code, 200)
+
+    def test_get_with_invalid_status_returns_400(self):
+        r = self._get({"job_orders.statuses": ["BOGUS"]})
+        self.assertEqual(r.status_code, 400)
+
+    def test_get_and_post_produce_same_results(self):
+        """The same filter spec via POST body or GET query returns
+        the same rows."""
+        body = {"job_orders": {"statuses": ["Open"]}}
+        r_post = _client(self.admin).post(URL, body, format="json")
+        r_get = self._get({"job_orders.statuses": ["Open"]})
+        self.assertEqual(r_post.status_code, 200)
+        self.assertEqual(r_get.status_code, 200)
+        post_refs = {row["reference_number"]
+                     for row in r_post.data["sections"]["job_orders"]["rows"]}
+        get_refs = {row["reference_number"]
+                    for row in r_get.data["sections"]["job_orders"]["rows"]}
+        self.assertEqual(post_refs, get_refs)

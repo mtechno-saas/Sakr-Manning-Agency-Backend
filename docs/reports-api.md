@@ -4,7 +4,10 @@ The Reports page on the frontend posts a filter spec to this endpoint and render
 
 ## Endpoint
 
-`POST /api/reports/generate/`
+`POST /api/reports/generate/` (JSON body)
+`GET  /api/reports/generate/` (query params)
+
+Both methods produce the **same response shape**. Use POST for the full Reports page (large multi-select spec), use GET for ad-hoc Postman debugging or for bookmarkable / cacheable URLs with smaller filter specs.
 
 Auth: any authenticated user.
 
@@ -40,6 +43,66 @@ Empty / whitespace-only name strings are accepted by the serializer and silently
 ```
 
 Each top-level block is optional. A block that is present but empty (`{}`) returns all rows for that entity. A block that is omitted entirely is not included in the response.
+
+## GET query grammar
+
+For GET, the same nested spec is flattened into the URL using dotted keys `<section>.<field>`. Multi-value fields accept BOTH:
+
+- Repeated params: `?job_orders.company_names=Maersk&job_orders.company_names=MSC`
+- Comma-separated: `?job_orders.company_names=Maersk,MSC`
+- Mixed: `?job_orders.company_names=Maersk&job_orders.company_names=MSC,Egypt`
+
+The two are equivalent — the service concatenates the values into a single list.
+
+### Example
+
+```
+GET /api/reports/generate/
+  ?job_orders.company_names=Maersk,MSC
+  &job_orders.statuses=Open
+  &job_orders.statuses=Close
+  &job_orders.rank_names=Master
+  &job_orders.target_join_date_from=2026-09-01
+  &job_orders.target_join_date_to=2026-12-31
+  &companies.company_type_names=Ship Owner
+  &companies.statuses=Active
+```
+
+is equivalent to the POST body:
+
+```json
+{
+  "job_orders": {
+    "company_names": ["Maersk", "MSC"],
+    "statuses": ["Open", "Close"],
+    "rank_names": ["Master"],
+    "target_join_date_from": "2026-09-01",
+    "target_join_date_to": "2026-12-31"
+  },
+  "companies": {
+    "company_type_names": ["Ship Owner"],
+    "statuses": ["Active"]
+  }
+}
+```
+
+### "Give me everything"
+
+A GET with no query parameters returns all 4 sections (each with up to 500 rows) — convenient for "I just want to see what's in the DB" debugging.
+
+A POST with `{}` (empty body) returns an **empty `sections` object** — by design, since the POST body is explicit about which sections are wanted. To get all 4 sections via POST, send `{"job_orders": {}, "companies": {}, "ships": {}, "users": {}}`.
+
+### Scalar fields via GET
+
+Date / int / bool fields take a single value, not a list:
+
+```
+?job_orders.request_date_from=2026-09-01
+?ships.year_built_from=2010
+?users.is_blacklisted=true
+```
+
+If you pass multiple values for a scalar (e.g. `?is_blacklisted=true&is_blacklisted=false`), the last non-empty value wins.
 
 ## Response (200 OK)
 
