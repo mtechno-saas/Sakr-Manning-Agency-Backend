@@ -52,6 +52,10 @@ urlpatterns = [
     path("api/", include("vaccinations.urls")),
     path("api/", include("courses.urls")),
     path("api/reports/", include("reports.urls")),  # Reports page
+    path(
+        "api/historical-data-for-companies/",
+        include("historical_data_companies.urls"),
+    ),  # Historical Data for Companies page
 ]
 
 from django.views.static import serve

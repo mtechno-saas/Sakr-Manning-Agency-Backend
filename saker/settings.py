@@ -105,6 +105,7 @@ INSTALLED_APPS = [
     'courses',
     'notifications',
     'reports',
+    'historical_data_companies',
 ]
 
 MIDDLEWARE = [
