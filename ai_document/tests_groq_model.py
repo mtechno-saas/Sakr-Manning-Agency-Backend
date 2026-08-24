@@ -114,3 +114,46 @@ class GetActiveLlmModelRotationTests(SimpleTestCase):
         # skipped).
         self.assertEqual(_RecordingChatGroq.calls, ["primary-model"])
 
+
+class GroqModelListSanityTests(SimpleTestCase):
+    """The GROQ_MODEL_FALLBACKS list in settings.py must NOT
+    contain deprecated model names — these break uploads silently
+    with a 404 from Groq. Keep this test in sync with the actual
+    `GET /v1/models` output for your key."""
+
+    @classmethod
+    def setUpClass(cls):
+        from django.conf import settings
+        cls.fallbacks = list(getattr(settings, "GROQ_MODEL_FALLBACKS", []))
+        cls.primary = getattr(settings, "GROQ_MODEL", None)
+
+    def test_at_least_one_model_is_configured(self):
+        self.assertTrue(self.fallbacks,
+            "GROQ_MODEL_FALLBACKS is empty — uploads will always fail")
+
+    def test_no_deprecated_groq_models_in_list(self):
+        """Guard against accidentally pushing the old
+        llama-3.1-8b-instant or llama-3.3-70b-versatile back into
+        the fallback list."""
+        deprecated = {
+            "llama-3.1-8b-instant",     # deprecated by Groq 2024
+            "llama-3.3-70b-versatile",  # not on this account
+            "llama3-8b-8192",            # legacy, not on this account
+            "llama3-70b-8192",           # legacy, not on this account
+        }
+        for m in self.fallbacks:
+            self.assertNotIn(
+                m, deprecated,
+                f"{m!r} is in GROQ_MODEL_FALLBACKS but is not accessible "
+                f"to this Groq account. Run "
+                f"`curl https://api.groq.com/openai/v1/models -H "
+                f"'Authorization: Bearer $GROQ_API_KEY'` to get the live list."
+            )
+
+    def test_primary_is_first_in_fallbacks(self):
+        """The router tries the primary first; this asserts the
+        setting and the fallback list agree on the order."""
+        self.assertEqual(self.fallbacks[0], self.primary,
+            "GROQ_MODEL should be the first entry in "
+            "GROQ_MODEL_FALLBACKS so the router tries it first.")
+

@@ -304,13 +304,16 @@ GOOGLE_CLIENT_SECRET = GOOGLE_OAUTH2_CLIENT_SECRET
 # fallback. Override with the env vars below to roll forward when
 # Groq deprecates a model without redeploying.
 #
-# History: we used to hardcode ``llama-3.1-8b-instant`` here; Groq
-# deprecated it in 2024, which broke CV uploads. Keep this list
-# updated as Groq rotates models.
+# History: the original code hardcoded ``llama-3.1-8b-instant``,
+# which Groq deprecated in 2024. The list below was rebuilt from
+# `GET https://api.groq.com/openai/v1/models` for the current
+# Groq account. All entries are real, currently-active chat models
+# with >=8k context. Audio and safety-classification models are
+# excluded.
 import os as _ai_os
 
 GROQ_MODEL = _ai_os.environ.get(
-    "GROQ_MODEL", "llama-3.3-70b-versatile",
+    "GROQ_MODEL", "openai/gpt-oss-120b",
 )
 # Ordered: first non-broken model wins. Update via env var if you
 # want to add/remove without a code deploy.
@@ -318,7 +321,11 @@ GROQ_MODEL_FALLBACKS = [
     m.strip() for m in _ai_os.environ.get(
         "GROQ_MODEL_FALLBACKS",
         # Comma-separated list. Order matters: first live model wins.
-        "llama-3.3-70b-versatile,llama-3.1-8b-instant,llama3-8b-8192,llama3-70b-8192",
+        "openai/gpt-oss-120b,"
+        "qwen/qwen3.6-27b,"
+        "groq/compound,"
+        "groq/compound-mini,"
+        "openai/gpt-oss-20b",
     ).split(",") if m.strip()
 ]
 # Prepend the primary so the order is [primary, ...fallbacks].
