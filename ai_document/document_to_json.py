@@ -6,6 +6,8 @@ import traceback
 from typing import List, Optional, Any
 from pydantic import BaseModel, Field
 
+from django.conf import settings
+
 # --- LLM ROUTER ---
 def _get_active_llm(api_keys_config: dict):
     if isinstance(api_keys_config, str):
@@ -15,19 +17,29 @@ def _get_active_llm(api_keys_config: dict):
                 api_keys_config = json.loads(api_keys_config)
         except Exception:
             api_keys_config = {}
-            
+
     if not isinstance(api_keys_config, dict):
         api_keys_config = {}
-        
+
     now = time.time()
-    
+
+    # Model candidates in priority order. Read from settings so we
+    # can rotate models via env var without a code deploy. The
+    # primary (settings.GROQ_MODEL) is first, then settings.GROQ_MODEL_FALLBACKS.
+    # We try each in turn; the first that the ChatGroq client
+    # accepts wins.
+    model_candidates = list(getattr(
+        settings, "GROQ_MODEL_FALLBACKS",
+        ["llama-3.3-70b-versatile"],
+    ))
+
     # 1. Try Groq keys
     groq_env = os.environ.get("GROQ_API_KEY")
     groq_keys = api_keys_config.get("groq", [])
     if not groq_keys and groq_env:
         groq_keys = [{"key": groq_env, "status": "live", "reset_time": None}]
         api_keys_config["groq"] = groq_keys
-        
+
     if "groq" in api_keys_config:
         for index, key_data in enumerate(api_keys_config["groq"]):
             if not key_data.get("key"): continue
@@ -36,19 +48,30 @@ def _get_active_llm(api_keys_config: dict):
                 key_data["status"] = "live"
                 key_data["reset_time"] = None
                 print(f"[Key Recovery] Groq key {index} has recovered — marking live.")
-            if key_data.get("status") == "live":
+            if key_data.get("status") != "live":
+                continue
+            for model_name in model_candidates:
                 try:
                     from langchain_groq import ChatGroq
                     llm = ChatGroq(
-                        model="llama-3.1-8b-instant",
+                        model=model_name,
                         groq_api_key=key_data["key"],
                         temperature=0,
                         max_tokens=4096,
                     )
-                    return llm, {"provider": "groq", "index": index, "model": "llama-3.1-8b-instant", "key": key_data["key"]}
+                    return llm, {
+                        "provider": "groq",
+                        "index": index,
+                        "model": model_name,
+                        "key": key_data["key"],
+                    }
                 except Exception as e:
-                    print(f"Failed to init Groq key {index}: {e}")
-                
+                    # Try the next model candidate.
+                    print(
+                        f"Failed to init Groq key {index} with model {model_name}: {e}"
+                    )
+                    continue
+
     # 2. Try Gemini Fallback
     gemini_key = api_keys_config.get("gemini") or os.environ.get("GEMINI_API_KEY")
     if gemini_key and not api_keys_config.get("gemini_exhausted"):
@@ -63,7 +86,7 @@ def _get_active_llm(api_keys_config: dict):
             return llm, {"provider": "gemini", "index": 0, "model": "gemini-2.5-flash", "key": gemini_key}
         except Exception as e:
             print(f"Failed to init Gemini key: {e}")
-        
+
     return None, None
 
 def _parse_groq_reset_time(error_message: str) -> float:

@@ -4420,13 +4420,16 @@ class CheckQuotaView(APIView):
                 return Response({"success": False, "error": "No live Groq key found to check quota."})
 
             import requests
+            from django.conf import settings
             url = "https://api.groq.com/openai/v1/chat/completions"
             headers = {
                 "Authorization": f"Bearer {active_key}",
                 "Content-Type": "application/json"
             }
+            # Use the configured primary model for the quota probe so
+            # we don't 404 a deprecated name.
             data = {
-                "model": "llama-3.1-8b-instant",
+                "model": getattr(settings, "GROQ_MODEL", "llama-3.3-70b-versatile"),
                 "messages": [{"role": "user", "content": "hi"}],
                 "max_tokens": 1
             }

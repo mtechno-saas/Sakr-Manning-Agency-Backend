@@ -293,6 +293,40 @@ GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_OAUTH2_CLIENT_ID', '840517848435-lif
 GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET', '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')
 GOOGLE_CLIENT_ID = GOOGLE_OAUTH2_CLIENT_ID
 GOOGLE_CLIENT_SECRET = GOOGLE_OAUTH2_CLIENT_SECRET
+
+# ----------------------------------------------------------------------------
+# AI / LLM provider configuration
+# ----------------------------------------------------------------------------
+# Primary model + ordered fallbacks for the Groq provider used by
+# ai_document (CV extraction). When the primary model returns a
+# model-not-found / 404 / deprecation error, ai_document tries the
+# next name in the list before falling through to the Gemini
+# fallback. Override with the env vars below to roll forward when
+# Groq deprecates a model without redeploying.
+#
+# History: we used to hardcode ``llama-3.1-8b-instant`` here; Groq
+# deprecated it in 2024, which broke CV uploads. Keep this list
+# updated as Groq rotates models.
+import os as _ai_os
+
+GROQ_MODEL = _ai_os.environ.get(
+    "GROQ_MODEL", "llama-3.3-70b-versatile",
+)
+# Ordered: first non-broken model wins. Update via env var if you
+# want to add/remove without a code deploy.
+GROQ_MODEL_FALLBACKS = [
+    m.strip() for m in _ai_os.environ.get(
+        "GROQ_MODEL_FALLBACKS",
+        # Comma-separated list. Order matters: first live model wins.
+        "llama-3.3-70b-versatile,llama-3.1-8b-instant,llama3-8b-8192,llama3-70b-8192",
+    ).split(",") if m.strip()
+]
+# Prepend the primary so the order is [primary, ...fallbacks].
+GROQ_MODEL_FALLBACKS = [GROQ_MODEL] + [
+    m for m in GROQ_MODEL_FALLBACKS if m != GROQ_MODEL
+]
+del _ai_os
+
 CORS_ALLOWED_ORIGINS = [
     "https://sakr-manning-agency-frontend.vercel.app",
     "https://sakr-maritime.vercel.app",
