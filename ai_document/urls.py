@@ -76,12 +76,18 @@ from .views import (
     SyncStatusView,
     SaveApplicantView,
     CheckQuotaView,
+    ParseOnlyView,
 )
 
 urlpatterns = [
     # Main document upload endpoint - saves to both Applicant and Users models
     path("upload/", DocumentUploadView.as_view(), name="document-upload"),
-    
+
+    # Parse-only endpoint - deterministic Sakr parser, no DB, no LLM.
+    # Use this to test the new parser via Postman without polluting the DB.
+    # (The existing /upload/ still uses the LLM path until Phase 3.)
+    path("parse/", ParseOnlyView.as_view(), name="cv-parse"),
+
     # Check true API Quota
     path("check-quota/", CheckQuotaView.as_view(), name="check-quota"),
     

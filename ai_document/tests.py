@@ -606,4 +606,144 @@ class IntegrationTest(TransactionTestCase):
         )
 
 
+class ParseOnlyViewTest(APITestCase):
+    """Test the deterministic-parser /parse/ endpoint.
+
+    The endpoint is ``AllowAny`` (matches every other AI endpoint in
+    this app) and runs the new ``SakrTemplateExtractor`` against the
+    document text. It does NOT touch the DB and does NOT call the LLM.
+    """
+
+    def setUp(self):
+        self.url = "/ai/parse/"
+
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_successful_parse_returns_extracted_json(
+        self, mock_processor_cls, mock_extractor_cls
+    ):
+        # Mock the processor
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "SAKR MANNING AGENCY ... 1. PERSONAL DETAILS ...",
+            "tables": [],
+        }
+        mock_processor_cls.return_value = mock_proc
+
+        # Mock the extractor to return a successful result
+        mock_result = MagicMock()
+        mock_result.ok = True
+        mock_result.extractor = "sakr_template"
+        mock_result.confidence = 0.95
+        mock_result.data = {
+            "0_application_meta": {"application_for_position_as": "Bar Waiter"},
+            "1_personal_details": {"full_name": "MOHAMED SHEHATA"},
+        }
+        mock_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = mock_result
+
+        pdf = SimpleUploadedFile("test_cv.pdf", b"PDF content", content_type="application/pdf")
+        response = self.client.post(self.url, {"file": pdf}, format="multipart")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["extractor"], "sakr_template")
+        self.assertEqual(response.data["confidence"], 0.95)
+        self.assertIn("1_personal_details", response.data["data"])
+        self.assertEqual(
+            response.data["data"]["1_personal_details"]["full_name"],
+            "MOHAMED SHEHATA",
+        )
+        self.assertEqual(response.data["file_name"], "test_cv.pdf")
+
+    def test_missing_file_returns_400(self):
+        response = self.client.post(self.url, {}, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(response.data["error"], "file_missing")
+
+    def test_invalid_file_extension_returns_400(self):
+        # DocumentUploadSerializer rejects non-PDF/DOCX.
+        txt = SimpleUploadedFile("test.txt", b"text", content_type="text/plain")
+        response = self.client.post(self.url, {"file": txt}, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_not_a_cv_returns_typed_error(
+        self, mock_processor_cls, mock_extractor_cls
+    ):
+        # Processor returns text that isn't a CV
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "This is a poem about love and sunshine.",
+            "tables": [],
+        }
+        mock_processor_cls.return_value = mock_proc
+
+        # Extractor returns NOT_A_CV error
+        from ai_document.extractors import ErrorCode
+        mock_result = MagicMock()
+        mock_result.ok = False
+        mock_result.error = ErrorCode.NOT_SAKR_TEMPLATE
+        mock_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = mock_result
+
+        pdf = SimpleUploadedFile("random.pdf", b"PDF", content_type="application/pdf")
+        response = self.client.post(self.url, {"file": pdf}, format="multipart")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(response.data["error"], "not_sakr_template")
+        # The client message must be safe (no exception leak)
+        self.assertNotIn("Traceback", response.data["message"])
+
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_endpoint_does_not_save_to_db(
+        self, mock_processor_cls, mock_extractor_cls
+    ):
+        # Same as success test, but verify Applicant count is 0 after.
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "SAKR MANNING AGENCY 1. PERSONAL DETAILS ...",
+            "tables": [],
+        }
+        mock_processor_cls.return_value = mock_proc
+        mock_result = MagicMock()
+        mock_result.ok = True
+        mock_result.extractor = "sakr_template"
+        mock_result.confidence = 0.95
+        mock_result.data = {"1_personal_details": {"full_name": "X"}}
+        mock_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = mock_result
+
+        before = Applicant.objects.count()
+        pdf = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        self.client.post(self.url, {"file": pdf}, format="multipart")
+        after = Applicant.objects.count()
+        self.assertEqual(before, after, "ParseOnlyView must NOT create Applicant rows")
+
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_unexpected_error_returns_typed_internal_error(
+        self, mock_processor_cls, mock_extractor_cls
+    ):
+        # DocumentProcessor itself raises a non-DocumentProcessingError
+        # exception. The view's catch-all must return 500 with
+        # ErrorCode.INTERNAL, NOT leak the raw exception text.
+        mock_proc = MagicMock()
+        mock_proc.process_document.side_effect = RuntimeError("disk on fire")
+        mock_processor_cls.return_value = mock_proc
+
+        pdf = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        response = self.client.post(self.url, {"file": pdf}, format="multipart")
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(response.data["error"], "internal_error")
+        # Raw exception text must NOT leak into the response.
+        self.assertNotIn("disk on fire", str(response.data))
+
+
 # Run tests with: python manage.py test ai_document.tests

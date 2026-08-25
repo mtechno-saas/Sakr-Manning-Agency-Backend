@@ -3415,6 +3415,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from .extractors import SakrTemplateExtractor, ErrorCode, client_message
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -4454,3 +4455,150 @@ class CheckQuotaView(APIView):
             import traceback
             logger.error(f"Error checking quota: {str(e)}\n{traceback.format_exc()}")
             return Response({"success": False, "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ParseOnlyView(APIView):
+    """
+    Parse a CV using the deterministic Sakr-template parser.
+
+    Unlike ``POST /ai/upload/``, this endpoint:
+
+      * Does **not** save anything to the database (no ``Applicant``,
+        no ``Users`` row, no signal side-effects).
+      * Does **not** call any LLM (no Groq, no Gemini, no rate limits).
+      * Returns the extracted JSON directly for testing / side-by-side
+        comparison against the LLM path.
+
+    Intended for verifying the new parser works on real CVs before
+    wiring it into ``/ai/upload/`` (Phase 3 of the refactor). Once the
+    new parser is the default, this endpoint stays as a dry-run probe
+    (handy for debugging OCR / form-template edge cases).
+
+    Request (multipart form-data):
+
+        file             required — the CV file (PDF or DOCX)
+
+    Response 200::
+
+        {
+            "success": true,
+            "extractor": "sakr_template",
+            "confidence": 0.95,
+            "data": {
+                "0_application_meta": { ... },
+                "1_personal_details": { ... },
+                ...
+            },
+            "warnings": [],
+            "file_name": "waiter.docx"
+        }
+
+    Response 400 (parse failure)::
+
+        {
+            "success": false,
+            "error": "not_a_cv",
+            "message": "This document does not look like a CV.",
+            "file_name": "random.pdf",
+            "warnings": []
+        }
+
+    Auth: ``AllowAny`` for now (matches every other AI endpoint in this
+    app — the project does not yet wire JWT/Token auth here). Add
+    ``IsAuthenticated`` in a separate refactor.
+    """
+    authentication_classes = []  # TODO: switch to [JWTAuthentication] + IsAuthenticated
+    permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = DocumentUploadSerializer
+
+    def post(self, request, *args, **kwargs):
+        upload_serializer = DocumentUploadSerializer(data=request.data)
+        upload_serializer.is_valid(raise_exception=True)
+        file = upload_serializer.validated_data.get("file")
+
+        if not file:
+            return Response(
+                {
+                    "success": False,
+                    "error": ErrorCode.FILE_MISSING.value,
+                    "message": client_message(ErrorCode.FILE_MISSING),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Save the file to a temp path so DocumentProcessor can read it
+        # back. We always clean this up in the finally block.
+        file_path = default_storage.save(
+            f"tmp/{file.name}", ContentFile(file.read())
+        )
+        try:
+            processor = DocumentProcessor()
+            try:
+                proc_result = processor.process_document(
+                    default_storage.path(file_path)
+                )
+            except DocumentProcessingError as exc:
+                logger.warning(
+                    "ParseOnlyView: DocumentProcessor failed for %s: %s",
+                    file.name, exc,
+                )
+                return Response(
+                    {
+                        "success": False,
+                        "error": ErrorCode.FILE_UNSUPPORTED_FORMAT.value,
+                        "message": str(exc),
+                        "file_name": file.name,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            text = proc_result.get("extracted_text", "") or ""
+            tables = proc_result.get("tables", []) or []
+
+            extractor = SakrTemplateExtractor()
+            result = extractor.extract(text, tables)
+
+            if not result.ok:
+                return Response(
+                    {
+                        "success": False,
+                        "error": result.error.value if result.error else "internal_error",
+                        "message": client_message(result.error) if result.error else client_message(ErrorCode.INTERNAL),
+                        "file_name": file.name,
+                        "warnings": list(result.warnings),
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            return Response(
+                {
+                    "success": True,
+                    "extractor": result.extractor,
+                    "confidence": result.confidence,
+                    "data": result.data,
+                    "warnings": list(result.warnings),
+                    "file_name": file.name,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
+            # Catch-all: never leak the exception text to the client.
+            # The full traceback is in the server logs.
+            logger.exception("ParseOnlyView: unexpected error")
+            return Response(
+                {
+                    "success": False,
+                    "error": ErrorCode.INTERNAL.value,
+                    "message": client_message(ErrorCode.INTERNAL),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        finally:
+            # Always clean up the temp upload.
+            try:
+                default_storage.delete(file_path)
+            except Exception:
+                logger.warning(
+                    "ParseOnlyView: failed to delete temp file %s", file_path
+                )
