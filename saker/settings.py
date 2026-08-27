@@ -336,13 +336,15 @@ GROQ_MODEL_FALLBACKS = [GROQ_MODEL] + [
 ]
 del _ai_os
 
-# SMS service for seafarer phone-verification (OTP). Default is
-# api.sms.ConsoleSMSService, which logs the OTP to the server console
-# instead of actually sending an SMS. For production, set
-# SMS_SERVICE to a real provider (Twilio, Vonage, AWS SNS, etc.) —
-# see api/sms.py for the interface.
-SMS_SERVICE = _os.environ.get(
-    "SMS_SERVICE", "api.sms.ConsoleSMSService",
+# Email service for seafarer phone-verification (OTP). The system
+# sends the OTP to the seafarer's email address (on file from the CV).
+# Default is api.email.ConsoleEmailService, which logs the would-be
+# email to the server console instead of actually sending. For
+# production, set EMAIL_SERVICE to a real provider (SMTP, SendGrid,
+# Mailgun, Postmark, AWS SES, etc.) — see api/email.py for the
+# interface.
+EMAIL_SERVICE = _os.environ.get(
+    "EMAIL_SERVICE", "api.email.ConsoleEmailService",
 )
 
 # How long a seafarer OTP stays valid, in minutes.

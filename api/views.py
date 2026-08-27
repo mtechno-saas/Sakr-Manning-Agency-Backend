@@ -1,4 +1,5 @@
 import os
+import logging
 
 from django.shortcuts import get_object_or_404
 from django.db.models import Count, Q, Sum
@@ -63,6 +64,8 @@ from .permissions import (
 from rest_framework import viewsets, permissions
 from django.core.cache import cache
 from rest_framework.views import APIView
+
+logger = logging.getLogger(__name__)
 
 class RegisterView(generics.CreateAPIView):
     queryset = Users.objects.all()
@@ -168,15 +171,15 @@ class PhoneLoginView(APIView):
 
         # Phone must be verified before the seafarer can log in.
         # The /ai/parse/ save flow sets is_phone_verified=False and
-        # sends an initial OTP; the seafarer calls /api/auth/verify-otp/
-        # to flip this to True.
+        # sends an initial OTP to the user's email; the seafarer calls
+        # /api/auth/verify-otp/ to flip this to True.
         if not user.is_phone_verified:
             return Response(
                 {
                     "detail": (
                         "Phone number not verified. "
                         "Please call POST /api/auth/verify-otp/ "
-                        "with the OTP that was sent to your phone."
+                        "with the OTP that was sent to your email."
                     )
                 },
                 status=status.HTTP_403_FORBIDDEN,
@@ -204,17 +207,24 @@ class PhoneLoginView(APIView):
 
 
 # ========================
-# SMS OTP (seafarer phone-verification)
+# Email OTP (seafarer phone-verification)
 # ========================
 #
-# The system sends an OTP to the seafarer's phone on demand (or
+# The system sends an OTP to the seafarer's email on demand (or
 # automatically right after Admin uploads the CV). The seafarer then
 # sends the OTP back here to unlock phone login.
 #
+# The seafarer still logs in with their phone-as-password
+# (POST /api/auth/phone-login/); the OTP just proves they own the
+# email address that's on file from the CV. The default backend
+# (ConsoleEmailService) logs the would-be email to the server console
+# instead of actually sending — fine for dev/test, swap before going
+# live by setting EMAIL_SERVICE in saker/settings.py.
+#
 # Flow:
 #   1. /ai/parse/ with save_to_db=true → User created, is_phone_verified
-#      = False, otp_code + otp_expires_at set, OTP "sent" via SMSService.
-#   2. Seafarer receives the OTP on their phone.
+#      = False, otp_code + otp_expires_at set, OTP "sent" via EmailService.
+#   2. Seafarer receives the OTP in their email inbox.
 #   3. Seafarer POSTs /api/auth/request-otp/ if they need a new one
 #      (e.g. expired or lost).
 #   4. Seafarer POSTs /api/auth/verify-otp/ with {phone, otp} → backend
@@ -222,10 +232,10 @@ class PhoneLoginView(APIView):
 #   5. Seafarer POSTs /api/auth/phone-login/ with {phone, phone} → JWT
 #      (now allowed because is_phone_verified=True).
 #
-# Production SMS service is configured via the SMS_SERVICE setting
-# (see api/sms.py). The default ConsoleSMSService logs the OTP to the
-# server log instead of actually sending an SMS — fine for dev/test,
-# replace before going live.
+# Production email service is configured via the EMAIL_SERVICE setting
+# (see api/email.py). The default ConsoleEmailService logs the OTP to
+# the server log instead of actually sending an email — fine for
+# dev/test, replace before going live.
 
 
 class RequestOTPView(APIView):
@@ -237,19 +247,20 @@ class RequestOTPView(APIView):
 
     Generates a fresh 6-digit OTP for the seafarer with the given phone
     number, stores it on the User row with a TTL, and dispatches it
-    via the configured SMS service. The OTP itself is NOT in the
-    response — it's sent to the seafarer's phone via SMS.
+    via the configured email service to the user's email address on
+    file. The OTP itself is NOT in the response — it's sent to the
+    seafarer's email inbox.
 
     Side effects:
       - Updates user.otp_code and user.otp_expires_at
-      - Calls the SMS service's send_otp(...) method
+      - Calls the email service's send_otp_email(...) method
     """
     authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
         from django.utils import timezone
-        from api.sms import generate_otp, get_sms_service, otp_default_ttl_minutes
+        from api.email import generate_otp, get_email_service, otp_default_ttl_minutes
 
         phone = (request.data.get("phone") or "").strip()
         if not phone:
@@ -275,6 +286,21 @@ class RequestOTPView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if not user.email:
+            # The user exists but has no email on file — we can't
+            # deliver the OTP. Don't leak the absence; behave like
+            # the "unknown phone" case from the client's perspective.
+            logger.warning(
+                "RequestOTPView: user id=%s has no email; cannot send OTP",
+                user.id,
+            )
+            return Response(
+                {
+                    "detail": "If that phone is registered, an OTP has been sent."
+                },
+                status=status.HTTP_200_OK,
+            )
+
         # Generate a new OTP and set TTL.
         otp = generate_otp()
         ttl = otp_default_ttl_minutes()
@@ -282,19 +308,27 @@ class RequestOTPView(APIView):
         user.otp_expires_at = timezone.now() + timezone.timedelta(minutes=ttl)
         user.save(update_fields=["otp_code", "otp_expires_at"])
 
-        # Send via the configured SMS service. We don't fail the
-        # request if SMS fails — the seafarer can re-request.
+        # Send via the configured email service. We don't fail the
+        # request if email fails — the seafarer can re-request.
         sent = False
         try:
-            sent = get_sms_service().send_otp(phone, otp, ttl_minutes=ttl)
+            sent = get_email_service().send_otp_email(
+                user.email, otp, ttl_minutes=ttl
+            )
         except Exception:
-            logger.exception("RequestOTPView: SMS service raised for phone=%s", phone)
+            logger.exception(
+                "RequestOTPView: email service raised for user id=%s", user.id
+            )
 
         if not sent:
             # Don't 500 — the OTP is on the User row, the admin can
-            # share it manually as a fallback. (ConsoleSMSService always
-            # returns True; only a misconfigured real provider hits this.)
-            logger.warning("RequestOTPView: SMS dispatch returned False for phone=%s", phone)
+            # share it manually as a fallback. (ConsoleEmailService
+            # always returns True; only a misconfigured real provider
+            # hits this.)
+            logger.warning(
+                "RequestOTPView: email dispatch returned False for user id=%s",
+                user.id,
+            )
 
         return Response(
             {"phone": phone, "ttl_minutes": ttl},

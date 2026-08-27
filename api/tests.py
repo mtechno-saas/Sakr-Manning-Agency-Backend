@@ -2122,12 +2122,13 @@ class VerifyOTPTests(APITestCase):
         self.assertIn("access", response.data)
 
 
-class OTPSMSDispatchTests(APITestCase):
-    """The /ai/parse/ save flow must send the initial OTP via SMSService.
+class OTPEmailDispatchTests(APITestCase):
+    """The /ai/parse/ save flow must send the initial OTP via the email
+    service to the user's email address (not their phone).
 
-    The default backend is ConsoleSMSService which logs the OTP. We
-    capture the log and assert on its contents. The admin never sees
-    the OTP in the API response.
+    The default backend is ConsoleEmailService which logs the would-be
+    email. We capture the log and assert on its contents. The admin
+    never sees the OTP in the API response.
     """
 
     def setUp(self):
@@ -2150,7 +2151,7 @@ class OTPSMSDispatchTests(APITestCase):
             },
         }
 
-    def test_initial_otp_is_stored_and_sms_dispatched(self):
+    def test_initial_otp_is_stored_and_email_dispatched(self):
         from ai_document.views import _save_parser_output
         from api.models import Users
 
@@ -2158,7 +2159,7 @@ class OTPSMSDispatchTests(APITestCase):
         # given logger, captures the output, and restores on exit.
         # This works regardless of the project's LOGGING config
         # because it overrides the effective level.
-        with self.assertLogs("api.sms", level="INFO") as cm:
+        with self.assertLogs("api.email", level="INFO") as cm:
             user_id, _ = _save_parser_output(self.data, self.uploaded)
 
         user = Users.objects.get(id=user_id)
@@ -2167,30 +2168,113 @@ class OTPSMSDispatchTests(APITestCase):
         # An OTP is on the row.
         self.assertIsNotNone(user.otp_code)
         self.assertEqual(len(user.otp_code), 6)
-        # The SMS service was called — log line emitted with phone + OTP.
+        # The email service was called — log line emitted with email + OTP.
         joined = "\n".join(cm.output)
-        self.assertIn("00201234567890", joined)
+        # The user's email is in the log, NOT their phone (the phone
+        # is what the seafarer uses to look themselves up; the OTP is
+        # delivered to the email address on file from the CV).
+        self.assertIn("john@sakrshipping.com", joined)
         self.assertIn(user.otp_code, joined)
+        # Belt and braces: confirm the phone is NOT in the dispatch log.
+        self.assertNotIn("00201234567890", joined)
 
-    def test_initial_otp_skipped_when_no_phone(self):
-        from ai_document.views import _save_parser_output
-        from api.models import Users
+    def test_initial_otp_skipped_when_no_email(self):
+        # _save_parser_output requires an email (Users.email is unique
+        # and non-null). When the CV has no email, the save fails with
+        # _NoEmailError before the email dispatch path is even reached,
+        # so no "EMAIL-CONSOLE" log is emitted.
+        from ai_document.views import _save_parser_output, _NoEmailError
 
         data = dict(self.data)
-        data["3_contact_details"] = {"e_mail": "nophone@sakrshipping.com"}
+        data["3_contact_details"] = {"mobile_tel": "00201234567890"}
 
-        # If the SMS logger never emits, assertLogs raises.
-        # Wrap in try/except to assert the "no log" case.
-        with self.assertRaises(AssertionError) as ctx:
-            with self.assertLogs("api.sms", level="INFO"):
-                _save_parser_output(data, self.uploaded)
-        # The failure is because no log was emitted, which is what
-        # we want for the no-phone case.
-        self.assertIn("no logs of level", str(ctx.exception).lower())
+        # Confirm the save raises (this is the existing contract —
+        # email is required for the Users row).
+        with self.assertRaises(_NoEmailError):
+            _save_parser_output(data, self.uploaded)
 
-        user = Users.objects.get(email=data["3_contact_details"]["e_mail"])
-        self.assertFalse(user.is_phone_verified)
-        self.assertIsNone(user.otp_code)
+        # And confirm no Users row was created (the save aborted
+        # before the user insert).
+        from api.models import Users
+        self.assertFalse(
+            Users.objects.filter(phone_number="00201234567890").exists()
+        )
+
+
+class RequestOTPNoEmailTests(APITestCase):
+    """POST /api/auth/request-otp/ for users with no email on file.
+
+    A seafarer with a phone but no email can't receive an OTP, so the
+    endpoint must NOT 500 — it returns the same opaque "OTP has been
+    sent" response as for an unknown phone, and logs a warning.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        from django.utils import timezone
+        self.user = Users.objects.create_user(
+            email="placeholder@x.com",  # required by Users model
+            password="x",
+            first_name="NOEMAIL",
+        )
+        # Clear the email to simulate a phone-only user.
+        self.user.email = ""
+        self.user.phone_number = "00201111222333"
+        self.user.is_phone_verified = False
+        self.user.otp_code = "111111"
+        self.user.otp_expires_at = timezone.now() + timezone.timedelta(minutes=5)
+        self.user.save()
+        self.url = "/api/auth/request-otp/"
+
+    def test_no_email_returns_200_no_leak(self):
+        # Same response as an unknown phone — don't leak the absence
+        # of an email address. The endpoint should NOT 500 even
+        # though there's no delivery channel.
+        response = self.client.post(
+            self.url, {"phone": "00201111222333"}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+        # Response body is identical to the unknown-phone case (no leak).
+        self.assertEqual(
+            response.data["detail"],
+            "If that phone is registered, an OTP has been sent.",
+        )
+
+
+class RequestOTPEmailDispatchTests(APITestCase):
+    """POST /api/auth/request-otp/ dispatches via the email service.
+
+    The seafarer's phone is the lookup key; the OTP itself goes to
+    their email address on file.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        from django.utils import timezone
+        self.user = Users.objects.create_user(
+            email="seafarer@sakrshipping.com",
+            password="x",
+            first_name="MOHAMED",
+        )
+        self.user.phone_number = "00201090946284"
+        self.user.is_phone_verified = False
+        self.user.otp_code = "111111"
+        self.user.otp_expires_at = timezone.now() + timezone.timedelta(minutes=5)
+        self.user.save()
+        self.url = "/api/auth/request-otp/"
+
+    def test_otp_dispatched_to_email_not_phone(self):
+        with self.assertLogs("api.email", level="INFO") as cm:
+            response = self.client.post(
+                self.url, {"phone": "00201090946284"}, format="json"
+            )
+        self.assertEqual(response.status_code, 200)
+        joined = "\n".join(cm.output)
+        # The user's email is in the dispatch log.
+        self.assertIn("seafarer@sakrshipping.com", joined)
+        # The phone is NOT in the dispatch log (the phone is the
+        # lookup key, not the delivery channel).
+        self.assertNotIn("00201090946284", joined)
 
 
 class MeViewTests(APITestCase):

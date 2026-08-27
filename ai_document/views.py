@@ -4801,10 +4801,10 @@ def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
     user_defaults["role"] = "Employee"
 
     # Phone-verification gate. New seafarers start NOT verified; the
-    # initial OTP is sent via the configured SMSService right after
-    # the user is saved (see below). The seafarer must hit
-    # /api/auth/verify-otp/ before /api/auth/phone-login/ will accept
-    # them.
+    # initial OTP is sent via the configured EmailService to the
+    # user's email right after the user is saved (see below). The
+    # seafarer must hit /api/auth/verify-otp/ before
+    # /api/auth/phone-login/ will accept them.
     user_defaults["is_phone_verified"] = False
 
     # The seafarer's password IS their phone number (per spec). This
@@ -4846,33 +4846,39 @@ def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
         )
 
     # After the transaction commits: send the initial OTP to the
-    # seafarer's phone via the configured SMS service. The admin
-    # never sees the OTP in the API response — only the SMS service
-    # does. If the CV had no phone number, skip the SMS (the
-    # seafarer can still log in via email).
-    if seafarer_phone:
+    # seafarer's EMAIL (not their phone) via the configured email
+    # service. The admin never sees the OTP in the API response —
+    # only the email service does. The seafarer still enters their
+    # PHONE at /api/auth/verify-otp/ (which is what we use to look
+    # the user up); the OTP itself is delivered to the email address
+    # on file from the CV. If the user has no email, skip the email
+    # (the seafarer can still log in via /api/login/ with email +
+    # email-as-password fallback).
+    if user.email:
         try:
-            from api.sms import generate_otp, get_sms_service, otp_default_ttl_minutes
+            from api.email import (
+                generate_otp, get_email_service, otp_default_ttl_minutes,
+            )
             from django.utils import timezone
 
             otp = generate_otp()
             ttl = otp_default_ttl_minutes()
             # Persist the OTP on the user row. NOTE: this is OUTSIDE
-            # the transaction above — if the SMS dispatch fails, the
-            # OTP is still on the user. Seafarer can also re-request
-            # via /api/auth/request-otp/ which regenerates.
+            # the transaction above — if the email dispatch fails,
+            # the OTP is still on the user. Seafarer can also
+            # re-request via /api/auth/request-otp/ which regenerates.
             user.otp_code = otp
             user.otp_expires_at = timezone.now() + timezone.timedelta(minutes=ttl)
             user.save(update_fields=["otp_code", "otp_expires_at"])
 
             try:
-                get_sms_service().send_otp(
-                    seafarer_phone, otp, ttl_minutes=ttl
+                get_email_service().send_otp_email(
+                    user.email, otp, ttl_minutes=ttl
                 )
             except Exception:
                 logger.exception(
-                    "_save_parser_output: SMS dispatch failed for phone=%s",
-                    seafarer_phone,
+                    "_save_parser_output: email dispatch failed for user id=%s",
+                    user.id,
                 )
         except Exception:
             # OTP-generation failure must not block the save — the
