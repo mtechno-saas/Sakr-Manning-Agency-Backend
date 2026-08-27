@@ -1157,4 +1157,74 @@ class ParseOnlyViewAuthTest(APITestCase):
         )
 
 
+class ParseOnlyViewJWTAuthTest(APITestCase):
+    """Real-JWT regression test for /ai/parse/.
+
+    The other auth tests in this file use ``client.force_authenticate``
+    which bypasses the view's ``authentication_classes``. That's
+    fine for unit-testing the permission gate, but it let a real
+    production bug slip through: ``authentication_classes = []`` on
+    the view meant DRF skipped JWT validation entirely, so a valid
+    Bearer token in the ``Authorization`` header was being ignored
+    and the request was treated as anonymous (always 403).
+
+    This test issues a real JWT via Simple JWT, sends it in the
+    header the way Postman / a real client would, and asserts the
+    request is allowed. It would have failed with the old
+    ``authentication_classes = []`` config.
+    """
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        Users = get_user_model()
+        self.admin = Users.objects.create_user(
+            email="jwt-admin@sakrparser.test",
+            password="x",
+        )
+        self.admin.role = "Admin"
+        self.admin.save()
+
+        # Real JWT — same shape as /api/login/ would issue.
+        refresh = RefreshToken.for_user(self.admin)
+        self.bearer = f"Bearer {refresh.access_token}"
+        self.url = "/ai/parse/"
+
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_real_jwt_admin_is_allowed(
+        self, mock_processor_cls, mock_extractor_cls
+    ):
+        # Short-circuit the parser with mocks (we only care that
+        # the request reaches the view body, not the parser).
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "SAKR MANNING AGENCY ...",
+            "tables": [],
+        }
+        mock_processor_cls.return_value = mock_proc
+        mock_result = MagicMock()
+        mock_result.ok = True
+        mock_result.extractor = "sakr_template"
+        mock_result.confidence = 0.95
+        mock_result.data = {"1_personal_details": {"full_name": "X"}}
+        mock_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = mock_result
+
+        # NOTE: no force_authenticate — the request must be
+        # authenticated by the view's own authentication_classes.
+        pdf = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        response = self.client.post(
+            self.url,
+            {"file": pdf},
+            format="multipart",
+            HTTP_AUTHORIZATION=self.bearer,
+        )
+        # With the old `authentication_classes = []` config this was
+        # 403 because the JWT was ignored. With JWTAuthentication
+        # wired in, the admin role passes the IsAdmin gate.
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 # Run tests with: python manage.py test ai_document.tests

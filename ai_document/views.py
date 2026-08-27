@@ -3420,6 +3420,7 @@ from rest_framework.permissions import AllowAny
 from api.permissions import IsAdmin
 from .extractors import SakrTemplateExtractor, ErrorCode, client_message
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.db import transaction
@@ -4532,7 +4533,7 @@ class ParseOnlyView(APIView):
     Until then, requests still get in as before but role check applies
     to authenticated sessions only.)
     """
-    authentication_classes = []  # TODO: switch to [JWTAuthentication] + IsAuthenticated
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdmin]
     parser_classes = [MultiPartParser, FormParser]
     serializer_class = DocumentUploadSerializer
