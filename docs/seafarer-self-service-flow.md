@@ -2,42 +2,58 @@
 
 End-to-end flow for onboarding a new seafarer via the Admin's CV upload, then letting the seafarer log in and manage their own profile.
 
+Two perspectives are documented separately:
+- **[Admin side](#admin-side-flow)** — what the Admin does to onboard a new seafarer
+- **[Employee/Seafarer side](#employeeseafarer-side-flow)** — what the seafarer does to log in and manage their data
+
 Implemented in commits `eab1d6f9` → `3728f2dd` → `4ef5d68c` → `4fdce549` → `0404052e` on `mtechno-saas/Sakr-Manning-Agency-Backend:server-updates`.
 
 ---
 
 ## TL;DR
 
-1. **Admin** uploads a seafarer CV via `POST /ai/parse/` with `save_to_db=true`.
-2. Backend deterministically parses the CV, creates a `Users` row (role=`Employee`, password = phone number) and a `CVSubmission` row.
-3. **Seafarer** logs in at `POST /api/auth/phone-login/` using `{phone, phone}` — the phone number is both username and password.
-4. **Seafarer** calls `GET /api/me/` to see their own profile, `PATCH /api/me/` to update fields.
+| # | Who | What |
+|---|---|---|
+| 1 | **Admin** | `POST /ai/parse/` with `save_to_db=true` → backend creates `Users` (role=`Employee`, password=phone) + `CVSubmission` |
+| 2 | **Seafarer** | `POST /api/auth/phone-login/` with `{phone, phone}` → JWT |
+| 3 | **Seafarer** | `GET /api/me/` → see their own profile |
+| 4 | **Seafarer** | `PATCH /api/me/` → update fields they care about (address, nationality, etc.) |
 
 No email confirmation, no OTP, no Twilio. The phone number is the credential.
 
 ---
 
-## Endpoints
+## Endpoints (single source of truth)
 
-| Method | URL | Auth | Purpose |
+| Method | URL | Auth | Used by |
 |---|---|---|---|
-| POST | `/ai/parse/` | **Admin only** | Upload CV, parse, optionally save to `Users` + `CVSubmission` |
-| POST | `/api/auth/phone-login/` | AllowAny | Seafarer login with phone + phone-as-password, returns JWT |
-| GET | `/api/me/` | Any auth user | Read own profile |
-| PATCH | `/api/me/` | Any auth user | Edit own profile (whitelisted fields only) |
-
-Email/password login at `POST /api/login/` is unchanged — that's still how Admin / HR / Recruiter log in.
+| POST | `/ai/parse/` | **Admin only** (HR/Recruiter/Employee/Crew → 403, unauth → 401) | **Admin** |
+| POST | `/api/auth/phone-login/` | AllowAny | **Seafarer** |
+| GET | `/api/me/` | Any auth user | **Seafarer** (or anyone checking their own profile) |
+| PATCH | `/api/me/` | Any auth user | **Seafarer** |
+| POST | `/api/login/` (existing, unchanged) | AllowAny | **Admin / HR / Recruiter** (email + password) |
 
 ---
 
-## Step 1 — Admin uploads the CV
+## Admin side flow
 
-`POST /ai/parse/`
+> **Who:** an `Admin` user (role=`Admin`, `is_staff=True`).
+> **Goal:** onboard a new seafarer by uploading their CV. The system does the rest.
 
-| Form field | Type | Notes |
-|---|---|---|
-| `file` | File | `.pdf` or `.docx`, max 20 MB |
-| `save_to_db` | Text | `"true"` to persist; omit (or `"false"`) for parse-only |
+### Step A1 — Get an admin JWT
+
+The Admin already has an account on the system (created by another Admin via `/api/users/users/`). They log in with email + password at the existing endpoint:
+
+```bash
+curl -X POST "https://backend.sakrshipping.com/api/login/" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@sakrshipping.com","password":"<their-password>"}'
+# → 200 { "access": "eyJ...", "refresh": "eyJ..." }
+```
+
+Admin stores `access` as `$ADMIN_JWT` and uses it as `Authorization: Bearer $ADMIN_JWT` on subsequent calls.
+
+### Step A2 — Upload the seafarer's CV
 
 ```bash
 curl -X POST "https://backend.sakrshipping.com/ai/parse/" \
@@ -45,6 +61,11 @@ curl -X POST "https://backend.sakrshipping.com/ai/parse/" \
   -F "file=@waiter.docx" \
   -F "save_to_db=true"
 ```
+
+| Form field | Type | Notes |
+|---|---|---|
+| `file` | File | `.pdf` or `.docx`, max 20 MB |
+| `save_to_db` | Text | `"true"` to persist; omit (or `"false"`) for parse-only |
 
 What the backend does:
 
@@ -70,7 +91,7 @@ What the backend does:
 }
 ```
 
-> **Note:** the password is intentionally NOT in the response. Admin doesn't need to know it — the seafarer's phone number is the credential.
+> **Note:** the password is intentionally NOT in the response. Admin doesn't need to know it — the seafarer's phone number is the credential. If Admin wants to give the seafarer their credentials, they only need to share: "your phone number is your password" + the seafarer's own phone number.
 
 **What gets created in `Users`:**
 
@@ -89,7 +110,7 @@ What the backend does:
 | `other_position` | `0_application_meta.other_position` (always set) | `Bar Attendent Lounge` |
 | `address` | `contact_details.home_address_city` (truncated to 100 chars) | `Qena - Qena - Sheikh Younis` |
 | `role` | always `Employee` | `Employee` |
-| `password` | hashed via `set_password(phone_number)` | (hashed) |
+| `password` | hashed via `set_password(phone_number)` | (hashed — unreadable) |
 
 **What gets created in `CVSubmission`:**
 
@@ -101,14 +122,44 @@ What the backend does:
 | `availability_date` | parsed from `available_date` (`"25/7/2025"`) | `2025-07-25` |
 | `status` | always `Pending` | `Pending` |
 
+### Step A3 — Hand off to the seafarer
+
+Admin's job is done. The seafarer now has:
+
+- A `Users` row (id=`user_id` from the response), role=`Employee`, password = their phone number.
+- A `CVSubmission` row (id=`cv_submission_id`) attached to that user.
+
+Admin can communicate the seafarer's phone number to them through whatever channel they use (WhatsApp, in person, phone call, email — whatever). The seafarer does NOT need a separate setup email or invite link.
+
+### What Admin can do later (via existing endpoints)
+
+The Admin can keep managing the seafarer via the standard user-management endpoints:
+
+| Action | Endpoint |
+|---|---|
+| List all seafarers | `GET /api/users/users/?role=Employee` |
+| View a specific seafarer | `GET /api/users/users/42/` |
+| Update seafarer's role, status, register_code, etc. | `PATCH /api/users/users/42/` |
+| View the seafarer's CV submission | `GET /api/cv-submissions/99/` |
+| Approve / reject the CV | `PATCH /api/cv-submissions/99/` (set `status` field) |
+
+The Admin uses the same email + password login (`/api/login/`) and JWT for these calls.
+
 ---
 
-## Step 2 — Seafarer logs in
+## Employee/Seafarer side flow
 
-`POST /api/auth/phone-login/`
+> **Who:** the seafarer (role=`Employee`, default from the parser flow).
+> **Goal:** log in for the first time, see their own data, update what's changed since the CV was uploaded.
 
-```json
-{ "phone": "00201090946284", "password": "00201090946284" }
+### Step S1 — First-time login (phone = password)
+
+The seafarer opens the login page. They enter **their phone number in both fields** — phone and password are the same value.
+
+```bash
+curl -X POST "https://backend.sakrshipping.com/api/auth/phone-login/" \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"00201090946284","password":"00201090946284"}'
 ```
 
 | Outcome | Response |
@@ -135,13 +186,11 @@ What the backend does:
 }
 ```
 
-The seafarer saves the `access` token and uses it as `Authorization: Bearer <token>` on subsequent requests.
+The seafarer stores the `access` token in their app and uses it as `Authorization: Bearer <token>` on subsequent requests. (They can refresh it later via `POST /api/login/refresh/`.)
 
----
+> **What if the seafarer doesn't have their phone number handy?** Their phone is also on file in the system (Admin uploaded the CV, so it's in the database). If they truly can't remember it, an Admin can look it up via `GET /api/users/users/?search=<name>` and tell them. There is no "forgot my phone" self-serve flow in this iteration.
 
-## Step 3 — Seafarer views their profile
-
-`GET /api/me/`
+### Step S2 — View their own profile
 
 ```bash
 curl "https://backend.sakrshipping.com/api/me/" \
@@ -178,20 +227,26 @@ curl "https://backend.sakrshipping.com/api/me/" \
 }
 ```
 
----
+This is read-only — no side effects, safe to call any number of times.
 
-## Step 4 — Seafarer updates their profile
+### Step S3 — Update fields that changed since the CV was uploaded
 
-`PATCH /api/me/`
+The CV was a snapshot in time. The seafarer moves house, changes their phone, gains citizenship, etc. They use `PATCH /api/me/` to keep their profile current.
 
-```json
-{
-  "address": "Cairo - Maadi",
-  "city": "Cairo",
-  "country": "Egypt",
-  "Nearest_Port": "Alexandria"
-}
+```bash
+curl -X PATCH "https://backend.sakrshipping.com/api/me/" \
+  -H "Authorization: Bearer $SEAFARER_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "address": "Cairo - Maadi",
+    "city": "Cairo",
+    "country": "Egypt",
+    "Nearest_Port": "Alexandria",
+    "nationality": "Egyptian"
+  }'
 ```
+
+**Response 200** (returns the full updated profile).
 
 | Outcome | Response |
 |---|---|
@@ -216,29 +271,45 @@ marital_status, smoker, us_visa_status, schengen_visa_status, blood_type
 - `register_code`, `register_date`, `available_date` — admin-managed
 - `user_status` — admin-managed (the 5-state enum)
 
+### What the seafarer CANNOT do (in this iteration)
+
+- ❌ Change their own password (would need a `POST /api/auth/change-password/` flow)
+- ❌ Add new documents (passport, seaman book) — they'd use the existing role-scoped `DocumentViewSet` which is admin/HR/recruiter write
+- ❌ See other seafarers' data — `/api/me/` is always scoped to the auth'd user
+- ❌ Apply to job orders — the existing `SeafarerApplicationViewSet` exists, but isn't wired into `/api/me/` yet
+
 ---
 
-## End-to-end example
+## End-to-end example (admin + seafarer together)
 
 ```bash
-# 1. Admin uploads the CV
+# === ADMIN SIDE ===
+# A1. Admin logs in (email + password)
+ADMIN_JWT=$(curl -s -X POST "https://backend.sakrshipping.com/api/login/" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@sakrshipping.com","password":"<admin-pwd>"}' \
+  | python -c "import sys,json; print(json.load(sys.stdin)['access'])")
+
+# A2. Admin uploads the seafarer's CV
 curl -X POST "https://backend.sakrshipping.com/ai/parse/" \
   -H "Authorization: Bearer $ADMIN_JWT" \
   -F "file=@waiter.docx" -F "save_to_db=true"
 # → 200, user_id=42, cv_submission_id=99
+# (Admin tells the seafarer out-of-band: "Your phone number is your password")
 
-# 2. Seafarer logs in
-curl -X POST "https://backend.sakrshipping.com/api/auth/phone-login/" \
+# === SEAFARER SIDE ===
+# S1. Seafarer logs in with their phone as both fields
+SEAFARER_JWT=$(curl -s -X POST "https://backend.sakrshipping.com/api/auth/phone-login/" \
   -H "Content-Type: application/json" \
-  -d '{"phone":"00201090946284","password":"00201090946284"}'
-# → 200, {access: "eyJ...", refresh: "eyJ...", user: {...}}
+  -d '{"phone":"00201090946284","password":"00201090946284"}' \
+  | python -c "import sys,json; print(json.load(sys.stdin)['access'])")
 
-# 3. Seafarer views their profile
+# S2. Seafarer views their profile
 curl "https://backend.sakrshipping.com/api/me/" \
   -H "Authorization: Bearer $SEAFARER_JWT"
 # → 200, full profile
 
-# 4. Seafarer moves to a new address
+# S3. Seafarer updates their address after moving
 curl -X PATCH "https://backend.sakrshipping.com/api/me/" \
   -H "Authorization: Bearer $SEAFARER_JWT" \
   -H "Content-Type: application/json" \
@@ -258,6 +329,7 @@ curl -X PATCH "https://backend.sakrshipping.com/api/me/" \
 | Same CV re-uploaded with a new phone | `Users` row is updated (existing user) and the password is reset to the new phone |
 | Seafarer's `Users` row has `is_active=False` | `POST /api/auth/phone-login/` returns `403` |
 | Two seafarers with the same phone | The second one **fails** — phone lookup is unique-by-DB, and saving the second would attempt `get_or_create` by email. Either way, the phone-as-password only works for the first seafarer to claim that phone. |
+| Admin uploads a CV but the seafarer's CVSubmission was already `Approved` | The new CVSubmission is still created (status=`Pending`). Admin needs to manually merge/dedupe if the same seafarer is re-uploaded. |
 
 ---
 
