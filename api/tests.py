@@ -2732,6 +2732,275 @@ class SetPasswordMagicLinkTests(APITestCase):
         )
 
 
+# ============================================================================
+# Auto-create Users row on CVSubmission POST (admin-onboarding)
+# ============================================================================
+#
+# When an Admin posts a CVSubmission with `user_email` (and optional
+# `user_first_name`, `user_middle_name`, `user_phone`) for a seafarer
+# that isn't in the system yet, the viewset auto-creates a Users row
+# with the default password = phone number. The welcome email is
+# then dispatched with a magic link so the seafarer can set a
+# custom password. This combines the previous two-step flow
+# (POST /api/users/users/ + POST /api/cv-submissions/) into one
+# admin action.
+
+
+class CVSubmissionAutoCreateUserTests(APITestCase):
+    """Auto-create Users row when Admin POSTs a CVSubmission for
+    a new seafarer (via user_email + user_phone).
+
+    The Admin sends a single POST with the seafarer's identifying
+    data; the backend creates both the Users row (with default
+    password = phone) and the CVSubmission in one shot, and fires
+    the welcome email.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        self.admin = Users.objects.create_user(
+            email="admin@sakrshipping.com",
+            password="adminpass",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+        self.url = "/api/cv-submissions/"
+
+    def test_admin_post_with_user_email_auto_creates_user(self):
+        from api.models import Users
+        from unittest.mock import patch
+
+        # Confirm no user with this email yet.
+        self.assertFalse(
+            Users.objects.filter(email="newbie@sakrshipping.com").exists()
+        )
+
+        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+            resp = self.client.post(
+                self.url,
+                {
+                    "user_email": "newbie@sakrshipping.com",
+                    "user_first_name": "AHMED",
+                    "user_middle_name": "HASSAN",
+                    "user_phone": "00201012345678",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+
+        # User was created.
+        user = Users.objects.get(email="newbie@sakrshipping.com")
+        self.assertEqual(user.first_name, "AHMED")
+        self.assertEqual(user.middle_name, "HASSAN")
+        self.assertEqual(user.phone_number, "00201012345678")
+        self.assertEqual(user.role, "Employee")
+        # Default password is the phone number.
+        self.assertTrue(user.check_password("00201012345678"))
+        # CVSubmission is linked to the new user.
+        self.assertEqual(resp.data["user"], user.id)
+        # Welcome email dispatched.
+        mock_dispatch.assert_called_once()
+
+    def test_admin_post_with_existing_user_does_not_re_create(self):
+        from api.models import Users
+        from unittest.mock import patch
+
+        # Pre-existing user with custom password.
+        existing = Users.objects.create_user(
+            email="already@sakrshipping.com",
+            password="MyExistingPass!42",
+            first_name="ORIGINAL",
+        )
+        existing.role = "Employee"
+        existing.phone_number = "00201099999999"
+        existing.save()
+
+        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+            resp = self.client.post(
+                self.url,
+                {
+                    "user_email": "already@sakrshipping.com",
+                    "user_first_name": "NEW_NAME",
+                    "user_phone": "00201000000000",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+
+        # Same user, not a new one.
+        existing.refresh_from_db()
+        self.assertEqual(existing.email, "already@sakrshipping.com")
+        # First name was updated to the new one supplied.
+        self.assertEqual(existing.first_name, "NEW_NAME")
+        # Phone was updated to the new one.
+        self.assertEqual(existing.phone_number, "00201000000000")
+        # Password was NOT touched (still the seafarer's original).
+        self.assertTrue(existing.check_password("MyExistingPass!42"))
+        # Exactly one CVSubmission is linked.
+        from api.models import CVSubmission
+        self.assertEqual(
+            CVSubmission.objects.filter(user=existing).count(), 1
+        )
+        # Welcome email still dispatched (welcome_email_sent_at
+        # wasn't set on this pre-existing user, so it gets sent).
+        mock_dispatch.assert_called_once()
+
+    def test_admin_post_with_existing_user_no_dispatch_when_already_sent(self):
+        from api.models import Users
+        from django.utils import timezone
+        from unittest.mock import patch
+
+        existing = Users.objects.create_user(
+            email="welcomed@sakrshipping.com",
+            password="x",
+        )
+        original_sent_at = timezone.now() - timezone.timedelta(hours=1)
+        existing.welcome_email_sent_at = original_sent_at
+        existing.save()
+
+        # Patch the EmailService — the dispatch_welcome_email() function
+        # is called (it's idempotent), but it should short-circuit
+        # before invoking the email service since welcome_email_sent_at
+        # is already set.
+        with patch("api.email.get_email_service") as mock_get:
+            resp = self.client.post(
+                self.url,
+                {
+                    "user_email": "welcomed@sakrshipping.com",
+                    "user_phone": "00201088888888",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        # The actual email service was NOT called.
+        mock_get.return_value.send_set_password_link.assert_not_called()
+        # And the welcome_email_sent_at timestamp wasn't updated.
+        existing.refresh_from_db()
+        self.assertEqual(existing.welcome_email_sent_at, original_sent_at)
+
+    def test_admin_post_with_user_fk_skips_auto_create(self):
+        # When the Admin passes the user FK directly (not user_email),
+        # the existing flow is used: no auto-create, no password reset.
+        from api.models import Users
+        from unittest.mock import patch
+
+        existing = Users.objects.create_user(
+            email="fkuser@sakrshipping.com",
+            password="TheirOwnPassword!42",
+        )
+        existing.role = "Employee"
+        existing.save()
+
+        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+            resp = self.client.post(
+                self.url,
+                {
+                    "user": existing.id,
+                    "status": "Pending",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        # Same user, password untouched.
+        existing.refresh_from_db()
+        self.assertTrue(existing.check_password("TheirOwnPassword!42"))
+        # Welcome email still dispatched (the user is new to the
+        # welcome-email path, even though they existed before).
+        mock_dispatch.assert_called_once()
+
+    def test_admin_post_without_user_email_falls_back_to_admin(self):
+        # Historical fallback: if neither 'user' nor 'user_email' is
+        # provided, the CVSubmission is attributed to the admin
+        # (preserves the prior API contract for callers that didn't
+        # pass user info).
+        resp = self.client.post(
+            self.url,
+            {"status": "Pending"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        # CVSubmission is linked to the admin (no auto-create).
+        self.assertEqual(resp.data["user"], self.admin.id)
+        from api.models import Users
+        # Only 2 users exist: admin and the test's own setup
+        # (no auto-created newbie).
+        self.assertEqual(
+            Users.objects.filter(email="newbie@sakrshipping.com").count(), 0
+        )
+
+    def test_admin_post_auto_create_with_no_phone_falls_back_to_email_password(self):
+        # If the Admin doesn't supply user_phone, the new user is
+        # created with password = email (so /api/login/ works as a
+        # fallback). The welcome email still prompts them to set a
+        # real password via the magic link.
+        from api.models import Users
+        from unittest.mock import patch
+
+        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+            resp = self.client.post(
+                self.url,
+                {
+                    "user_email": "nophone@sakrshipping.com",
+                    "user_first_name": "NO_PHONE",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        user = Users.objects.get(email="nophone@sakrshipping.com")
+        # No phone on file (the field defaults to "" per the model
+        # NOT NULL constraint).
+        self.assertEqual(user.phone_number, "")
+        # Password is the email (fallback).
+        self.assertTrue(user.check_password("nophone@sakrshipping.com"))
+        mock_dispatch.assert_called_once()
+
+    def test_admin_post_with_employee_role_does_not_auto_create(self):
+        # If the requester is an Employee, the CVSubmission is
+        # always for themselves — no auto-create path applies.
+        from api.models import Users
+        employee = Users.objects.create_user(
+            email="emp@sakrshipping.com",
+            password="emppass",
+        )
+        employee.role = "Employee"
+        employee.save()
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(employee)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        resp = self.client.post(
+            self.url,
+            {
+                "user_email": "someone-else@sakrshipping.com",
+                "user_phone": "00201000000000",
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        # CVSubmission attributed to the employee themselves.
+        self.assertEqual(resp.data["user"], employee.id)
+        # No auto-created "someone-else" user.
+        from api.models import Users as U
+        self.assertFalse(
+            U.objects.filter(email="someone-else@sakrshipping.com").exists()
+        )
+
+
 class EmailServiceSendPasswordLinkTests(TestCase):
     """Unit tests for the new send_set_password_link method on both
     EmailService implementations.

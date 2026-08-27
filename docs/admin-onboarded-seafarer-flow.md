@@ -16,21 +16,24 @@ Implemented in commit `803a78b4` on `mtechno-saas/Sakr-Manning-Agency-Backend:se
 
 | # | Who | What |
 |---|---|---|
-| 1 | **Admin** | `POST /api/cv-submissions/` with `{user: <seafarer-id>, ...}` → backend creates the `CVSubmission` row |
+| 1 | **Admin** | `POST /api/cv-submissions/` with `{user_email, user_first_name, user_phone, ...}` (or `{user: <id>}` to link to an existing user) → backend **auto-creates the `Users` row** if needed (with `password = user_phone`) and creates the `CVSubmission` linked to it |
 | 2 | **System** | Sends an email to the linked seafarer's email address (the one in `Users.email`) with a signed magic link: `https://sakrshipping.com/set-password?uidb64=...&token=...` |
 | 3 | **Seafarer** | Clicks the link, lands on the frontend's "set new password" page |
 | 4 | **Seafarer** | Types their new password + submits. Frontend POSTs `{uidb64, token, new_password}` to `POST /api/auth/set-password-confirm/` |
 | 5 | **System** | Validates the signed token (HMAC + 24h TTL), calls `user.set_password(...)`, returns 200 |
-| 6 | **Seafarer** | `POST /api/login/` with `{email, password}` → JWT, can now use the standard email-login flow |
+| 6 | **Seafarer** | `POST /api/login/` with `{email, password}` → JWT, can now use the standard email-login flow. **Phone-as-password also works** (`POST /api/auth/phone-login/` with `{phone, phone}`) once the seafarer verifies their phone via `POST /api/auth/verify-otp/`. |
 
 The default email backend is `DjangoSMTPEmailService` (uses the project's Gmail SMTP config). For local dev / CI, set `EMAIL_SERVICE=api.email.ConsoleEmailService` to log the would-be email to the server console instead.
 
 **Key properties:**
 
-- **Idempotent:** The welcome email is sent only once per seafarer (tracked by `Users.welcome_email_sent_at`). A second `CVSubmission` for the same seafarer does NOT re-send.
+- **Single-step onboarding:** A single `POST /api/cv-submissions/` with `user_email` + `user_first_name` + `user_phone` (and optional `user_middle_name`) auto-creates the `Users` row in the same transaction. No separate `POST /api/users/users/` step.
+- **Default password is the phone number:** When the user is auto-created, `user.set_password(user_phone)` is called — phone-as-password is the immediate fallback. The seafarer can use either the magic link (to set a custom password) or `POST /api/auth/phone-login/` with `{phone, phone}` (after verifying via OTP).
+- **Idempotent on existing users:** If the seafarer already exists (lookup by email), the system refreshes `first_name`/`middle_name`/`phone_number` if the admin supplied them, but does NOT touch the password (the seafarer may have set their own).
+- **Welcome email is sent only once per seafarer:** Tracked by `Users.welcome_email_sent_at`. A second `CVSubmission` for the same seafarer does NOT re-send the email.
 - **Secure:** The token is HMAC-signed (Django's `default_token_generator`) and timestamp-checked at 24h. A tampered or expired link fails closed.
 - **Non-blocking:** Email dispatch failures never roll back the `CVSubmission` save. The seafarer just doesn't get the email; the admin can re-trigger by clearing `welcome_email_sent_at` and re-creating a `CVSubmission` for the user.
-- **Doesn't replace phone-as-password:** If the seafarer was created via `/ai/parse/`, they keep the phone-as-password login path. Setting a custom password adds an email+password option; it doesn't take anything away.
+- **Doesn't replace phone-as-password:** The seafarer can keep using phone-as-password (after OTP verification) AND the email+password option once they set a custom one.
 
 ---
 
@@ -72,20 +75,49 @@ Admin stores `access` as `$ADMIN_JWT` for subsequent calls.
 
 ### Step A2 — Create the CVSubmission for the seafarer
 
-The seafarer must already exist as a `Users` row (created via `POST /api/users/users/`, or by an earlier `/ai/parse/` upload, or via any other admin flow). The `CVSubmission` row links to the seafarer via the `user` foreign key (`CVSubmission.user` → `Users.id`, a one-to-many relationship: one seafarer can have many CVSubmissions, e.g. one per job application).
+A single `POST /api/cv-submissions/` does it all: links to an existing seafarer, **or auto-creates a new `Users` row from the request body and links to that**. The `CVSubmission` row links to the seafarer via the `user` foreign key (`CVSubmission.user` → `Users.id`, a one-to-many relationship: one seafarer can have many CVSubmissions, e.g. one per job application).
 
-**Two ways to identify the seafarer in the request body:**
+**Three ways to identify the seafarer in the request body:**
 
-- **By user ID** (standard, recommended):
-  ```json
-  { "user": 42, "status": "Pending", "position": 7 }
-  ```
-- **By user email** (alternative, write-only field):
-  ```json
-  { "user_email": "seafarer@sakrshipping.com", "status": "Pending", "position": 7 }
-  ```
+1. **By user ID** (link to an existing user — no auto-create):
+   ```json
+   { "user": 42, "status": "Pending", "position": 7 }
+   ```
 
-The backend validates the ID/email at serializer-time via DRF's `PrimaryKeyRelatedField`. If the user doesn't exist, the request returns `400` and no `CVSubmission` row is created — the Admin must create the user first.
+2. **By email — user already exists** (look up by email, refresh first/middle/phone if supplied; no password reset):
+   ```json
+   {
+     "user_email": "seafarer@sakrshipping.com",
+     "user_first_name": "AHMED",
+     "user_middle_name": "HASSAN",
+     "user_phone": "00201012345678",
+     "status": "Pending"
+   }
+   ```
+
+3. **By email — user is new** (auto-create the `Users` row with default password = phone number, then send the welcome email):
+   ```json
+   {
+     "user_email": "newbie@sakrshipping.com",
+     "user_first_name": "AHMED",
+     "user_middle_name": "HASSAN",
+     "user_phone": "00201012345678",
+     "status": "Pending"
+   }
+   ```
+
+In case (3) the backend:
+- Looks up `Users.objects.get(email=user_email)` — `DoesNotExist`
+- Calls `Users.objects.create_user(email=..., password=user_phone, first_name=..., middle_name=...)` — the **default password is the phone number** (so phone-as-password is the immediate fallback for the seafarer)
+- Sets `role = 'Employee'` (matching the `/ai/parse/` convention)
+- Saves the `CVSubmission` linked to the new user
+- Calls `dispatch_welcome_email(user)` → emails the seafarer a "set your password" magic link
+
+**Validation:**
+- DRF's `PrimaryKeyRelatedField` validates the `user` ID at serializer-time → 400 `"Invalid pk \"X\" - object does not exist."` if the ID is wrong
+- The `user_email` field is just an `EmailField` (validates format only); the user-existence check happens in the viewset's `perform_create` and either creates the user or looks them up
+
+**For Employees / Crew:** the `user_email` auto-create branch is admin-only. Employees submitting their own CV can only target themselves — the `user_email` field is ignored and the CVSubmission is attributed to the request user.
 
 ```bash
 curl -X POST "https://backend.sakrshipping.com/api/cv-submissions/" \
@@ -222,6 +254,8 @@ The seafarer can keep using email + password indefinitely. **Phone-as-password s
 
 ## End-to-end example (admin + seafarer together)
 
+This example shows the new single-step flow: the Admin's POST auto-creates the seafarer's `Users` row.
+
 ```bash
 # === ADMIN SIDE ===
 # A1. Admin logs in
@@ -230,13 +264,24 @@ ADMIN_JWT=$(curl -s -X POST "https://backend.sakrshipping.com/api/login/" \
   -d '{"email":"admin@sakrshipping.com","password":"<admin-pwd>"}' \
   | python -c "import sys,json; print(json.load(sys.stdin)['access'])")
 
-# A2. Admin creates the CVSubmission for the seafarer (user id=42)
+# A2. Admin posts the CVSubmission with the new seafarer's data.
+#     The system auto-creates the Users row (default password = user_phone)
+#     and the CVSubmission linked to it. Single API call, no separate
+#     POST /api/users/users/ step.
 curl -X POST "https://backend.sakrshipping.com/api/cv-submissions/" \
   -H "Authorization: Bearer $ADMIN_JWT" \
   -H "Content-Type: application/json" \
-  -d '{"user": 42, "status": "Pending"}'
-# → 201 { "id": 99, "user": 42, ... }
-# → Side effect: backend emails a magic link to the seafarer's email
+  -d '{
+    "user_email": "newbie@sakrshipping.com",
+    "user_first_name": "AHMED",
+    "user_middle_name": "HASSAN",
+    "user_phone": "00201012345678",
+    "status": "Pending",
+    "position": 7
+  }'
+# → 201 { "id": 99, "user": 42, "status": "Pending", ... }
+# → Side effect: backend created the Users row (password=00201012345678,
+#   role=Employee) and emailed a magic link to newbie@sakrshipping.com
 #   (in dev with ConsoleEmailService, the link is in the gunicorn log)
 
 # === SEAFARER SIDE ===
@@ -253,13 +298,29 @@ curl -X POST "https://backend.sakrshipping.com/api/auth/set-password-confirm/" \
 # S3. Seafarer logs in with the new password
 SEAFARER_JWT=$(curl -s -X POST "https://backend.sakrshipping.com/api/login/" \
   -H "Content-Type: application/json" \
-  -d '{"email":"seafarer@sakrshipping.com","password":"MyNewSecurePass!2026"}' \
+  -d '{"email":"newbie@sakrshipping.com","password":"MyNewSecurePass!2026"}' \
   | python -c "import sys,json; print(json.load(sys.stdin)['access'])")
 
 # S4. Seafarer can now use any authenticated endpoint
 curl "https://backend.sakrshipping.com/api/me/" \
   -H "Authorization: Bearer $SEAFARER_JWT"
 # → 200, full profile
+
+# S5. (Alternative) Seafarer can also use phone-as-password, after
+#     verifying the phone via OTP. This is the same flow as /ai/parse/.
+curl -X POST "https://backend.sakrshipping.com/api/auth/request-otp/" \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"00201012345678"}'
+# → 200 (OTP emailed)
+# ... seafarer enters the OTP, then:
+curl -X POST "https://backend.sakrshipping.com/api/auth/verify-otp/" \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"00201012345678","otp":"<6-digit-from-email>"}'
+# → 200 (is_phone_verified=True, returns JWT)
+curl -X POST "https://backend.sakrshipping.com/api/auth/phone-login/" \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"00201012345678","password":"00201012345678"}'
+# → 200 (phone-as-password works because the default password is the phone number)
 ```
 
 ---
@@ -269,6 +330,10 @@ curl "https://backend.sakrshipping.com/api/me/" \
 | Case | Behavior |
 |---|---|
 | Seafarer doesn't exist (wrong `user` ID or email) | `POST /api/cv-submissions/` returns `400` with `{"user": ["Invalid pk \"X\" - object does not exist."]}`. No `CVSubmission` row is created. The Admin must `POST /api/users/users/` first to create the `Users` row, then retry the CVSubmission. |
+| Seafarer doesn't exist + Admin posts `user_email` (new) | Backend auto-creates the `Users` row with `password = user_phone` (per spec), `role = 'Employee'`, and the supplied `first_name`/`middle_name`. The `CVSubmission` is created linked to the new user. The welcome email is dispatched. |
+| Seafarer already exists (Admin posts `user_email` of existing user) | Backend looks up by email, refreshes `first_name`/`middle_name`/`phone_number` if supplied, but does NOT touch the password (the seafarer may have set their own via the magic link or have phone-as-password configured). |
+| Admin posts `user_email` but no `user_phone` | Auto-create still works; default password falls back to the email address (so `/api/login/` works as a fallback). The welcome email still prompts the seafarer to set a real password. |
+| Employee / Crew posts `user_email` of someone else | The `user_email` branch is admin-only — Employees' `user_email` is ignored. The CVSubmission is always attributed to the Employee themselves. |
 | Seafarer has no email on file | `dispatch_welcome_email` is a no-op (returns False). The `CVSubmission` save still succeeds. The seafarer is silently not onboarded via this path. The admin should set the seafarer's email and re-create the CVSubmission (or clear `welcome_email_sent_at` first) to retry. |
 | Admin creates a second `CVSubmission` for the same seafarer | No re-send. The user's `welcome_email_sent_at` is already set; the email path is a no-op. The CVSubmission row is still created. |
 | Seafarer already has a custom password (e.g. set via a previous flow) | The seafarer's `welcome_email_sent_at` is set, so the email doesn't re-send. The new CVSubmission is created normally. The seafarer's existing password still works. |
@@ -320,14 +385,15 @@ The `CVPermission` on `POST /api/cv-submissions/` lets Recruiters POST (with lim
 - `api/migrations/0071_users_welcome_email_sent_at.py` — new migration
 - `saker/settings.py` — `FRONTEND_SET_PASSWORD_URL` (env-overridable, default `https://sakrshipping.com/set-password`) + `PASSWORD_SET_TTL_HOURS` (env-overridable, default `24`)
 - `api/email.py` — extended `EmailService` protocol with `send_set_password_link(to_email, link, ttl_hours)`. Both `ConsoleEmailService` and `DjangoSMTPEmailService` implement it.
-- `api/views.py` — new `build_set_password_link(user)` helper, `SetPasswordConfirmView` (POST `/api/auth/set-password-confirm/`), `dispatch_welcome_email(user)` helper. Hooked into `CVSubmissionViewSet.perform_create` so every CVSubmission create triggers the dispatch.
+- `api/serializer.py` — added `user_phone` write-only field to `CVSubmissionSerializer` (used by the auto-create flow).
+- `api/views.py` — new `build_set_password_link(user)` helper, `SetPasswordConfirmView` (POST `/api/auth/set-password-confirm/`), `dispatch_welcome_email(user)` helper. `CVSubmissionViewSet.perform_create` rewritten to support three identification paths: `'user'` FK, `'user_email'` look-up-by-email, or auto-create from `user_email + user_first_name + user_middle_name + user_phone` (default password = phone). Welcome email dispatched after every CVSubmission create.
 - `api/urls.py` — wires `/api/auth/set-password-confirm/`
-- `api/tests.py` — 14 new tests (SetPasswordMagicLinkTests + EmailServiceSendPasswordLinkTests) + 2 existing OTP-dispatch tests got `@override_settings(EMAIL_SERVICE=ConsoleEmailService)` to keep passing under the new default
+- `api/tests.py` — 21 new tests (SetPasswordMagicLinkTests + EmailServiceSendPasswordLinkTests + CVSubmissionAutoCreateUserTests) + 2 existing OTP-dispatch tests got `@override_settings(EMAIL_SERVICE=ConsoleEmailService)` to keep passing under the new default
 - `docs/admin-onboarded-seafarer-flow.md` — this file
 
 ## Tests
 
-14 new tests in `api/tests.py`:
+21 new tests in `api/tests.py`:
 
 - **`SetPasswordMagicLinkTests`** (11):
   - `test_dispatch_skips_when_no_email` — no email on user → no-op
@@ -344,6 +410,15 @@ The `CVPermission` on `POST /api/cv-submissions/` lets Recruiters POST (with lim
 - **`EmailServiceSendPasswordLinkTests`** (3):
   - `test_console_logs_link` — ConsoleEmailService logs the link + email
   - `test_django_smtp_sends` — DjangoSMTPEmailService calls `send_mail` with the right subject/body
+  - `test_django_smtp_returns_false_on_failure` — SMTP exception → returns False (no propagation)
+- **`CVSubmissionAutoCreateUserTests`** (7) — the new single-step admin-onboarding flow:
+  - `test_admin_post_with_user_email_auto_creates_user` — happy path: auto-create + password = phone + welcome email
+  - `test_admin_post_with_existing_user_does_not_re_create` — existing user found → no auto-create, password not touched
+  - `test_admin_post_with_existing_user_no_dispatch_when_already_sent` — welcome-email idempotency on the create path
+  - `test_admin_post_with_user_fk_skips_auto_create` — `'user'` FK path still works (no password reset)
+  - `test_admin_post_without_user_email_falls_back_to_admin` — historical fallback preserved
+  - `test_admin_post_auto_create_with_no_phone_falls_back_to_email_password` — no `user_phone` → password = email
+  - `test_admin_post_with_employee_role_does_not_auto_create` — Employees can't trigger auto-create (security)
   - `test_django_smtp_returns_false_on_failure` — SMTP exception → returns False (no propagation)
 
 **Full suite: 396 tests, 0 new failures.** The 2 pre-existing failures (`DocumentUploadViewTest`, `IntegrationTest`) are the LLM path (`/ai/upload/`) which is untouched in this work.

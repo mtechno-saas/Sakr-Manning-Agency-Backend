@@ -1799,14 +1799,101 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
         return CVSubmission.objects.filter(user=user)
 
     def perform_create(self, serializer):
-        # Employee can only submit CV for themselves
-        if self.request.user.role == 'Employee':
-            instance = serializer.save(user=self.request.user)
+        # Figure out which Users row the CVSubmission is for. The
+        # auto-create / look-up-by-email branch is admin-only —
+        # Employees/Crew can only submit CVs for themselves.
+        #
+        # Paths:
+        #
+        #   1. 'user' (FK id) provided → link to that existing user
+        #   2. Admin/HR/Recruiter + 'user_email' provided → look up
+        #      by email; if no match, auto-create the Users row with
+        #      the user_first_name / user_middle_name / user_phone
+        #      fields and password = phone (so phone-as-password is
+        #      the immediate fallback). The welcome email is then
+        #      sent to the new user via dispatch_welcome_email.
+        #   3. Employee / no identifying field → fall back to the
+        #      request user (Employee = always self; Admin/HR/Recruiter
+        #      with no info = historical behavior of attributing the
+        #      submission to themselves).
+        user = None
+        if 'user' in serializer.validated_data:
+            user = serializer.validated_data['user']
+        elif (
+            'user_email' in serializer.validated_data
+            and self.request.user.role in ('Admin', 'HR Manager', 'Recruiter')
+        ):
+            email = serializer.validated_data['user_email']
+            first_name = (
+                serializer.validated_data.get('user_first_name') or ''
+            )
+            middle_name = (
+                serializer.validated_data.get('user_middle_name') or ''
+            )
+            phone = serializer.validated_data.get('user_phone') or ''
+
+            try:
+                user = Users.objects.get(email=email)
+                # User already exists — refresh first/middle/phone
+                # if the admin supplied them, but DO NOT touch the
+                # password (the seafarer may have set their own via
+                # the magic link already, or have phone-as-password
+                # configured).
+                dirty = False
+                if first_name and user.first_name != first_name:
+                    user.first_name = first_name
+                    dirty = True
+                if middle_name and user.middle_name != middle_name:
+                    user.middle_name = middle_name
+                    dirty = True
+                if phone and user.phone_number != phone:
+                    user.phone_number = phone
+                    dirty = True
+                if dirty:
+                    user.save(update_fields=[
+                        'first_name', 'middle_name', 'phone_number',
+                    ])
+            except Users.DoesNotExist:
+                # Auto-create the Users row. Default password is the
+                # phone number (per spec). If no phone was supplied,
+                # fall back to email-as-password so /api/login/
+                # still works; the welcome email prompts the
+                # seafarer to set a real password.
+                password = phone or email
+                user = Users.objects.create_user(
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    middle_name=middle_name,
+                )
+                # create_user doesn't set phone_number (it's a custom
+                # field on the model, not on the Django User base).
+                # Stamp it + role explicitly.
+                if phone:
+                    user.phone_number = phone
+                user.role = 'Employee'
+                user.save(update_fields=['phone_number', 'role'])
         else:
-            if 'user' not in serializer.validated_data:
-                instance = serializer.save(user=self.request.user)
-            else:
-                instance = serializer.save()
+            # No 'user' and no 'user_email' (or Employee tried to
+            # pass user_email — that's a no-op for them). Fall back
+            # to the request user. Employee: always self.
+            # Admin/HR/Recruiter: historical behavior of attributing
+            # the submission to themselves. Preserves the prior API
+            # contract.
+            user = self.request.user
+
+        # Pop the write-only user-data fields from validated_data
+        # before saving — they're not actual columns on CVSubmission
+        # and would crash model.save() with "unexpected keyword
+        # argument". They were already used above to look up or
+        # create the Users row.
+        for f in (
+            'user_email', 'user_first_name',
+            'user_middle_name', 'user_phone',
+        ):
+            serializer.validated_data.pop(f, None)
+
+        instance = serializer.save(user=user)
 
         # After the CVSubmission is persisted, send the linked seafarer
         # a "set your password" welcome email (if this is the first

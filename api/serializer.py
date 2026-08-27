@@ -456,6 +456,13 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
     # Declared as plain write_only fields (no source='user.*') to avoid DRF putting
     # them inside validated_data['user'] as a Users instance, which breaks .pop()
     user_email = serializers.EmailField(write_only=True, required=False)
+    # Used together with user_email to auto-create a Users row when the
+    # Admin posts a CVSubmission for a seafarer that isn't in the
+    # system yet. The auto-create flow sets the new user's password
+    # to this phone number (phone-as-password fallback) and the
+    # welcome email is dispatched with a magic link so the seafarer
+    # can set a custom password.
+    user_phone = serializers.CharField(write_only=True, required=False, allow_blank=True)
     company_name_input = serializers.CharField(write_only=True, required=False)
     position_name_input = serializers.CharField(write_only=True, required=False)
     ship_name_input = serializers.CharField(write_only=True, required=False)
@@ -538,7 +545,7 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         model = CVSubmission
         fields = [
             'id', 'user', 'user_name', 'user_first_name', 'user_middle_name',
-            'user_email', 'user_email_display', 'profile_image', 'company', 'company_name', 'company_name_input',
+            'user_email', 'user_phone', 'user_email_display', 'profile_image', 'company', 'company_name', 'company_name_input',
             'ship', 'ship_name', 'ship_details', 'ship_name_input',
             'position', 'position_name', 'position_name_input',
             'cv_file', 'cover_letter', 'experience_years',
