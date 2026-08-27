@@ -72,7 +72,20 @@ Admin stores `access` as `$ADMIN_JWT` for subsequent calls.
 
 ### Step A2 — Create the CVSubmission for the seafarer
 
-The seafarer must already exist as a `Users` row (created via `POST /api/users/users/`, or by an earlier `/ai/parse/` upload, or via any other admin flow). The CVSubmission links to the seafarer via the `user` FK.
+The seafarer must already exist as a `Users` row (created via `POST /api/users/users/`, or by an earlier `/ai/parse/` upload, or via any other admin flow). The `CVSubmission` row links to the seafarer via the `user` foreign key (`CVSubmission.user` → `Users.id`, a one-to-many relationship: one seafarer can have many CVSubmissions, e.g. one per job application).
+
+**Two ways to identify the seafarer in the request body:**
+
+- **By user ID** (standard, recommended):
+  ```json
+  { "user": 42, "status": "Pending", "position": 7 }
+  ```
+- **By user email** (alternative, write-only field):
+  ```json
+  { "user_email": "seafarer@sakrshipping.com", "status": "Pending", "position": 7 }
+  ```
+
+The backend validates the ID/email at serializer-time via DRF's `PrimaryKeyRelatedField`. If the user doesn't exist, the request returns `400` and no `CVSubmission` row is created — the Admin must create the user first.
 
 ```bash
 curl -X POST "https://backend.sakrshipping.com/api/cv-submissions/" \
@@ -255,6 +268,7 @@ curl "https://backend.sakrshipping.com/api/me/" \
 
 | Case | Behavior |
 |---|---|
+| Seafarer doesn't exist (wrong `user` ID or email) | `POST /api/cv-submissions/` returns `400` with `{"user": ["Invalid pk \"X\" - object does not exist."]}`. No `CVSubmission` row is created. The Admin must `POST /api/users/users/` first to create the `Users` row, then retry the CVSubmission. |
 | Seafarer has no email on file | `dispatch_welcome_email` is a no-op (returns False). The `CVSubmission` save still succeeds. The seafarer is silently not onboarded via this path. The admin should set the seafarer's email and re-create the CVSubmission (or clear `welcome_email_sent_at` first) to retry. |
 | Admin creates a second `CVSubmission` for the same seafarer | No re-send. The user's `welcome_email_sent_at` is already set; the email path is a no-op. The CVSubmission row is still created. |
 | Seafarer already has a custom password (e.g. set via a previous flow) | The seafarer's `welcome_email_sent_at` is set, so the email doesn't re-send. The new CVSubmission is created normally. The seafarer's existing password still works. |
