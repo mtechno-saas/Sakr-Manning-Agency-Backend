@@ -21,7 +21,7 @@
 
 import datetime
 from unittest.mock import patch, MagicMock
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status as http_status
@@ -2152,6 +2152,7 @@ class OTPEmailDispatchTests(APITestCase):
             },
         }
 
+    @override_settings(EMAIL_SERVICE="api.email.ConsoleEmailService")
     def test_initial_otp_is_stored_and_email_dispatched(self):
         from ai_document.views import _save_parser_output
         from api.models import Users
@@ -2264,6 +2265,7 @@ class RequestOTPEmailDispatchTests(APITestCase):
         self.user.save()
         self.url = "/api/auth/request-otp/"
 
+    @override_settings(EMAIL_SERVICE="api.email.ConsoleEmailService")
     def test_otp_dispatched_to_email_not_phone(self):
         with self.assertLogs("api.email", level="INFO") as cm:
             response = self.client.post(
@@ -2489,3 +2491,294 @@ class SaveParserOutputSeafarerPasswordTests(APITestCase):
 
         user = Users.objects.get(id=user_id)
         self.assertEqual(user.role, "Employee")
+
+
+# ============================================================================
+# Set-password magic link (admin-onboards-seafarer flow)
+# ============================================================================
+#
+# When an Admin creates a CVSubmission for a seafarer that hasn't been
+# onboarded yet, the system should email them a magic link. The seafarer
+# clicks the link, lands on a frontend set-password page, and POSTs the
+# new password to /api/auth/set-password-confirm/ with the token.
+#
+# We test:
+#   1. dispatch_welcome_email() is called on CVSubmission create
+#   2. The email service is called with the right user/email
+#   3. The user's welcome_email_sent_at is stamped
+#   4. Re-creating a CVSubmission for the same user does NOT re-send
+#   5. SetPasswordConfirmView sets the password and stamps the flag
+#   6. Bad tokens / weak passwords / unknown uidb64 are rejected
+#   7. The link points at FRONTEND_SET_PASSWORD_URL with uidb64+token
+
+
+class SetPasswordMagicLinkTests(APITestCase):
+    """The admin-onboards-seafarer flow: CVSubmission POST →
+    welcome email with magic link → /api/auth/set-password-confirm/.
+    """
+
+    def setUp(self):
+        from api.models import Users, CVSubmission
+        from django.contrib.auth import get_user_model
+        Users = get_user_model()
+
+        # The admin who creates the CVSubmission.
+        self.admin = Users.objects.create_user(
+            email="admin@sakrshipping.com",
+            password="adminpass",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        # The seafarer being onboarded.
+        self.seafarer = Users.objects.create_user(
+            email="seafarer@sakrshipping.com",
+            password="placeholder",
+            first_name="MOHAMED",
+        )
+        self.seafarer.role = "Employee"
+        self.seafarer.phone_number = "00201090946284"
+        self.seafarer.welcome_email_sent_at = None
+        self.seafarer.save()
+
+        self.client.force_authenticate(user=self.admin)
+        self.url = "/api/cv-submissions/"
+
+    def _create_cv_submission(self, user_id):
+        from api.models import CVSubmission
+        return CVSubmission.objects.create(
+            user_id=user_id, status="Pending"
+        )
+
+    # ── dispatch_welcome_email unit tests ────────────────────────────
+
+    def test_dispatch_skips_when_no_email(self):
+        from api.views import dispatch_welcome_email
+        from api.models import Users
+        from django.contrib.auth import get_user_model
+        U = get_user_model()
+        # Build a user with empty email.
+        u = U.objects.create_user(
+            email="placeholder@x.com", password="x", first_name="X"
+        )
+        u.email = ""
+        u.save()
+        sent = dispatch_welcome_email(u)
+        self.assertFalse(sent)
+
+    def test_dispatch_skips_when_already_sent(self):
+        from api.views import dispatch_welcome_email
+        from django.utils import timezone
+        self.seafarer.welcome_email_sent_at = timezone.now()
+        self.seafarer.save()
+        sent = dispatch_welcome_email(self.seafarer)
+        self.assertFalse(sent)
+
+    def test_dispatch_sends_email_and_stamps_flag(self):
+        from api.views import dispatch_welcome_email
+        from unittest.mock import patch
+        from django.utils import timezone
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_set_password_link.return_value = True
+            sent = dispatch_welcome_email(self.seafarer)
+
+        self.assertTrue(sent)
+        mock_service.send_set_password_link.assert_called_once()
+        # First positional arg is the email address; second is the
+        # full magic-link URL.
+        call_args = mock_service.send_set_password_link.call_args
+        self.assertEqual(call_args.args[0], "seafarer@sakrshipping.com")
+        self.assertIn("?uidb64=", call_args.args[1])
+        self.assertIn("&token=", call_args.args[1])
+        # Flag was stamped.
+        self.seafarer.refresh_from_db()
+        self.assertIsNotNone(self.seafarer.welcome_email_sent_at)
+
+    def test_dispatch_does_not_stamp_when_email_send_fails(self):
+        from api.views import dispatch_welcome_email
+        from unittest.mock import patch
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_set_password_link.return_value = False
+            sent = dispatch_welcome_email(self.seafarer)
+
+        self.assertFalse(sent)
+        self.seafarer.refresh_from_db()
+        self.assertIsNone(self.seafarer.welcome_email_sent_at)
+
+    # ── CVSubmission create trigger ─────────────────────────────────
+
+    def test_cv_submission_create_dispatches_welcome_email(self):
+        from unittest.mock import patch
+        from api.models import Users
+
+        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+            resp = self.client.post(
+                self.url,
+                {"user": self.seafarer.id, "status": "Pending"},
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        mock_dispatch.assert_called_once()
+        # The user passed to dispatch_welcome_email is the seafarer.
+        called_user = mock_dispatch.call_args.args[0]
+        self.assertEqual(called_user.id, self.seafarer.id)
+
+    def test_second_cv_submission_for_same_user_does_not_redisptach(self):
+        # Idempotency: the second CVSubmission for the same user
+        # still calls dispatch_welcome_email (so it can no-op via
+        # welcome_email_sent_at check), but the actual email send
+        # is skipped.
+        from unittest.mock import patch
+        from django.utils import timezone
+
+        # First CVSubmission — should send the email.
+        with patch("api.email.get_email_service") as mock_get:
+            mock_get.return_value.send_set_password_link.return_value = True
+            self.client.post(
+                self.url,
+                {"user": self.seafarer.id, "status": "Pending"},
+                format="json",
+            )
+        self.seafarer.refresh_from_db()
+        self.assertIsNotNone(self.seafarer.welcome_email_sent_at)
+        first_send_count = mock_get.return_value.send_set_password_link.call_count
+
+        # Second CVSubmission — flag is already set, no re-send.
+        with patch("api.email.get_email_service") as mock_get2:
+            mock_get2.return_value.send_set_password_link.return_value = True
+            self.client.post(
+                self.url,
+                {"user": self.seafarer.id, "status": "Pending"},
+                format="json",
+            )
+        # The send was NOT called a second time.
+        self.assertEqual(
+            mock_get2.return_value.send_set_password_link.call_count, 0
+        )
+
+    # ── SetPasswordConfirmView ──────────────────────────────────────
+
+    def _build_link(self, user):
+        from api.views import build_set_password_link
+        return build_set_password_link(user)
+
+    def test_set_password_confirm_with_valid_token(self):
+        from django.urls import reverse
+        link = self._build_link(self.seafarer)
+        # Parse ?uidb64=...&token=... from the link
+        from urllib.parse import urlparse, parse_qs
+        qs = parse_qs(urlparse(link).query)
+        uidb64 = qs["uidb64"][0]
+        token = qs["token"][0]
+
+        resp = self.client.post(
+            "/api/auth/set-password-confirm/",
+            {"uidb64": uidb64, "token": token, "new_password": "newSecurePass!42"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.data)
+        self.seafarer.refresh_from_db()
+        self.assertTrue(self.seafarer.check_password("newSecurePass!42"))
+        # Flag is stamped.
+        self.assertIsNotNone(self.seafarer.welcome_email_sent_at)
+
+    def test_set_password_confirm_rejects_invalid_token(self):
+        resp = self.client.post(
+            "/api/auth/set-password-confirm/",
+            {
+                "uidb64": "invalid",
+                "token": "garbage",
+                "new_password": "newSecurePass!42",
+            },
+            format="json",
+        )
+        # Either the uidb64 decodes to no user (400) or the token
+        # fails check_token (400). Either way, 400.
+        self.assertEqual(resp.status_code, 400)
+
+    def test_set_password_confirm_rejects_weak_password(self):
+        from urllib.parse import urlparse, parse_qs
+        link = self._build_link(self.seafarer)
+        qs = parse_qs(urlparse(link).query)
+        resp = self.client.post(
+            "/api/auth/set-password-confirm/",
+            {"uidb64": qs["uidb64"][0], "token": qs["token"][0],
+             "new_password": "x"},  # too short
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_set_password_confirm_rejects_missing_fields(self):
+        resp = self.client.post(
+            "/api/auth/set-password-confirm/",
+            {"new_password": "anything"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_set_password_link_uses_frontend_url(self):
+        link = self._build_link(self.seafarer)
+        # The link starts with the FRONTEND_SET_PASSWORD_URL setting.
+        from django.conf import settings
+        self.assertTrue(
+            link.startswith(settings.FRONTEND_SET_PASSWORD_URL),
+            f"Link {link!r} doesn't start with "
+            f"FRONTEND_SET_PASSWORD_URL={settings.FRONTEND_SET_PASSWORD_URL!r}",
+        )
+
+
+class EmailServiceSendPasswordLinkTests(TestCase):
+    """Unit tests for the new send_set_password_link method on both
+    EmailService implementations.
+    """
+
+    def test_console_logs_link(self):
+        from api.email import ConsoleEmailService
+        with self.assertLogs("api.email", level="INFO") as cm:
+            ok = ConsoleEmailService().send_set_password_link(
+                "user@example.com",
+                "https://sakrshipping.com/set-password?uidb64=abc&token=xyz",
+                ttl_hours=24,
+            )
+        self.assertTrue(ok)
+        joined = "\n".join(cm.output)
+        self.assertIn("user@example.com", joined)
+        self.assertIn("SET-PASSWORD", joined)
+        self.assertIn("sakrshipping.com", joined)
+        self.assertIn("24", joined)
+
+    @patch("django.core.mail.send_mail")
+    def test_django_smtp_sends(self, mock_send):
+        from api.email import DjangoSMTPEmailService
+        mock_send.return_value = 1
+        ok = DjangoSMTPEmailService().send_set_password_link(
+            "seafarer@sakrshipping.com",
+            "https://sakrshipping.com/set-password?uidb64=abc&token=xyz",
+            ttl_hours=24,
+        )
+        self.assertTrue(ok)
+        call_kwargs = mock_send.call_args.kwargs
+        self.assertEqual(
+            call_kwargs["recipient_list"],
+            ["seafarer@sakrshipping.com"],
+        )
+        self.assertIn("Welcome", call_kwargs["subject"])
+        self.assertIn("set a password", call_kwargs["message"].lower())
+        self.assertIn(
+            "sakrshipping.com/set-password",
+            call_kwargs["message"],
+        )
+
+    @patch("django.core.mail.send_mail")
+    def test_django_smtp_returns_false_on_failure(self, mock_send):
+        from api.email import DjangoSMTPEmailService
+        mock_send.side_effect = RuntimeError("SMTP server down")
+        ok = DjangoSMTPEmailService().send_set_password_link(
+            "x@example.com", "https://x", ttl_hours=24
+        )
+        self.assertFalse(ok)

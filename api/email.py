@@ -73,6 +73,23 @@ class EmailService(Protocol):
         False on any failure (network error, invalid address, etc.)."""
         ...
 
+    def send_set_password_link(
+        self,
+        to_email: str,
+        link: str,
+        *,
+        ttl_hours: int = 24,
+    ) -> bool:
+        """Send a "click here to set your password" magic-link email.
+
+        ``link`` is the full URL the seafarer clicks on (frontend
+        set-password page with ``?uidb64=...&token=...`` query params).
+        ``ttl_hours`` is included in the email body so the seafarer
+        knows how long the link is valid. Returns True on success,
+        False on any failure.
+        """
+        ...
+
 
 # ── Default dev backend: log to console ──────────────────────────────
 
@@ -97,6 +114,19 @@ class ConsoleEmailService:
         logger.info(
             "[EMAIL-CONSOLE] To: %s | OTP: %s | ttl=%d min",
             to_email, otp, ttl_minutes,
+        )
+        return True
+
+    def send_set_password_link(
+        self,
+        to_email: str,
+        link: str,
+        *,
+        ttl_hours: int = 24,
+    ) -> bool:
+        logger.info(
+            "[EMAIL-CONSOLE] To: %s | SET-PASSWORD link=%s | ttl=%d h",
+            to_email, link, ttl_hours,
         )
         return True
 
@@ -157,6 +187,50 @@ class DjangoSMTPEmailService:
         except Exception:
             logger.exception(
                 "DjangoSMTPEmailService: send_mail failed for to_email=%s",
+                to_email,
+            )
+            return False
+
+    def send_set_password_link(
+        self,
+        to_email: str,
+        link: str,
+        *,
+        ttl_hours: int = 24,
+    ) -> bool:
+        from django.core.mail import send_mail
+        from django.conf import settings as dj_settings
+
+        subject = "Welcome to Sakr Manning Agency — set your password"
+        body = (
+            f"Hello,\n\n"
+            f"You've been added to Sakr Manning Agency. To access "
+            f"your profile and manage your account, please set a "
+            f"password by clicking the link below:\n\n"
+            f"  {link}\n\n"
+            f"This link is valid for {ttl_hours} hours. "
+            f"After that, you'll need to request a new one.\n\n"
+            f"If you did not expect this email, you can safely "
+            f"ignore it.\n\n"
+            f"— Sakr Manning Agency"
+        )
+        from_email = getattr(
+            dj_settings, "DEFAULT_FROM_EMAIL", "noreply@sakrshipping.com"
+        )
+
+        try:
+            sent = send_mail(
+                subject=subject,
+                message=body,
+                from_email=from_email,
+                recipient_list=[to_email],
+                fail_silently=False,
+            )
+            return sent == 1
+        except Exception:
+            logger.exception(
+                "DjangoSMTPEmailService: send_set_password_link failed "
+                "for to_email=%s",
                 to_email,
             )
             return False

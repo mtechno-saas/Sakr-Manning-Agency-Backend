@@ -43,6 +43,7 @@ from .views import (
     MeView,
     RequestOTPView,
     VerifyOTPView,
+    SetPasswordConfirmView,
 )
 from .application_views import SeafarerApplicationViewSet
 
@@ -73,6 +74,7 @@ urlpatterns = [
     path('auth/phone-login/', PhoneLoginView.as_view(), name='phone-login'),
     path('auth/request-otp/', RequestOTPView.as_view(), name='request-otp'),
     path('auth/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
+    path('auth/set-password-confirm/', SetPasswordConfirmView.as_view(), name='set-password-confirm'),
     path('me/', MeView.as_view(), name='me'),
     path('all/', get_all_users, name='get_all_users'),
     path('create/', create_user, name='create_user'),

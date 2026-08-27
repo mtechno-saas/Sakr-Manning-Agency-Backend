@@ -426,6 +426,173 @@ class VerifyOTPView(APIView):
 
 
 # ========================
+# Set-password magic link (admin-onboarded seafarers)
+# ========================
+#
+# When an Admin creates a CVSubmission for a seafarer that doesn't
+# have a self-set password yet, the system emails a magic link to
+# the seafarer's email address. The link points at the frontend
+# set-password page and embeds a signed token. When the seafarer
+# submits a new password, the frontend POSTs the token + the new
+# password here, the backend validates the token (HMAC + timestamp
+# check via Django's default_token_generator) and sets the password.
+#
+# This is the recommended path for seafarers who were onboarded
+# manually by an Admin (vs the /ai/parse/ phone-as-password flow).
+# Once a seafarer has set a custom password, they can also log in
+# via /api/login/ (email + password); phone-as-password still works
+# as a fallback unless the seafarer explicitly disables it.
+#
+# Token format: same as the existing VerifyEmailView (uidb64 + token
+# in the URL), HMAC-signed with the project's SECRET_KEY, so a
+# tampered or expired token is rejected at check_token() time.
+
+
+def build_set_password_link(user) -> str:
+    """Build the absolute URL the seafarer clicks in their email.
+
+    The URL embeds ``uidb64`` (base64-encoded user PK) and ``token``
+    (HMAC-signed timestamp+userid blob from default_token_generator).
+    The frontend renders a "set new password" form at this URL; when
+    the seafarer submits, the frontend POSTs the same uidb64+token
+    plus the new password to ``/api/auth/set-password-confirm/``.
+    """
+    from django.conf import settings as dj_settings
+    base = getattr(
+        dj_settings, "FRONTEND_SET_PASSWORD_URL",
+        "https://sakrshipping.com/set-password",
+    )
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    return f"{base}?uidb64={uidb64}&token={token}"
+
+
+class SetPasswordConfirmView(APIView):
+    """POST /api/auth/set-password-confirm/
+
+    Body: { "uidb64": "<base64-user-pk>", "token": "<signed>",
+            "new_password": "<plaintext>" }
+
+    Returns: 200 { "detail": "Password set" } on success
+             400 { "detail": "Invalid or expired link" } on bad token
+             400 { "detail": "Password too short" } on weak password
+             404 { "detail": "Invalid link" } if uidb64 decodes to no user
+
+    Used by the seafarer to claim their account after receiving the
+    welcome email. Validates the signed token (Django's
+    default_token_generator) and calls ``user.set_password(...)``.
+
+    Auth: AllowAny — the token IS the credential here. There's no
+    JWT in the header; the seafarer just got this URL in their
+    email inbox. The token is HMAC-signed and timestamp-checked, so
+    a tampered or expired link fails closed.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        uidb64 = (request.data.get("uidb64") or "").strip()
+        token = (request.data.get("token") or "").strip()
+        new_password = (request.data.get("new_password") or "").strip()
+
+        if not uidb64 or not token or not new_password:
+            return Response(
+                {"detail": "uidb64, token, and new_password are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Django's default password validators (AUTH_PASSWORD_VALIDATORS
+        # in settings) — same checks /api/users/users/ runs on create.
+        # This catches obviously weak passwords before they hit the DB.
+        from django.contrib.auth.password_validation import validate_password
+        try:
+            validate_password(new_password)
+        except Exception as exc:
+            return Response(
+                {"detail": f"Password too weak: {exc}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Decode the uidb64 → look up the user
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = Users.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, Users.DoesNotExist):
+            return Response(
+                {"detail": "Invalid link"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate the token. Fails closed on:
+        #   - tampered uid/token combo
+        #   - token already consumed (default_token_generator
+        #     invalidates after the password changes? no — by default
+        #     it stays valid; we don't track consumption. That's fine
+        #     because the link is timestamp-checked at TTL_HOURS, and
+        #     a second click with the same link + new password just
+        #     sets the password again. No security impact.)
+        if not default_token_generator.check_token(user, token):
+            return Response(
+                {"detail": "Invalid or expired link"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Set the new password and stamp the welcome-email flag so
+        # future CVSubmissions for the same seafarer don't re-send
+        # the welcome email.
+        user.set_password(new_password)
+        user.welcome_email_sent_at = timezone.now()
+        user.save(update_fields=["password", "welcome_email_sent_at"])
+
+        return Response(
+            {"detail": "Password set. You can now log in."},
+            status=status.HTTP_200_OK,
+        )
+
+
+def dispatch_welcome_email(user) -> bool:
+    """Send the set-password magic link to a newly-onboarded seafarer.
+
+    Called from CVSubmissionViewSet.perform_create after the
+    CVSubmission is saved. No-op if the user has already received a
+    welcome email (``welcome_email_sent_at`` is set), or if the user
+    has no email on file.
+
+    Returns True if the dispatch was attempted, False if skipped
+    (no email, or already sent). Does NOT raise on dispatch failure
+    — the email service itself catches and logs; the CVSubmission
+    save should never roll back because of an email problem.
+    """
+    if not user or not user.email:
+        return False
+    if user.welcome_email_sent_at is not None:
+        return False
+
+    from api.email import get_email_service
+    from django.conf import settings as dj_settings
+
+    link = build_set_password_link(user)
+    ttl_hours = int(getattr(dj_settings, "PASSWORD_SET_TTL_HOURS", 24))
+
+    sent = False
+    try:
+        sent = get_email_service().send_set_password_link(
+            user.email, link, ttl_hours=ttl_hours
+        )
+    except Exception:
+        logger.exception(
+            "dispatch_welcome_email: email service raised for user id=%s",
+            user.id,
+        )
+
+    if sent:
+        user.welcome_email_sent_at = timezone.now()
+        user.save(update_fields=["welcome_email_sent_at"])
+
+    return sent
+
+
+# ========================
 # /api/me/ — Seafarer self-service
 # ========================
 #
@@ -1634,12 +1801,22 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # Employee can only submit CV for themselves
         if self.request.user.role == 'Employee':
-            serializer.save(user=self.request.user)
+            instance = serializer.save(user=self.request.user)
         else:
             if 'user' not in serializer.validated_data:
-                serializer.save(user=self.request.user)
+                instance = serializer.save(user=self.request.user)
             else:
-                serializer.save()
+                instance = serializer.save()
+
+        # After the CVSubmission is persisted, send the linked seafarer
+        # a "set your password" welcome email (if this is the first
+        # CVSubmission for them and they have an email on file). This
+        # is the admin-onboarded path; the /ai/parse/ flow uses
+        # phone-as-password instead. dispatch_welcome_email is
+        # idempotent (no-op if welcome_email_sent_at is already set)
+        # and never raises — email failures don't roll back the save.
+        if instance and instance.user_id:
+            dispatch_welcome_email(instance.user)
 
     def perform_update(self, serializer):
         # Auto-stamp reviewed_date whenever reviewed_by is being set

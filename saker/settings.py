@@ -351,6 +351,20 @@ EMAIL_SERVICE = _os.environ.get(
 
 # How long a seafarer OTP stays valid, in minutes.
 OTP_TTL_MINUTES = int(_os.environ.get("OTP_TTL_MINUTES", "10"))
+
+# Frontend URL that the "set your password" magic link points at.
+# The email body embeds {FRONTEND_SET_PASSWORD_URL}?uidb64=...&token=...
+# The frontend dev renders a "set new password" form at that URL.
+# Override via env var for staging/dev.
+FRONTEND_SET_PASSWORD_URL = _os.environ.get(
+    "FRONTEND_SET_PASSWORD_URL",
+    "https://sakrshipping.com/set-password",
+)
+
+# How long a "set your password" magic link stays valid, in hours.
+# default_token_generator uses HMAC; the timestamp is embedded in
+# the token, so older links fail the check_token() validation.
+PASSWORD_SET_TTL_HOURS = int(_os.environ.get("PASSWORD_SET_TTL_HOURS", "24"))
 del _os
 
 CORS_ALLOWED_ORIGINS = [

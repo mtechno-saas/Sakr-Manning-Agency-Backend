@@ -626,6 +626,13 @@ class Users(AbstractBaseUser, PermissionsMixin):
     otp_code = models.CharField(max_length=10, blank=True, null=True)
     otp_expires_at = models.DateTimeField(null=True, blank=True)
 
+    # Set-password welcome email — timestamp of when we sent the
+    # "click here to set your password" email for this user. Used
+    # by CVSubmissionViewSet.perform_create to suppress duplicate
+    # welcome emails when admins create multiple CVSubmissions
+    # for the same seafarer. NULL = never sent.
+    welcome_email_sent_at = models.DateTimeField(null=True, blank=True)
+
     generated_id = models.CharField(max_length=12, unique=True, null=True, blank=True, help_text="Auto-generated 12-digit ID")
 
     # Synced from Document
