@@ -338,13 +338,15 @@ del _ai_os
 
 # Email service for seafarer phone-verification (OTP). The system
 # sends the OTP to the seafarer's email address (on file from the CV).
-# Default is api.email.ConsoleEmailService, which logs the would-be
-# email to the server console instead of actually sending. For
-# production, set EMAIL_SERVICE to a real provider (SMTP, SendGrid,
-# Mailgun, Postmark, AWS SES, etc.) — see api/email.py for the
-# interface.
+# Default is api.email.DjangoSMTPEmailService, which dispatches via
+# the SMTP backend configured below (EMAIL_HOST, EMAIL_HOST_USER, …).
+# For local dev without SMTP creds, set the env var
+# EMAIL_SERVICE=api.email.ConsoleEmailService to log OTPs to the
+# server console instead. For other providers (SendGrid, Mailgun,
+# Postmark, AWS SES, …) implement the EmailService protocol in
+# api/email.py and point EMAIL_SERVICE at it.
 EMAIL_SERVICE = _os.environ.get(
-    "EMAIL_SERVICE", "api.email.ConsoleEmailService",
+    "EMAIL_SERVICE", "api.email.DjangoSMTPEmailService",
 )
 
 # How long a seafarer OTP stays valid, in minutes.
