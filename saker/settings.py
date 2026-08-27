@@ -311,14 +311,15 @@ GOOGLE_CLIENT_SECRET = GOOGLE_OAUTH2_CLIENT_SECRET
 # with >=8k context. Audio and safety-classification models are
 # excluded.
 import os as _ai_os
+import os as _os  # second alias used by SMS_SERVICE / OTP_TTL_MINUTES below
 
-GROQ_MODEL = _ai_os.environ.get(
+GROQ_MODEL = _os.environ.get(
     "GROQ_MODEL", "openai/gpt-oss-120b",
 )
 # Ordered: first non-broken model wins. Update via env var if you
 # want to add/remove without a code deploy.
 GROQ_MODEL_FALLBACKS = [
-    m.strip() for m in _ai_os.environ.get(
+    m.strip() for m in _os.environ.get(
         "GROQ_MODEL_FALLBACKS",
         # Comma-separated list. Order matters: first live model wins.
         "openai/gpt-oss-120b,"
@@ -328,11 +329,25 @@ GROQ_MODEL_FALLBACKS = [
         "openai/gpt-oss-20b",
     ).split(",") if m.strip()
 ]
+
 # Prepend the primary so the order is [primary, ...fallbacks].
 GROQ_MODEL_FALLBACKS = [GROQ_MODEL] + [
     m for m in GROQ_MODEL_FALLBACKS if m != GROQ_MODEL
 ]
 del _ai_os
+
+# SMS service for seafarer phone-verification (OTP). Default is
+# api.sms.ConsoleSMSService, which logs the OTP to the server console
+# instead of actually sending an SMS. For production, set
+# SMS_SERVICE to a real provider (Twilio, Vonage, AWS SNS, etc.) —
+# see api/sms.py for the interface.
+SMS_SERVICE = _os.environ.get(
+    "SMS_SERVICE", "api.sms.ConsoleSMSService",
+)
+
+# How long a seafarer OTP stays valid, in minutes.
+OTP_TTL_MINUTES = int(_os.environ.get("OTP_TTL_MINUTES", "10"))
+del _os
 
 CORS_ALLOWED_ORIGINS = [
     "https://sakr-manning-agency-frontend.vercel.app",

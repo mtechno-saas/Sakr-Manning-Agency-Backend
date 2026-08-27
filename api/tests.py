@@ -1920,7 +1920,12 @@ from rest_framework.test import APITestCase  # noqa: E402
 
 
 class PhoneLoginTests(APITestCase):
-    """POST /api/auth/phone-login/"""
+    """POST /api/auth/phone-login/
+
+    Phone login is gated behind ``is_phone_verified=True`` (the
+    seafarer must first call /api/auth/verify-otp/ with the OTP
+    that was sent to their phone at upload time).
+    """
 
     def setUp(self):
         from api.models import Users
@@ -1932,6 +1937,7 @@ class PhoneLoginTests(APITestCase):
         )
         self.user.role = "Employee"
         self.user.phone_number = "00201090946284"
+        self.user.is_phone_verified = True  # default-verified for these tests
         self.user.save()
         self.url = "/api/auth/phone-login/"
 
@@ -1976,6 +1982,215 @@ class PhoneLoginTests(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_unverified_user_cannot_login(self):
+        # Newly-created seafarers (right after Admin uploads a CV) are
+        # not yet verified — the gate must block them until they
+        # POST /api/auth/verify-otp/.
+        self.user.is_phone_verified = False
+        self.user.save()
+        response = self.client.post(
+            self.url,
+            {"phone": "00201090946284", "password": "00201090946284"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 403)
+        # The error message must hint at the verify-otp endpoint.
+        self.assertIn("verify-otp", response.data["detail"].lower())
+
+
+class RequestOTPTests(APITestCase):
+    """POST /api/auth/request-otp/"""
+
+    def setUp(self):
+        from api.models import Users
+        from django.utils import timezone
+        self.user = Users.objects.create_user(
+            email="seafarer@sakrshipping.com",
+            password="x",
+            first_name="MOHAMED",
+        )
+        self.user.phone_number = "00201090946284"
+        self.user.is_phone_verified = False
+        self.user.otp_code = "111111"
+        self.user.otp_expires_at = timezone.now() + timezone.timedelta(minutes=5)
+        self.user.save()
+        self.url = "/api/auth/request-otp/"
+
+    def test_known_phone_regenerates_otp(self):
+        response = self.client.post(
+            self.url, {"phone": "00201090946284"}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["phone"], "00201090946284")
+        # The OLD OTP should be replaced.
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.otp_code, "111111")
+        self.assertIsNotNone(self.user.otp_expires_at)
+
+    def test_unknown_phone_returns_200_no_leak(self):
+        # Don't leak whether the phone is registered.
+        response = self.client.post(
+            self.url, {"phone": "99999999"}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_missing_phone_returns_400(self):
+        response = self.client.post(self.url, {}, format="json")
+        self.assertEqual(response.status_code, 400)
+
+    def test_inactive_user_gets_403(self):
+        self.user.is_active = False
+        self.user.save()
+        response = self.client.post(
+            self.url, {"phone": "00201090946284"}, format="json"
+        )
+        self.assertEqual(response.status_code, 403)
+
+
+class VerifyOTPTests(APITestCase):
+    """POST /api/auth/verify-otp/"""
+
+    def setUp(self):
+        from api.models import Users
+        from django.utils import timezone
+        self.user = Users.objects.create_user(
+            email="seafarer@sakrshipping.com",
+            password="x",
+            first_name="MOHAMED",
+        )
+        self.user.phone_number = "00201090946284"
+        self.user.is_phone_verified = False
+        self.user.otp_code = "123456"
+        self.user.otp_expires_at = timezone.now() + timezone.timedelta(minutes=5)
+        self.user.save()
+        self.url = "/api/auth/verify-otp/"
+
+    def test_correct_otp_marks_verified_and_returns_jwt(self):
+        response = self.client.post(
+            self.url, {"phone": "00201090946284", "otp": "123456"}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.data)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_phone_verified)
+        # The OTP must be cleared so it can't be reused.
+        self.assertIsNone(self.user.otp_code)
+        self.assertIsNone(self.user.otp_expires_at)
+
+    def test_wrong_otp_rejected(self):
+        response = self.client.post(
+            self.url, {"phone": "00201090946284", "otp": "000000"}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["detail"], "Invalid OTP")
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_phone_verified)
+
+    def test_expired_otp_rejected(self):
+        from django.utils import timezone
+        self.user.otp_expires_at = timezone.now() - timezone.timedelta(minutes=1)
+        self.user.save()
+        response = self.client.post(
+            self.url, {"phone": "00201090946284", "otp": "123456"}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_phone_verified)
+
+    def test_unknown_phone_rejected(self):
+        response = self.client.post(
+            self.url, {"phone": "99999999", "otp": "123456"}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["detail"], "Invalid OTP")
+
+    def test_missing_fields_rejected(self):
+        response = self.client.post(self.url, {}, format="json")
+        self.assertEqual(response.status_code, 400)
+
+    def test_already_verified_user_is_idempotent(self):
+        # Once verified, the seafarer can re-call verify-otp (e.g. on a
+        # new device) and get a fresh JWT without re-validating.
+        self.user.is_phone_verified = True
+        self.user.save()
+        response = self.client.post(
+            self.url, {"phone": "00201090946284", "otp": "WRONG"}, format="json"
+        )
+        # Idempotent: 200 + JWT, not 400.
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.data)
+
+
+class OTPSMSDispatchTests(APITestCase):
+    """The /ai/parse/ save flow must send the initial OTP via SMSService.
+
+    The default backend is ConsoleSMSService which logs the OTP. We
+    capture the log and assert on its contents. The admin never sees
+    the OTP in the API response.
+    """
+
+    def setUp(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        self.uploaded = SimpleUploadedFile(
+            "cv.pdf", b"x", content_type="application/pdf"
+        )
+        self.data = {
+            "1_personal_details": {
+                "full_name": "JOHN DOE",
+                "marital_status": {"single": True, "married": False},
+            },
+            "3_contact_details": {
+                "e_mail": "john@sakrshipping.com",
+                "mobile_tel": "00201234567890",
+            },
+            "0_application_meta": {
+                "expected_salary": "",
+                "available_date": "",
+            },
+        }
+
+    def test_initial_otp_is_stored_and_sms_dispatched(self):
+        from ai_document.views import _save_parser_output
+        from api.models import Users
+
+        # assertLogs auto-attaches a handler at INFO level on the
+        # given logger, captures the output, and restores on exit.
+        # This works regardless of the project's LOGGING config
+        # because it overrides the effective level.
+        with self.assertLogs("api.sms", level="INFO") as cm:
+            user_id, _ = _save_parser_output(self.data, self.uploaded)
+
+        user = Users.objects.get(id=user_id)
+        # The user is NOT phone-verified.
+        self.assertFalse(user.is_phone_verified)
+        # An OTP is on the row.
+        self.assertIsNotNone(user.otp_code)
+        self.assertEqual(len(user.otp_code), 6)
+        # The SMS service was called — log line emitted with phone + OTP.
+        joined = "\n".join(cm.output)
+        self.assertIn("00201234567890", joined)
+        self.assertIn(user.otp_code, joined)
+
+    def test_initial_otp_skipped_when_no_phone(self):
+        from ai_document.views import _save_parser_output
+        from api.models import Users
+
+        data = dict(self.data)
+        data["3_contact_details"] = {"e_mail": "nophone@sakrshipping.com"}
+
+        # If the SMS logger never emits, assertLogs raises.
+        # Wrap in try/except to assert the "no log" case.
+        with self.assertRaises(AssertionError) as ctx:
+            with self.assertLogs("api.sms", level="INFO"):
+                _save_parser_output(data, self.uploaded)
+        # The failure is because no log was emitted, which is what
+        # we want for the no-phone case.
+        self.assertIn("no logs of level", str(ctx.exception).lower())
+
+        user = Users.objects.get(email=data["3_contact_details"]["e_mail"])
+        self.assertFalse(user.is_phone_verified)
+        self.assertIsNone(user.otp_code)
 
 
 class MeViewTests(APITestCase):

@@ -4800,6 +4800,13 @@ def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
     # The seafarer can later be flipped to "Crew" by an admin.
     user_defaults["role"] = "Employee"
 
+    # Phone-verification gate. New seafarers start NOT verified; the
+    # initial OTP is sent via the configured SMSService right after
+    # the user is saved (see below). The seafarer must hit
+    # /api/auth/verify-otp/ before /api/auth/phone-login/ will accept
+    # them.
+    user_defaults["is_phone_verified"] = False
+
     # The seafarer's password IS their phone number (per spec). This
     # means: as soon as the User is created, the seafarer can log in
     # at POST /api/auth/phone-login/ using {phone, phone} — no separate
@@ -4837,5 +4844,39 @@ def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
             availability_date=available_date,
             status="Pending",
         )
+
+    # After the transaction commits: send the initial OTP to the
+    # seafarer's phone via the configured SMS service. The admin
+    # never sees the OTP in the API response — only the SMS service
+    # does. If the CV had no phone number, skip the SMS (the
+    # seafarer can still log in via email).
+    if seafarer_phone:
+        try:
+            from api.sms import generate_otp, get_sms_service, otp_default_ttl_minutes
+            from django.utils import timezone
+
+            otp = generate_otp()
+            ttl = otp_default_ttl_minutes()
+            # Persist the OTP on the user row. NOTE: this is OUTSIDE
+            # the transaction above — if the SMS dispatch fails, the
+            # OTP is still on the user. Seafarer can also re-request
+            # via /api/auth/request-otp/ which regenerates.
+            user.otp_code = otp
+            user.otp_expires_at = timezone.now() + timezone.timedelta(minutes=ttl)
+            user.save(update_fields=["otp_code", "otp_expires_at"])
+
+            try:
+                get_sms_service().send_otp(
+                    seafarer_phone, otp, ttl_minutes=ttl
+                )
+            except Exception:
+                logger.exception(
+                    "_save_parser_output: SMS dispatch failed for phone=%s",
+                    seafarer_phone,
+                )
+        except Exception:
+            # OTP-generation failure must not block the save — the
+            # seafarer is still on the system; they can re-request.
+            logger.exception("_save_parser_output: failed to send initial OTP")
 
     return user.id, cv_submission.id

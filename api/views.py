@@ -166,6 +166,22 @@ class PhoneLoginView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # Phone must be verified before the seafarer can log in.
+        # The /ai/parse/ save flow sets is_phone_verified=False and
+        # sends an initial OTP; the seafarer calls /api/auth/verify-otp/
+        # to flip this to True.
+        if not user.is_phone_verified:
+            return Response(
+                {
+                    "detail": (
+                        "Phone number not verified. "
+                        "Please call POST /api/auth/verify-otp/ "
+                        "with the OTP that was sent to your phone."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         # Issue JWT tokens. The serializer uses the USERNAME_FIELD
         # (email) so we feed it the user's email as the username.
         from rest_framework_simplejwt.tokens import RefreshToken
@@ -179,6 +195,194 @@ class PhoneLoginView(APIView):
                     "id": user.id,
                     "email": user.email,
                     "first_name": user.first_name,
+                    "phone_number": user.phone_number,
+                    "role": user.role,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+# ========================
+# SMS OTP (seafarer phone-verification)
+# ========================
+#
+# The system sends an OTP to the seafarer's phone on demand (or
+# automatically right after Admin uploads the CV). The seafarer then
+# sends the OTP back here to unlock phone login.
+#
+# Flow:
+#   1. /ai/parse/ with save_to_db=true → User created, is_phone_verified
+#      = False, otp_code + otp_expires_at set, OTP "sent" via SMSService.
+#   2. Seafarer receives the OTP on their phone.
+#   3. Seafarer POSTs /api/auth/request-otp/ if they need a new one
+#      (e.g. expired or lost).
+#   4. Seafarer POSTs /api/auth/verify-otp/ with {phone, otp} → backend
+#      marks the user as is_phone_verified=True and returns a JWT.
+#   5. Seafarer POSTs /api/auth/phone-login/ with {phone, phone} → JWT
+#      (now allowed because is_phone_verified=True).
+#
+# Production SMS service is configured via the SMS_SERVICE setting
+# (see api/sms.py). The default ConsoleSMSService logs the OTP to the
+# server log instead of actually sending an SMS — fine for dev/test,
+# replace before going live.
+
+
+class RequestOTPView(APIView):
+    """POST /api/auth/request-otp/
+
+    Body: { "phone": "<phone>" }
+
+    Returns: 200 with { "phone": "<phone>", "ttl_minutes": <int> }
+
+    Generates a fresh 6-digit OTP for the seafarer with the given phone
+    number, stores it on the User row with a TTL, and dispatches it
+    via the configured SMS service. The OTP itself is NOT in the
+    response — it's sent to the seafarer's phone via SMS.
+
+    Side effects:
+      - Updates user.otp_code and user.otp_expires_at
+      - Calls the SMS service's send_otp(...) method
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        from django.utils import timezone
+        from api.sms import generate_otp, get_sms_service, otp_default_ttl_minutes
+
+        phone = (request.data.get("phone") or "").strip()
+        if not phone:
+            return Response(
+                {"detail": "phone is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = Users.objects.get(phone_number=phone)
+        except Users.DoesNotExist:
+            # Don't leak whether the phone is registered.
+            return Response(
+                {
+                    "detail": "If that phone is registered, an OTP has been sent."
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"detail": "Account is disabled"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Generate a new OTP and set TTL.
+        otp = generate_otp()
+        ttl = otp_default_ttl_minutes()
+        user.otp_code = otp
+        user.otp_expires_at = timezone.now() + timezone.timedelta(minutes=ttl)
+        user.save(update_fields=["otp_code", "otp_expires_at"])
+
+        # Send via the configured SMS service. We don't fail the
+        # request if SMS fails — the seafarer can re-request.
+        sent = False
+        try:
+            sent = get_sms_service().send_otp(phone, otp, ttl_minutes=ttl)
+        except Exception:
+            logger.exception("RequestOTPView: SMS service raised for phone=%s", phone)
+
+        if not sent:
+            # Don't 500 — the OTP is on the User row, the admin can
+            # share it manually as a fallback. (ConsoleSMSService always
+            # returns True; only a misconfigured real provider hits this.)
+            logger.warning("RequestOTPView: SMS dispatch returned False for phone=%s", phone)
+
+        return Response(
+            {"phone": phone, "ttl_minutes": ttl},
+            status=status.HTTP_200_OK,
+        )
+
+
+class VerifyOTPView(APIView):
+    """POST /api/auth/verify-otp/
+
+    Body: { "phone": "<phone>", "otp": "<6-digit code>" }
+
+    Returns: 200 with { "access": "<jwt>", "refresh": "<jwt>",
+                        "user": { "id", "email", "phone_number", "role" } }
+
+    On success: marks the user as ``is_phone_verified=True`` and
+    returns a JWT so the seafarer is logged in immediately. Also
+    clears otp_code and otp_expires_at so a stale OTP can't be
+    reused.
+
+    Failure cases (all return 400 with a generic "Invalid OTP"
+    message so we don't leak which check failed to an attacker):
+      - Phone not registered
+      - OTP doesn't match
+      - OTP expired (or never set)
+      - User already verified (idempotent: returns the same success)
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        from django.utils import timezone
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        phone = (request.data.get("phone") or "").strip()
+        otp = (request.data.get("otp") or "").strip()
+
+        if not phone or not otp:
+            return Response(
+                {"detail": "phone and otp are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = Users.objects.get(phone_number=phone)
+        except Users.DoesNotExist:
+            return Response(
+                {"detail": "Invalid OTP"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"detail": "Account is disabled"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Idempotent: already-verified users just get a JWT, no error.
+        # (We don't re-validate the OTP, we just let them log in.)
+        if not user.is_phone_verified:
+            stored_otp = user.otp_code or ""
+            expires_at = user.otp_expires_at
+            now = timezone.now()
+            # All three checks fail-closed under a single generic
+            # message so an attacker can't probe which one is wrong.
+            if not stored_otp or not expires_at or now > expires_at or stored_otp != otp:
+                return Response(
+                    {"detail": "Invalid OTP"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Mark verified and clear the OTP so it can't be reused.
+            user.is_phone_verified = True
+            user.otp_code = None
+            user.otp_expires_at = None
+            user.save(update_fields=[
+                "is_phone_verified", "otp_code", "otp_expires_at",
+            ])
+
+        # Issue JWT so the seafarer is logged in immediately.
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
                     "phone_number": user.phone_number,
                     "role": user.role,
                 },

@@ -41,6 +41,8 @@ from .views import (
     NextOfKinViewSet,
     PhoneLoginView,
     MeView,
+    RequestOTPView,
+    VerifyOTPView,
 )
 from .application_views import SeafarerApplicationViewSet
 
@@ -69,6 +71,8 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('auth/google/', GoogleAuthView.as_view(), name='google-auth'),
     path('auth/phone-login/', PhoneLoginView.as_view(), name='phone-login'),
+    path('auth/request-otp/', RequestOTPView.as_view(), name='request-otp'),
+    path('auth/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('me/', MeView.as_view(), name='me'),
     path('all/', get_all_users, name='get_all_users'),
     path('create/', create_user, name='create_user'),

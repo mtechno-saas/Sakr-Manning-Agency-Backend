@@ -617,6 +617,15 @@ class Users(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
+    # Phone-verification (SMS OTP) — populated when the seafarer verifies
+    # ownership of the phone number on file. is_phone_verified=True is
+    # required by /api/auth/phone-login/. otp_code + otp_expires_at are
+    # written by /api/auth/request-otp/ and /ai/parse/ (initial OTP),
+    # consumed by /api/auth/verify-otp/.
+    is_phone_verified = models.BooleanField(default=False)
+    otp_code = models.CharField(max_length=10, blank=True, null=True)
+    otp_expires_at = models.DateTimeField(null=True, blank=True)
+
     generated_id = models.CharField(max_length=12, unique=True, null=True, blank=True, help_text="Auto-generated 12-digit ID")
 
     # Synced from Document
