@@ -456,5 +456,18 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        # api.* loggers (api.email, api.views, etc.) need INFO-level
+        # routing so dev tools like ConsoleEmailService actually emit
+        # their log lines. Without this entry, the api.* loggers fall
+        # back to the Python default WARNING level, and INFO logs
+        # (including the [EMAIL-CONSOLE] OTP line) get silently
+        # dropped. The error-log file is still ERROR-only to keep
+        # production noise down — but the console handler also writes
+        # to gunicorn's error stream, which is fine for dev.
+        'api': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }
