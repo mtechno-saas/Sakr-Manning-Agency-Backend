@@ -6,7 +6,7 @@ Two perspectives are documented separately:
 - **[Admin side](#admin-side-flow)** — what the Admin does to onboard a new seafarer
 - **[Employee/Seafarer side](#employeeseafarer-side-flow)** — what the seafarer does to log in and manage their data
 
-Implemented in commits `eab1d6f9` → `3728f2dd` → `4ef5d68c` → `4fdce549` → `0404052e` on `mtechno-saas/Sakr-Manning-Agency-Backend:server-updates`.
+Implemented in commits `eab1d6f9` → `3728f2dd` → `4ef5d68c` → `4fdce549` → `0404052e` → `4b2112c9` → `4ebc478d` → `d8bb5842` → `5b951496` on `mtechno-saas/Sakr-Manning-Agency-Backend:server-updates`.
 
 ---
 
@@ -20,7 +20,7 @@ Implemented in commits `eab1d6f9` → `3728f2dd` → `4ef5d68c` → `4fdce549` �
 | 4 | **Seafarer** | `GET /api/me/` → see their own profile |
 | 5 | **Seafarer** | `PATCH /api/me/` → update fields they care about (address, nationality, etc.) |
 
-No email confirmation, no Twilio required. The phone number is the credential, and the system itself sends the OTP to the email address on file. The default email backend (`ConsoleEmailService`) logs the would-be email to the server console — swap in SMTP / SendGrid / Mailgun / Postmark / AWS SES for production by setting `EMAIL_SERVICE` in `saker/settings.py`.
+No Twilio, no per-message cost. The phone number is the credential, and the system itself emails a 6-digit OTP to the address on file from the CV (the seafarer enters the OTP once and they're done). The default email backend (`ConsoleEmailService`) logs the would-be email to the server console — swap in SMTP / SendGrid / Mailgun / Postmark / AWS SES for production by setting `EMAIL_SERVICE` in `saker/settings.py`.
 
 > **Why email and not SMS?** The user explicitly chose email — seafarers get their OTP in their inbox (where they already receive job updates), the system doesn't need an SMS provider contract, and there's no per-message cost. The seafarer still authenticates with their phone (phone = password) — the email is just the delivery channel for the OTP.
 
@@ -31,7 +31,9 @@ No email confirmation, no Twilio required. The phone number is the credential, a
 | Method | URL | Auth | Used by |
 |---|---|---|---|
 | POST | `/ai/parse/` | **Admin only** (HR/Recruiter/Employee/Crew → 403, unauth → 401) | **Admin** |
-| POST | `/api/auth/phone-login/` | AllowAny | **Seafarer** |
+| POST | `/api/auth/request-otp/` | AllowAny | **Seafarer** (re-send OTP to email) |
+| POST | `/api/auth/verify-otp/` | AllowAny | **Seafarer** (verify email OTP → flip `is_phone_verified=True`, return JWT) |
+| POST | `/api/auth/phone-login/` | AllowAny (gated by `is_phone_verified=True`) | **Seafarer** |
 | GET | `/api/me/` | Any auth user | **Seafarer** (or anyone checking their own profile) |
 | PATCH | `/api/me/` | Any auth user | **Seafarer** |
 | POST | `/api/login/` (existing, unchanged) | AllowAny | **Admin / HR / Recruiter** (email + password) |
@@ -153,9 +155,9 @@ The Admin uses the same email + password login (`/api/login/`) and JWT for these
 ## Employee/Seafarer side flow
 
 > **Who:** the seafarer (role=`Employee`, default from the parser flow).
-> **Goal:** verify their phone, log in for the first time, see their own data, update what's changed since the CV was uploaded.
+> **Goal:** verify their email (one-time, via the OTP mailed to them at upload time), log in with their phone-as-password, see their own data, update what's changed since the CV was uploaded.
 
-### Step S0 — First-time phone verification (email OTP, one-time)
+### Step S0 — First-time email verification (one-time)
 
 Before the seafarer can log in, they need to prove they own the email address on file (from the CV). This happens **once** — the seafarer is not asked to re-verify on subsequent logins.
 
@@ -209,9 +211,9 @@ curl -X POST "https://backend.sakrshipping.com/api/auth/verify-otp/" \
 | `otp_code` | `CharField(max_length=10)` | `null` | The current OTP (cleared after verify) |
 | `otp_expires_at` | `DateTimeField` | `null` | OTP TTL; checked on verify-otp |
 
-### Step S1 — Log in (phone = password, after phone is verified)
+### Step S1 — Log in (phone = password, after email is verified)
 
-Once the seafarer is phone-verified (S0), they can log in by entering **their phone number in both fields** — phone and password are the same value. If the user isn't verified, this endpoint returns `403` with a hint to call `/api/auth/verify-otp/` first.
+Once the seafarer is email-verified (S0), they can log in by entering **their phone number in both fields** — phone and password are the same value. If the user isn't verified, this endpoint returns `403` with a hint to call `/api/auth/verify-otp/` first.
 
 ```bash
 curl -X POST "https://backend.sakrshipping.com/api/auth/phone-login/" \
@@ -352,9 +354,22 @@ curl -X POST "https://backend.sakrshipping.com/ai/parse/" \
   -H "Authorization: Bearer $ADMIN_JWT" \
   -F "file=@waiter.docx" -F "save_to_db=true"
 # → 200, user_id=42, cv_submission_id=99
-# (Admin tells the seafarer out-of-band: "Your phone number is your password")
+# → Side effect: backend emails a 6-digit OTP to mohashehata1995@gmail.com
+#   (in dev, the OTP is in the server log via ConsoleEmailService)
+# (Admin tells the seafarer out-of-band: "Check your email for an OTP,
+#  and your phone number is your password")
 
 # === SEAFARER SIDE ===
+# S0. Seafarer reads the OTP from their email and verifies.
+#     Lookup key is the phone (which the seafarer remembers); the
+#     OTP itself is the 6-digit code from the email.
+curl -X POST "https://backend.sakrshipping.com/api/auth/verify-otp/" \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"00201090946284","otp":"<6-digit-from-email>"}'
+# → 200 { "access": "eyJ...", "refresh": "eyJ...", "user": {...} }
+# → Side effect: is_phone_verified=True, otp_code cleared
+# (The seafarer can also re-request the OTP anytime with /api/auth/request-otp/.)
+
 # S1. Seafarer logs in with their phone as both fields
 SEAFARER_JWT=$(curl -s -X POST "https://backend.sakrshipping.com/api/auth/phone-login/" \
   -H "Content-Type: application/json" \
@@ -380,12 +395,12 @@ curl -X PATCH "https://backend.sakrshipping.com/api/me/" \
 
 | Case | Behavior |
 |---|---|
-| CV has no phone number | Password falls back to `email` (the standard email-login flow still works) |
-| CV has no email | User is still created, but no initial OTP is dispatched. The seafarer can still log in via `/api/login/` (email + email-as-password fallback). They can also call `/api/auth/request-otp/` later — if their email is empty it will return the standard "OTP has been sent" no-leak response. |
+| CV has no phone number | The save flow still works (email is what creates the user). The seafarer's password falls back to their `email`, and they can log in via `/api/login/` (email + email-as-password). They can NOT use `/api/auth/phone-login/` because there's no phone to look up. |
+| CV has no email | The save flow raises `_NoEmailError` (email is required for the `Users` row). If an Admin manually creates a user without an email, no OTP will ever be dispatched: `/api/auth/request-otp/` returns the same opaque "OTP has been sent" 200 as an unknown phone (no leak), and `_save_parser_output` skips the email step on subsequent CV uploads. |
 | Seafarer tries to set `role: "Admin"` via `PATCH /api/me/` | Field is silently dropped; response is `200` with the rest applied, but `role` stays `Employee` |
 | Seafarer tries to change `email` via `PATCH /api/me/` | Field is dropped; if it was the ONLY field, response is `400` |
-| Same CV re-uploaded with a new phone | `Users` row is updated (existing user) and the password is reset to the new phone |
-| Seafarer's `Users` row has `is_active=False` | `POST /api/auth/phone-login/` returns `403` |
+| Same CV re-uploaded with a new phone | `Users` row is updated (existing user) and the password is reset to the new phone. The `is_phone_verified` flag stays as it was, so the seafarer doesn't have to re-verify. |
+| Seafarer's `Users` row has `is_active=False` | `POST /api/auth/phone-login/` returns `403`; `POST /api/auth/verify-otp/` also returns `403` (the account is treated as disabled for both) |
 | Two seafarers with the same phone | The second one **fails** — phone lookup is unique-by-DB, and saving the second would attempt `get_or_create` by email. Either way, the phone-as-password only works for the first seafarer to claim that phone. |
 | Admin uploads a CV but the seafarer's CVSubmission was already `Approved` | The new CVSubmission is still created (status=`Pending`). Admin needs to manually merge/dedupe if the same seafarer is re-uploaded. |
 
@@ -396,7 +411,9 @@ curl -X PATCH "https://backend.sakrshipping.com/api/me/" \
 | Endpoint | Admin | HR Manager | Recruiter | Employee / Crew | Unauth |
 |---|---|---|---|---|---|
 | `POST /ai/parse/` (save_to_db=true) | ✅ | ❌ 403 | ❌ 403 | ❌ 403 | ❌ 401 |
-| `POST /api/auth/phone-login/` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `POST /api/auth/request-otp/` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `POST /api/auth/verify-otp/` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `POST /api/auth/phone-login/` | ✅ (if verified) | ✅ (if verified) | ✅ (if verified) | ✅ (if verified) | ✅ |
 | `GET / PATCH /api/me/` | ✅ (own profile) | ✅ (own) | ✅ (own) | ✅ (own) | ❌ 401 |
 | `POST /api/login/` (email + password) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `GET /api/users/users/` | ✅ all | ✅ all | view-only | own only | ❌ 401 |
@@ -405,8 +422,8 @@ curl -X PATCH "https://backend.sakrshipping.com/api/me/" \
 
 ## Why this design (vs alternatives)
 
-- **No email confirmation flow.** The CV is uploaded by an Admin, so we already trust the data. Adding a "verify your email" step would require the seafarer to remember a token from an email they may not check, for a CV they didn't submit. Skip it.
-- **No OTP / SMS provider.** Twilio / Vonage would add a vendor dep and a recurring cost. The OTP is delivered by **email** instead (which is essentially free and where seafarers already get job updates) — the `EmailService` interface is pluggable, and the default `ConsoleEmailService` logs the would-be email. See Step S0 for the full flow.
+- **OTP instead of an emailed confirmation link.** The CV is uploaded by an Admin, so we already trust the data. A "click the link in your email" flow would require the seafarer to keep an email token for a CV they didn't submit — easy to lose, hard to recover. An OTP is short-lived and self-clearing; the seafarer just types it in once and it's gone.
+- **Email instead of SMS for OTP delivery.** Twilio / Vonage would add a vendor dep and a recurring cost. Email is essentially free and seafarers already get job updates in their inbox — the `EmailService` interface is pluggable, and the default `ConsoleEmailService` logs the would-be email. See Step S0 for the full flow.
 - **No password reset flow (yet).** The seafarer can't change their password from the UI in this iteration. If they need a new password, an Admin can call `set_password(...)` directly. A `POST /api/auth/change-password/` endpoint is a small follow-up if needed.
 - **No `/api/me/cv-submissions/` or `/api/me/contracts/` aggregators (yet).** The seafarer can hit the existing role-scoped viewsets (`GET /api/cv-submissions/?user=me`, etc.) which already enforce row-level permissions. Dedicated `/api/me/` sub-resources are a follow-up.
 
