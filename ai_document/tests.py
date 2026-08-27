@@ -10,7 +10,7 @@ Handles authentication requirements
 import os
 import json
 from io import BytesIO
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase, TransactionTestCase, SimpleTestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase, APIClient
@@ -744,6 +744,290 @@ class ParseOnlyViewTest(APITestCase):
         self.assertEqual(response.data["error"], "internal_error")
         # Raw exception text must NOT leak into the response.
         self.assertNotIn("disk on fire", str(response.data))
+
+
+class ParseOnlyViewSaveTest(APITestCase):
+    """Test the save_to_db=true flow that creates Users + CVSubmission."""
+
+    def setUp(self):
+        self.url = "/ai/parse/"
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_save_to_db_true_persists_and_returns_ids(
+        self, mock_processor_cls, mock_extractor_cls, mock_save
+    ):
+        from api.models import Users
+        from decimal import Decimal
+        from datetime import date
+
+        # Mock the processor
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "SAKR MANNING AGENCY 1. PERSONAL DETAILS ...",
+            "tables": [],
+        }
+        mock_processor_cls.return_value = mock_proc
+
+        # Mock the extractor to return a successful result
+        mock_result = MagicMock()
+        mock_result.ok = True
+        mock_result.extractor = "sakr_template"
+        mock_result.confidence = 0.95
+        mock_result.data = {
+            "0_application_meta": {
+                "application_for_position_as": "Waiter",
+                "register_code": "DR-6.104",
+                "other_position": "",
+                "register_date": "10.07.2025",
+                "expected_salary": "730 $",
+                "available_date": "25/7/2025",
+            },
+            "1_personal_details": {
+                "full_name": "MOHAMED SHEHATA",
+                "date_of_birth": "28/02/1995",
+                "marital_status": {"single": True, "married": False},
+                "nationality": "Egyptian",
+                "place_of_birth": "Qena",
+                "height_cm": 173,
+                "weight_kg": 67,
+            },
+            "3_contact_details": {
+                "home_address_city": "Qena",
+                "e_mail": "MOHAMED@TEST.COM",
+                "mobile_tel": "00201090946284",
+            },
+        }
+        mock_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = mock_result
+
+        # Mock the save function
+        mock_save.return_value = (42, 99)
+
+        pdf = SimpleUploadedFile("cv.pdf", b"PDF", content_type="application/pdf")
+        response = self.client.post(
+            self.url,
+            {"file": pdf, "save_to_db": "true"},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertTrue(response.data["saved"])
+        self.assertEqual(response.data["user_id"], 42)
+        self.assertEqual(response.data["cv_submission_id"], 99)
+        # The save function was called once with the parser data and the file.
+        mock_save.assert_called_once()
+        args, _kwargs = mock_save.call_args
+        self.assertEqual(args[0], mock_result.data)
+
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_save_to_db_default_false_does_not_persist(
+        self, mock_processor_cls, mock_extractor_cls
+    ):
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "SAKR MANNING AGENCY 1. PERSONAL DETAILS ...",
+            "tables": [],
+        }
+        mock_processor_cls.return_value = mock_proc
+        mock_result = MagicMock()
+        mock_result.ok = True
+        mock_result.extractor = "sakr_template"
+        mock_result.confidence = 0.95
+        mock_result.data = {"1_personal_details": {"full_name": "X"}}
+        mock_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = mock_result
+
+        from api.models import Users
+        before = Users.objects.count()
+
+        pdf = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        # No save_to_db field — defaults to false.
+        response = self.client.post(self.url, {"file": pdf}, format="multipart")
+
+        after = Users.objects.count()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["saved"])
+        self.assertEqual(before, after, "No Users row should be created when save_to_db is absent")
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_save_failure_no_email_returns_400(
+        self, mock_processor_cls, mock_extractor_cls, mock_save
+    ):
+        from ai_document.views import _NoEmailError
+
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "SAKR MANNING AGENCY 1. PERSONAL DETAILS ...",
+            "tables": [],
+        }
+        mock_processor_cls.return_value = mock_proc
+        mock_result = MagicMock()
+        mock_result.ok = True
+        mock_result.extractor = "sakr_template"
+        mock_result.confidence = 0.95
+        mock_result.data = {
+            "1_personal_details": {"full_name": "X"},
+            "3_contact_details": {"e_mail": ""},  # no email
+        }
+        mock_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = mock_result
+        mock_save.side_effect = _NoEmailError("no email")
+
+        pdf = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        response = self.client.post(
+            self.url,
+            {"file": pdf, "save_to_db": "true"},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(response.data["error"], "email_missing")
+        # The parser output is still in the response, so the user can fix
+        # the source CV and re-upload.
+        self.assertIn("data", response.data)
+
+
+class SaveParserOutputIntegrationTest(TransactionTestCase):
+    """End-to-end test: the save helper actually creates User + CVSubmission."""
+
+    def setUp(self):
+        from api.models import Users, CVSubmission
+        # Clean slate — we want exact counts.
+        CVSubmission.objects.all().delete()
+        Users.objects.filter(email__endswith="@sakrparser.test").delete()
+
+    def test_creates_user_and_cv_submission(self):
+        from decimal import Decimal
+        from datetime import date
+        from ai_document.views import _save_parser_output
+        from api.models import Users, CVSubmission
+
+        data = {
+            "0_application_meta": {
+                "application_for_position_as": "Waiter",
+                "register_code": "",
+                "other_position": "",
+                "register_date": "10.07.2025",
+                "expected_salary": "730 $",
+                "available_date": "25/7/2025",
+            },
+            "1_personal_details": {
+                "full_name": "MOHAMED SHEHATA",
+                "date_of_birth": "28/02/1995",
+                "marital_status": {"single": True, "married": False},
+                "nationality": "Egyptian",
+                "place_of_birth": "Qena",
+                "height_cm": 173,
+                "weight_kg": 67,
+            },
+            "3_contact_details": {
+                "home_address_city": "Qena",
+                "e_mail": "MOHAMED@SAKRPARSER.TEST",
+                "mobile_tel": "00201090946284",
+            },
+        }
+        uploaded = SimpleUploadedFile("cv.pdf", b"PDF", content_type="application/pdf")
+
+        user_id, cv_submission_id = _save_parser_output(data, uploaded)
+
+        user = Users.objects.get(id=user_id)
+        self.assertEqual(user.email, "mohamed@sakrparser.test")
+        self.assertEqual(user.first_name, "MOHAMED")
+        self.assertEqual(user.middle_name, "SHEHATA")
+        self.assertEqual(user.nationality, "Egyptian")
+        self.assertEqual(user.Height_Cm, 173)
+        self.assertEqual(user.Weight_Kg, 67)
+        self.assertEqual(user.marital_status, "Single")
+        # "Waiter" IS a valid position choice → set on the user
+        self.assertEqual(user.application_for_position, "Waiter")
+
+        cv = CVSubmission.objects.get(id=cv_submission_id)
+        self.assertEqual(cv.user_id, user_id)
+        self.assertEqual(cv.status, "Pending")
+        # Expected salary "730 $" → Decimal(730)
+        self.assertEqual(cv.expected_salary, Decimal("730"))
+        # Available date "25/7/2025" → date(2025, 7, 25)
+        self.assertEqual(cv.availability_date, date(2025, 7, 25))
+
+    def test_second_call_updates_existing_user(self):
+        from ai_document.views import _save_parser_output
+        from api.models import Users
+
+        data = {
+            "1_personal_details": {
+                "full_name": "FIRST LAST",
+                "nationality": "Egyptian",
+            },
+            "3_contact_details": {
+                "e_mail": "DUP@SAKRPARSER.TEST",
+            },
+            "0_application_meta": {
+                "expected_salary": "1000",
+                "available_date": "01/01/2026",
+            },
+        }
+        uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+
+        user_id_1, _ = _save_parser_output(data, uploaded)
+        user_id_2, _ = _save_parser_output(data, uploaded)
+
+        # Same email → same user, not a duplicate
+        self.assertEqual(user_id_1, user_id_2)
+        self.assertEqual(Users.objects.filter(email="dup@sakrparser.test").count(), 1)
+
+
+class ParserHelpersUnitTest(SimpleTestCase):
+    """Pure-function tests for the date/salary/name helpers."""
+
+    def test_split_full_name(self):
+        from ai_document.views import _split_full_name
+        self.assertEqual(_split_full_name("MOHAMED SHEHATA"), ("MOHAMED", "SHEHATA"))
+        self.assertEqual(
+            _split_full_name("MOHAMED SHEHATA RAMADAN ABDEL BASSET"),
+            ("MOHAMED", "SHEHATA RAMADAN ABDEL BASSET"),
+        )
+        self.assertEqual(_split_full_name(""), ("", ""))
+        self.assertEqual(_split_full_name("SINGLE"), ("SINGLE", ""))
+
+    def test_parse_date_loose(self):
+        from ai_document.views import _parse_date_loose
+        from datetime import date
+        self.assertEqual(_parse_date_loose("28/02/1995"), date(1995, 2, 28))
+        self.assertEqual(_parse_date_loose("10.07.2025"), date(2025, 7, 10))
+        self.assertEqual(_parse_date_loose("25/7/2025"), date(2025, 7, 25))
+        self.assertIsNone(_parse_date_loose("not a date"))
+        self.assertIsNone(_parse_date_loose(""))
+        self.assertIsNone(_parse_date_loose(None))
+
+    def test_parse_salary_to_decimal(self):
+        from decimal import Decimal
+        from ai_document.views import _parse_salary_to_decimal
+        self.assertEqual(_parse_salary_to_decimal("730 $"), Decimal("730"))
+        self.assertEqual(_parse_salary_to_decimal("1200 USD"), Decimal("1200"))
+        self.assertEqual(_parse_salary_to_decimal("$1500.50"), Decimal("1500.50"))
+        self.assertIsNone(_parse_salary_to_decimal(""))
+        self.assertIsNone(_parse_salary_to_decimal("abc"))
+
+    def test_marital_status_to_string(self):
+        from ai_document.views import _marital_status_to_string
+        self.assertEqual(
+            _marital_status_to_string({"single": True, "married": False}), "Single"
+        )
+        self.assertEqual(
+            _marital_status_to_string({"single": False, "married": True}), "Married"
+        )
+        self.assertEqual(
+            _marital_status_to_string({"single": False, "married": False}), ""
+        )
+        self.assertEqual(_marital_status_to_string("Single"), "Single")
+        self.assertEqual(_marital_status_to_string(None), "")
 
 
 # Run tests with: python manage.py test ai_document.tests

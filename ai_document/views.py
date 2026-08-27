@@ -24,6 +24,8 @@
 # from .models import Applicant
 # from .serializers import DocumentUploadSerializer
 import logging
+from decimal import Decimal, InvalidOperation
+from datetime import date, datetime
 
 logger = logging.getLogger(__name__)
 
@@ -4463,11 +4465,18 @@ class ParseOnlyView(APIView):
 
     Unlike ``POST /ai/upload/``, this endpoint:
 
-      * Does **not** save anything to the database (no ``Applicant``,
-        no ``Users`` row, no signal side-effects).
       * Does **not** call any LLM (no Groq, no Gemini, no rate limits).
       * Returns the extracted JSON directly for testing / side-by-side
         comparison against the LLM path.
+
+    With ``save_to_db=true`` (form field), the parsed data is also
+    persisted to the database:
+
+      * A ``Users`` row is created (or updated if the email already
+        exists) from the parser output.
+      * A ``CVSubmission`` row is created and linked to the new user,
+        with the uploaded file attached, plus ``expected_salary`` and
+        ``availability_date`` parsed from the application-meta block.
 
     Intended for verifying the new parser works on real CVs before
     wiring it into ``/ai/upload/`` (Phase 3 of the refactor). Once the
@@ -4477,6 +4486,7 @@ class ParseOnlyView(APIView):
     Request (multipart form-data):
 
         file             required — the CV file (PDF or DOCX)
+        save_to_db       optional — "true" to also create User + CVSubmission
 
     Response 200::
 
@@ -4484,13 +4494,12 @@ class ParseOnlyView(APIView):
             "success": true,
             "extractor": "sakr_template",
             "confidence": 0.95,
-            "data": {
-                "0_application_meta": { ... },
-                "1_personal_details": { ... },
-                ...
-            },
+            "data": { ... },
             "warnings": [],
-            "file_name": "waiter.docx"
+            "file_name": "waiter.docx",
+            "saved": true,                // only if save_to_db=true
+            "user_id": 123,                // only if save_to_db=true
+            "cv_submission_id": 456       // only if save_to_db=true
         }
 
     Response 400 (parse failure)::
@@ -4501,6 +4510,15 @@ class ParseOnlyView(APIView):
             "message": "This document does not look like a CV.",
             "file_name": "random.pdf",
             "warnings": []
+        }
+
+    Response 400 (save failure — parser succeeded but no email)::
+
+        {
+            "success": false,
+            "error": "email_missing",
+            "message": "Cannot save: the CV has no email address.",
+            "data": { ... }   // parser output is still returned
         }
 
     Auth: ``AllowAny`` for now (matches every other AI endpoint in this
@@ -4526,6 +4544,10 @@ class ParseOnlyView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # `save_to_db=true` (form field) toggles persistence. Default is
+        # false so the endpoint stays a safe dry-run probe.
+        save_to_db = str(request.data.get("save_to_db", "")).lower() == "true"
 
         # Save the file to a temp path so DocumentProcessor can read it
         # back. We always clean this up in the finally block.
@@ -4571,17 +4593,40 @@ class ParseOnlyView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            return Response(
-                {
-                    "success": True,
-                    "extractor": result.extractor,
-                    "confidence": result.confidence,
-                    "data": result.data,
-                    "warnings": list(result.warnings),
-                    "file_name": file.name,
-                },
-                status=status.HTTP_200_OK,
-            )
+            response_body = {
+                "success": True,
+                "extractor": result.extractor,
+                "confidence": result.confidence,
+                "data": result.data,
+                "warnings": list(result.warnings),
+                "file_name": file.name,
+            }
+
+            if save_to_db:
+                try:
+                    user_id, cv_submission_id = _save_parser_output(
+                        result.data, file
+                    )
+                except _NoEmailError:
+                    return Response(
+                        {
+                            "success": False,
+                            "error": "email_missing",
+                            "message": (
+                                "Cannot save: the CV has no email address."
+                            ),
+                            "data": result.data,
+                            "file_name": file.name,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                response_body["saved"] = True
+                response_body["user_id"] = user_id
+                response_body["cv_submission_id"] = cv_submission_id
+            else:
+                response_body["saved"] = False
+
+            return Response(response_body, status=status.HTTP_200_OK)
         except Exception:
             # Catch-all: never leak the exception text to the client.
             # The full traceback is in the server logs.
@@ -4602,3 +4647,170 @@ class ParseOnlyView(APIView):
                 logger.warning(
                     "ParseOnlyView: failed to delete temp file %s", file_path
                 )
+
+
+# ── save-to-db helpers ──────────────────────────────────────────────────
+
+
+class _NoEmailError(Exception):
+    """Raised when the parser output has no email and the caller asked
+    us to persist. Treated as a 400 (not a 500) by the view."""
+
+
+# Accepted application_for_position choices, in the same order as
+# the Users model. Kept here (not in models.py) so the parser doesn't
+# import the model at module load time.
+_VALID_APPLICATION_POSITIONS = {
+    "Master / Captain", "Staff Captain", "Chief Officer / Chief Mate",
+    "Second Officer", "Third Officer", "Dynamic Positioning Operator (DPO)",
+    "ROV Supervisor", "Offshore Installation Manager", "Deck Cadet",
+    "Bosun", "ABLE SEAFARER DECK", "Able Seaman (AB)",
+    "Ordinary Seaman (OS)", "Carpenter", "Pumpman", "Crane Operator",
+    "Water and Pool", "Security Guard", "Life Guard", "Upholsterer",
+    "Doctor", "Hotel Director", "Assistant Hotel Director", "Purser",
+    "Assistant Purser", "Food & Beverage Manager", "Executive Chef",
+    "Chief Housekeeper", "Guest Services Manager", "Restaurant Manager",
+    "Head Waiter", "Waiter", "F&B attendant", "Bartender", "Cabin Steward",
+    "Laundryman", "Cook", "2nd Cook", "3rd Cook", "Assistant Cook",
+    "Baker", "Assistant Baker", "Pastry", "Assistant pastry", "Butcher",
+    "Steward", "Utility Galley", "Tour Expert", "Photographer",
+    "Chief Engineer", "Second Engineer", "Third Engineer", "Fourth Engineer",
+    "ETO", "2ND ETO", "3RD ETO", "ELECTRICAL ENGINEER",
+    "Refrigeration Engineer", "HVAC Engineer", "Engine Cadet",
+    "Gas Engineer", "Cargo Engineer", "Reliquefaction Engineer",
+    "Able Seafarer Engine III/5", "Motorman", "Mechanic", "Oiler",
+    "Wiper/Assistant Mechanic", "Fitter", "Welder", "Plumber",
+    "Assistant Plumber", "Electrician", "2nd Electrician",
+    "3rd Electrician", "Assistant Electrician", "Trainee Electrician",
+    "AC Technician", "Senior Accommodation Repairman",
+    "junior Accommodation Repairman", "Other",
+}
+
+
+def _parse_date_loose(raw: str):
+    """Parse a date from common Sakr-form formats: ``DD/MM/YYYY``,
+    ``DD.MM.YYYY``, ``DD-MM-YYYY``. Returns ``None`` on failure."""
+    if not raw:
+        return None
+    raw = raw.strip()
+    for fmt in ("%d/%m/%Y", "%d.%m.%Y", "%d-%m-%Y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _parse_salary_to_decimal(raw: str):
+    """Parse a salary string like ``"730 $"`` or ``"1200 USD"`` into a
+    Decimal. Returns ``None`` if no digits are found."""
+    if not raw:
+        return None
+    digits = "".join(ch for ch in raw if ch.isdigit() or ch == ".")
+    if not digits or digits == ".":
+        return None
+    try:
+        return Decimal(digits)
+    except InvalidOperation:
+        return None
+
+
+def _split_full_name(full_name: str) -> tuple[str, str]:
+    """Split ``"MOHAMED SHEHATA RAMADAN ABDEL BASSET"`` into
+    ``("MOHAMED", "SHEHATA RAMADAN ABDEL BASSET")`` (first + rest)."""
+    parts = (full_name or "").strip().split(maxsplit=1)
+    if not parts:
+        return "", ""
+    return parts[0], (parts[1] if len(parts) > 1 else "")
+
+
+def _marital_status_to_string(ms: dict | str | None) -> str:
+    """Convert the parser's marital-status dict to the Users model
+    string value: ``"Single"`` or ``"Married"``."""
+    if isinstance(ms, str):
+        return ms
+    if isinstance(ms, dict):
+        if ms.get("married"):
+            return "Married"
+        if ms.get("single"):
+            return "Single"
+    return ""
+
+
+def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
+    """Create or update a Users row + create a CVSubmission from the
+    parser output. Returns ``(user_id, cv_submission_id)``.
+
+    Raises ``_NoEmailError`` if the contact section has no email (the
+    Users model requires a unique, non-null email).
+
+    All writes happen inside a single ``transaction.atomic`` so we
+    never end up with a User without a CVSubmission (or vice versa).
+    """
+    from django.db import transaction
+    from api.models import Users, CVSubmission
+
+    personal = data.get("1_personal_details") or {}
+    meta = data.get("0_application_meta") or {}
+    contact = data.get("3_contact_details") or {}
+
+    full_name = (personal.get("full_name") or "").strip()
+    first_name, middle_name = _split_full_name(full_name)
+    email = (contact.get("e_mail") or "").strip().lower()
+    if not email:
+        raise _NoEmailError("parser output has no email")
+
+    marital_str = _marital_status_to_string(personal.get("marital_status"))
+
+    # Application position: only set if it matches a known choice; else
+    # leave blank so the user can pick manually later. The raw text
+    # goes to ``other_position`` regardless.
+    application_pos = (meta.get("application_for_position_as") or "").strip()
+    if application_pos not in _VALID_APPLICATION_POSITIONS:
+        application_pos = ""
+
+    user_defaults = {
+        "first_name": first_name,
+        "middle_name": middle_name,
+        "marital_status": marital_str or "Single",
+        "nationality": (personal.get("nationality") or "").strip() or None,
+        "Place_Of_Birth": (personal.get("place_of_birth") or "").strip() or None,
+        "Nearest_Port": (personal.get("nearest_port") or "").strip() or None,
+        "Height_Cm": personal.get("height_cm") or None,
+        "Weight_Kg": personal.get("weight_kg") or None,
+        "date_of_birth": _parse_date_loose(personal.get("date_of_birth") or ""),
+        "register_code": (meta.get("register_code") or "").strip() or None,
+        "register_date": _parse_date_loose(meta.get("register_date") or ""),
+        "application_for_position": application_pos or None,
+        "other_position": (meta.get("other_position") or "").strip() or None,
+        "address": (contact.get("home_address_city") or "").strip() or None,
+        # phone_number is NOT NULL in the DB; fall back to "" if the CV
+        # didn't provide one.
+        "phone_number": (contact.get("mobile_tel") or "").strip() or "",
+    }
+
+    expected_salary_dec = _parse_salary_to_decimal(meta.get("expected_salary") or "")
+    available_date = _parse_date_loose(meta.get("available_date") or "")
+
+    with transaction.atomic():
+        user, _created = Users.objects.get_or_create(
+            email=email,
+            defaults=user_defaults,
+        )
+        # If the user already existed, refresh the fields we know about
+        # (cheap idempotent save). The applicant may have been updated
+        # in the source-of-truth CV.
+        for field, value in user_defaults.items():
+            if value not in (None, ""):
+                setattr(user, field, value)
+        user.save()
+
+        cv_submission = CVSubmission.objects.create(
+            user=user,
+            cv_file=uploaded_file,
+            expected_salary=expected_salary_dec,
+            availability_date=available_date,
+            status="Pending",
+        )
+
+    return user.id, cv_submission.id
