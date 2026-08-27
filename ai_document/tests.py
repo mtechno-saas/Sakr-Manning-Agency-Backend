@@ -261,7 +261,7 @@ class DocumentUploadSerializerTest(TestCase):
 
 class AuthenticatedAPITestCase(APITestCase):
     """Base class for API tests that require authentication"""
-    
+
     def setUp(self):
         """Set up authentication"""
         super().setUp()
@@ -272,8 +272,47 @@ class AuthenticatedAPITestCase(APITestCase):
             password='testpass123'
         )
 
-        
+
         # Authenticate the client
+        self.client.force_authenticate(user=self.user)
+
+
+class AdminAPITestCase(APITestCase):
+    """Base class for API tests that require an Admin user.
+
+    The /ai/parse/ endpoint is admin-only (per spec), so its tests
+    need an authenticated Admin. Other endpoints (list applicants,
+    view detail, etc.) are tested with the regular AuthenticatedAPITestCase
+    which creates a default-Employee user.
+    """
+
+    def setUp(self):
+        super().setUp()
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            email='admin@sakrparser.test',
+            password='testpass123',
+        )
+        self.user.role = 'Admin'
+        self.user.is_staff = True
+        self.user.save()
+        self.client.force_authenticate(user=self.user)
+
+
+class SeafarerAPITestCase(APITestCase):
+    """Base class for tests of endpoints that a seafarer (Crew/Employee) hits."""
+
+    SEAFARER_ROLE = 'Employee'  # override in subclass for 'Crew'
+
+    def setUp(self):
+        super().setUp()
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            email='seafarer@sakrparser.test',
+            password='testpass123',
+        )
+        self.user.role = self.SEAFARER_ROLE
+        self.user.save()
         self.client.force_authenticate(user=self.user)
 
 
@@ -606,15 +645,15 @@ class IntegrationTest(TransactionTestCase):
         )
 
 
-class ParseOnlyViewTest(APITestCase):
+class ParseOnlyViewTest(AdminAPITestCase):
     """Test the deterministic-parser /parse/ endpoint.
 
-    The endpoint is ``AllowAny`` (matches every other AI endpoint in
-    this app) and runs the new ``SakrTemplateExtractor`` against the
-    document text. It does NOT touch the DB and does NOT call the LLM.
+    The endpoint is admin-only. AdminAPITestCase sets up an authenticated
+    Admin user. Other roles are blocked — see ParseOnlyViewAuthTest.
     """
 
     def setUp(self):
+        AdminAPITestCase.setUp(self)
         self.url = "/ai/parse/"
 
     @patch("ai_document.views.SakrTemplateExtractor")
@@ -746,10 +785,11 @@ class ParseOnlyViewTest(APITestCase):
         self.assertNotIn("disk on fire", str(response.data))
 
 
-class ParseOnlyViewSaveTest(APITestCase):
+class ParseOnlyViewSaveTest(AdminAPITestCase):
     """Test the save_to_db=true flow that creates Users + CVSubmission."""
 
     def setUp(self):
+        AdminAPITestCase.setUp(self)
         self.url = "/ai/parse/"
 
     @patch("ai_document.views._save_parser_output")
@@ -1028,6 +1068,93 @@ class ParserHelpersUnitTest(SimpleTestCase):
         )
         self.assertEqual(_marital_status_to_string("Single"), "Single")
         self.assertEqual(_marital_status_to_string(None), "")
+
+
+class ParseOnlyViewAuthTest(APITestCase):
+    """Auth checks for the admin-only /ai/parse/ endpoint.
+
+    The spec is: only users with role='Admin' can use /ai/parse/ and
+    upload a seafarer CV. Everyone else is blocked.
+    """
+
+    def setUp(self):
+        self.url = "/ai/parse/"
+
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def _post(self, mock_processor_cls, mock_extractor_cls, *, role):
+        """Helper: post a stub file with the given role on the test user.
+
+        Mocks DocumentProcessor and SakrTemplateExtractor so the test
+        doesn't depend on file content — we only care that the
+        permission gate fires (or doesn't) for each role.
+
+        ``role`` is keyword-only because @patch injects the mocks as
+        positional args after self.
+        """
+        # Mock the processor + extractor so the view short-circuits to
+        # 200 without actually parsing a file.
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "SAKR MANNING AGENCY 1. PERSONAL DETAILS ...",
+            "tables": [],
+        }
+        mock_processor_cls.return_value = mock_proc
+        mock_result = MagicMock()
+        mock_result.ok = True
+        mock_result.extractor = "sakr_template"
+        mock_result.confidence = 0.95
+        mock_result.data = {"1_personal_details": {"full_name": "X"}}
+        mock_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = mock_result
+
+        from django.contrib.auth import get_user_model
+        if role is not None:
+            user = get_user_model().objects.create_user(
+                email=f"{role.lower().replace(' ', '')}@sakrparser.test",
+                password="testpass123",
+            )
+            user.role = role
+            user.save()
+            self.client.force_authenticate(user=user)
+        pdf = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        return self.client.post(self.url, {"file": pdf}, format="multipart")
+
+    def test_admin_is_allowed(self):
+        response = self._post(role="Admin")
+        # 200 (parse succeeds) — the body shape is tested elsewhere.
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_hr_manager_is_blocked(self):
+        # HR Manager has full access elsewhere, but is NOT an Admin —
+        # and this endpoint is admin-only.
+        response = self._post(role="HR Manager")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_recruiter_is_blocked(self):
+        response = self._post(role="Recruiter")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_employee_is_blocked(self):
+        # This is the seafarer role — they should never be able to
+        # upload their own CV (Admin does that on their behalf).
+        response = self._post(role="Employee")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_crew_is_blocked(self):
+        response = self._post(role="Crew")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_unauthenticated_is_blocked(self):
+        # No force_authenticate — request.user is AnonymousUser.
+        # The permission check fires before any DB work.
+        response = self._post(role=None)
+        # DRF returns 401 for unauthenticated users (vs 403 for
+        # authenticated-but-forbidden).
+        self.assertIn(
+            response.status_code,
+            (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+        )
 
 
 # Run tests with: python manage.py test ai_document.tests

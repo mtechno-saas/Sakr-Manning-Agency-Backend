@@ -3417,6 +3417,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from api.permissions import IsAdmin
 from .extractors import SakrTemplateExtractor, ErrorCode, client_message
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.files.storage import default_storage
@@ -4521,12 +4522,18 @@ class ParseOnlyView(APIView):
             "data": { ... }   // parser output is still returned
         }
 
-    Auth: ``AllowAny`` for now (matches every other AI endpoint in this
-    app — the project does not yet wire JWT/Token auth here). Add
-    ``IsAuthenticated`` in a separate refactor.
+    Auth: ``IsAdmin`` only. The CV-upload endpoints (this and
+    ``/ai/upload/``) are admin-only — only Admins can submit a
+    seafarer CV. Other roles get HTTP 403. Unauthenticated requests
+    get HTTP 401.
+
+    (The project does not yet wire JWT/Token auth here; when it
+    does, the same IsAdmin check will start enforcing for real.
+    Until then, requests still get in as before but role check applies
+    to authenticated sessions only.)
     """
     authentication_classes = []  # TODO: switch to [JWTAuthentication] + IsAuthenticated
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdmin]
     parser_classes = [MultiPartParser, FormParser]
     serializer_class = DocumentUploadSerializer
 
