@@ -35,6 +35,7 @@ from ai_document.extractors.sakr_template import (
     _parse_office_use_only,
     _parse_personal_details,
     _extract_by_labels,
+    _split_salary_and_date,
     _to_int_or_none,
 )
 from ai_document.text_utils import (
@@ -324,12 +325,81 @@ class ParseApplicationMetaTests(SimpleTestCase):
         self.assertEqual(out["register_code"], "DR-6.104")
         self.assertEqual(out["other_position"], "Waiter Restaurant")
         self.assertEqual(out["register_date"], "10.07.2025")
+        # The combined value is preserved for backward compat.
         self.assertEqual(out["expected_salary_and_available_date"], "730 $ - 25/7/2025")
+        # …and it's also split into the two separate fields.
+        self.assertEqual(out["expected_salary"], "730 $")
+        self.assertEqual(out["available_date"], "25/7/2025")
+
+    def test_salary_only_no_date(self):
+        cells = [
+            "Expected Salary / Available Date", "1200 USD",
+        ]
+        out = _parse_application_meta(cells)
+        self.assertEqual(out["expected_salary"], "1200 USD")
+        self.assertEqual(out["available_date"], "")
+
+    def test_date_only_no_salary(self):
+        cells = [
+            "Expected Salary / Available Date", " - 01/03/2025",
+        ]
+        out = _parse_application_meta(cells)
+        self.assertEqual(out["expected_salary"], "")
+        self.assertEqual(out["available_date"], "01/03/2025")
+
+    def test_empty_salary_and_date(self):
+        cells = [
+            "Expected Salary / Available Date", "",
+        ]
+        out = _parse_application_meta(cells)
+        self.assertEqual(out["expected_salary"], "")
+        self.assertEqual(out["available_date"], "")
+
+    def test_en_dash_separator(self):
+        # Some PDF renderings replace the hyphen with an en-dash.
+        cells = [
+            "Expected Salary / Available Date", "500 \u2013 15/8/2025",
+        ]
+        out = _parse_application_meta(cells)
+        self.assertEqual(out["expected_salary"], "500")
+        self.assertEqual(out["available_date"], "15/8/2025")
 
     def test_empty_input_returns_empty_dict_with_keys(self):
         out = _parse_application_meta([])
         self.assertEqual(out["application_for_position_as"], "")
         self.assertEqual(out["register_code"], "")
+
+
+class SplitSalaryAndDateTests(SimpleTestCase):
+    """Unit tests for the salary/date splitter in isolation."""
+
+    def test_canonical_format(self):
+        self.assertEqual(
+            _split_salary_and_date("730 $ - 25/7/2025"),
+            ("730 $", "25/7/2025"),
+        )
+
+    def test_salary_only(self):
+        self.assertEqual(_split_salary_and_date("1200 USD"), ("1200 USD", ""))
+
+    def test_date_only(self):
+        self.assertEqual(_split_salary_and_date(" - 01/03/2025"), ("", "01/03/2025"))
+
+    def test_empty(self):
+        self.assertEqual(_split_salary_and_date(""), ("", ""))
+        self.assertEqual(_split_salary_and_date(None), ("", ""))
+
+    def test_en_dash(self):
+        self.assertEqual(
+            _split_salary_and_date("500 \u2013 15/8/2025"),
+            ("500", "15/8/2025"),
+        )
+
+    def test_extra_whitespace_stripped(self):
+        self.assertEqual(
+            _split_salary_and_date("  1000 $    -    20/1/2025  "),
+            ("1000 $", "20/1/2025"),
+        )
 
 
 class ParsePersonalDetailsTests(SimpleTestCase):

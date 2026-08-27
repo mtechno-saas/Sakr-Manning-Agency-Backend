@@ -134,6 +134,43 @@ def _to_int_or_none(raw: str) -> int | None:
 # ── Line-oriented section parsers ──────────────────────────────────────
 
 
+# Regex: any prefix, optional whitespace, "-" or en-dash, optional
+# whitespace, any suffix. The prefix is non-greedy so the FIRST "-" wins
+# (which is what the form uses). This handles every shape we've seen:
+#
+#   "730 $ - 25/7/2025"   -> ("730 $",     "25/7/2025")
+#   " - 01/03/2025"       -> ("",          "01/03/2025")  (empty salary)
+#   "500 - 15/8/2025"     -> ("500",       "15/8/2025")
+#   "500 – 15/8/2025"     -> ("500",       "15/8/2025")  (en-dash variant)
+#   "1200 USD"            -> ("1200 USD",  "")            (no separator)
+#   ""                    -> ("",          "")
+_SALARY_DATE_RE = re.compile(r"^(.*?)\s*[-–]\s*(.*)$", re.UNICODE)
+
+
+def _split_salary_and_date(raw: str) -> tuple[str, str]:
+    """Split a combined ``"<salary> - <date>"`` value into two parts.
+
+    The Sakr form puts expected salary and available date on the same
+    line, separated by ``" - "`` (space-hyphen-space) — e.g.
+    ``"730 $ - 25/7/2025"``. The split is intentionally permissive:
+
+    * The separator may be a hyphen ``-`` or an en-dash ``–``.
+    * Whitespace around the separator is optional.
+    * If the separator is missing, the entire value is treated as the
+      salary (with date empty). This handles the common case where the
+      applicant fills in only the salary.
+    * An empty input yields ``("", "")``.
+
+    Returns ``(expected_salary, available_date)``.
+    """
+    if not raw:
+        return "", ""
+    match = _SALARY_DATE_RE.match(raw.strip())
+    if match:
+        return match.group(1).strip(), match.group(2).strip()
+    return raw.strip(), ""
+
+
 def _parse_application_meta(cells: list[str]) -> dict[str, str]:
     label_to_key = {
         "Application For Position as": "application_for_position_as",
@@ -145,10 +182,24 @@ def _parse_application_meta(cells: list[str]) -> dict[str, str]:
         "Register Date":              "register_date",
         "Last up Date Data":          "last_update_data",
         "Last Update Data":           "last_update_data",
-        "Expected Salary / Available Date": "expected_salary_and_available_date",
-        "Expected Salary/Available Date":  "expected_salary_and_available_date",
+        # NOTE: the raw value goes into _expected_salary_and_available_date
+        # and we split it into the two fields below. We keep the
+        # intermediate key for clarity (and so the splitter is easy to
+        # unit-test against a real CV).
+        "Expected Salary / Available Date": "_expected_salary_and_available_date",
+        "Expected Salary/Available Date":  "_expected_salary_and_available_date",
     }
     out, _ = _extract_by_labels(cells, label_to_key)
+
+    combined = (out.pop("_expected_salary_and_available_date", "") or "").strip()
+    salary, available_date = _split_salary_and_date(combined)
+
+    out["expected_salary"] = salary
+    out["available_date"] = available_date
+    # Keep the combined value as well so callers that want the original
+    # raw text don't lose it. (The Applicant model's `applied_position_info`
+    # JSONField can store either form.)
+    out["expected_salary_and_available_date"] = combined
     return out
 
 
