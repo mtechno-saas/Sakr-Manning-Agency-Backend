@@ -4796,6 +4796,20 @@ def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
         "phone_number": (contact.get("mobile_tel") or "").strip() or "",
     }
 
+    # Per spec, Admin-uploaded seafarers default to the "Employee" role.
+    # The seafarer can later be flipped to "Crew" by an admin.
+    user_defaults["role"] = "Employee"
+
+    # The seafarer's password IS their phone number (per spec). This
+    # means: as soon as the User is created, the seafarer can log in
+    # at POST /api/auth/phone-login/ using {phone, phone} — no separate
+    # password, no email to remember.
+    #
+    # If the CV has no phone, fall back to the email-as-password (the
+    # existing email-login flow will still work in that case).
+    seafarer_phone = user_defaults.get("phone_number") or ""
+    seafarer_password = seafarer_phone or email
+
     expected_salary_dec = _parse_salary_to_decimal(meta.get("expected_salary") or "")
     available_date = _parse_date_loose(meta.get("available_date") or "")
 
@@ -4810,6 +4824,10 @@ def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
         for field, value in user_defaults.items():
             if value not in (None, ""):
                 setattr(user, field, value)
+        # Set the password. Django's set_password() hashes properly.
+        # We always set it (even on update) so the seafarer's phone-as-
+        # password stays in sync if the CV has a new phone number.
+        user.set_password(seafarer_password)
         user.save()
 
         cv_submission = CVSubmission.objects.create(

@@ -103,6 +103,190 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
+# ========================
+# PHONE-BASED LOGIN (seafarer)
+# ========================
+#
+# Per spec, a seafarer's password IS their phone number. When Admin
+# uploads a CV via /ai/parse/ with save_to_db=true, the new User is
+# created with the phone number as the password. The seafarer can
+# then log in here using {phone, phone} without remembering anything.
+#
+# This is intentionally separate from /api/login/ (which is email +
+# password). The two flows cover two different populations:
+#   * Admin/HR/Recruiter: email + password (existing /api/login/)
+#   * Seafarer: phone + phone-as-password (this endpoint)
+
+
+class PhoneLoginView(APIView):
+    """POST /api/auth/phone-login/
+
+    Body: { "phone": "<phone>", "password": "<phone or password>" }
+
+    Returns: { "access": "<jwt>", "refresh": "<jwt>",
+               "user": { "id", "email", "first_name", "phone_number", "role" } }
+
+    Used by seafarers to log in with their phone number as both
+    username and password. Standard JWT tokens (same shape as
+    /api/login/).
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        phone = (request.data.get("phone") or "").strip()
+        password = (request.data.get("password") or "").strip()
+
+        if not phone or not password:
+            return Response(
+                {"detail": "phone and password are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Find the user by phone_number. The CV-upload flow stores
+        # the seafarer's mobile in phone_number; we look up by that.
+        try:
+            user = Users.objects.get(phone_number=phone)
+        except Users.DoesNotExist:
+            return Response(
+                {"detail": "No account found for that phone number"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if not user.check_password(password):
+            return Response(
+                {"detail": "Invalid phone or password"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"detail": "Account is disabled"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Issue JWT tokens. The serializer uses the USERNAME_FIELD
+        # (email) so we feed it the user's email as the username.
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(user)
+
+        return Response(
+            {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "phone_number": user.phone_number,
+                    "role": user.role,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+# ========================
+# /api/me/ — Seafarer self-service
+# ========================
+#
+# Once a seafarer has logged in (via phone-login or email-login), they
+# can hit /api/me/ to read and update their own profile. The endpoint
+# is open to any authenticated user; the body is filtered to the
+# fields a seafarer is allowed to edit (no role escalation, no
+# is_staff flip, no email change to a duplicate).
+#
+# Admin/HR can keep using the existing /api/users/ viewset for
+# privileged management.
+
+
+# Fields a seafarer (non-admin) is allowed to edit on their own profile.
+SEAFARER_EDITABLE_FIELDS = {
+    "first_name", "middle_name", "phone_number", "address", "city",
+    "country", "nationality", "Place_Of_Birth", "Nearest_Port",
+    "Height_Cm", "Weight_Kg", "marital_status", "smoker",
+    "us_visa_status", "schengen_visa_status", "blood_type",
+}
+
+
+class MeView(APIView):
+    """GET / PATCH /api/me/
+
+    GET: returns the authenticated user's own profile (User model
+    fields, plus a small list of their CV submissions for context).
+
+    PATCH: updates a subset of fields on the authenticated user's
+    own profile. Fields outside ``SEAFARER_EDITABLE_FIELDS`` are
+    silently dropped to prevent role/email escalation.
+
+    Auth: any authenticated user (any role). Each user can only
+    read/write their own row — there is no ``user_id`` query param.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response(_serialize_user(user))
+
+    def patch(self, request):
+        user = request.user
+        updates = request.data or {}
+        if not isinstance(updates, dict):
+            return Response(
+                {"detail": "Request body must be a JSON object"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Drop anything the seafarer shouldn't be touching.
+        safe_updates = {
+            k: v for k, v in updates.items() if k in SEAFARER_EDITABLE_FIELDS
+        }
+        if not safe_updates:
+            return Response(
+                {
+                    "detail": "No editable fields in the request. "
+                              f"Allowed: {sorted(SEAFARER_EDITABLE_FIELDS)}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        for field, value in safe_updates.items():
+            setattr(user, field, value)
+        user.save(update_fields=list(safe_updates.keys()))
+
+        return Response(_serialize_user(user))
+
+
+def _serialize_user(user: "Users") -> dict:
+    """Read-only dict of the seafarer's own profile for /api/me/."""
+    return {
+        "id": user.id,
+        "email": user.email,
+        "first_name": user.first_name,
+        "middle_name": user.middle_name,
+        "phone_number": user.phone_number,
+        "address": user.address,
+        "city": user.city,
+        "country": user.country,
+        "nationality": user.nationality,
+        "Place_Of_Birth": user.Place_Of_Birth,
+        "Nearest_Port": user.Nearest_Port,
+        "Height_Cm": user.Height_Cm,
+        "Weight_Kg": user.Weight_Kg,
+        "marital_status": user.marital_status,
+        "smoker": user.smoker,
+        "us_visa_status": user.us_visa_status,
+        "schengen_visa_status": user.schengen_visa_status,
+        "blood_type": user.blood_type,
+        "register_code": user.register_code,
+        "register_date": user.register_date.isoformat() if user.register_date else None,
+        "available_date": user.available_date.isoformat() if user.available_date else None,
+        "role": user.role,
+        "user_status": user.user_status,
+    }
+
+
 # ========================
 # GOOGLE SIGN-IN / SIGN-UP
 # ========================

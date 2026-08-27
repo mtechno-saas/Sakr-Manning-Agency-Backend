@@ -27,7 +27,7 @@ from .views import (
     remove_user_certificate,
     remove_user_rank,
     assign_rank_by_position,
-    DocumentViewSet, 
+    DocumentViewSet,
     LanguageProficiencyViewSet,
     UserLanguageViewSet,
     PersonalDocumentViewSet,
@@ -38,7 +38,9 @@ from .views import (
     get_company_types,
     get_coc_choices,
     get_document_types,
-    NextOfKinViewSet
+    NextOfKinViewSet,
+    PhoneLoginView,
+    MeView,
 )
 from .application_views import SeafarerApplicationViewSet
 
@@ -66,6 +68,8 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('auth/google/', GoogleAuthView.as_view(), name='google-auth'),
+    path('auth/phone-login/', PhoneLoginView.as_view(), name='phone-login'),
+    path('me/', MeView.as_view(), name='me'),
     path('all/', get_all_users, name='get_all_users'),
     path('create/', create_user, name='create_user'),
     path('filter/', get_filter_users, name='get_filter_users'),

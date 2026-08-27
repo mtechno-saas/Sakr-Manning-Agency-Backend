@@ -1901,3 +1901,229 @@ class UserStatusFiveStateTests(TestCase):
         c = APIClient()
         c.force_authenticate(user=admin)
         return c, admin
+
+
+# ===========================================================================
+# Seafarer phone-login + /api/me/ self-service
+# ===========================================================================
+#
+# When Admin uploads a CV via /ai/parse/ with save_to_db=true, a new
+# User is created with role='Employee' and password=phone. The seafarer
+# can then:
+#   1. POST /api/auth/phone-login/ with {phone, phone} → JWT
+#   2. GET/PATCH /api/me/ to view/edit their own profile
+#
+# These tests cover the auth surface so we know the end-to-end
+# "Admin uploads CV → seafarer logs in with their phone" flow works.
+
+from rest_framework.test import APITestCase  # noqa: E402
+
+
+class PhoneLoginTests(APITestCase):
+    """POST /api/auth/phone-login/"""
+
+    def setUp(self):
+        from api.models import Users
+        self.user = Users.objects.create_user(
+            email="seafarer@sakrshipping.com",
+            password="00201090946284",  # phone-as-password
+            first_name="MOHAMED",
+            middle_name="SHEHATA",
+        )
+        self.user.role = "Employee"
+        self.user.phone_number = "00201090946284"
+        self.user.save()
+        self.url = "/api/auth/phone-login/"
+
+    def test_login_with_correct_phone_and_password(self):
+        response = self.client.post(
+            self.url,
+            {"phone": "00201090946284", "password": "00201090946284"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
+        self.assertEqual(response.data["user"]["email"], "seafarer@sakrshipping.com")
+        self.assertEqual(response.data["user"]["phone_number"], "00201090946284")
+
+    def test_login_with_wrong_password_rejected(self):
+        response = self.client.post(
+            self.url,
+            {"phone": "00201090946284", "password": "wrong"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_login_with_unknown_phone_rejected(self):
+        response = self.client.post(
+            self.url,
+            {"phone": "99999999", "password": "99999999"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_login_requires_both_fields(self):
+        response = self.client.post(self.url, {}, format="json")
+        self.assertEqual(response.status_code, 400)
+
+    def test_inactive_user_cannot_login(self):
+        self.user.is_active = False
+        self.user.save()
+        response = self.client.post(
+            self.url,
+            {"phone": "00201090946284", "password": "00201090946284"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 403)
+
+
+class MeViewTests(APITestCase):
+    """GET / PATCH /api/me/"""
+
+    def setUp(self):
+        from api.models import Users
+        from rest_framework_simplejwt.tokens import RefreshToken
+        self.user = Users.objects.create_user(
+            email="seafarer2@sakrshipping.com",
+            password="00201099999999",
+            first_name="MOHAMED",
+            middle_name="SHEHATA",
+        )
+        self.user.role = "Employee"
+        self.user.phone_number = "00201099999999"
+        self.user.nationality = "Egyptian"
+        self.user.save()
+        self.url = "/api/me/"
+        # Authenticate via JWT (so the endpoint sees a real token path)
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+
+    def test_get_returns_own_profile(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], self.user.id)
+        self.assertEqual(response.data["email"], "seafarer2@sakrshipping.com")
+        self.assertEqual(response.data["phone_number"], "00201099999999")
+        self.assertEqual(response.data["nationality"], "Egyptian")
+
+    def test_patch_updates_editable_field(self):
+        response = self.client.patch(
+            self.url,
+            {"nationality": "Saudi", "city": "Riyadh"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nationality, "Saudi")
+        self.assertEqual(self.user.city, "Riyadh")
+
+    def test_patch_drops_role_escalation(self):
+        # The seafarer must NOT be able to flip their own role to Admin.
+        # When the request body contains ONLY non-editable fields, we
+        # return 400 (telling the user "you didn't send anything I can
+        # write") rather than 200 (which would look like a successful
+        # no-op and confuse the seafarer).
+        response = self.client.patch(
+            self.url, {"role": "Admin", "is_staff": True}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.role, "Employee")
+        self.assertFalse(self.user.is_staff)
+
+    def test_patch_mixed_safe_and_unsafe_keeps_safe_only(self):
+        # Mixed payload: editable (nationality) + non-editable (role).
+        # The safe field is applied; the unsafe one is silently dropped.
+        response = self.client.patch(
+            self.url,
+            {"nationality": "Saudi", "role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nationality, "Saudi")
+        # Role is unchanged.
+        self.assertEqual(self.user.role, "Employee")
+
+    def test_patch_drops_email_change(self):
+        # Email is unique on the model and tied to login — seafarers
+        # shouldn't be able to change their own email via /api/me/.
+        response = self.client.patch(
+            self.url, {"email": "hacker@evil.com"}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)  # no editable fields
+
+    def test_get_requires_auth(self):
+        # No credentials → 401.
+        from rest_framework.test import APIClient
+        anon = APIClient()
+        response = anon.get(self.url)
+        self.assertEqual(response.status_code, 401)
+
+
+class SaveParserOutputSeafarerPasswordTests(APITestCase):
+    """The /ai/parse/ save flow must set password = phone for seafarers.
+
+    This is the bridge between Admin's CV upload and the seafarer's
+    first login — if _save_parser_output doesn't set the password,
+    the seafarer can't log in via /api/auth/phone-login/.
+    """
+
+    def _make_uploaded_file(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        return SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+
+    def test_phone_is_used_as_password(self):
+        from ai_document.views import _save_parser_output
+        from api.models import Users
+
+        data = {
+            "1_personal_details": {
+                "full_name": "JOHN DOE",
+                "marital_status": {"single": True, "married": False},
+            },
+            "3_contact_details": {
+                "e_mail": "john@sakrshipping.com",
+                "mobile_tel": "00201234567890",
+            },
+            "0_application_meta": {
+                "expected_salary": "",
+                "available_date": "",
+            },
+        }
+        user_id, _ = _save_parser_output(data, self._make_uploaded_file())
+
+        user = Users.objects.get(id=user_id)
+        # Phone is the password.
+        self.assertTrue(user.check_password("00201234567890"))
+
+    def test_email_used_as_password_when_phone_missing(self):
+        # If the CV has no phone, fall back to email-as-password so the
+        # seafarer can still log in via the standard /api/login/ flow.
+        from ai_document.views import _save_parser_output
+        from api.models import Users
+
+        data = {
+            "1_personal_details": {"full_name": "JANE DOE"},
+            "3_contact_details": {"e_mail": "jane@sakrshipping.com"},
+            "0_application_meta": {},
+        }
+        user_id, _ = _save_parser_output(data, self._make_uploaded_file())
+
+        user = Users.objects.get(id=user_id)
+        self.assertTrue(user.check_password("jane@sakrshipping.com"))
+
+    def test_default_role_is_employee(self):
+        from ai_document.views import _save_parser_output
+        from api.models import Users
+
+        data = {
+            "1_personal_details": {"full_name": "BOB SMITH"},
+            "3_contact_details": {"e_mail": "bob@sakrshipping.com"},
+            "0_application_meta": {},
+        }
+        user_id, _ = _save_parser_output(data, self._make_uploaded_file())
+
+        user = Users.objects.get(id=user_id)
+        self.assertEqual(user.role, "Employee")
