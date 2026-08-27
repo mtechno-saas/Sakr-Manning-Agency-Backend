@@ -20,6 +20,7 @@
 # Run with: python manage.py test api.tests --verbosity=2
 
 import datetime
+from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -2359,6 +2360,68 @@ class MeViewTests(APITestCase):
         anon = APIClient()
         response = anon.get(self.url)
         self.assertEqual(response.status_code, 401)
+
+
+class EmailServiceUnitTests(TestCase):
+    """Unit tests for the EmailService implementations.
+
+    These tests mock ``django.core.mail.send_mail`` (for the SMTP
+    service) or the logger (for the console service) so we can
+    verify behavior without actually sending mail. Real network /
+    SMTP tests would be slow and brittle — the goal here is to
+    lock in the dispatch contract (what gets sent, to whom, with
+    what subject/body), not to test Django's mail backend itself.
+    """
+
+    def test_console_email_service_logs_at_info(self):
+        # The dev default must emit a log line so devs can read the
+        # OTP from the server log. If this breaks, the dev experience
+        # silently regresses (no OTP visible anywhere).
+        from api.email import ConsoleEmailService
+        with self.assertLogs("api.email", level="INFO") as cm:
+            ok = ConsoleEmailService().send_otp_email(
+                "user@example.com", "123456", ttl_minutes=10
+            )
+        self.assertTrue(ok)
+        joined = "\n".join(cm.output)
+        self.assertIn("user@example.com", joined)
+        self.assertIn("123456", joined)
+        self.assertIn("10", joined)
+
+    @patch("django.core.mail.send_mail")
+    def test_django_smtp_email_service_sends_to_target(self, mock_send):
+        # DjangoSMTPEmailService must use django.core.mail.send_mail
+        # and pass the right subject/body/from/recipient_list.
+        from api.email import DjangoSMTPEmailService
+
+        mock_send.return_value = 1  # one message successfully sent
+        ok = DjangoSMTPEmailService().send_otp_email(
+            "seafarer@sakrshipping.com", "482917", ttl_minutes=10
+        )
+        self.assertTrue(ok)
+        mock_send.assert_called_once()
+        call_kwargs = mock_send.call_args.kwargs
+        self.assertEqual(
+            call_kwargs["recipient_list"], ["seafarer@sakrshipping.com"]
+        )
+        self.assertIn("482917", call_kwargs["subject"])
+        self.assertIn("482917", call_kwargs["message"])
+        self.assertIn("10", call_kwargs["message"])
+        self.assertEqual(call_kwargs["fail_silently"], False)
+
+    @patch("django.core.mail.send_mail")
+    def test_django_smtp_email_service_returns_false_on_failure(self, mock_send):
+        # If send_mail raises (network down, auth rejected, etc.),
+        # the service must catch it and return False — not propagate
+        # the exception to the caller. The OTP is still on the User
+        # row; the seafarer can re-request.
+        from api.email import DjangoSMTPEmailService
+
+        mock_send.side_effect = RuntimeError("SMTP server down")
+        ok = DjangoSMTPEmailService().send_otp_email(
+            "seafarer@sakrshipping.com", "482917", ttl_minutes=10
+        )
+        self.assertFalse(ok)
 
 
 class SaveParserOutputSeafarerPasswordTests(APITestCase):

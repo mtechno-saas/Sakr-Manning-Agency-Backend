@@ -6,13 +6,23 @@ deployments will plug in a real provider (SMTP, SendGrid, Mailgun,
 Postmark, AWS SES, etc.) by implementing the :class:`EmailService`
 protocol and pointing the ``EMAIL_SERVICE`` Django setting at it.
 
-For local development and tests, :class:`ConsoleEmailService` is the
-default — it logs the would-be email to the server console instead
-of actually sending. The seafarer can't actually receive the email
-in dev, so this is ONLY suitable for local work and automated tests
-where the test code can read the log/captured output.
+Two backends ship in this module:
 
-To plug in a real provider in production:
+  * :class:`ConsoleEmailService` — the default for dev/test. Logs
+    the would-be email to the server console instead of actually
+    sending. The seafarer can't actually receive the email in dev,
+    so this is ONLY suitable for local work and automated tests
+    where the test code can read the log/captured output.
+
+  * :class:`DjangoSMTPEmailService` — uses ``django.core.mail.send_mail``
+    with the SMTP backend configured in ``saker/settings.py``
+    (``EMAIL_HOST`` etc., currently Gmail SMTP). Fine for
+    low-volume transactional mail; switch to SendGrid / SES /
+    etc. when volume picks up. Enable with::
+
+        EMAIL_SERVICE = "api.email.DjangoSMTPEmailService"
+
+To plug in a real third-party provider (SendGrid, Mailgun, etc.):
 
     1. Add the provider SDK to requirements.txt (e.g. ``sendgrid``).
     2. Subclass :class:`EmailService` and implement
@@ -89,6 +99,67 @@ class ConsoleEmailService:
             to_email, otp, ttl_minutes,
         )
         return True
+
+
+class DjangoSMTPEmailService:
+    """Real-email backend for prod-like deployments.
+
+    Uses ``django.core.mail.send_mail`` which dispatches via the SMTP
+    backend configured in ``saker/settings.py`` (``EMAIL_HOST``,
+    ``EMAIL_PORT``, ``EMAIL_USE_TLS``, ``EMAIL_HOST_USER``,
+    ``EMAIL_HOST_PASSWORD``, ``DEFAULT_FROM_EMAIL``). On this project
+    that's Gmail SMTP (mtechsaas@gmail.com) — fine for low-volume
+    transactional mail; switch to SendGrid / Mailgun / SES when
+    volume picks up.
+
+    Returns ``True`` on success, ``False`` on any send failure
+    (network error, auth failure, recipient rejected, etc.). The
+    caller (RequestOTPView / _save_parser_output) treats ``False``
+    as a non-fatal warning — the OTP is still on the User row and
+    the seafarer can re-request or read it from the log.
+    """
+
+    def send_otp_email(
+        self,
+        to_email: str,
+        otp: str,
+        *,
+        ttl_minutes: int = 10,
+    ) -> bool:
+        from django.core.mail import send_mail
+        from django.conf import settings as dj_settings
+
+        subject = f"Your Sakr Manning Agency verification code: {otp}"
+        body = (
+            f"Hello,\n\n"
+            f"Your verification code is: {otp}\n\n"
+            f"This code is valid for {ttl_minutes} minutes. "
+            f"Enter it on the verification page to confirm your email "
+            f"and unlock your account.\n\n"
+            f"If you did not request this code, you can safely "
+            f"ignore this email.\n\n"
+            f"— Sakr Manning Agency"
+        )
+        from_email = getattr(
+            dj_settings, "DEFAULT_FROM_EMAIL", "noreply@sakrshipping.com"
+        )
+
+        try:
+            sent = send_mail(
+                subject=subject,
+                message=body,
+                from_email=from_email,
+                recipient_list=[to_email],
+                fail_silently=False,
+            )
+            # send_mail returns the number of messages successfully sent.
+            return sent == 1
+        except Exception:
+            logger.exception(
+                "DjangoSMTPEmailService: send_mail failed for to_email=%s",
+                to_email,
+            )
+            return False
 
 
 # ── Loader ───────────────────────────────────────────────────────────
