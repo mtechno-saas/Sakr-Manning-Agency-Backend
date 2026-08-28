@@ -264,17 +264,23 @@ class DocumentProcessor:
         word_count = len(full_text.split())
 
         # ── Phase 4: OCR Fallback for scanned PDFs ─────────────────────
+        ocr_applied = False
+        ocr_pages_processed = 0
+        ocr_backend_used = None
         if word_count < MIN_WORDS_FOR_TEXT_PDF:
             logger.info(
                 f"Only {word_count} words extracted — likely a scanned PDF. "
-                "Triggering Gemini OCR fallback..."
+                "Triggering OCR fallback..."
             )
-            ocr_text = self._gemini_ocr_fallback(file_path)
-            if ocr_text:
-                full_text = ocr_text
+            ocr_result = self._ocr_fallback(file_path)
+            if ocr_result.get("text"):
+                full_text = ocr_result["text"]
                 word_count = len(full_text.split())
                 # Replace pages_data with OCR text as a single page
                 pages_data = [{"page": 1, "text": full_text, "tables": []}]
+                ocr_applied = True
+                ocr_pages_processed = ocr_result.get("pages", 0)
+                ocr_backend_used = ocr_result.get("backend")
 
         return {
             "extracted_text": full_text,
@@ -283,11 +289,105 @@ class DocumentProcessor:
             "pages": pages_data,
             "tables": all_tables,
             "processing_error": None,
+            "ocr_applied": ocr_applied,
+            "ocr_pages_processed": ocr_pages_processed,
+            "ocr_backend": ocr_backend_used,
         }
 
-    def _gemini_ocr_fallback(self, file_path: str) -> str:
+    def _ocr_fallback(self, file_path: str) -> Dict:
+        """Run OCR on a scanned PDF. Returns dict with keys:
+            text    - combined OCR text (empty if all backends failed)
+            pages   - number of pages processed
+            backend - which backend succeeded ("ollama" | "gemini" | None)
         """
-        Use Gemini 1.5 Flash to perform OCR on a scanned PDF.
+        # Read backend preference from settings
+        ocr_enabled = getattr(
+            __import__("django.conf", fromlist=["settings"]).settings,
+            "OCR_ENABLED", True,
+        )
+        if not ocr_enabled:
+            logger.info("OCR disabled via settings.OCR_ENABLED=false")
+            return {"text": "", "pages": 0, "backend": None}
+
+        backend = getattr(
+            __import__("django.conf", fromlist=["settings"]).settings,
+            "OCR_BACKEND", "ollama",
+        ).lower()
+
+        if backend == "ollama":
+            result = self._ollama_ocr_fallback(file_path)
+            if result.get("text"):
+                return result
+            # Fall through to Gemini if Ollama failed
+            logger.info("Ollama OCR returned empty; falling through to Gemini")
+            return self._gemini_ocr_fallback(file_path)
+        if backend == "gemini":
+            return self._gemini_ocr_fallback(file_path)
+        logger.warning("Unknown OCR_BACKEND=%r; skipping OCR", backend)
+        return {"text": "", "pages": 0, "backend": None}
+
+    def _ollama_ocr_fallback(self, file_path: str) -> Dict:
+        """Render each PDF page to a PNG and OCR it via local Ollama
+        (``glm-ocr:latest`` by default). Pages are processed in
+        parallel. Limited to ``OCR_MAX_PAGES`` to avoid runaway
+        processing on huge documents.
+        """
+        if not PYMUPDF_AVAILABLE:
+            logger.warning("PyMuPDF not available; cannot render PDF for OCR")
+            return {"text": "", "pages": 0, "backend": "ollama"}
+
+        from .ocr import OllamaOcrService  # local import to avoid cycle
+        from django.conf import settings as django_settings
+
+        max_pages = int(getattr(django_settings, "OCR_MAX_PAGES", 10))
+        render_dpi = int(getattr(django_settings, "OCR_RENDER_DPI", 150))
+
+        # 1. Render pages to PNG bytes
+        page_images: list[bytes] = []
+        try:
+            doc = fitz.open(file_path)
+            try:
+                num_pages = min(len(doc), max_pages)
+                if len(doc) > max_pages:
+                    logger.info(
+                        "PDF has %d pages, OCR-capping to first %d",
+                        len(doc), max_pages,
+                    )
+                zoom = render_dpi / 72.0  # PDF default is 72 DPI
+                mat = fitz.Matrix(zoom, zoom)
+                for i in range(num_pages):
+                    page = doc.load_page(i)
+                    pix = page.get_pixmap(matrix=mat)
+                    page_images.append(pix.tobytes("png"))
+            finally:
+                doc.close()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("PyMuPDF render-for-OCR failed: %r", exc)
+            return {"text": "", "pages": 0, "backend": "ollama"}
+
+        if not page_images:
+            return {"text": "", "pages": 0, "backend": "ollama"}
+
+        # 2. Check Ollama is reachable + model is loaded
+        service = OllamaOcrService()
+        if not service.is_available():
+            logger.warning(
+                "Ollama OCR model %s not available; skipping",
+                service.model,
+            )
+            return {"text": "", "pages": 0, "backend": "ollama"}
+
+        # 3. Run OCR in parallel
+        text = service.ocr_pages_combined(page_images)
+        return {
+            "text": text,
+            "pages": len(page_images),
+            "backend": "ollama" if text else None,
+        }
+
+    def _gemini_ocr_fallback(self, file_path: str) -> Dict:
+        """Use Gemini 1.5 Flash to perform OCR on a scanned PDF.
+        Kept as a fallback for when Ollama OCR is unavailable.
         """
         try:
             import google.generativeai as genai
@@ -295,7 +395,7 @@ class DocumentProcessor:
             api_key = os.environ.get("GOOGLE_API_KEY")
             if not api_key or api_key == "missing_key_please_add_to_env":
                 logger.warning("No GOOGLE_API_KEY found for OCR fallback.")
-                return ""
+                return {"text": "", "pages": 0, "backend": "gemini"}
 
             genai.configure(api_key=api_key)
 
@@ -319,14 +419,18 @@ class DocumentProcessor:
             except Exception:
                 pass
 
-            return response.text
+            return {
+                "text": response.text or "",
+                "pages": 0,  # Gemini doesn't tell us the page count
+                "backend": "gemini" if response.text else None,
+            }
 
         except ImportError:
             logger.warning("google-generativeai not installed for OCR fallback.")
-            return ""
+            return {"text": "", "pages": 0, "backend": "gemini"}
         except Exception as e:
             logger.error(f"Gemini OCR fallback failed: {e}")
-            return ""
+            return {"text": "", "pages": 0, "backend": "gemini"}
 
     # ------------------------------------------------------------------
     # DOCX processing

@@ -1777,6 +1777,441 @@ class DocumentUploadViewOllamaTest(AuthenticatedAPITestCase):
         self.assertEqual(passed_config, {})
 
 
+class OllamaOcrServiceTest(SimpleTestCase):
+    """Unit tests for ``ai_document.ocr.OllamaOcrService``.
+
+    The service talks to a local Ollama instance over HTTP, so all
+    tests mock the ``requests`` calls. The service must:
+      * build the correct request payload (model + prompt + base64 image)
+      * handle Ollama-down gracefully (return empty string, no raise)
+      * run multi-page OCR in parallel
+    """
+
+    @patch("ai_document.ocr.requests.get")
+    def test_is_available_true_when_model_loaded(self, mock_get):
+        """Ollama responds with the model in its list → available."""
+        from ai_document.ocr import OllamaOcrService
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "models": [
+                {"name": "glm-ocr:latest"},
+                {"name": "llama3.1:8b"},
+            ]
+        }
+        self.assertTrue(OllamaOcrService().is_available())
+        mock_get.assert_called_once()
+        self.assertIn("/api/tags", mock_get.call_args.args[0])
+
+    @patch("ai_document.ocr.requests.get")
+    def test_is_available_false_when_model_missing(self, mock_get):
+        """Ollama responds but the model is not in the list → not available."""
+        from ai_document.ocr import OllamaOcrService
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "models": [{"name": "llama3.1:8b"}]
+        }
+        self.assertFalse(OllamaOcrService().is_available())
+
+    @patch("ai_document.ocr.requests.get")
+    def test_is_available_false_on_connection_error(self, mock_get):
+        """Ollama unreachable → False (never raises)."""
+        from ai_document.ocr import OllamaOcrService
+        mock_get.side_effect = ConnectionError("refused")
+        self.assertFalse(OllamaOcrService().is_available())
+
+    @patch("ai_document.ocr.requests.post")
+    def test_ocr_image_calls_ollama_with_correct_payload(self, mock_post):
+        """Verify the HTTP request shape: model, prompt, base64 image,
+        stream=False.
+        """
+        from ai_document.ocr import OllamaOcrService
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "response": "  EXTRACTED TEXT  "
+        }
+        mock_post.return_value.raise_for_status = lambda: None
+
+        service = OllamaOcrService(
+            host="http://example.com:11434", model="glm-ocr:latest"
+        )
+        text = service.ocr_image(b"\x89PNG\r\n\x1a\n fake image")
+
+        self.assertEqual(text, "EXTRACTED TEXT")
+        mock_post.assert_called_once()
+        # Check the URL
+        self.assertEqual(
+            mock_post.call_args.args[0],
+            "http://example.com:11434/api/generate",
+        )
+        # Check the payload
+        payload = mock_post.call_args.kwargs["json"]
+        self.assertEqual(payload["model"], "glm-ocr:latest")
+        self.assertEqual(payload["stream"], False)
+        self.assertIn("images", payload)
+        self.assertEqual(len(payload["images"]), 1)
+        # The base64 should decode to our original bytes
+        import base64
+        self.assertEqual(
+            base64.b64decode(payload["images"][0]), b"\x89PNG\r\n\x1a\n fake image"
+        )
+
+    @patch("ai_document.ocr.requests.post")
+    def test_ocr_image_returns_empty_on_http_error(self, mock_post):
+        """Ollama returns 5xx → empty string (caller falls back)."""
+        from ai_document.ocr import OllamaOcrService
+        mock_post.return_value.status_code = 500
+        mock_post.return_value.raise_for_status.side_effect = RuntimeError(
+            "500 server error"
+        )
+        service = OllamaOcrService()
+        self.assertEqual(service.ocr_image(b"x"), "")
+
+    @patch("ai_document.ocr.requests.post")
+    def test_ocr_image_returns_empty_on_connection_error(self, mock_post):
+        """Network down → empty string (caller falls back)."""
+        from ai_document.ocr import OllamaOcrService
+        mock_post.side_effect = ConnectionError("refused")
+        self.assertEqual(OllamaOcrService().ocr_image(b"x"), "")
+
+    def test_ocr_image_empty_bytes_returns_empty(self):
+        """Empty bytes is a no-op — no HTTP call."""
+        from ai_document.ocr import OllamaOcrService
+        with patch("ai_document.ocr.requests.post") as mock_post:
+            self.assertEqual(OllamaOcrService().ocr_image(b""), "")
+            mock_post.assert_not_called()
+
+    @patch("ai_document.ocr.requests.post")
+    def test_ocr_pages_runs_in_parallel(self, mock_post):
+        """5 pages → all are processed; result list has 5 entries in
+        the correct order. We can't easily assert thread count, but
+        we can assert the count and order.
+        """
+        from ai_document.ocr import OllamaOcrService
+
+        def fake_post(*args, **kwargs):
+            # Pull the prompt to figure out which page we're on —
+            # the service uses the same prompt for all pages, so we
+            # just return a unique string per call (call order is
+            # undefined when parallel, so we can't rely on it).
+            r = MagicMock()
+            r.status_code = 200
+            r.json.return_value = {"response": "PAGE_OK"}
+            r.raise_for_status = lambda: None
+            return r
+
+        mock_post.side_effect = fake_post
+
+        service = OllamaOcrService()
+        results = service.ocr_pages([b"img1", b"img2", b"img3", b"img4", b"img5"])
+
+        self.assertEqual(len(results), 5)
+        for r in results:
+            self.assertEqual(r, "PAGE_OK")
+        # 5 calls made (one per page)
+        self.assertEqual(mock_post.call_count, 5)
+
+    @patch("ai_document.ocr.requests.post")
+    def test_ocr_pages_preserves_order(self, mock_post):
+        """Result[i] corresponds to page_images[i], even when the
+        HTTP calls complete out of order.
+
+        We can't reliably identify which response goes with which
+        image (base64 of "AAAA" ≠ "QUFB" — there's padding). Instead
+        we use a counter that records the SUBMIT ORDER of each call,
+        and we make page 0 take the longest so others finish first.
+        Then we assert result[0] is the one submitted first.
+        """
+        from ai_document.ocr import OllamaOcrService
+        import time
+        import threading
+
+        submit_order: list[int] = []
+        submit_lock = threading.Lock()
+
+        def slow_post(*args, **kwargs):
+            # The base64 image is kwargs["json"]["images"][0].
+            # We can use the FIRST FEW chars as a fingerprint that
+            # is unique to each image (different image bytes → different
+            # base64 first chars in practice for any non-trivial image).
+            # For test purposes we know exactly which image we sent,
+            # so we can match on length.
+            b64 = kwargs["json"]["images"][0]
+            # image[0] = 1 byte → b64 length = 4 (no padding)
+            # image[1] = 2 bytes → b64 length = 4
+            # image[2] = 3 bytes → b64 length = 4
+            # image[3] = 4 bytes → b64 length = 8
+            # image[4] = 5 bytes → b64 length = 8
+            # Use the raw image length instead, by encoding again.
+            import base64
+            raw_len = len(base64.b64decode(b64))
+            # Page index = raw_len - 1
+            page_idx = raw_len - 1
+
+            with submit_lock:
+                submit_order.append(page_idx)
+
+            # Reverse-completion: page 0 is the slowest
+            time.sleep(0.05 * (5 - page_idx))
+
+            r = MagicMock()
+            r.status_code = 200
+            r.json.return_value = {"response": f"page{page_idx + 1}"}
+            r.raise_for_status = lambda: None
+            return r
+
+        mock_post.side_effect = slow_post
+
+        service = OllamaOcrService()
+        results = service.ocr_pages(
+            [b"a", b"ab", b"abc", b"abcd", b"abcde"]
+        )
+        # Order: results[i] must match image[i]
+        self.assertEqual(
+            results,
+            ["page1", "page2", "page3", "page4", "page5"],
+        )
+        # Sanity: submit_order should have all 5 indices
+        self.assertEqual(sorted(submit_order), [0, 1, 2, 3, 4])
+
+    def test_ocr_pages_empty_list(self):
+        """Empty input → empty output, no HTTP call."""
+        from ai_document.ocr import OllamaOcrService
+        with patch("ai_document.ocr.requests.post") as mock_post:
+            self.assertEqual(OllamaOcrService().ocr_pages([]), [])
+            mock_post.assert_not_called()
+
+    @patch("ai_document.ocr.requests.post")
+    def test_ocr_pages_combined_skips_empty_pages(self, mock_post):
+        """Per-page empty results are dropped; non-empty joined by
+        default separator.
+        """
+        from ai_document.ocr import OllamaOcrService
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {"response": ""}
+        mock_post.return_value.raise_for_status = lambda: None
+        service = OllamaOcrService()
+        # All pages return empty → combined is empty
+        self.assertEqual(
+            service.ocr_pages_combined([b"a", b"b", b"c"]),
+            "",
+        )
+
+
+class DocumentProcessorOcrFallbackTest(TestCase):
+    """Verify ``DocumentProcessor._ollama_ocr_fallback`` integrates
+    with ``OllamaOcrService`` and is gated by the OCR_ENABLED /
+    OCR_BACKEND settings.
+    """
+
+    def setUp(self):
+        from ai_document.document_processor import DocumentProcessor
+        self.processor = DocumentProcessor()
+
+    @patch("ai_document.ocr.OllamaOcrService")
+    def test_ollama_ocr_returns_text_and_pages(self, mock_service_cls):
+        """Happy path: render 3 pages, OCR returns 3 chunks,
+        combined text returned, backend=ollama.
+        """
+        from django.test import override_settings
+        # Mock the OllamaOcrService instance
+        mock_service = MagicMock()
+        mock_service.is_available.return_value = True
+        mock_service.ocr_pages_combined.return_value = (
+            "PAGE 1 TEXT\n\nPAGE 2 TEXT\n\nPAGE 3 TEXT"
+        )
+        mock_service_cls.return_value = mock_service
+
+        # Mock PyMuPDF
+        with patch("ai_document.document_processor.fitz") as mock_fitz:
+            mock_doc = MagicMock()
+            mock_doc.__len__ = lambda self: 3
+            mock_doc.__iter__ = lambda self: iter(range(3))
+            mock_doc.load_page.return_value.get_pixmap.return_value.tobytes.return_value = (
+                b"fake-png-bytes"
+            )
+            mock_fitz.open.return_value = mock_doc
+            mock_fitz.Matrix.return_value = MagicMock()
+
+            with override_settings(
+                OCR_MAX_PAGES=10,
+                OCR_RENDER_DPI=150,
+            ):
+                result = self.processor._ollama_ocr_fallback("/tmp/test.pdf")
+
+        self.assertEqual(result["backend"], "ollama")
+        self.assertEqual(result["pages"], 3)
+        self.assertIn("PAGE 1 TEXT", result["text"])
+        # OCR service was checked
+        mock_service.is_available.assert_called_once()
+        # Combined OCR was called
+        mock_service.ocr_pages_combined.assert_called_once()
+
+    @patch("ai_document.ocr.OllamaOcrService")
+    def test_ollama_ocr_skipped_when_unavailable(self, mock_service_cls):
+        """Ollama down / model missing → empty result, no exception."""
+        mock_service = MagicMock()
+        mock_service.is_available.return_value = False
+        mock_service_cls.return_value = mock_service
+
+        result = self.processor._ollama_ocr_fallback("/tmp/test.pdf")
+        self.assertEqual(result, {"text": "", "pages": 0, "backend": "ollama"})
+
+    def test_ocr_disabled_short_circuits(self):
+        """``OCR_ENABLED=False`` → both backends skipped entirely."""
+        from django.test import override_settings
+        with override_settings(OCR_ENABLED=False):
+            result = self.processor._ocr_fallback("/tmp/test.pdf")
+        self.assertEqual(result, {"text": "", "pages": 0, "backend": None})
+
+    @patch("ai_document.ocr.OllamaOcrService")
+    def test_ollama_empty_text_falls_through_to_gemini(self, mock_service_cls):
+        """When backend=ollama but Ollama returns empty, _ocr_fallback
+        tries Gemini. (We mock Gemini to return empty too so the test
+        doesn't depend on the actual google-generativeai import.)
+        """
+        from django.test import override_settings
+        mock_service = MagicMock()
+        mock_service.is_available.return_value = True
+        mock_service.ocr_pages_combined.return_value = ""
+        mock_service_cls.return_value = mock_service
+
+        with override_settings(OCR_BACKEND="ollama"):
+            with patch.object(
+                self.processor, "_gemini_ocr_fallback",
+                return_value={"text": "", "pages": 0, "backend": "gemini"},
+            ) as mock_gemini:
+                result = self.processor._ocr_fallback("/tmp/test.pdf")
+
+        mock_gemini.assert_called_once()
+        self.assertEqual(result["backend"], "gemini")
+        self.assertEqual(result["text"], "")
+
+    @patch("ai_document.ocr.OllamaOcrService")
+    def test_ollama_success_skips_gemini(self, mock_service_cls):
+        """When backend=ollama and Ollama returns text, Gemini is
+        never called.
+        """
+        from django.test import override_settings
+        mock_service = MagicMock()
+        mock_service.is_available.return_value = True
+        mock_service.ocr_pages_combined.return_value = "EXTRACTED"
+        mock_service_cls.return_value = mock_service
+
+        # Mock PyMuPDF (the file doesn't actually exist)
+        with patch("ai_document.document_processor.fitz") as mock_fitz:
+            mock_doc = MagicMock()
+            mock_doc.__len__ = lambda self: 2
+            mock_doc.__iter__ = lambda self: iter(range(2))
+            mock_doc.load_page.return_value.get_pixmap.return_value.tobytes.return_value = (
+                b"fake"
+            )
+            mock_fitz.open.return_value = mock_doc
+            mock_fitz.Matrix.return_value = MagicMock()
+
+            with override_settings(OCR_BACKEND="ollama"):
+                with patch.object(
+                    self.processor, "_gemini_ocr_fallback",
+                ) as mock_gemini:
+                    result = self.processor._ocr_fallback("/tmp/test.pdf")
+
+        mock_gemini.assert_not_called()
+        self.assertEqual(result["backend"], "ollama")
+        self.assertEqual(result["text"], "EXTRACTED")
+
+
+class DocumentUploadViewOcrResponseTest(AdminAPITestCase):
+    """The /ai/upload/ response now includes ``ocr`` meta. Verify it's
+    always present, even when no OCR was applied.
+    """
+
+    def setUp(self):
+        AdminAPITestCase.setUp(self)
+        self.url = "/ai/upload/"
+
+    def _pdf(self, name="cv.pdf"):
+        return SimpleUploadedFile(
+            name, b"%PDF-1.4 fake", content_type="application/pdf"
+        )
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_ocr_meta_in_response_when_processor_reports_it(
+        self, mock_processor_cls, mock_extractor_cls, mock_save,
+    ):
+        """Mock DocumentProcessor to set ocr_applied=True and
+        ocr_backend=ollama. The view should pass these through to
+        the response under the ``ocr`` key.
+        """
+        from ai_document.extractors import ErrorCode
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "OCR'd text from the scan",
+            "tables": [],
+            "ocr_applied": True,
+            "ocr_pages_processed": 3,
+            "ocr_backend": "ollama",
+        }
+        mock_processor_cls.return_value = mock_proc
+
+        det_result = MagicMock()
+        det_result.ok = True
+        det_result.extractor = "sakr_template"
+        det_result.confidence = 0.95
+        det_result.data = {"1_personal_details": {"full_name": "OCR USER"}}
+        det_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = det_result
+        mock_save.return_value = (1, 2)
+
+        response = self.client.post(
+            self.url, {"file": self._pdf()}, format="multipart"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("ocr", response.data)
+        self.assertTrue(response.data["ocr"]["ocr_applied"])
+        self.assertEqual(response.data["ocr"]["ocr_pages_processed"], 3)
+        self.assertEqual(response.data["ocr"]["ocr_backend"], "ollama")
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_ocr_meta_defaults_when_processor_omits_keys(
+        self, mock_processor_cls, mock_extractor_cls, mock_save,
+    ):
+        """If the processor dict doesn't have the OCR keys (e.g. an
+        older fixture or a custom processor), the view still
+        returns a well-formed ``ocr`` block with safe defaults.
+        """
+        from ai_document.extractors import ErrorCode
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "Sakr form text",
+            "tables": [],
+            # No ocr_* keys — backward-compat test
+        }
+        mock_processor_cls.return_value = mock_proc
+
+        det_result = MagicMock()
+        det_result.ok = True
+        det_result.extractor = "sakr_template"
+        det_result.confidence = 0.95
+        det_result.data = {"1_personal_details": {"full_name": "X"}}
+        det_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = det_result
+        mock_save.return_value = (1, 2)
+
+        response = self.client.post(
+            self.url, {"file": self._pdf()}, format="multipart"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("ocr", response.data)
+        self.assertFalse(response.data["ocr"]["ocr_applied"])
+        self.assertEqual(response.data["ocr"]["ocr_pages_processed"], 0)
+        self.assertIsNone(response.data["ocr"]["ocr_backend"])
+
+
 class ParseOnlyViewAuthTest(APITestCase):
     """Auth checks for the admin-only /ai/parse/ endpoint.
 

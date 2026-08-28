@@ -3667,6 +3667,18 @@ class DocumentUploadView(APIView):
 
             text = proc_result.get("extracted_text", "") or ""
             tables = proc_result.get("tables", []) or []
+            # OCR meta from DocumentProcessor. The processor already
+            # ran OCR (via Ollama or Gemini) when the regular text
+            # extractor found very little. We pass this through to
+            # the response so the client can see whether OCR kicked
+            # in for this CV.
+            ocr_meta = {
+                "ocr_applied": bool(proc_result.get("ocr_applied")),
+                "ocr_pages_processed": int(
+                    proc_result.get("ocr_pages_processed") or 0
+                ),
+                "ocr_backend": proc_result.get("ocr_backend"),
+            }
 
             # --- 2. Try deterministic extractor first ----------------
             result_data = None
@@ -3803,6 +3815,11 @@ class DocumentUploadView(APIView):
                 "data": result_data,
                 "warnings": warnings,
                 "file_name": file.name,
+                # OCR meta — useful when the original file was a
+                # scanned PDF and the LLM/deterministic parser was
+                # fed text from the OCR fallback rather than the
+                # native PDF text layer.
+                "ocr": ocr_meta,
             }
 
             # --- 5. Persist (optional) -------------------------------
@@ -4518,6 +4535,13 @@ class ParseOnlyView(APIView):
 
             text = proc_result.get("extracted_text", "") or ""
             tables = proc_result.get("tables", []) or []
+            ocr_meta = {
+                "ocr_applied": bool(proc_result.get("ocr_applied")),
+                "ocr_pages_processed": int(
+                    proc_result.get("ocr_pages_processed") or 0
+                ),
+                "ocr_backend": proc_result.get("ocr_backend"),
+            }
 
             extractor = SakrTemplateExtractor()
             result = extractor.extract(text, tables)
@@ -4541,6 +4565,7 @@ class ParseOnlyView(APIView):
                 "data": result.data,
                 "warnings": list(result.warnings),
                 "file_name": file.name,
+                "ocr": ocr_meta,
             }
 
             if save_to_db:

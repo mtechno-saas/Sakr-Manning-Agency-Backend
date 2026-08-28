@@ -363,6 +363,42 @@ OLLAMA_MODEL = _os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
 # want to gate this on a feature flag.
 OLLAMA_TIMEOUT_SECONDS = int(_os.environ.get("OLLAMA_TIMEOUT_SECONDS", "60"))
 
+# ----------------------------------------------------------------------------
+# OCR (Optical Character Recognition) for image-based PDFs / DOCX images
+# ----------------------------------------------------------------------------
+# The DocumentProcessor uses this when the normal text extractor finds very
+# little text in a PDF (likely a scanned document) or when a DOCX has images
+# that need to be transcribed.
+#
+# Two backends are supported:
+#   * ollama — local Ollama vision model (default; free, private)
+#   * gemini — Google Gemini 1.5/2.5 Flash (cloud, costs API quota)
+#
+# Recommended models for the ollama backend:
+#   glm-ocr:latest       2.2 GB  ← default, dedicated OCR model
+#   llava:7b             4.7 GB  ← general VLM, decent OCR
+#   qwen2-vl:7b          ~5 GB   ← excellent accuracy, larger
+#
+# To enable OCR on the prod server, the Ollama model must be pulled:
+#   ollama pull glm-ocr:latest
+OCR_ENABLED = _os.environ.get("OCR_ENABLED", "true").lower() != "false"
+# Which backend to use: "ollama" (default) | "gemini"
+OCR_BACKEND = _os.environ.get("OCR_BACKEND", "ollama").lower()
+# Vision model to call when backend=ollama.
+OCR_MODEL = _os.environ.get("OCR_MODEL", "glm-ocr:latest")
+# Word count below which a PDF is considered "scanned" and OCR is triggered.
+# (Existing constant: MIN_WORDS_FOR_TEXT_PDF = 30 lives in document_processor.py)
+OCR_MIN_WORDS = int(_os.environ.get("OCR_MIN_WORDS", "30"))
+# Maximum pages to OCR in a single request. 24-page seaman books take ~30s
+# with 4 parallel workers; cap to avoid runaway processing on huge docs.
+OCR_MAX_PAGES = int(_os.environ.get("OCR_MAX_PAGES", "10"))
+# Per-page timeout. OCR a single page with 1.1B glm-ocr is 1-3s on CPU.
+OCR_TIMEOUT_SECONDS = int(_os.environ.get("OCR_TIMEOUT_SECONDS", "60"))
+# Number of parallel OCR requests when multi-page.
+OCR_PARALLEL_WORKERS = int(_os.environ.get("OCR_PARALLEL_WORKERS", "4"))
+# DPI for rendering PDF pages to images before OCR. 150 is a good balance.
+OCR_RENDER_DPI = int(_os.environ.get("OCR_RENDER_DPI", "150"))
+
 # Email service for seafarer phone-verification (OTP). The system
 # sends the OTP to the seafarer's email address (on file from the CV).
 # Default is api.email.DjangoSMTPEmailService, which dispatches via
