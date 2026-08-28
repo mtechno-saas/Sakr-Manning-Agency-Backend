@@ -136,52 +136,97 @@ def _parse_groq_reset_time(error_message: str) -> float:
         return time.time() + (h * 3600) + (m * 60) + s
     return time.time() + 3600
 
+def _extract_json_from_text(text: str) -> str:
+    """Extract a JSON object from a free-text LLM response.
+
+    Handles these shapes:
+      - raw JSON:  {"full_name": "..."}
+      - fenced:    ```json\\n{...}\\n```
+      - prose:     "Here is the JSON: {...}"  (first { ... last } wins)
+    """
+    if not text:
+        return ""
+    s = text.strip()
+    # Strip ```json ... ``` or ``` ... ``` fences
+    fence = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", s, re.DOTALL)
+    if fence:
+        return fence.group(1)
+    # Otherwise grab the outermost {...} block
+    first = s.find("{")
+    last = s.rfind("}")
+    if first != -1 and last != -1 and last > first:
+        return s[first:last + 1]
+    return s
+
+
 def _call_llm_with_retry(prompt: str, schema: type, api_keys_config: dict, max_retries: int = 3):
+    """Call the LLM and parse the response into a Pydantic model.
+
+    Why this doesn't use `with_structured_output`:
+      Some Groq models (notably the openai/gpt-oss-120b default) wrap
+      their JSON output in markdown code fences or just emit prose +
+      JSON, rather than using the requested tool. LangChain's
+      `with_structured_output` requires an actual tool call, so
+      `openai/gpt-oss-120b` returns:
+          "Tool choice is required, but model did not call a tool"
+      even though the LLM extracted the right data.
+
+    The fix below calls the LLM directly (no tool required), extracts
+    the JSON from the text response, then validates with Pydantic.
+    Works for every model — Ollama, Groq, Gemini.
+    """
     last_exc = None
     retries = 0
-    
+
     while True:
         llm, source = _get_active_llm(api_keys_config)
         if not llm:
             if last_exc:
-                raise Exception("exhausted") from last_exc
-            raise Exception("exhausted")
-            
-        try:
-            structured_llm = llm.with_structured_output(schema, include_raw=True)
-            res = structured_llm.invoke(prompt)
-            
-            if isinstance(res, schema):
-                parsed = res
-            elif hasattr(res, 'parsed'):
-                parsed = res.parsed
-            elif isinstance(res, dict):
-                parsed = res.get('parsed')
-            else:
-                parsed = res
-                
-            if parsed is None:
-                raise Exception("Parsing error: LLM failed to return structured data")
+                raise Exception("LLM providers exhausted") from last_exc
+            raise Exception("LLM providers exhausted")
 
-            # Extract token usage from the raw response
+        try:
+            # 1. Call the LLM directly (no with_structured_output)
+            response = llm.invoke(prompt)
+            # AIMessage has .content; ChatResult has .generations; both
+            # have something we can pull a string from.
+            text = getattr(response, "content", None) or str(response)
+
+            # 2. Extract the JSON object from the text
+            json_str = _extract_json_from_text(text)
+            if not json_str:
+                raise Exception("LLM response contained no JSON object")
+
+            # 3. Parse JSON
             try:
-                if isinstance(res, dict) and 'raw' in res:
-                    usage = res['raw'].response_metadata.get('token_usage', {})
-                    total_tokens = usage.get('total_tokens', 0)
-                    if total_tokens > 0:
-                        provider = source.get('provider', 'groq')
-                        token_key = f"{provider}_tokens"
-                        api_keys_config[token_key] = api_keys_config.get(token_key, 0) + total_tokens
+                raw = json.loads(json_str)
+            except json.JSONDecodeError as exc:
+                raise Exception(f"LLM response is not valid JSON: {exc}") from exc
+
+            # 4. Validate with Pydantic (now permissive — fields have defaults)
+            try:
+                parsed = schema(**raw)
+            except Exception as exc:
+                raise Exception(f"LLM JSON did not match schema: {exc}") from exc
+
+            # 5. Token accounting + last_active (best-effort)
+            try:
+                usage = getattr(response, "response_metadata", {}) or {}
+                usage = usage.get("token_usage", {}) or usage.get("usage", {}) or {}
+                total_tokens = usage.get("total_tokens", 0)
+                if total_tokens > 0:
+                    provider = source.get("provider", "groq")
+                    token_key = f"{provider}_tokens"
+                    api_keys_config[token_key] = api_keys_config.get(token_key, 0) + total_tokens
             except Exception:
                 pass
-            
-            # Record last active info
-            key_val = source.get('key', '')
+
+            key_val = source.get("key", "")
             masked_key = key_val[:8] + "..." if key_val else ""
-            api_keys_config['last_active'] = {
-                'model': source.get('model'),
-                'provider': source.get('provider'),
-                'key': masked_key
+            api_keys_config["last_active"] = {
+                "model": source.get("model"),
+                "provider": source.get("provider"),
+                "key": masked_key,
             }
 
             return parsed
@@ -194,11 +239,11 @@ def _call_llm_with_retry(prompt: str, schema: type, api_keys_config: dict, max_r
                     api_keys_config["groq"][source["index"]]["status"] = "exhausted"
                     api_keys_config["groq"][source["index"]]["reset_time"] = reset_time
                     print(f"[Rate-limit] Groq key {source['index']} exhausted. Resets at {reset_time}.")
-                    continue 
+                    continue
                 else:
                     print("[Rate-limit] Gemini key exhausted.")
                     api_keys_config["gemini_exhausted"] = True
-                    continue 
+                    continue
             else:
                 retries += 1
                 if retries > max_retries:
