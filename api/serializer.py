@@ -545,13 +545,18 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         model = CVSubmission
         fields = [
             'id', 'user', 'user_name', 'user_first_name', 'user_middle_name',
-            'user_email', 'user_phone', 'user_email_display', 'profile_image', 'company', 'company_name', 'company_name_input',
-            'ship', 'ship_name', 'ship_details', 'ship_name_input',
-            'position', 'position_name', 'position_name_input',
+            'user_email', 'user_phone', 'user_email_display', 'profile_image',
+            # The four FK-as-string fields below (position, company, ship,
+            # reviewed_by) are populated in to_representation() — see the
+            # comment there. The *_id siblings preserve the original FK
+            # int for any client that still needs it for PATCH/DELETE.
+            'company', 'company_id', 'company_name', 'company_name_input',
+            'ship', 'ship_id', 'ship_name', 'ship_details', 'ship_name_input',
+            'position', 'position_id', 'position_name', 'position_name_input',
             'cv_file', 'cover_letter', 'experience_years',
             'expected_salary', 'availability_date',
             'status', 'submitted_date',
-            'reviewed_by', 'reviewed_by_name', 'reviewed_by_name_display', 'reviewed_date',
+            'reviewed_by', 'reviewed_by_id', 'reviewed_by_name', 'reviewed_by_name_display', 'reviewed_date',
             'notes', 'rating', 'created_at', 'updated_at',
             'generated_id', 'salary', 'salary_display', 'available_date', 'coded_rank', 'coded_rank_input',
             'rank_code', 'assigned_code',
@@ -590,27 +595,73 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                 ret['cv_file'] = request.build_absolute_uri(path)
             else:
                 ret['cv_file'] = path
+
+        # Replace FK-id fields with the linked row's display name so
+        # the frontend can render dropdowns / labels directly. The
+        # original FK id is preserved in a sibling ``*_id`` field for
+        # any client that still needs it (e.g. for PATCH/DELETE).
+        #
+        # The previous shape was:
+        #   "position": 7,         "position_name": "Master"
+        # The new shape is:
+        #   "position": "Master",   "position_id": 7
+        #
+        # All four FK fields below follow the same pattern. ``None``
+        # stays ``None`` (no linked row → no name to render).
+        if instance.position_id:
+            ret['position'] = instance.position.name
+            ret['position_id'] = instance.position_id
+        else:
+            ret['position'] = None
+            ret['position_id'] = None
+        if instance.company_id:
+            ret['company'] = instance.company.company_name
+            ret['company_id'] = instance.company_id
+        else:
+            ret['company'] = None
+            ret['company_id'] = None
+        if instance.ship_id:
+            ret['ship'] = instance.ship.ship_name
+            ret['ship_id'] = instance.ship_id
+        else:
+            ret['ship'] = None
+            ret['ship_id'] = None
+        if instance.reviewed_by_id:
+            ret['reviewed_by'] = instance.reviewed_by.full_name
+            ret['reviewed_by_id'] = instance.reviewed_by_id
+        else:
+            ret['reviewed_by'] = None
+            ret['reviewed_by_id'] = None
+
         return ret
 
     def to_internal_value(self, data):
-        # Allow 'position' to be passed as a string (name) or an ID
-        if 'position' in data:
-            pos_val = data['position']
-            if isinstance(pos_val, str) and not pos_val.isdigit():
-                from api.models import Rank, RANKS
-                rank = Rank.objects.filter(name__iexact=pos_val).first()
+        # Allow the FK fields to be passed as a string (name) or an ID
+        # in either the FK field or its sibling *_id field. Strings
+        # are looked up by name; numerics (or digit-only strings) are
+        # treated as the FK id.
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        else:
+            data = dict(data)
+
+        # ---- position (Rank) ----
+        pos_val = data.get('position')
+        pos_id_val = data.get('position_id')
+        if pos_val is not None or pos_id_val is not None:
+            source = pos_id_val if pos_id_val is not None else pos_val
+            from api.models import Rank, RANKS
+            if isinstance(source, str) and not source.isdigit():
+                rank = Rank.objects.filter(name__iexact=source).first()
                 if not rank:
-                    # Try partial/contains match in DB
-                    rank = Rank.objects.filter(name__icontains=pos_val).first()
+                    rank = Rank.objects.filter(name__icontains=source).first()
                 if not rank:
                     code = None
-                    pos_lower = pos_val.lower().strip()
-                    # 1) Exact match against RANKS list
+                    pos_lower = source.lower().strip()
                     for c, n in RANKS:
                         if n.lower().strip() == pos_lower:
                             code = c
                             break
-                    # 2) Partial/contains match
                     if not code:
                         for c, n in RANKS:
                             if pos_lower in n.lower() or n.lower() in pos_lower:
@@ -619,30 +670,83 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
                     if not code:
                         import uuid
                         code = f"CUS-{str(uuid.uuid4())[:6].upper()}"
-                    # Use canonical RANKS name if found
-                    rank_name = pos_val
+                    rank_name = source
                     for c, n in RANKS:
                         if c == code:
                             rank_name = n
                             break
-                    rank, _ = Rank.objects.get_or_create(code=code, defaults={'name': rank_name})
-
-                if hasattr(data, 'copy'):
-                    data = data.copy()
-                else:
-                    data = dict(data)
+                    rank, _ = Rank.objects.get_or_create(
+                        code=code, defaults={'name': rank_name}
+                    )
                 data['position'] = rank.id
+                data.pop('position_id', None)
+
+        # ---- company (Company) ----
+        company_val = data.get('company')
+        company_id_val = data.get('company_id')
+        if company_val is not None or company_id_val is not None:
+            source = company_id_val if company_id_val is not None else company_val
+            from companies.models import Company
+            if isinstance(source, str) and not source.isdigit():
+                company = Company.objects.filter(company_name__iexact=source).first()
+                if not company:
+                    company = Company.objects.filter(company_name__icontains=source).first()
+                if not company:
+                    raise serializers.ValidationError(
+                        {"company": f"No company found matching {source!r}. "
+                                   f"Create the company first via /api/companies/."}
+                    )
+                data['company'] = company.id
+                data.pop('company_id', None)
+
+        # ---- ship (Ship) ----
+        ship_val = data.get('ship')
+        ship_id_val = data.get('ship_id')
+        if ship_val is not None or ship_id_val is not None:
+            source = ship_id_val if ship_id_val is not None else ship_val
+            from ships.models import Ship
+            if isinstance(source, str) and not source.isdigit():
+                ship = Ship.objects.filter(ship_name__iexact=source).first()
+                if not ship:
+                    ship = Ship.objects.filter(ship_name__icontains=source).first()
+                if not ship:
+                    raise serializers.ValidationError(
+                        {"ship": f"No ship found matching {source!r}. "
+                                 f"Create the ship first via /api/ships/."}
+                    )
+                data['ship'] = ship.id
+                data.pop('ship_id', None)
+
+        # ---- reviewed_by (Users) ----
+        rb_val = data.get('reviewed_by')
+        rb_id_val = data.get('reviewed_by_id')
+        if rb_val is not None or rb_id_val is not None:
+            source = rb_id_val if rb_id_val is not None else rb_val
+            from api.models import Users
+            if isinstance(source, str) and not source.isdigit():
+                # Look up by email first, then by full_name / first_name.
+                user = Users.objects.filter(email__iexact=source).first()
+                if not user:
+                    user = Users.objects.filter(
+                        first_name__iexact=source
+                    ).first()
+                if not user:
+                    user = Users.objects.filter(
+                        first_name__icontains=source
+                    ).first()
+                if not user:
+                    raise serializers.ValidationError(
+                        {"reviewed_by": f"No user found matching {source!r}."}
+                    )
+                data['reviewed_by'] = user.id
+                data.pop('reviewed_by_id', None)
 
         # Auto-fill company and position if job_position is provided
         if 'job_position' in data and data['job_position']:
             from companies.models import JobOrderPosition
             try:
                 job_pos = JobOrderPosition.objects.get(id=data['job_position'])
-                if hasattr(data, 'copy'):
-                    data = data.copy()
-                else:
-                    data = dict(data)
-                
+
                 if 'company' not in data and job_pos.job_order and job_pos.job_order.company:
                     data['company'] = job_pos.job_order.company.id
                 if 'position' not in data and job_pos.rank:

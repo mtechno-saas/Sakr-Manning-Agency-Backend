@@ -3001,6 +3001,264 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
         )
 
 
+# ============================================================================
+# CVSubmission FK fields return strings (for dropdown UIs)
+# ============================================================================
+#
+# The Admin UI needs dropdown menus for position/company/ship/etc.
+# To keep the frontend simple, the API returns the display name
+# (string) directly in those fields, not the FK id. The original
+# FK id is preserved in a sibling ``*_id`` field for clients that
+# still need it (e.g. for PATCH/DELETE).
+#
+# Old shape:  {"position": 7,      "position_name": "Master"}
+# New shape:  {"position": "Master", "position_id": 7}
+#
+# The input side mirrors this: the FK fields accept either a string
+# (name) or an int (id) in the body. The look-up is by name when
+# a non-digit string is provided, by id when an int / digit string
+# is provided.
+
+
+class CVSubmissionFKStringFieldsTests(APITestCase):
+    """FK fields (position/company/ship/reviewed_by) are returned
+    as strings in the CVSubmission response, and accept strings on
+    input.
+    """
+
+    def setUp(self):
+        from api.models import Users, Rank
+        from companies.models import Company
+        from ships.models import Ship
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        self.admin = Users.objects.create_user(
+            email="admin@sakrshipping.com",
+            password="adminpass",
+            first_name="Admin",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        # Seed reference data — positions, companies, ships, reviewer.
+        self.position = Rank.objects.create(
+            name="Master", code="MAS-TEST"
+        )
+        self.company = Company.objects.create(
+            company_name="Test Shipping Co",
+        )
+        # Ship requires a ship_type and flag; create minimal stubs.
+        from core.models import VesselType, Flag
+        vtype, _ = VesselType.objects.get_or_create(name="Cargo Ship")
+        flag, _ = Flag.objects.get_or_create(name="Test Flag")
+        from ships.models import Ship
+        self.ship = Ship.objects.create(
+            ship_name="MV Test Vessel",
+            ship_type=vtype,
+            flag=flag,
+            imo_number="1234567",
+        )
+
+        # Seafarer.
+        self.seafarer = Users.objects.create_user(
+            email="seafarer@sakrshipping.com",
+            password="x",
+            first_name="MOHAMED",
+        )
+        self.seafarer.role = "Employee"
+        self.seafarer.save()
+
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+        self.url = "/api/cv-submissions/"
+
+    def test_response_uses_string_names_for_fk_fields(self):
+        # POST with FK ids, then GET — the response should echo back
+        # string names for position/company/ship/reviewed_by, with
+        # the original ids in the sibling *_id fields.
+        from api.models import CVSubmission
+
+        # Set reviewed_by to the admin.
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "position": self.position.id,
+                "company": self.company.id,
+                "ship": self.ship.id,
+                "reviewed_by": self.admin.id,
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+
+        # The FK fields are now strings, not ids.
+        self.assertEqual(resp.data["position"], "Master")
+        self.assertEqual(resp.data["company"], "Test Shipping Co")
+        self.assertEqual(resp.data["ship"], "MV Test Vessel")
+        # reviewed_by uses full_name which includes first/middle/last.
+        self.assertIn("Admin", resp.data["reviewed_by"])
+        # The *_id siblings hold the original FK id.
+        self.assertEqual(resp.data["position_id"], self.position.id)
+        self.assertEqual(resp.data["company_id"], self.company.id)
+        self.assertEqual(resp.data["ship_id"], self.ship.id)
+        self.assertEqual(resp.data["reviewed_by_id"], self.admin.id)
+
+    def test_response_with_null_fk_fields(self):
+        # When the FK fields are NULL (no linked row), the response
+        # fields are None — not "None" or 0 or anything else.
+        from api.models import CVSubmission
+        resp = self.client.post(
+            self.url,
+            {"user": self.seafarer.id, "status": "Pending"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        self.assertIsNone(resp.data["position"])
+        self.assertIsNone(resp.data["company"])
+        self.assertIsNone(resp.data["ship"])
+        self.assertIsNone(resp.data["reviewed_by"])
+        self.assertIsNone(resp.data["position_id"])
+        self.assertIsNone(resp.data["company_id"])
+        self.assertIsNone(resp.data["ship_id"])
+        self.assertIsNone(resp.data["reviewed_by_id"])
+
+    def test_post_accepts_string_position(self):
+        # The frontend can submit a string name for position and the
+        # backend looks it up by name (no id required).
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "position": "Master",
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        self.assertEqual(resp.data["position"], "Master")
+        self.assertEqual(resp.data["position_id"], self.position.id)
+
+    def test_post_accepts_string_company(self):
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "company": "Test Shipping Co",
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        self.assertEqual(resp.data["company"], "Test Shipping Co")
+        self.assertEqual(resp.data["company_id"], self.company.id)
+
+    def test_post_accepts_string_ship(self):
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "ship": "MV Test Vessel",
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        self.assertEqual(resp.data["ship"], "MV Test Vessel")
+        self.assertEqual(resp.data["ship_id"], self.ship.id)
+
+    def test_post_accepts_string_reviewed_by_by_email(self):
+        # reviewed_by can also be a string (email match).
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "reviewed_by": "admin@sakrshipping.com",
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        self.assertEqual(resp.data["reviewed_by_id"], self.admin.id)
+
+    def test_post_accepts_string_reviewed_by_by_first_name(self):
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "reviewed_by": "Admin",
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        self.assertEqual(resp.data["reviewed_by_id"], self.admin.id)
+
+    def test_post_unknown_company_returns_400(self):
+        # Strings that don't match any company return 400 with a
+        # helpful error.
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "company": "Nonexistent Shipping Co",
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("company", resp.data)
+        self.assertIn("Nonexistent", str(resp.data["company"]))
+
+    def test_post_unknown_ship_returns_400(self):
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "ship": "MV Ghost Vessel",
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("ship", resp.data)
+
+    def test_post_unknown_reviewed_by_returns_400(self):
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "reviewed_by": "nobody@nowhere.com",
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("reviewed_by", resp.data)
+
+    def test_post_id_still_works_for_backward_compatibility(self):
+        # Clients that pass the FK id directly (the old shape) still
+        # work — the serializer accepts both shapes.
+        resp = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "position": self.position.id,  # int, not string
+                "company": self.company.id,
+                "ship": self.ship.id,
+                "status": "Pending",
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        self.assertEqual(resp.data["position"], "Master")
+        self.assertEqual(resp.data["position_id"], self.position.id)
+
+
 class EmailServiceSendPasswordLinkTests(TestCase):
     """Unit tests for the new send_set_password_link method on both
     EmailService implementations.

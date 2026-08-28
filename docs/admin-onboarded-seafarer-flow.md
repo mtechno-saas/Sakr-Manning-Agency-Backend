@@ -53,6 +53,19 @@ The default email backend is `DjangoSMTPEmailService` (uses the project's Gmail 
 
 Default `FRONTEND_SET_PASSWORD_URL` is `https://sakrshipping.com/set-password` (env-overridable). The frontend dev renders the "set new password" form at this path.
 
+### Dropdowns — list endpoints (for the Admin UI)
+
+The Admin UI needs dropdowns for `position`, `company`, `ship`. The backend already exposes dropdown-friendly list endpoints — they return `[{value, label, code}]` shaped objects so the frontend can build a `<select>` directly:
+
+| Method | URL | Response shape | Use case |
+|---|---|---|---|
+| GET | `/api/positions/` | `[{value: <id>, label: "Master", code: "MAS"}, ...]` | Position dropdown |
+| GET | `/api/companies/` | `[{id, company_name, ...}, ...]` | Company dropdown (use `company_name` as the label) |
+| GET | `/api/ships/` | `[{id, ship_name, ...}, ...]` | Ship dropdown (use `ship_name` as the label) |
+| GET | `/api/users/users/?role=Admin` | `[{id, first_name, last_name, ...}, ...]` | Reviewer dropdown (use `first_name + last_name` as the label) |
+
+The frontend can then `POST /api/cv-submissions/` with the picked label (string) — the backend resolves it to the FK id automatically (see Step A2 above). No need to look up the id client-side.
+
 ---
 
 ## Admin side flow
@@ -137,15 +150,56 @@ curl -X POST "https://backend.sakrshipping.com/api/cv-submissions/" \
 {
   "id": 99,
   "user": 42,
+  "user_name": "MOHAMED SHEHATA",
   "status": "Pending",
-  "position": 7,
-  "company": 3,
+  "position": "Master",
+  "position_id": 7,
+  "position_name": "Master",
+  "company": "Test Shipping Co",
+  "company_id": 3,
+  "company_name": "Test Shipping Co",
+  "ship": "MV Test Vessel",
+  "ship_id": 12,
+  "ship_name": "MV Test Vessel",
+  "reviewed_by": "Admin User",
+  "reviewed_by_id": 1,
   "expected_salary": null,
   "availability_date": null,
   "created_at": "2026-08-27T20:30:00Z",
   "updated_at": "2026-08-27T20:30:00Z"
 }
 ```
+
+**Important — FK fields are now strings, not IDs.** The Admin's dropdown UIs need labels (names), not database primary keys. So `position`, `company`, `ship`, and `reviewed_by` are all returned as the linked row's display name (string). The original FK int is preserved in a sibling `*_id` field for any client that needs it (e.g. for `PATCH`/`DELETE` or internal joins).
+
+| Field | Type | Example | Source |
+|---|---|---|---|
+| `position` | string | `"Master"` | `Rank.name` |
+| `position_id` | int | `7` | `Rank.id` (kept for backward compat) |
+| `company` | string | `"Test Shipping Co"` | `Company.company_name` |
+| `company_id` | int | `3` | `Company.id` |
+| `ship` | string | `"MV Test Vessel"` | `Ship.ship_name` |
+| `ship_id` | int | `12` | `Ship.id` |
+| `reviewed_by` | string | `"Admin User"` | `Users.full_name` (first + middle) |
+| `reviewed_by_id` | int | `1` | `Users.id` |
+| `user` | int | `42` | `Users.id` (unchanged — admin UI lists seafarers by name separately) |
+| `user_name` | string | `"MOHAMED SHEHATA"` | `Users.full_name` |
+
+The `*_name` sibling fields (`position_name`, `company_name`, `ship_name`, `reviewed_by_name_display`) are kept for backward compat and now duplicate the same string as the main field. New clients should use the main field.
+
+**Input is also string-friendly.** The Admin can POST these fields as either the display name (string) or the FK id (int). Examples:
+
+```json
+{ "position": "Master",  "company": "Test Shipping Co",  "ship": "MV Test Vessel" }
+```
+
+or
+
+```json
+{ "position": 7,         "company": 3,                    "ship": 12 }
+```
+
+The backend looks up by name when a non-digit string is provided, and by id when an int / digit string is provided. Unknown strings return 400 with a clear error like `"No company found matching 'X'. Create the company first via /api/companies/."`.
 
 **Side effect (silent, async-safe):**
 
@@ -387,13 +441,14 @@ The `CVPermission` on `POST /api/cv-submissions/` lets Recruiters POST (with lim
 - `api/email.py` — extended `EmailService` protocol with `send_set_password_link(to_email, link, ttl_hours)`. Both `ConsoleEmailService` and `DjangoSMTPEmailService` implement it.
 - `api/serializer.py` — added `user_phone` write-only field to `CVSubmissionSerializer` (used by the auto-create flow).
 - `api/views.py` — new `build_set_password_link(user)` helper, `SetPasswordConfirmView` (POST `/api/auth/set-password-confirm/`), `dispatch_welcome_email(user)` helper. `CVSubmissionViewSet.perform_create` rewritten to support three identification paths: `'user'` FK, `'user_email'` look-up-by-email, or auto-create from `user_email + user_first_name + user_middle_name + user_phone` (default password = phone). Welcome email dispatched after every CVSubmission create.
+- `api/serializer.py` — `CVSubmissionSerializer` now returns the linked row's display name (string) in `position`, `company`, `ship`, `reviewed_by` instead of the FK id. The original int is preserved in sibling `*_id` fields. Input accepts either the string name or the int id. The legacy `*_name` fields are kept for backward compat.
 - `api/urls.py` — wires `/api/auth/set-password-confirm/`
-- `api/tests.py` — 21 new tests (SetPasswordMagicLinkTests + EmailServiceSendPasswordLinkTests + CVSubmissionAutoCreateUserTests) + 2 existing OTP-dispatch tests got `@override_settings(EMAIL_SERVICE=ConsoleEmailService)` to keep passing under the new default
+- `api/tests.py` — 32 new tests (SetPasswordMagicLinkTests + EmailServiceSendPasswordLinkTests + CVSubmissionAutoCreateUserTests + CVSubmissionFKStringFieldsTests) + 2 existing OTP-dispatch tests got `@override_settings(EMAIL_SERVICE=ConsoleEmailService)` to keep passing under the new default
 - `docs/admin-onboarded-seafarer-flow.md` — this file
 
 ## Tests
 
-21 new tests in `api/tests.py`:
+21 new tests in `api/tests.py` (now 32 with the FK-string-fields batch):
 
 - **`SetPasswordMagicLinkTests`** (11):
   - `test_dispatch_skips_when_no_email` — no email on user → no-op
@@ -419,6 +474,18 @@ The `CVPermission` on `POST /api/cv-submissions/` lets Recruiters POST (with lim
   - `test_admin_post_without_user_email_falls_back_to_admin` — historical fallback preserved
   - `test_admin_post_auto_create_with_no_phone_falls_back_to_email_password` — no `user_phone` → password = email
   - `test_admin_post_with_employee_role_does_not_auto_create` — Employees can't trigger auto-create (security)
+- **`CVSubmissionFKStringFieldsTests`** (11) — FK fields (position/company/ship/reviewed_by) are strings in the response, accept strings on input:
+  - `test_response_uses_string_names_for_fk_fields` — happy path: response has strings + `_id` siblings
+  - `test_response_with_null_fk_fields` — null FKs serialize as `None`
+  - `test_post_accepts_string_position` — `"Master"` → FK lookup
+  - `test_post_accepts_string_company` — `"Test Shipping Co"` → FK lookup
+  - `test_post_accepts_string_ship` — `"MV Test Vessel"` → FK lookup
+  - `test_post_accepts_string_reviewed_by_by_email` — email → user lookup
+  - `test_post_accepts_string_reviewed_by_by_first_name` — first name → user lookup
+  - `test_post_unknown_company_returns_400` — bad string → 400 with helpful error
+  - `test_post_unknown_ship_returns_400` — bad string → 400
+  - `test_post_unknown_reviewed_by_returns_400` — bad string → 400
+  - `test_post_id_still_works_for_backward_compatibility` — int input still works (old clients)
   - `test_django_smtp_returns_false_on_failure` — SMTP exception → returns False (no propagation)
 
 **Full suite: 396 tests, 0 new failures.** The 2 pre-existing failures (`DocumentUploadViewTest`, `IntegrationTest`) are the LLM path (`/ai/upload/`) which is untouched in this work.
