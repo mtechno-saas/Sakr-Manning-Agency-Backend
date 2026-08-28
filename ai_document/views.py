@@ -3553,426 +3553,348 @@ def _create_related_user_models(user, applicant, convert_date_func):
 
 class DocumentUploadView(APIView):
     """
-    Upload a document (PDF or DOCX), extract text, convert to structured JSON,
-    save into both Applicant table and Users table, and return the response.
-    
-    Uses serializers for validation and response formatting.
+    Upload a CV (PDF or DOCX) and extract a structured JSON.
+
+    This endpoint is the LLM-backed counterpart to ``POST /ai/parse/``.
+    Both endpoints accept the same multipart payload and return the
+    same response shape — the only difference is the extraction
+    pipeline underneath:
+
+    1. The deterministic ``SakrTemplateExtractor`` runs FIRST (no LLM
+       cost, no rate limits, no API key needed). If the document
+       matches the Sakr CV form template, the deterministic output
+       is used.
+    2. If the deterministic extractor reports ``NOT_SAKR_TEMPLATE``
+       (the document doesn't match the Sakr form), we fall back to
+       the LLM path (``convert_text_to_json``).
+    3. If the LLM path is also unable to extract a valid maritime
+       CV (validation failure, API keys missing/exhausted), the
+       endpoint returns a 400 with the validation_error message —
+       no save happens.
+
+    Response shape (matches ``/ai/parse/`` exactly)::
+
+        {
+            "success": true,
+            "extractor": "sakr_template" | "groq_llm",
+            "confidence": 0.95,
+            "data": { ... 12-section numbered format ... },
+            "warnings": [],
+            "file_name": "cv.pdf",
+            "saved": true,                // only if save_to_db=true
+            "user_id": 123,                // only if save_to_db=true
+            "cv_submission_id": 456       // only if save_to_db=true
+        }
+
+    Request (multipart form-data):
+
+        file             required — the CV file (PDF or DOCX)
+        save_to_db       optional — "true" (default) to also create
+                         User + CVSubmission via the same flow as
+                         ``/ai/parse/``. Pass "false" for a
+                         dry-run parse (no DB writes).
+        groq_api_key     optional — per-request Groq key (LLM path)
+        api_keys_config  optional — JSON string with full key
+                         config (LLM path)
+
+    Auth: ``AllowAny`` for backwards compatibility with the original
+    endpoint. The deterministic path never calls the LLM, so the
+    public-facing endpoint is safe to hit; if you need admin-only
+    access, restrict this URL at the gateway or change to
+    ``[JWTAuthentication] + [IsAdmin]`` like ``/ai/parse/``.
     """
-    authentication_classes = []  # Allow unauthenticated uploads
+    authentication_classes = []  # AllowAny — kept for backwards compat
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser]
     serializer_class = DocumentUploadSerializer
 
     def post(self, request, *args, **kwargs):
-        """Handle document upload with proper serializer validation."""
+        # --- 1. Validate the upload ----------------------------------
+        upload_serializer = DocumentUploadSerializer(data=request.data)
+        if not upload_serializer.is_valid():
+            return Response(
+                upload_serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        file = upload_serializer.validated_data.get("file")
+        if not file:
+            return Response(
+                {
+                    "success": False,
+                    "error": ErrorCode.FILE_MISSING.value,
+                    "message": client_message(ErrorCode.FILE_MISSING),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        save_to_db = str(request.data.get("save_to_db", "true")).lower() == "true"
+
+        # Save the file to a temp path so DocumentProcessor can read it
+        # back. We always clean this up in the finally block.
+        file_path = default_storage.save(
+            f"tmp/{file.name}", ContentFile(file.read())
+        )
         try:
-            # Validate file upload using serializer
-            upload_serializer = DocumentUploadSerializer(data=request.data)
-            if not upload_serializer.is_valid():
-                return Response(
-                    upload_serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            file = upload_serializer.validated_data.get('file')
-            
-            # File is required for AI processing
-            if not file:
-                return Response(
-                    {"file": ["A file is required for AI document processing."]},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            # Save file temporarily
-            file_path = default_storage.save(f"tmp/{file.name}", ContentFile(file.read()))
-
             processor = DocumentProcessor()
             try:
-                with transaction.atomic():
-                    # Step 1: Extract text from document
-                    result = processor.process_document(default_storage.path(file_path))
+                proc_result = processor.process_document(
+                    default_storage.path(file_path)
+                )
+            except DocumentProcessingError as exc:
+                logger.warning(
+                    "DocumentUploadView: DocumentProcessor failed for %s: %s",
+                    file.name, exc,
+                )
+                return Response(
+                    {
+                        "success": False,
+                        "error": ErrorCode.FILE_UNSUPPORTED_FORMAT.value,
+                        "message": str(exc),
+                        "file_name": file.name,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-                    # Step 2: Clean extracted text
-                    cleaned_text = clean_text(result.get("extracted_text", ""))
+            text = proc_result.get("extracted_text", "") or ""
+            tables = proc_result.get("tables", []) or []
 
-                    # Step 3: Convert text into structured JSON
-                    parsed_tables = result.get("tables", [])
-                    import json
-                    api_keys_config = {}
-                    api_keys_config_str = request.data.get("api_keys_config")
-                    if api_keys_config_str:
-                        try:
-                            parsed_config = json.loads(api_keys_config_str)
-                            if isinstance(parsed_config, str):
-                                parsed_config = json.loads(parsed_config)
-                            if isinstance(parsed_config, dict):
-                                api_keys_config = parsed_config
-                        except Exception:
-                            pass
-                            
-                    groq_api_key = request.data.get("groq_api_key")
-                    import os
-                    if groq_api_key and not api_keys_config:
-                        os.environ["GROQ_API_KEY"] = groq_api_key
-                        api_keys_config = {"groq": [{"key": groq_api_key, "status": "live", "reset_time": None}], "gemini": ""}
-                        
-                    structured_json, updated_api_keys = convert_text_to_json(cleaned_text, parsed_tables=parsed_tables, api_keys_config=api_keys_config)
+            # --- 2. Try deterministic extractor first ----------------
+            result_data = None
+            extractor_name = None
+            confidence = None
+            warnings: list[str] = []
 
-                    unwrapped_json = structured_json
-                    doubted_fields = []
+            try:
+                deterministic = SakrTemplateExtractor().extract(text, tables)
+            except Exception:
+                logger.exception("DocumentUploadView: SakrTemplateExtractor crashed")
+                deterministic = None
 
-                    # Ensure structured_json is a dictionary
-                    if not isinstance(structured_json, dict):
-                        logger.error(f"convert_text_to_json returned {type(structured_json)}, expected dict")
-                        unwrapped_json = {
-                            "Personal_Details": {},
-                            "Education": {},
-                            "Contact_Details": {},
-                            "Travel_Documents": {},
-                            "Professional_Qualifications": {},
-                            "Next_of_Kin_Emergency_Contact": {},
-                            "Health_Certificates_Vaccinations": {},
-                            "Covid_19_Vaccination": {},
-                            "Marine_Courses": {},
-                            "Sea_Service_Details": {},
-                            "References": {},
-                            "Declaration": {},
-                            "Applied_Position_Info": {},
-                            "error": f"Unexpected return type: {type(structured_json)}"
-                        }
+            if deterministic and deterministic.ok:
+                result_data = deterministic.data
+                extractor_name = deterministic.extractor
+                confidence = deterministic.confidence
+                warnings = list(deterministic.warnings or [])
+                logger.info(
+                    "DocumentUploadView: deterministic parser OK for %s (confidence=%s)",
+                    file.name, confidence,
+                )
+            else:
+                # --- 3. Fall back to LLM ----------------------------
+                if deterministic and deterministic.warnings:
+                    warnings.extend(list(deterministic.warnings))
+                fallback_reason = (
+                    deterministic.error.value
+                    if deterministic and deterministic.error
+                    else "not_sakr_template"
+                )
+                logger.info(
+                    "DocumentUploadView: deterministic parser failed (%s); "
+                    "falling back to LLM for %s",
+                    fallback_reason, file.name,
+                )
 
-                    # VALIDATION CHECK: If document is not a valid maritime CV, do NOT save to database
-                    if "validation_error" in structured_json:
-                        # Clean up the temporary file
-                        try:
-                            default_storage.delete(file_path)
-                        except Exception as e:
-                            logger.warning(f"Failed to delete temporary file: {e}")
-                        
-                        # Return error response without saving anything
-                        return Response({
+                api_keys_config = self._resolve_api_keys_config(request)
+                if not api_keys_config:
+                    return Response(
+                        {
                             "success": False,
-                            "error": "Invalid document",
-                            "message": structured_json.get("validation_error", "Document is not a valid maritime CV"),
+                            "error": "api_keys_missing",
+                            "message": (
+                                "Cannot run the LLM fallback: no API keys were "
+                                "provided. Supply a Groq key in the request "
+                                "(`groq_api_key` form field) or set it in the "
+                                "user's settings."
+                            ),
                             "file_name": file.name,
-                            "structured_data": structured_json,
-                            "page_count": result.get("page_count"),
-                            "word_count": len(cleaned_text.split()),
-                            "api_keys_status": updated_api_keys if 'updated_api_keys' in locals() else None,
-                        }, status=status.HTTP_400_BAD_REQUEST)
-
-                    # Step 4: Check if we should save to DB or just return extracted data
-                    save_to_db_val = request.data.get('save_to_db', 'true')
-                    logger.info(f"DEBUG: save_to_db received in request.data: {save_to_db_val}")
-                    save_to_db = str(save_to_db_val).lower() == 'true'
-                    if not save_to_db:
-                        # Clean up the temporary file
-                        try:
-                            default_storage.delete(file_path)
-                        except Exception as e:
-                            pass
-                            
-                        return Response({
-                            "success": True,
-                            "extracted_data": structured_json,
-                            "file_name": file.name,
-                            "page_count": result.get("page_count"),
-                            "word_count": len(cleaned_text.split()),
-                            "api_keys_status": updated_api_keys if 'updated_api_keys' in locals() else None,
-                        }, status=status.HTTP_200_OK)
-
-                    # Step 5: Save structured data into Applicant model
-                    # Map from numbered seafarer_application format to Applicant model fields
-                    _pd  = unwrapped_json.get("1_personal_details", {})
-                    _edu = unwrapped_json.get("2_education", {})
-                    _cd  = unwrapped_json.get("3_contact_details", {})
-                    _td  = unwrapped_json.get("4_travel_documents", [])
-                    _pq  = unwrapped_json.get("5_professional_qualification_certificate_of_competency", [])
-                    _nok = unwrapped_json.get("6_next_of_kin_emergency_contact", {})
-                    _hcv = unwrapped_json.get("7_health_certificates_and_vaccinations", {})
-                    _mc  = unwrapped_json.get("8_marine_courses", [])
-                    _ss  = unwrapped_json.get("9_complete_sea_service_details", {})
-                    _ref = unwrapped_json.get("10_references", [])
-                    _dec = unwrapped_json.get("11_declaration", {})
-                    _ofc = unwrapped_json.get("12_for_office_use_only", {})
-
-                    # Normalise marital_status: keep dict in seafarer_application,
-                    # but convert to string for Applicant model storage
-                    ms_raw = _pd.get("marital_status", {})
-                    if isinstance(ms_raw, dict):
-                        if ms_raw.get("married"):
-                            marital_str = "Married"
-                        elif ms_raw.get("single"):
-                            marital_str = "Single"
-                        else:
-                            marital_str = ""
-                        # _pd for model storage uses string; structured_json keeps the dict
-                        _pd_for_model = {**_pd, "marital_status": marital_str}
-                    else:
-                        _pd_for_model = _pd
-
-
-                    # Normalise contact_details key (e_mail → Email)
-                    _cd_normalised = {
-                        "Email": _cd.get("e_mail", "") or _cd.get("Email", ""),
-                        "Mobile_Tel": _cd.get("mobile_tel", "") or _cd.get("Mobile_Tel", ""),
-                        "Home_Address_City": _cd.get("home_address_city", "") or _cd.get("Home_Address_City", ""),
-                    }
-
-                    # Normalise travel_documents: ensure Type key is capitalised for _find_document()
-                    _td_normalised = []
-                    for doc in (_td if isinstance(_td, list) else []):
-                        _td_normalised.append({
-                            "Type": doc.get("type", doc.get("Type", "")),
-                            "Document_No": doc.get("document_no", doc.get("Document_No", "")),
-                            "ISS_Date": doc.get("iss_date", doc.get("ISS_Date", "")),
-                            "Exp_Date": doc.get("exp_date", doc.get("Exp_Date", "")),
-                            "ISS_By_Authority": doc.get("iss_by_authority", doc.get("ISS_By_Authority", "")),
-                            "Place_of_Issue": doc.get("place_of_issue", doc.get("Place_of_Issue", "")),
-                        })
-
-                    applicant = Applicant.objects.create(
-                        personal_details=_pd_for_model,
-                        education=_edu,
-                        contact_details=_cd_normalised,
-                        travel_documents=_td_normalised,
-                        professional_qualifications=_pq,
-                        next_of_kin_emergency_contact=_nok,
-                        health_certificates_vaccinations=_hcv,
-                        covid_19_vaccination=_hcv.get("covid_19", {}),
-                        marine_courses=_mc,
-                        sea_service_details=_ss.get("service_records", []),
-                        specialised_experience=[],
-                        references=_ref,
-                        declaration=_dec,
-                        office_use_only=_ofc,
-                        physical_measurements={},
-                        language_skills={},
-                        medical_history={},
-                        assessments={},
-                        competency_tests={},
-                        applied_position_info={},
+                            "warnings": warnings,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
 
-
-                    logger.info(f"Successfully created applicant with ID: {applicant.id}")
-
-                    # Use serializer BEFORE user creation
-                    applicant_serializer = ApplicantToUsersSerializer(applicant)
-
-                    # Step 5: Convert and save to Users model
-                    user = None
-                    user_error = None
-                    try:
-                        logger.info("Converting applicant to Users model")
-                        
-                        # FIXED: Create user with proper type and date handling
-                        from api.models import Users
-                        from django.db import models
-                        from datetime import datetime
-                        
-                        serializer_data = applicant_serializer.data
-
-                        email = serializer_data.get('email')
-                        if not email:
-                            raise ValueError(['Email is required'])
-                        
-                        def convert_date(date_str):
-                            """Convert various date formats to YYYY-MM-DD."""
-                            if not date_str or not str(date_str).strip():
-                                return None
-                            
-                            date_str = str(date_str).strip()
-                            
-                            # Try different date formats
-                            formats = [
-                                '%d/%m/%Y',  # 18/6/1994
-                                '%d-%m-%Y',  # 18-6-1994
-                                '%Y-%m-%d',  # 1994-06-18 (already correct)
-                                '%d/%m/%y',  # 18/6/94
-                                '%d-%m-%y',  # 18-6-94
-                                '%Y/%m/%d',  # 1994/6/18
-                            ]
-                            
-                            for fmt in formats:
-                                try:
-                                    dt = datetime.strptime(date_str, fmt)
-                                    return dt.strftime('%Y-%m-%d')
-                                except ValueError:
-                                    continue
-                            
-                            # If no format works, return None
-                            logger.warning(f"Could not parse date: {date_str}")
-                            return None
-                        
-                        # Get all fields from Users model with their types
-                        user_model_fields = {f.name: f for f in Users._meta.get_fields()}
-                        
-                        # Build defaults dict with proper type handling
-                        defaults = {}
-                        for field_name, value in serializer_data.items():
-                            # Skip special fields
-                            if field_name in ['id', 'email', 'created_at', 'updated_at', 'ranks', 'certificates', 'references', 'sea_services']:
-                                continue
-                            
-                            # Only process if field exists in Users model
-                            if field_name not in user_model_fields:
-                                continue
-                            
-                            field = user_model_fields[field_name]
-                            
-                            # Handle different field types
-                            if isinstance(field, (models.DateField, models.DateTimeField)):
-                                # Date fields: convert format
-                                defaults[field_name] = convert_date(value)
-                            elif isinstance(field, (models.IntegerField, models.BigIntegerField, models.SmallIntegerField)):
-                                # Integer fields: use None if empty
-                                try:
-                                    defaults[field_name] = int(value) if value and str(value).strip() else None
-                                except (ValueError, TypeError):
-                                    defaults[field_name] = None
-                            elif isinstance(field, (models.FloatField, models.DecimalField)):
-                                # Float/Decimal fields: use None if empty
-                                try:
-                                    defaults[field_name] = float(value) if value and str(value).strip() else None
-                                except (ValueError, TypeError):
-                                    defaults[field_name] = None
-                            elif isinstance(field, models.BooleanField):
-                                # Boolean fields: use False if empty
-                                defaults[field_name] = bool(value) if value else False
-                            elif isinstance(field, models.JSONField):
-                                # JSON fields: use empty dict/list if empty
-                                defaults[field_name] = value if value else {}
-                            else:
-                                # String fields and others: use empty string if empty
-                                defaults[field_name] = value if value else ''
-                        
-                        user, created = Users.objects.update_or_create(
-                            email=email,
-                            defaults=defaults
-                        )
-                        _create_related_user_models(user, applicant, convert_date)
-                        
-                        action = "Created" if created else "Updated"
-                        logger.info(f"{action} user: {user.email} (ID: {user.id})")
-                        
-                    except Exception as ue:
-                        user_error = f"User creation error: {str(ue)}"
-                        logger.error(f"Failed to create user: {ue}")
-                        import traceback
-                        logger.error(traceback.format_exc())
-
-                    # Clean up file
-                    try:
-                        default_storage.delete(file_path)
-                    except Exception as e:
-                        logger.warning(f"Failed to delete temporary file: {e}")
-
-                    # Response with serialized applicant data
-                    response_status = status.HTTP_201_CREATED
-                    message = "Data saved successfully to both databases"
-
-                    if "error" in structured_json:
-                        response_status = status.HTTP_206_PARTIAL_CONTENT
-                        message = "Data saved with parsing issues"
-
-                    if not user:
-                        response_status = status.HTTP_206_PARTIAL_CONTENT
-                        message = "Data saved to Applicant database, but failed to save to Users database"
-
-                    # applicant_serializer already created above
-                    
-                    return Response({
-                        "id": applicant.id,
-                        "user": user.id if user else None,
-                        "user_name": _pd_for_model.get("full_name", "") if isinstance(_pd_for_model, dict) else "",
-                        "user_email_display": user.email if user else None,
-                        "company": None,
-                        "company_name": "",
-                        "ship": None,
-                        "ship_details": None,
-                        "position": None,
-                        "position_name": "",
-                        "cv_file": "",
-                        "cover_letter": None,
-                        "experience_years": 0,
-                        "expected_salary": None,
-                        "availability_date": None,
-                        "status": "Pending",
-                        "submitted_date": datetime.now().strftime("%Y-%m-%d"),
-                        "reviewed_by": None,
-                        "reviewed_date": None,
-                        "notes": "Auto-created from AI Extraction",
-                        "rating": None,
-                        "created_at": applicant.created_at.isoformat() if applicant.created_at else None,
-                        "updated_at": applicant.updated_at.isoformat() if applicant.updated_at else None,
-                        "generated_id": str(applicant.id).zfill(12),
-                        "salary_display": "",
-                        "coded_rank": [],
-                        "rank_code": "",
-                        "assigned_code": "",
-                        "certificates": [],
-                        "user_documents": {
-                            "passport": {"passport_no": None, "issue_date": None, "expiry_date": None, "issued_by": None, "place_of_issue": None},
-                            "seaman_book": {"seaman_book_no": None, "issue_date": None, "expiry_date": None, "issued_by": None, "place_of_issue": None},
-                            "other_seaman_book": {"seaman_book_no": None, "issue_date": None, "expiry_date": None, "issued_by": None, "place_of_issue": None},
-                            "coc": {"certificate_name": None, "certificate_number": None, "issue_date": None, "expiry_date": None, "issued_by": None, "issued_at": None},
-                            "goc": {"certificate_number": None, "issue_date": None, "expiry_date": None, "issued_by": None, "issued_at": None},
-                            "health_certificate": {"flag_state": None, "number": None, "issue_date": None, "expiry_date": None, "issued_by": None, "issued_at": None},
-                            "licenses": []
+                try:
+                    llm_result, _updated_keys = convert_text_to_json(
+                        text,
+                        parsed_tables=tables,
+                        api_keys_config=api_keys_config,
+                    )
+                except Exception as exc:
+                    logger.exception(
+                        "DocumentUploadView: LLM fallback crashed for %s", file.name,
+                    )
+                    return Response(
+                        {
+                            "success": False,
+                            "error": "llm_failed",
+                            "message": (
+                                "LLM extraction failed: "
+                                f"{exc.__class__.__name__}"
+                            ),
+                            "file_name": file.name,
+                            "warnings": warnings,
                         },
-                        "job_position": None,
-                        "job_position_details": None,
-                        "seafarer_application": unwrapped_json,
-                        "doubted_fields": doubted_fields,
-                        "company_details": None,
-                        
-                        # Keeping original upload metadata in a separate block just in case
-                        "_upload_meta": {
-                            "success": True,
-                            "message": message,
-                            "parsing_quality": "low" if "error" in structured_json else "high",
-                            "page_count": result.get("page_count"),
-                            "word_count": len(cleaned_text.split()),
-                            "user_creation_status": "success" if user else "failed",
-                            "user_error": user_error,
-                            "api_keys_status": updated_api_keys if 'updated_api_keys' in locals() else None,
-                        }
-                    }, status=response_status)
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
+                if not isinstance(llm_result, dict):
+                    return Response(
+                        {
+                            "success": False,
+                            "error": "llm_bad_response",
+                            "message": (
+                                "LLM returned a non-dict response "
+                                f"({type(llm_result).__name__})."
+                            ),
+                            "file_name": file.name,
+                            "warnings": warnings,
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
-            except DocumentProcessingError as e:
+                if "validation_error" in llm_result:
+                    return Response(
+                        {
+                            "success": False,
+                            "error": "invalid_document",
+                            "message": llm_result.get(
+                                "validation_error",
+                                "Document is not a valid maritime CV.",
+                            ),
+                            "file_name": file.name,
+                            "warnings": warnings,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                if not llm_result:
+                    return Response(
+                        {
+                            "success": False,
+                            "error": "llm_empty",
+                            "message": "LLM extraction returned no data.",
+                            "file_name": file.name,
+                            "warnings": warnings,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                result_data = llm_result
+                extractor_name = "groq_llm"
+                # LLM has no numeric confidence in this project; report
+                # 0.7 as a generic "we used an LLM, treat carefully" hint.
+                confidence = 0.7
+                logger.info(
+                    "DocumentUploadView: LLM fallback OK for %s (sections=%s)",
+                    file.name, sorted(result_data.keys()),
+                )
+
+            # --- 4. Build the /ai/parse/-shaped response -------------
+            response_body = {
+                "success": True,
+                "extractor": extractor_name,
+                "confidence": confidence,
+                "data": result_data,
+                "warnings": warnings,
+                "file_name": file.name,
+            }
+
+            # --- 5. Persist (optional) -------------------------------
+            if save_to_db:
                 try:
-                    default_storage.delete(file_path)
-                except Exception:
-                    pass
-                return Response({
+                    user_id, cv_submission_id = _save_parser_output(
+                        result_data, file
+                    )
+                except _NoEmailError:
+                    return Response(
+                        {
+                            "success": False,
+                            "error": "email_missing",
+                            "message": (
+                                "Cannot save: the CV has no email address."
+                            ),
+                            "data": result_data,
+                            "extractor": extractor_name,
+                            "confidence": confidence,
+                            "file_name": file.name,
+                            "warnings": warnings,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                response_body["saved"] = True
+                response_body["user_id"] = user_id
+                response_body["cv_submission_id"] = cv_submission_id
+            else:
+                response_body["saved"] = False
+
+            return Response(response_body, status=status.HTTP_200_OK)
+
+        except Exception:
+            # Catch-all: never leak the exception text to the client.
+            # The full traceback is in the server logs.
+            logger.exception("DocumentUploadView: unexpected error")
+            return Response(
+                {
                     "success": False,
-                    "error": str(e)
-                }, status=status.HTTP_400_BAD_REQUEST)
+                    "error": ErrorCode.INTERNAL.value,
+                    "message": client_message(ErrorCode.INTERNAL),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        finally:
+            # Always clean up the temp upload.
+            try:
+                default_storage.delete(file_path)
+            except Exception:
+                logger.warning(
+                    "DocumentUploadView: failed to delete temp file %s",
+                    file_path,
+                )
 
-            except Exception as e:
-                try:
-                    default_storage.delete(file_path)
-                except Exception:
-                    pass
-                return Response({
-                        "success": False,
-                        "error": "Failed to process document",
-                        "details": str(e),
-                        "api_keys_status": updated_api_keys if 'updated_api_keys' in locals() else None,
-                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    @staticmethod
+    def _resolve_api_keys_config(request) -> dict | None:
+        """Build the ``api_keys_config`` dict for the LLM fallback.
 
-        except Exception as e:
-            logger.error(f"Unexpected error in document upload: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
-            return Response({
-                "success": False,
-                "error": "Internal server error",
-                "details": str(e),
-                "api_keys_status": updated_api_keys if 'updated_api_keys' in locals() else None,
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        Mirrors the legacy behaviour:
+
+        * If the request supplies ``api_keys_config`` as JSON, parse it.
+        * Otherwise accept a per-request ``groq_api_key`` and wrap it
+          in the same shape ``convert_text_to_json`` expects.
+        * Returns ``None`` if neither is present (caller returns 400).
+        """
+        import json
+        import os
+
+        api_keys_config: dict = {}
+        api_keys_config_str = request.data.get("api_keys_config")
+        if api_keys_config_str:
+            try:
+                parsed = json.loads(api_keys_config_str)
+                if isinstance(parsed, str):
+                    parsed = json.loads(parsed)
+                if isinstance(parsed, dict):
+                    api_keys_config = parsed
+            except Exception:
+                # Malformed JSON — fall through to the groq_api_key
+                # check below.
+                pass
+
+        if not api_keys_config:
+            groq_api_key = request.data.get("groq_api_key")
+            if groq_api_key:
+                os.environ["GROQ_API_KEY"] = groq_api_key
+                api_keys_config = {
+                    "groq": [
+                        {
+                            "key": groq_api_key,
+                            "status": "live",
+                            "reset_time": None,
+                        }
+                    ],
+                    "gemini": "",
+                }
+
+        return api_keys_config or None
 
 
 class ApplicantListView(APIView):

@@ -317,86 +317,483 @@ class SeafarerAPITestCase(APITestCase):
 
 
 class DocumentUploadViewTest(AuthenticatedAPITestCase):
-    """Test DocumentUploadView API endpoint"""
-    
+    """Test DocumentUploadView API endpoint.
+
+    The endpoint is now aligned with ``/ai/parse/``: the response
+    always carries the same shape (``{success, extractor, confidence,
+    data, warnings, file_name, saved?, user_id?, cv_submission_id?}``)
+    regardless of which path (deterministic or LLM) produced the
+    data. Save is opt-out via ``save_to_db=false``.
+    """
+
     def setUp(self):
         """Set up test client"""
         super().setUp()
         self.url = '/ai/upload/'
-    
+
+    def _build_llm_payload(self):
+        """Standard 12-section numbered payload the LLM path returns."""
+        return {
+            '1_personal_details': {
+                'full_name': 'John Doe',
+                'date_of_birth': '01/01/1990',
+            },
+            '3_contact_details': {
+                'e_mail': 'john@example.com',
+                'mobile_tel': '+201234567890',
+            },
+        }
+
+    @patch('ai_document.views._save_parser_output')
+    @patch('ai_document.views.SakrTemplateExtractor')
     @patch('ai_document.views.DocumentProcessor')
     @patch('ai_document.views.convert_text_to_json')
-    def test_successful_upload(self, mock_convert, mock_processor):
-        """Test successful document upload and processing"""
-        # Mock document processor
-        mock_processor_instance = MagicMock()
-        mock_processor_instance.process_document.return_value = {
-            'extracted_text': 'Sample CV text with name John Doe',
-            'page_count': 2
+    def test_successful_upload(
+        self, mock_convert, mock_processor_cls,
+        mock_extractor_cls, mock_save,
+    ):
+        """Test successful LLM-path upload, save_to_db=true (default).
+
+        The deterministic extractor is mocked to FAIL so the view
+        falls through to the LLM. ``_save_parser_output`` is mocked
+        to return a known ``(user_id, cv_submission_id)`` so the test
+        stays focused on the response shape.
+        """
+        # Mock the document processor
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            'extracted_text': 'Plain text that does NOT match the Sakr template',
+            'tables': [],
+            'page_count': 2,
         }
-        mock_processor.return_value = mock_processor_instance
-        
-        # Mock LLM conversion
-        mock_convert.return_value = {
-            'Personal_Details': {
-                'Full_Name': 'John Doe',
-                'Date_Of_Birth': '01/01/1990'
-            },
-            'Contact_Details': {
-                'Email': 'john@example.com'
-            },
-            'Travel_Documents': [],
-            'Professional_Qualifications': [],
-            'Next_of_Kin_Emergency_Contact': {},
-            'Health_Certificates_Vaccinations': [],
-            'Covid_19_Vaccination': {},
-            'Marine_Courses': [],
-            'Sea_Service_Details': [],
-            'Specialised_Experience': [],
-            'References': [],
-            'Declaration': {},
-            'Office_Use_Only': {},
-            'Physical_Measurements': {},
-            'Language_Skills': {},
-            'Medical_History': {},
-            'Assessments': {},
-            'Competency_Tests': {},
-            'Applied_Position_Info': {},
-            'Education': {},
-        }
-        
-        # Create test file
+        mock_processor_cls.return_value = mock_proc
+
+        # Mock the deterministic extractor to FAIL — so the view
+        # falls back to the LLM path.
+        from ai_document.extractors import ErrorCode
+        det_result = MagicMock()
+        det_result.ok = False
+        det_result.error = ErrorCode.NOT_SAKR_TEMPLATE
+        det_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = det_result
+
+        # Mock the LLM to return the new 12-section numbered format.
+        mock_convert.return_value = (
+            self._build_llm_payload(),
+            {'groq': [], 'gemini': ''},
+        )
+
+        # Mock the save helper to return known ids.
+        mock_save.return_value = (123, 456)
+
         pdf_file = SimpleUploadedFile(
             "test_cv.pdf",
             b"PDF content",
-            content_type="application/pdf"
+            content_type="application/pdf",
         )
-        
-        # Make request
-        response = self.client.post(self.url, {'file': pdf_file}, format='multipart')
-        
-        # Assertions
-        self.assertIn(response.status_code, [status.HTTP_201_CREATED, status.HTTP_206_PARTIAL_CONTENT])
+
+        # Provide a fake Groq key so the LLM fallback can run.
+        response = self.client.post(
+            self.url,
+            {
+                'file': pdf_file,
+                'groq_api_key': 'gsk_fake_test_key',
+            },
+            format='multipart',
+        )
+
+        # Status: 200 OK (the new shape, matches /ai/parse/).
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Response shape — must match /ai/parse/.
         self.assertTrue(response.data['success'])
-        self.assertIsNotNone(response.data['applicant_id'])
-    
+        self.assertEqual(response.data['extractor'], 'groq_llm')
+        self.assertIn('confidence', response.data)
+        self.assertIn('1_personal_details', response.data['data'])
+        self.assertEqual(
+            response.data['data']['1_personal_details']['full_name'],
+            'John Doe',
+        )
+        self.assertEqual(response.data['file_name'], 'test_cv.pdf')
+        self.assertEqual(response.data['warnings'], [])
+        # save_to_db defaults to true → saved/user_id/cv_submission_id
+        self.assertTrue(response.data['saved'])
+        self.assertEqual(response.data['user_id'], 123)
+        self.assertEqual(response.data['cv_submission_id'], 456)
+
     def test_upload_without_file(self):
         """Test upload endpoint without file"""
         response = self.client.post(self.url, {}, format='multipart')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    
+
     def test_upload_invalid_file_type(self):
         """Test upload with invalid file type"""
         txt_file = SimpleUploadedFile(
             "test.txt",
             b"Text content",
-            content_type="text/plain"
+            content_type="text/plain",
         )
-        
+
         response = self.client.post(self.url, {'file': txt_file}, format='multipart')
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
+    """Test the deterministic-first + LLM-fallback routing in
+    ``/ai/upload/``.
+
+    The view should:
+
+    1. Try ``SakrTemplateExtractor`` FIRST (no LLM cost, no API key).
+    2. If it returns ``NOT_SAKR_TEMPLATE`` (or crashes), fall back to
+       the LLM (``convert_text_to_json``).
+    3. Return the same response shape as ``/ai/parse/`` regardless
+       of which path produced the data.
+
+    The auth model is ``AllowAny`` on this endpoint (backwards
+    compat with the original) — we just ``force_authenticate`` to a
+    regular user for the same convenience as ``DocumentUploadViewTest``.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.url = "/ai/upload/"
+
+    def _pdf(self, name="cv.pdf"):
+        return SimpleUploadedFile(
+            name, b"%PDF-1.4 fake", content_type="application/pdf"
+        )
+
+    def _mock_processor(self, mock_processor_cls, text="some text", tables=None):
+        """Configure a patched DocumentProcessor class to return canned text."""
+        instance = MagicMock()
+        instance.process_document.return_value = {
+            "extracted_text": text,
+            "tables": tables or [],
+            "page_count": 2,
+        }
+        mock_processor_cls.return_value = instance
+        return instance
+
+    def _mock_extractor_ok(self, mock_extractor_cls, data, confidence=0.95, warnings=None):
+        """Configure a patched SakrTemplateExtractor to return ok=True."""
+        result = MagicMock()
+        result.ok = True
+        result.extractor = "sakr_template"
+        result.confidence = confidence
+        result.data = data
+        result.warnings = warnings or []
+        mock_extractor_cls.return_value.extract.return_value = result
+        return result
+
+    def _mock_extractor_fail(self, mock_extractor_cls, error_code):
+        """Configure a patched SakrTemplateExtractor to return ok=False."""
+        result = MagicMock()
+        result.ok = False
+        result.error = error_code
+        result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = result
+        return result
+
+    # -- deterministic-first behaviour ---------------------------------
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.convert_text_to_json")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_deterministic_path_used_first_when_sakr_template_matches(
+        self, mock_processor_cls, mock_extractor_cls,
+        mock_convert, mock_save,
+    ):
+        """SakrTemplateExtractor succeeds → LLM is NEVER called.
+
+        Verifies the performance / cost promise of the deterministic
+        path: when the document matches the Sakr form, the LLM
+        fallback is not even invoked.
+        """
+        self._mock_processor(mock_processor_cls)
+
+        deterministic_data = {
+            "1_personal_details": {"full_name": "MOHAMED SHEHATA"},
+            "3_contact_details": {"e_mail": "m.shehata@sakr.test"},
+        }
+        self._mock_extractor_ok(mock_extractor_cls, deterministic_data, confidence=0.95)
+
+        mock_save.return_value = (10, 20)
+
+        response = self.client.post(
+            self.url,
+            {"file": self._pdf(), "groq_api_key": "gsk_dummy"},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # LLM was NOT called.
+        mock_convert.assert_not_called()
+        # Deterministic extractor was called.
+        mock_extractor_cls.return_value.extract.assert_called_once()
+        # Response uses the deterministic extractor.
+        self.assertEqual(response.data["extractor"], "sakr_template")
+        self.assertEqual(response.data["confidence"], 0.95)
+        self.assertEqual(
+            response.data["data"]["1_personal_details"]["full_name"],
+            "MOHAMED SHEHATA",
+        )
+        # Save happened.
+        self.assertTrue(response.data["saved"])
+        self.assertEqual(response.data["user_id"], 10)
+        self.assertEqual(response.data["cv_submission_id"], 20)
+
+    # -- LLM fallback behaviour ----------------------------------------
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.convert_text_to_json")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_llm_fallback_used_when_deterministic_fails(
+        self, mock_processor_cls, mock_extractor_cls,
+        mock_convert, mock_save,
+    ):
+        """SakrTemplateExtractor returns ``NOT_SAKR_TEMPLATE`` →
+        LLM is called as fallback and the LLM result is returned.
+        """
+        from ai_document.extractors import ErrorCode
+
+        self._mock_processor(
+            mock_processor_cls,
+            text="this is a generic CV, not the Sakr form",
+        )
+        self._mock_extractor_fail(mock_extractor_cls, ErrorCode.NOT_SAKR_TEMPLATE)
+
+        llm_data = {
+            "1_personal_details": {"full_name": "John Doe"},
+            "3_contact_details": {"e_mail": "john@example.com"},
+        }
+        mock_convert.return_value = (llm_data, {"groq": [], "gemini": ""})
+        mock_save.return_value = (30, 40)
+
+        response = self.client.post(
+            self.url,
+            {"file": self._pdf(), "groq_api_key": "gsk_dummy"},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # LLM WAS called.
+        mock_convert.assert_called_once()
+        # Response uses the LLM extractor.
+        self.assertEqual(response.data["extractor"], "groq_llm")
+        self.assertEqual(
+            response.data["data"]["1_personal_details"]["full_name"],
+            "John Doe",
+        )
+        self.assertTrue(response.data["saved"])
+        self.assertEqual(response.data["user_id"], 30)
+
+    @patch("ai_document.views.convert_text_to_json")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_no_api_keys_returns_400_when_deterministic_fails(
+        self, mock_processor_cls, mock_extractor_cls, mock_convert,
+    ):
+        """Deterministic fails AND no API keys → 400 with
+        ``api_keys_missing`` error code. The LLM is NOT called.
+        """
+        from ai_document.extractors import ErrorCode
+
+        self._mock_processor(mock_processor_cls, text="random text")
+        self._mock_extractor_fail(mock_extractor_cls, ErrorCode.NOT_SAKR_TEMPLATE)
+
+        # NOTE: no groq_api_key, no api_keys_config in the request.
+        response = self.client.post(
+            self.url, {"file": self._pdf()}, format="multipart"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(response.data["error"], "api_keys_missing")
+        self.assertEqual(response.data["file_name"], "cv.pdf")
+        # LLM was never even tried.
+        mock_convert.assert_not_called()
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.convert_text_to_json")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_llm_validation_error_returns_400(
+        self, mock_processor_cls, mock_extractor_cls, mock_convert,
+        mock_save,
+    ):
+        """LLM reports ``validation_error`` (e.g. not a maritime CV) →
+        400 with the message. NO save happens.
+        """
+        from ai_document.extractors import ErrorCode
+
+        self._mock_processor(mock_processor_cls, text="not a cv")
+        self._mock_extractor_fail(mock_extractor_cls, ErrorCode.NOT_SAKR_TEMPLATE)
+        mock_convert.return_value = (
+            {"validation_error": "Document is not a valid maritime CV"},
+            {"groq": [], "gemini": ""},
+        )
+
+        response = self.client.post(
+            self.url,
+            {"file": self._pdf(), "groq_api_key": "gsk_dummy"},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(response.data["error"], "invalid_document")
+        self.assertIn("not a valid maritime CV", response.data["message"])
+        # No save happened.
+        mock_save.assert_not_called()
+
+    # -- save_to_db=false (dry-run) behaviour ---------------------------
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.convert_text_to_json")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_save_to_db_false_skips_persistence(
+        self, mock_processor_cls, mock_extractor_cls,
+        mock_convert, mock_save,
+    ):
+        """``save_to_db=false`` returns the parsed data without
+        creating a User / CVSubmission row.
+        """
+        from ai_document.extractors import ErrorCode
+
+        self._mock_processor(mock_processor_cls, text="generic text")
+        self._mock_extractor_fail(mock_extractor_cls, ErrorCode.NOT_SAKR_TEMPLATE)
+        mock_convert.return_value = (
+            {
+                "1_personal_details": {"full_name": "Dry Run"},
+                "3_contact_details": {"e_mail": "dry@example.com"},
+            },
+            {"groq": [], "gemini": ""},
+        )
+
+        response = self.client.post(
+            self.url,
+            {
+                "file": self._pdf(),
+                "groq_api_key": "gsk_dummy",
+                "save_to_db": "false",
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["saved"], False)
+        self.assertNotIn("user_id", response.data)
+        self.assertNotIn("cv_submission_id", response.data)
+        # No save call.
+        mock_save.assert_not_called()
+        # No new user row was created (the base test user is still there
+        # from the AuthenticatedAPITestCase setUp — we just check the
+        # count is unchanged).
+        baseline_user_count = Users.objects.count()
+        # And no CVSubmission row was created either.
+        from api.models import CVSubmission
+        self.assertFalse(
+            CVSubmission.objects.filter(
+                user__email="dry@example.com"
+            ).exists(),
+            "save_to_db=false must not create a CVSubmission row",
+        )
+        # Sanity: the count is still the baseline.
+        self.assertEqual(Users.objects.count(), baseline_user_count)
+
+    # -- response shape parity with /ai/parse/ --------------------------
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_response_shape_matches_parse_view_when_deterministic_ok(
+        self, mock_processor_cls, mock_extractor_cls, mock_save,
+    ):
+        """Top-level keys exactly mirror ``/ai/parse/``:
+        success, extractor, confidence, data, warnings, file_name,
+        saved, user_id, cv_submission_id.
+        """
+        self._mock_processor(mock_processor_cls)
+        self._mock_extractor_ok(
+            mock_extractor_cls,
+            {
+                "0_application_meta": {"application_for_position_as": "Master"},
+                "1_personal_details": {"full_name": "CAPTAIN X"},
+            },
+            confidence=0.9,
+        )
+        mock_save.return_value = (1, 2)
+
+        response = self.client.post(
+            self.url, {"file": self._pdf()}, format="multipart"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        body = response.data
+        # Required keys present.
+        for key in (
+            "success", "extractor", "confidence", "data",
+            "warnings", "file_name", "saved", "user_id",
+            "cv_submission_id",
+        ):
+            self.assertIn(key, body, f"missing key: {key}")
+        # No legacy keys leaked from the old shape.
+        for legacy in (
+            "id", "applicant_id", "seafarer_application",
+            "_upload_meta", "user_documents", "coded_rank",
+        ):
+            self.assertNotIn(legacy, body, f"legacy key leaked: {legacy}")
+        # value sanity.
+        self.assertTrue(body["success"])
+        self.assertEqual(body["extractor"], "sakr_template")
+        self.assertEqual(body["confidence"], 0.9)
+        self.assertEqual(body["file_name"], "cv.pdf")
+        self.assertEqual(body["user_id"], 1)
+        self.assertEqual(body["cv_submission_id"], 2)
+
+    # -- deterministic crashes mid-extraction → fallback to LLM --------
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.convert_text_to_json")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_deterministic_crash_falls_through_to_llm(
+        self, mock_processor_cls, mock_extractor_cls,
+        mock_convert, mock_save,
+    ):
+        """If SakrTemplateExtractor itself raises (not a parsed
+        error code, but a real exception), the view should still
+        fall through to the LLM and succeed.
+        """
+        self._mock_processor(mock_processor_cls)
+        mock_extractor_cls.return_value.extract.side_effect = RuntimeError(
+            "unexpected boom"
+        )
+
+        mock_convert.return_value = (
+            {
+                "1_personal_details": {"full_name": "Recovered User"},
+                "3_contact_details": {"e_mail": "recovered@example.com"},
+            },
+            {"groq": [], "gemini": ""},
+        )
+        mock_save.return_value = (50, 60)
+
+        response = self.client.post(
+            self.url,
+            {"file": self._pdf(), "groq_api_key": "gsk_dummy"},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["extractor"], "groq_llm")
+        mock_convert.assert_called_once()
 
 
 class ApplicantListViewTest(AuthenticatedAPITestCase):
@@ -559,7 +956,7 @@ class UserCreationTest(TransactionTestCase):
 
 class IntegrationTest(TransactionTestCase):
     """End-to-end integration tests"""
-    
+
     def setUp(self):
         """Set up authentication"""
         User = get_user_model()
@@ -570,79 +967,98 @@ class IntegrationTest(TransactionTestCase):
 
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-    
+
+    @patch('ai_document.views.SakrTemplateExtractor')
     @patch('ai_document.views.DocumentProcessor')
     @patch('ai_document.views.convert_text_to_json')
-    def test_full_workflow(self, mock_convert, mock_processor):
-        """Test complete workflow from upload to user creation"""
-        # Mock document processor
-        mock_processor_instance = MagicMock()
-        mock_processor_instance.process_document.return_value = {
-            'extracted_text': 'Full CV text',
-            'page_count': 5
+    def test_full_workflow(
+        self, mock_convert, mock_processor_cls, mock_extractor_cls,
+    ):
+        """End-to-end: LLM path → save → Users + CVSubmission rows.
+
+        Drives the upload through the *new* response shape, which is
+        identical to ``/ai/parse/`` (top-level ``data`` dict, not the
+        legacy ``applicant_id`` / ``seafarer_application`` nest). The
+        deterministic extractor is mocked to fail so we exercise the
+        LLM-fallback branch.
+        """
+        # Mock the document processor
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            'extracted_text': 'Full CV text that does NOT match the Sakr template',
+            'tables': [],
+            'page_count': 5,
         }
-        mock_processor.return_value = mock_processor_instance
-        
-        # Mock LLM conversion with realistic data
-        mock_convert.return_value = {
-            'Personal_Details': {
-                'Full_Name': 'Integration Test User',
-                'Date_Of_Birth': '01/01/1990',
-                'Nationality': 'Test Country'
+        mock_processor_cls.return_value = mock_proc
+
+        # Force the deterministic extractor to fail → LLM path.
+        from ai_document.extractors import ErrorCode
+        det_result = MagicMock()
+        det_result.ok = False
+        det_result.error = ErrorCode.NOT_SAKR_TEMPLATE
+        det_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = det_result
+
+        # Mock the LLM to return the new 12-section numbered format
+        # (the format the real ``convert_text_to_json`` produces).
+        mock_convert.return_value = (
+            {
+                '1_personal_details': {
+                    'full_name': 'Integration Test User',
+                    'date_of_birth': '01/01/1990',
+                    'nationality': 'Test Country',
+                },
+                '3_contact_details': {
+                    'e_mail': 'integration@test.com',
+                    'mobile_tel': '+1234567890',
+                },
+                '4_travel_documents': [
+                    {
+                        'type': 'Passport',
+                        'document_no': 'TEST123',
+                        'iss_date': '01/01/2020',
+                        'exp_date': '01/01/2030',
+                    }
+                ],
             },
-            'Contact_Details': {
-                'Email': 'integration@test.com',
-                'Mobile_Tel': '+1234567890'
-            },
-            'Travel_Documents': [
-                {
-                    'Type': 'Passport',
-                    'Document_No': 'TEST123',
-                    'ISS_Date': '01/01/2020',
-                    'Exp_Date': '01/01/2030'
-                }
-            ],
-            'Professional_Qualifications': [],
-            'Next_of_Kin_Emergency_Contact': {},
-            'Health_Certificates_Vaccinations': [],
-            'Covid_19_Vaccination': {},
-            'Marine_Courses': [],
-            'Sea_Service_Details': [],
-            'Specialised_Experience': [],
-            'References': [],
-            'Declaration': {},
-            'Office_Use_Only': {},
-            'Physical_Measurements': {},
-            'Language_Skills': {},
-            'Medical_History': {},
-            'Assessments': {},
-            'Competency_Tests': {},
-            'Applied_Position_Info': {},
-            'Education': {},
-        }
-        
-        # Upload document
+            {'groq': [], 'gemini': ''},
+        )
+
+        # Upload
         pdf_file = SimpleUploadedFile(
             "integration_test.pdf",
             b"PDF content",
-            content_type="application/pdf"
+            content_type="application/pdf",
         )
-        
-        response = self.client.post('/ai/upload/', {'file': pdf_file}, format='multipart')
-        
-        # Verify response
-        self.assertIn(response.status_code, [status.HTTP_201_CREATED, status.HTTP_206_PARTIAL_CONTENT])
+
+        response = self.client.post(
+            '/ai/upload/',
+            {'file': pdf_file, 'groq_api_key': 'gsk_fake_test_key'},
+            format='multipart',
+        )
+
+        # New shape mirrors /ai/parse/: 200 OK with a `data` dict.
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['success'])
-        
-        applicant_id = response.data['applicant_id']
-        self.assertIsNotNone(applicant_id)
-        
-        # Verify applicant was created
-        applicant = Applicant.objects.get(id=applicant_id)
+        self.assertEqual(response.data['extractor'], 'groq_llm')
+        self.assertIn('1_personal_details', response.data['data'])
         self.assertEqual(
-            applicant.personal_details['Full_Name'],
-            'Integration Test User'
+            response.data['data']['1_personal_details']['full_name'],
+            'Integration Test User',
         )
+        # Save happened (save_to_db defaults to true).
+        self.assertTrue(response.data['saved'])
+        self.assertIn('user_id', response.data)
+        self.assertIn('cv_submission_id', response.data)
+
+        # Verify the user was actually created.
+        user = Users.objects.get(id=response.data['user_id'])
+        self.assertEqual(user.email, 'integration@test.com')
+        self.assertEqual(user.first_name, 'Integration')
+        # The CVSubmission row exists and is linked to the user.
+        from api.models import CVSubmission
+        cv = CVSubmission.objects.get(id=response.data['cv_submission_id'])
+        self.assertEqual(cv.user_id, user.id)
 
 
 class ParseOnlyViewTest(AdminAPITestCase):
