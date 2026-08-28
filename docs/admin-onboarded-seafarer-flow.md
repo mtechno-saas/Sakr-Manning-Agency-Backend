@@ -17,11 +17,9 @@ Implemented in commit `803a78b4` on `mtechno-saas/Sakr-Manning-Agency-Backend:se
 | # | Who | What |
 |---|---|---|
 | 1 | **Admin** | `POST /api/cv-submissions/` with `{user_email, user_first_name, user_phone, ...}` (or `{user: <id>}` to link to an existing user) → backend **auto-creates the `Users` row** if needed (with `password = user_phone`) and creates the `CVSubmission` linked to it |
-| 2 | **System** | Sends an email to the linked seafarer's email address (the one in `Users.email`) with a signed magic link: `https://sakrshipping.com/set-password?uidb64=...&token=...` |
-| 3 | **Seafarer** | Clicks the link, lands on the frontend's "set new password" page |
-| 4 | **Seafarer** | Types their new password + submits. Frontend POSTs `{uidb64, token, new_password}` to `POST /api/auth/set-password-confirm/` |
-| 5 | **System** | Validates the signed token (HMAC + 24h TTL), calls `user.set_password(...)`, returns 200 |
-| 6 | **Seafarer** | `POST /api/login/` with `{email, password}` → JWT, can now use the standard email-login flow. **Phone-as-password also works** (`POST /api/auth/phone-login/` with `{phone, phone}`) once the seafarer verifies their phone via `POST /api/auth/verify-otp/`. |
+| 2 | **System** | Sends a "your account is ready" email to the seafarer **with the username (email) and the default password (phone) in plain text**. (See "Why this design" for the security note on this choice.) |
+| 3 | **Seafarer** | Reads the email, logs in at `POST /api/login/` with `{email, password-as-phone}`, OR uses phone-as-password at `POST /api/auth/phone-login/` (after verifying via `POST /api/auth/verify-otp/`). They can also `POST /api/auth/set-password-confirm/` (with a magic link) to set a custom password — the magic-link endpoint is still available for password changes. |
+| 4 | **Seafarer** | `POST /api/login/` with `{email, password}` → JWT. Can now use any authenticated endpoint. |
 
 The default email backend is `DjangoSMTPEmailService` (uses the project's Gmail SMTP config). For local dev / CI, set `EMAIL_SERVICE=api.email.ConsoleEmailService` to log the would-be email to the server console instead.
 
@@ -203,14 +201,18 @@ The backend looks up by name when a non-digit string is provided, and by id when
 
 **Side effect (silent, async-safe):**
 
-If the linked user has `welcome_email_sent_at IS NULL` and has an email on file, the system calls `EmailService.send_set_password_link(user.email, link, ttl_hours=24)`. The dispatch:
+For the auto-create case (the Admin posted `user_email` for a seafarer that didn't exist), the system calls `EmailService.send_welcome_credentials_email(user.email, username=user.email, password=user_phone, first_name=user.first_name)`. The dispatch:
 
-- Builds the magic link from the user's PK + Django's `default_token_generator` HMAC token
+- Sends a "your account is ready" email with the **username (email)** and the **default password (phone)** in plain text (per the explicit project decision — see "Why this design" below)
 - Calls the configured email backend (default `DjangoSMTPEmailService`)
-- On success, stamps `welcome_email_sent_at = now()` so the next CVSubmission for the same user is a no-op
+- On success, stamps `welcome_email_sent_at = now()` so subsequent CVSubmissions for the same user are no-ops
 - On failure, logs the error but does NOT raise — the CVSubmission save is never rolled back because of an email problem
 
-The admin never sees the link or the token. They're not in the API response.
+For the existing-user case (Admin posts `user_email` for a seafarer that already exists in the system), the user's `first_name`/`middle_name`/`phone_number` are refreshed, but **no email is sent** — the user already has an account with a password the system doesn't know, and emailing a credentials message would either be wrong (if they have a custom password) or a leak (if we tried to look up the phone-as-password).
+
+For the FK-only case (Admin posts `{user: <id>}`), no email is sent for the same reason.
+
+The admin never sees the link or the password. They're not in the API response.
 
 ### Step A3 — Communicate the seafarer's email (out-of-band)
 
@@ -384,12 +386,14 @@ curl -X POST "https://backend.sakrshipping.com/api/auth/phone-login/" \
 | Case | Behavior |
 |---|---|
 | Seafarer doesn't exist (wrong `user` ID or email) | `POST /api/cv-submissions/` returns `400` with `{"user": ["Invalid pk \"X\" - object does not exist."]}`. No `CVSubmission` row is created. The Admin must `POST /api/users/users/` first to create the `Users` row, then retry the CVSubmission. |
-| Seafarer doesn't exist + Admin posts `user_email` (new) | Backend auto-creates the `Users` row with `password = user_phone` (per spec), `role = 'Employee'`, and the supplied `first_name`/`middle_name`. The `CVSubmission` is created linked to the new user. The welcome email is dispatched. |
-| Seafarer already exists (Admin posts `user_email` of existing user) | Backend looks up by email, refreshes `first_name`/`middle_name`/`phone_number` if supplied, but does NOT touch the password (the seafarer may have set their own via the magic link or have phone-as-password configured). |
-| Admin posts `user_email` but no `user_phone` | Auto-create still works; default password falls back to the email address (so `/api/login/` works as a fallback). The welcome email still prompts the seafarer to set a real password. |
+| Seafarer doesn't exist + Admin posts `user_email` (new) | Backend auto-creates the `Users` row with `password = user_phone` (per spec), `role = 'Employee'`, and the supplied `first_name`/`middle_name`. The `CVSubmission` is created linked to the new user. A "your account is ready" email is sent to the seafarer with the **username (email) and password (phone) in plain text** (see the security note in "Why this design"). |
+| Seafarer already exists (Admin posts `user_email` of existing user) | Backend looks up by email, refreshes `first_name`/`middle_name`/`phone_number` if supplied, but does NOT touch the password (the seafarer may have set their own or have phone-as-password configured). **No welcome email is sent** — the seafarer already has a password the system doesn't know. |
+| Admin posts `user_email` but no `user_phone` | Auto-create still works; default password falls back to the email address (so `/api/login/` works as a fallback). The welcome email sends the email-as-password to the seafarer. |
 | Employee / Crew posts `user_email` of someone else | The `user_email` branch is admin-only — Employees' `user_email` is ignored. The CVSubmission is always attributed to the Employee themselves. |
-| Seafarer has no email on file | `dispatch_welcome_email` is a no-op (returns False). The `CVSubmission` save still succeeds. The seafarer is silently not onboarded via this path. The admin should set the seafarer's email and re-create the CVSubmission (or clear `welcome_email_sent_at` first) to retry. |
-| Admin creates a second `CVSubmission` for the same seafarer | No re-send. The user's `welcome_email_sent_at` is already set; the email path is a no-op. The CVSubmission row is still created. |
+| Seafarer has no email on file | `dispatch_welcome_credentials` is a no-op (returns False) since `user.email` is empty. The `CVSubmission` save still succeeds. The seafarer is silently not onboarded via this path. The admin should set the seafarer's email and re-create the CVSubmission (or clear `welcome_email_sent_at` first) to retry. |
+| Admin creates a second `CVSubmission` for the same seafarer (auto-create) | No re-send. The user's `welcome_email_sent_at` is already set; the email path is a no-op. The CVSubmission row is still created. |
+| Welcome email fails to send (SMTP down, etc.) | `CVSubmission` save is NOT rolled back. The error is logged in the gunicorn error log. `welcome_email_sent_at` is NOT stamped, so the Admin can retry by creating another CVSubmission (or clearing the flag manually and trying again). |
+| Seafarer lost the welcome email and can't log in | Two options: (a) Admin clears `welcome_email_sent_at` in the DB / Django admin and creates another `CVSubmission` to re-trigger the email. (b) Seafarer uses `POST /api/auth/verify-otp/` with their phone (after requesting an OTP) to verify and unlock phone-as-password login. (c) Future: a `POST /api/users/{id}/resend-welcome/` endpoint. |
 | Seafarer already has a custom password (e.g. set via a previous flow) | The seafarer's `welcome_email_sent_at` is set, so the email doesn't re-send. The new CVSubmission is created normally. The seafarer's existing password still works. |
 | Seafarer is `is_active=False` | The CVSubmission is still created. The email dispatch runs (no check on `is_active`). When the seafarer clicks the link and POSTs, the token is validated, the password is set, but `/api/login/` will return 403 because the account is disabled. The admin needs to re-activate. |
 | Token is tampered (different uidb64 + token combo) | `default_token_generator.check_token()` returns False → 400 "Invalid or expired link". The frontend should redirect to /login with an error message. |
@@ -415,12 +419,17 @@ The `CVPermission` on `POST /api/cv-submissions/` lets Recruiters POST (with lim
 
 ## Why this design (vs alternatives)
 
-- **Magic link, not emailed password.** Emailing a plaintext password is a security anti-pattern (the password lives forever in the seafarer's inbox, in mail server logs, in any forwarding chain). The magic-link pattern is the standard secure alternative — the link is single-purpose, time-bounded, and never contains any credential itself.
-- **HMAC-signed token, not a random opaque one.** Django's `default_token_generator` derives the token from the user PK + a server-side secret + a timestamp. No DB lookup is needed to validate — just the project's `SECRET_KEY`. The 24h TTL is embedded in the token, so old links fail closed without a separate expiry table.
-- **Re-use the existing `default_token_generator` pattern.** Same mechanism as the legacy `VerifyEmailView` (the welcome email with a "fill in your data" link). Familiar code path, fewer surprises.
-- **Idempotency at the user level, not the request level.** A second `CVSubmission` for the same seafarer is a valid admin action (different position, different company) but it shouldn't spam the seafarer with duplicate welcome emails. The `welcome_email_sent_at` flag gives us a per-user one-shot.
-- **Email failures don't roll back the save.** The `CVSubmission` is the primary record; the email is a notification. If SMTP is down, the admin can retry later (or the seafarer can use phone-as-password as a fallback). Reversing the relationship would couple unrelated concerns.
-- **Doesn't replace phone-as-password.** Seafarers created via `/ai/parse/` keep their phone-as-password option. This new flow adds email+password as a second option, not a replacement. Real-world deployments often need both.
+- **Single-step onboarding.** A single `POST /api/cv-submissions/` with `user_email` + `user_first_name` + `user_phone` (and optional `user_middle_name`) auto-creates the `Users` row in the same transaction. No separate `POST /api/users/users/` step.
+- **Credentials-in-email (project decision).** When the seafarer is auto-created, the system sends a "your account is ready" email containing the **username (email) and the default password (phone) in plain text**. This is the standard security anti-pattern (passwords end up in mail logs, forwarding chains, sent folders), but it was chosen explicitly for this project because:
+  - The seafarer already has the phone in hand (it's the credential they're being told to use).
+  - The magic-link alternative adds a step (open the email → click the link → type a new password → log in) that the Admin wanted to skip.
+  - The credentials endpoint at `POST /api/auth/set-password-confirm/` (magic link) is still available for any case where the password must NOT be transmitted in plain text — seafarers can change their password any time.
+  - For deployments that need the more secure flow, the `EMAIL_SERVICE` protocol can be swapped to a custom implementation that uses the magic-link variant instead.
+- **No email for existing users.** When the Admin posts `user_email` for a user that already exists, no email is sent at all. The user's password is whatever they (or a previous admin) set, and the system has no way to know it — emailing anything would either be wrong (if they have a custom password) or a leak. The CVSubmission is still created and linked; no notification to the seafarer. (Future: a "new CV submitted" notification email that doesn't include credentials.)
+- **Idempotency.** Stamps `welcome_email_sent_at` on success so subsequent CVSubmissions for the same seafarer are no-ops. The Admin can clear the flag in the DB / Django admin to re-trigger.
+- **Email failures don't roll back the save.** The `CVSubmission` is the primary record; the email is a notification. If SMTP is down, the admin can retry later (or the seafarer can use phone-as-password via `/api/auth/verify-otp/`).
+- **Doesn't replace phone-as-password.** The seafarer can keep using phone-as-password (after OTP verification) AND the email+password option once they set a custom one.
+- **HMAC-signed token, not a random opaque one.** (For the magic-link path that's still available.) Django's `default_token_generator` derives the token from the user PK + a server-side secret + a timestamp. No DB lookup is needed to validate — just the project's `SECRET_KEY`. The 24h TTL is embedded in the token, so old links fail closed without a separate expiry table.
 
 ---
 
@@ -443,34 +452,39 @@ The `CVPermission` on `POST /api/cv-submissions/` lets Recruiters POST (with lim
 - `api/views.py` — new `build_set_password_link(user)` helper, `SetPasswordConfirmView` (POST `/api/auth/set-password-confirm/`), `dispatch_welcome_email(user)` helper. `CVSubmissionViewSet.perform_create` rewritten to support three identification paths: `'user'` FK, `'user_email'` look-up-by-email, or auto-create from `user_email + user_first_name + user_middle_name + user_phone` (default password = phone). Welcome email dispatched after every CVSubmission create.
 - `api/serializer.py` — `CVSubmissionSerializer` now returns the linked row's display name (string) in `position`, `company`, `ship`, `reviewed_by` instead of the FK id. The original int is preserved in sibling `*_id` fields. Input accepts either the string name or the int id. The legacy `*_name` fields are kept for backward compat.
 - `api/urls.py` — wires `/api/auth/set-password-confirm/`
-- `api/tests.py` — 32 new tests (SetPasswordMagicLinkTests + EmailServiceSendPasswordLinkTests + CVSubmissionAutoCreateUserTests + CVSubmissionFKStringFieldsTests) + 2 existing OTP-dispatch tests got `@override_settings(EMAIL_SERVICE=ConsoleEmailService)` to keep passing under the new default
+- `api/tests.py` — 41 new tests (SetPasswordMagicLinkTests + EmailServiceSendPasswordLinkTests + CVSubmissionAutoCreateUserTests + CVSubmissionFKStringFieldsTests + CVSubmissionWelcomeCredentialsTests + EmailServiceSendWelcomeCredentialsTests) + 2 existing OTP-dispatch tests got `@override_settings(EMAIL_SERVICE=ConsoleEmailService)` to keep passing under the new default
 - `docs/admin-onboarded-seafarer-flow.md` — this file
 
 ## Tests
 
-21 new tests in `api/tests.py` (now 32 with the FK-string-fields batch):
+41 new tests in `api/tests.py`:
 
-- **`SetPasswordMagicLinkTests`** (11):
+- **`SetPasswordMagicLinkTests`** (10) — covers the magic-link path that the seafarer can still use to change their password:
   - `test_dispatch_skips_when_no_email` — no email on user → no-op
   - `test_dispatch_skips_when_already_sent` — `welcome_email_sent_at` set → no-op
   - `test_dispatch_sends_email_and_stamps_flag` — happy path: send + stamp
   - `test_dispatch_does_not_stamp_when_email_send_fails` — SMTP fails → don't stamp
-  - `test_cv_submission_create_dispatches_welcome_email` — Admin POST `/api/cv-submissions/` triggers dispatch
-  - `test_second_cv_submission_for_same_user_does_not_redisptach` — idempotency on the create path
+  - `test_cv_submission_create_for_existing_user_does_not_dispatch` — FK path → no email (no leak of existing password)
+  - `test_second_cv_submission_for_same_user_does_not_redisptach` — no re-send on second CVSubmission for same user
   - `test_set_password_confirm_with_valid_token` — happy path: token + new password → 200 + password set
   - `test_set_password_confirm_rejects_invalid_token` — bad token → 400
   - `test_set_password_confirm_rejects_weak_password` — weak password → 400 (Django validators)
   - `test_set_password_confirm_rejects_missing_fields` — missing body fields → 400
   - `test_set_password_link_uses_frontend_url` — link points at the configured frontend URL
-- **`EmailServiceSendPasswordLinkTests`** (3):
+- **`EmailServiceSendPasswordLinkTests`** (3) — unit tests for the magic-link email service method:
   - `test_console_logs_link` — ConsoleEmailService logs the link + email
   - `test_django_smtp_sends` — DjangoSMTPEmailService calls `send_mail` with the right subject/body
   - `test_django_smtp_returns_false_on_failure` — SMTP exception → returns False (no propagation)
-- **`CVSubmissionAutoCreateUserTests`** (7) — the new single-step admin-onboarding flow:
-  - `test_admin_post_with_user_email_auto_creates_user` — happy path: auto-create + password = phone + welcome email
-  - `test_admin_post_with_existing_user_does_not_re_create` — existing user found → no auto-create, password not touched
-  - `test_admin_post_with_existing_user_no_dispatch_when_already_sent` — welcome-email idempotency on the create path
-  - `test_admin_post_with_user_fk_skips_auto_create` — `'user'` FK path still works (no password reset)
+- **`EmailServiceSendWelcomeCredentialsTests`** (4) — unit tests for the new credentials email service method:
+  - `test_console_logs_credentials` — ConsoleEmailService logs the credentials
+  - `test_django_smtp_sends_with_credentials_in_body` — DjangoSMTPEmailService sends with username + password in body
+  - `test_django_smtp_sends_with_default_greeting_when_no_first_name` — default greeting
+  - `test_django_smtp_returns_false_on_failure` — SMTP exception → returns False
+- **`CVSubmissionAutoCreateUserTests`** (7) — the single-step admin-onboarding flow:
+  - `test_admin_post_with_user_email_auto_creates_user` — happy path: auto-create + password = phone + credentials email
+  - `test_admin_post_with_existing_user_does_not_re_create` — existing user → no auto-create, no email
+  - `test_admin_post_with_existing_user_no_dispatch_when_already_sent` — no email regardless of flag
+  - `test_admin_post_with_user_fk_skips_auto_create` — FK path → no auto-create, no email
   - `test_admin_post_without_user_email_falls_back_to_admin` — historical fallback preserved
   - `test_admin_post_auto_create_with_no_phone_falls_back_to_email_password` — no `user_phone` → password = email
   - `test_admin_post_with_employee_role_does_not_auto_create` — Employees can't trigger auto-create (security)
@@ -488,4 +502,4 @@ The `CVPermission` on `POST /api/cv-submissions/` lets Recruiters POST (with lim
   - `test_post_id_still_works_for_backward_compatibility` — int input still works (old clients)
   - `test_django_smtp_returns_false_on_failure` — SMTP exception → returns False (no propagation)
 
-**Full suite: 396 tests, 0 new failures.** The 2 pre-existing failures (`DocumentUploadViewTest`, `IntegrationTest`) are the LLM path (`/ai/upload/`) which is untouched in this work.
+**Full suite: 423 tests, 0 new failures.** The 2 pre-existing failures (`DocumentUploadViewTest`, `IntegrationTest`) are the LLM path (`/ai/upload/`) which is untouched in this work.

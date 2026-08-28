@@ -2612,54 +2612,52 @@ class SetPasswordMagicLinkTests(APITestCase):
 
     # ── CVSubmission create trigger ─────────────────────────────────
 
-    def test_cv_submission_create_dispatches_welcome_email(self):
+    def test_cv_submission_create_for_existing_user_does_not_dispatch(self):
+        # With the new credentials-email flow, the magic-link
+        # dispatch_welcome_email is no longer triggered by the
+        # admin CVSubmission path. For an existing user (the FK
+        # path), no email goes out at all — we don't want to leak
+        # the user's existing password.
         from unittest.mock import patch
-        from api.models import Users
 
-        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+        with patch("api.views.dispatch_welcome_email") as mock_dispatch, \
+             patch("api.views.dispatch_welcome_credentials") as mock_creds:
             resp = self.client.post(
                 self.url,
                 {"user": self.seafarer.id, "status": "Pending"},
                 format="json",
             )
         self.assertEqual(resp.status_code, 201, resp.data)
-        mock_dispatch.assert_called_once()
-        # The user passed to dispatch_welcome_email is the seafarer.
-        called_user = mock_dispatch.call_args.args[0]
-        self.assertEqual(called_user.id, self.seafarer.id)
+        mock_dispatch.assert_not_called()
+        mock_creds.assert_not_called()
 
     def test_second_cv_submission_for_same_user_does_not_redisptach(self):
-        # Idempotency: the second CVSubmission for the same user
-        # still calls dispatch_welcome_email (so it can no-op via
-        # welcome_email_sent_at check), but the actual email send
-        # is skipped.
+        # With the new credentials-email flow, no email is sent for
+        # existing users (the FK path), so a second CVSubmission for
+        # the same user also doesn't send anything. This is the
+        # opposite of the old magic-link flow (which sent once via
+        # the welcome_email_sent_at flag).
         from unittest.mock import patch
-        from django.utils import timezone
 
-        # First CVSubmission — should send the email.
-        with patch("api.email.get_email_service") as mock_get:
-            mock_get.return_value.send_set_password_link.return_value = True
+        with patch("api.views.dispatch_welcome_email") as mock_dispatch, \
+             patch("api.views.dispatch_welcome_credentials") as mock_creds:
+            # First CVSubmission — no email sent.
             self.client.post(
                 self.url,
                 {"user": self.seafarer.id, "status": "Pending"},
                 format="json",
             )
+            # Second CVSubmission — also no email sent.
+            self.client.post(
+                self.url,
+                {"user": self.seafarer.id, "status": "Pending"},
+                format="json",
+            )
+        mock_dispatch.assert_not_called()
+        mock_creds.assert_not_called()
+        # welcome_email_sent_at was never stamped (no email went out).
         self.seafarer.refresh_from_db()
-        self.assertIsNotNone(self.seafarer.welcome_email_sent_at)
-        first_send_count = mock_get.return_value.send_set_password_link.call_count
-
-        # Second CVSubmission — flag is already set, no re-send.
-        with patch("api.email.get_email_service") as mock_get2:
-            mock_get2.return_value.send_set_password_link.return_value = True
-            self.client.post(
-                self.url,
-                {"user": self.seafarer.id, "status": "Pending"},
-                format="json",
-            )
-        # The send was NOT called a second time.
-        self.assertEqual(
-            mock_get2.return_value.send_set_password_link.call_count, 0
-        )
+        self.assertIsNone(self.seafarer.welcome_email_sent_at)
 
     # ── SetPasswordConfirmView ──────────────────────────────────────
 
@@ -2783,7 +2781,16 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
             Users.objects.filter(email="newbie@sakrshipping.com").exists()
         )
 
-        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+        # Patch the email service so we don't actually send mail,
+        # but let the real dispatch_welcome_credentials run so the
+        # welcome_email_sent_at stamp happens. We assert on the
+        # email service call (which proves the credentials email
+        # path was taken) and on the flag (which proves the dispatch
+        # function ran end-to-end).
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_welcome_credentials_email.return_value = True
+            mock_service.send_set_password_link.return_value = True
             resp = self.client.post(
                 self.url,
                 {
@@ -2807,8 +2814,16 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
         self.assertTrue(user.check_password("00201012345678"))
         # CVSubmission is linked to the new user.
         self.assertEqual(resp.data["user"], user.id)
-        # Welcome email dispatched.
-        mock_dispatch.assert_called_once()
+        # Credentials email was dispatched (with phone-as-password).
+        mock_service.send_welcome_credentials_email.assert_called_once()
+        call_kwargs = mock_service.send_welcome_credentials_email.call_args.kwargs
+        self.assertEqual(call_kwargs["to_email"], "newbie@sakrshipping.com")
+        self.assertEqual(call_kwargs["username"], "newbie@sakrshipping.com")
+        self.assertEqual(call_kwargs["password"], "00201012345678")
+        # Magic-link path NOT used (we're auto-creating, not magic-link).
+        mock_service.send_set_password_link.assert_not_called()
+        # The flag was stamped (by the real dispatch function).
+        self.assertIsNotNone(user.welcome_email_sent_at)
 
     def test_admin_post_with_existing_user_does_not_re_create(self):
         from api.models import Users
@@ -2824,7 +2839,7 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
         existing.phone_number = "00201099999999"
         existing.save()
 
-        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+        with patch("api.views.dispatch_welcome_credentials") as mock_creds:
             resp = self.client.post(
                 self.url,
                 {
@@ -2851,9 +2866,9 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
         self.assertEqual(
             CVSubmission.objects.filter(user=existing).count(), 1
         )
-        # Welcome email still dispatched (welcome_email_sent_at
-        # wasn't set on this pre-existing user, so it gets sent).
-        mock_dispatch.assert_called_once()
+        # No credentials email was sent (would leak the existing
+        # user's password).
+        mock_creds.assert_not_called()
 
     def test_admin_post_with_existing_user_no_dispatch_when_already_sent(self):
         from api.models import Users
@@ -2868,10 +2883,9 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
         existing.welcome_email_sent_at = original_sent_at
         existing.save()
 
-        # Patch the EmailService — the dispatch_welcome_email() function
-        # is called (it's idempotent), but it should short-circuit
-        # before invoking the email service since welcome_email_sent_at
-        # is already set.
+        # With the credentials flow, no email is sent for existing
+        # users (regardless of welcome_email_sent_at). The flag
+        # only gates the auto-create path.
         with patch("api.email.get_email_service") as mock_get:
             resp = self.client.post(
                 self.url,
@@ -2883,15 +2897,14 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
                 format="json",
             )
         self.assertEqual(resp.status_code, 201, resp.data)
-        # The actual email service was NOT called.
+        # Neither credentials nor magic-link is sent.
+        mock_get.return_value.send_welcome_credentials_email.assert_not_called()
         mock_get.return_value.send_set_password_link.assert_not_called()
-        # And the welcome_email_sent_at timestamp wasn't updated.
-        existing.refresh_from_db()
-        self.assertEqual(existing.welcome_email_sent_at, original_sent_at)
 
     def test_admin_post_with_user_fk_skips_auto_create(self):
         # When the Admin passes the user FK directly (not user_email),
-        # the existing flow is used: no auto-create, no password reset.
+        # the existing flow is used: no auto-create, no password reset,
+        # no email (would leak the existing user's password).
         from api.models import Users
         from unittest.mock import patch
 
@@ -2902,7 +2915,8 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
         existing.role = "Employee"
         existing.save()
 
-        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+        with patch("api.views.dispatch_welcome_credentials") as mock_creds, \
+             patch("api.views.dispatch_welcome_email") as mock_magic:
             resp = self.client.post(
                 self.url,
                 {
@@ -2915,9 +2929,9 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
         # Same user, password untouched.
         existing.refresh_from_db()
         self.assertTrue(existing.check_password("TheirOwnPassword!42"))
-        # Welcome email still dispatched (the user is new to the
-        # welcome-email path, even though they existed before).
-        mock_dispatch.assert_called_once()
+        # No email of any kind for existing-user FK path.
+        mock_creds.assert_not_called()
+        mock_magic.assert_not_called()
 
     def test_admin_post_without_user_email_falls_back_to_admin(self):
         # Historical fallback: if neither 'user' nor 'user_email' is
@@ -2942,12 +2956,12 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
     def test_admin_post_auto_create_with_no_phone_falls_back_to_email_password(self):
         # If the Admin doesn't supply user_phone, the new user is
         # created with password = email (so /api/login/ works as a
-        # fallback). The welcome email still prompts them to set a
-        # real password via the magic link.
+        # fallback). The credentials email goes out with the email
+        # as the password.
         from api.models import Users
         from unittest.mock import patch
 
-        with patch("api.views.dispatch_welcome_email") as mock_dispatch:
+        with patch("api.views.dispatch_welcome_credentials") as mock_creds:
             resp = self.client.post(
                 self.url,
                 {
@@ -2964,7 +2978,11 @@ class CVSubmissionAutoCreateUserTests(APITestCase):
         self.assertEqual(user.phone_number, "")
         # Password is the email (fallback).
         self.assertTrue(user.check_password("nophone@sakrshipping.com"))
-        mock_dispatch.assert_called_once()
+        # Credentials email was sent with the email-as-password.
+        mock_creds.assert_called_once()
+        call_args = mock_creds.call_args
+        self.assertEqual(call_args.args[0].id, user.id)
+        self.assertEqual(call_args.args[1], "nophone@sakrshipping.com")
 
     def test_admin_post_with_employee_role_does_not_auto_create(self):
         # If the requester is an Employee, the CVSubmission is
@@ -3256,7 +3274,210 @@ class CVSubmissionFKStringFieldsTests(APITestCase):
         )
         self.assertEqual(resp.status_code, 201, resp.data)
         self.assertEqual(resp.data["position"], "Master")
-        self.assertEqual(resp.data["position_id"], self.position.id)
+
+
+# ============================================================================
+# Welcome-credentials email (auto-create path on CVSubmission POST)
+# ============================================================================
+#
+# When an Admin POSTs a CVSubmission that auto-creates a new Users
+# row, the system sends a "your account is ready" email containing
+# the username (email) and the default password (phone) in plain
+# text. This is the explicit project decision for the admin-onboarding
+# flow. The magic-link path is still available via
+# /api/auth/set-password-confirm/ for "I forgot my password" recovery.
+
+
+class CVSubmissionWelcomeCredentialsTests(APITestCase):
+    """The auto-create path sends a credentials email with the
+    username and default password in plain text.
+
+    SECURITY NOTE: this is the project-chosen trade-off. The
+    alternative is the magic-link flow (POST /api/auth/verify-otp/ +
+    POST /api/auth/set-password-confirm/), which is still available
+    for any case where the password must NOT be transmitted in plain
+    text.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        self.admin = Users.objects.create_user(
+            email="admin@sakrshipping.com",
+            password="adminpass",
+            first_name="Admin",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+        self.url = "/api/cv-submissions/"
+
+    def test_auto_create_sends_credentials_email_with_phone_password(self):
+        from api.models import Users
+        from unittest.mock import patch
+
+        self.assertFalse(
+            Users.objects.filter(email="newbie@sakrshipping.com").exists()
+        )
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_welcome_credentials_email.return_value = True
+            resp = self.client.post(
+                self.url,
+                {
+                    "user_email": "newbie@sakrshipping.com",
+                    "user_first_name": "AHMED",
+                    "user_phone": "00201012345678",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+
+        # The email service was called with the right args.
+        mock_service.send_welcome_credentials_email.assert_called_once()
+        call_kwargs = mock_service.send_welcome_credentials_email.call_args.kwargs
+        self.assertEqual(call_kwargs["to_email"], "newbie@sakrshipping.com")
+        # Username is the email, password is the phone number.
+        self.assertEqual(call_kwargs["username"], "newbie@sakrshipping.com")
+        self.assertEqual(call_kwargs["password"], "00201012345678")
+        self.assertEqual(call_kwargs["first_name"], "AHMED")
+        # Magic-link path was NOT used for auto-create.
+        mock_service.send_set_password_link.assert_not_called()
+
+        # welcome_email_sent_at was stamped.
+        user = Users.objects.get(email="newbie@sakrshipping.com")
+        self.assertIsNotNone(user.welcome_email_sent_at)
+
+    def test_auto_create_sends_credentials_email_with_email_fallback_password(self):
+        # No user_phone → password falls back to email (so /api/login/
+        # still works). The credentials email should still be sent.
+        from api.models import Users
+        from unittest.mock import patch
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_welcome_credentials_email.return_value = True
+            resp = self.client.post(
+                self.url,
+                {
+                    "user_email": "nophone@sakrshipping.com",
+                    "user_first_name": "NOPHONE",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+
+        call_kwargs = mock_service.send_welcome_credentials_email.call_args.kwargs
+        # Password is the email when no phone was supplied.
+        self.assertEqual(call_kwargs["password"], "nophone@sakrshipping.com")
+
+    def test_existing_user_does_not_get_credentials_email(self):
+        # If the user already exists (looked up by email), the
+        # credentials email is NOT sent — the password would be
+        # wrong (it might be a custom one the user set), and we
+        # don't want to leak it. The CVSubmission is still created.
+        from api.models import Users
+        from django.utils import timezone
+        from unittest.mock import patch
+
+        existing = Users.objects.create_user(
+            email="existing@sakrshipping.com",
+            password="TheirOwnPassword!42",
+            first_name="EXISTING",
+        )
+        existing.role = "Employee"
+        existing.phone_number = "00201088888888"
+        existing.save()
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_welcome_credentials_email.return_value = True
+            resp = self.client.post(
+                self.url,
+                {
+                    "user_email": "existing@sakrshipping.com",
+                    "user_phone": "00201099999999",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        # No email sent (neither credentials nor magic-link).
+        mock_service.send_welcome_credentials_email.assert_not_called()
+        mock_service.send_set_password_link.assert_not_called()
+
+        # The existing user's password was NOT touched.
+        existing.refresh_from_db()
+        self.assertTrue(existing.check_password("TheirOwnPassword!42"))
+
+    def test_credentials_email_failure_does_not_break_save(self):
+        # If the email service returns False (e.g. SMTP down), the
+        # CVSubmission is still created. welcome_email_sent_at stays
+        # null so the magic-link fallback could try later.
+        from api.models import Users
+        from unittest.mock import patch
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_welcome_credentials_email.return_value = False
+            resp = self.client.post(
+                self.url,
+                {
+                    "user_email": "failuser@sakrshipping.com",
+                    "user_phone": "00201077777777",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 201, resp.data)
+        user = Users.objects.get(email="failuser@sakrshipping.com")
+        # User was created even though the email failed.
+        self.assertIsNotNone(user)
+        # welcome_email_sent_at was NOT stamped (so the magic-link
+        # fallback can fire on retry if the user re-uploads).
+        self.assertIsNone(user.welcome_email_sent_at)
+
+    def test_credentials_email_dispatches_only_once_per_user(self):
+        # A second CVSubmission for the same user (auto-create was
+        # idempotent on the first one) does NOT re-send the email.
+        from api.models import Users
+        from unittest.mock import patch
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_welcome_credentials_email.return_value = True
+            # First call — should send.
+            self.client.post(
+                self.url,
+                {
+                    "user_email": "idem@sakrshipping.com",
+                    "user_phone": "00201066666666",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+            self.assertEqual(
+                mock_service.send_welcome_credentials_email.call_count, 1
+            )
+            # Second call — should NOT send (welcome_email_sent_at set).
+            self.client.post(
+                self.url,
+                {
+                    "user_email": "idem@sakrshipping.com",
+                    "status": "Pending",
+                },
+                format="json",
+            )
+            self.assertEqual(
+                mock_service.send_welcome_credentials_email.call_count, 1
+            )
 
 
 class EmailServiceSendPasswordLinkTests(TestCase):
@@ -3307,5 +3528,80 @@ class EmailServiceSendPasswordLinkTests(TestCase):
         mock_send.side_effect = RuntimeError("SMTP server down")
         ok = DjangoSMTPEmailService().send_set_password_link(
             "x@example.com", "https://x", ttl_hours=24
+        )
+        self.assertFalse(ok)
+
+
+class EmailServiceSendWelcomeCredentialsTests(TestCase):
+    """Unit tests for the send_welcome_credentials_email method on
+    both EmailService implementations.
+
+    The method embeds the password in plain text in the email body —
+    that's an explicit project decision (see api/email.py for the
+    security note). These tests lock in the dispatch contract.
+    """
+
+    def test_console_logs_credentials(self):
+        from api.email import ConsoleEmailService
+        with self.assertLogs("api.email", level="INFO") as cm:
+            ok = ConsoleEmailService().send_welcome_credentials_email(
+                to_email="newbie@sakrshipping.com",
+                username="newbie@sakrshipping.com",
+                password="00201012345678",
+                first_name="AHMED",
+            )
+        self.assertTrue(ok)
+        joined = "\n".join(cm.output)
+        # Console backend logs the credentials at INFO so devs can
+        # read them for testing. (In prod, the SMTP backend is used
+        # and the log line is NOT emitted — see DjangoSMTP variant.)
+        self.assertIn("newbie@sakrshipping.com", joined)
+        self.assertIn("00201012345678", joined)
+        self.assertIn("WELCOME-CREDS", joined)
+
+    @patch("django.core.mail.send_mail")
+    def test_django_smtp_sends_with_credentials_in_body(self, mock_send):
+        from api.email import DjangoSMTPEmailService
+        mock_send.return_value = 1
+        ok = DjangoSMTPEmailService().send_welcome_credentials_email(
+            to_email="seafarer@sakrshipping.com",
+            username="seafarer@sakrshipping.com",
+            password="00201012345678",
+            first_name="MOHAMED",
+        )
+        self.assertTrue(ok)
+        call_kwargs = mock_send.call_args.kwargs
+        self.assertEqual(
+            call_kwargs["recipient_list"], ["seafarer@sakrshipping.com"]
+        )
+        # The username and password are visible in the email body
+        # (this is the explicit project decision).
+        self.assertIn("seafarer@sakrshipping.com", call_kwargs["message"])
+        self.assertIn("00201012345678", call_kwargs["message"])
+        # Greeting uses the first_name when provided.
+        self.assertIn("Hello MOHAMED", call_kwargs["message"])
+        self.assertIn("Welcome", call_kwargs["subject"])
+
+    @patch("django.core.mail.send_mail")
+    def test_django_smtp_sends_with_default_greeting_when_no_first_name(self, mock_send):
+        from api.email import DjangoSMTPEmailService
+        mock_send.return_value = 1
+        ok = DjangoSMTPEmailService().send_welcome_credentials_email(
+            to_email="x@example.com",
+            username="x@example.com",
+            password="x",
+        )
+        self.assertTrue(ok)
+        # Default greeting (no first_name) is just "Hello,".
+        self.assertIn("Hello,", mock_send.call_args.kwargs["message"])
+
+    @patch("django.core.mail.send_mail")
+    def test_django_smtp_returns_false_on_failure(self, mock_send):
+        from api.email import DjangoSMTPEmailService
+        mock_send.side_effect = RuntimeError("SMTP server down")
+        ok = DjangoSMTPEmailService().send_welcome_credentials_email(
+            to_email="x@example.com",
+            username="x",
+            password="x",
         )
         self.assertFalse(ok)

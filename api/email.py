@@ -90,6 +90,31 @@ class EmailService(Protocol):
         """
         ...
 
+    def send_welcome_credentials_email(
+        self,
+        to_email: str,
+        username: str,
+        password: str,
+        *,
+        first_name: str = "",
+    ) -> bool:
+        """Send a "your account is ready" email containing the
+        username (email) and the default password (phone number)
+        in plain text.
+
+        SECURITY NOTE: this method embeds the password in the email
+        body, which is the standard "do not do this" anti-pattern.
+        It exists because the project explicitly chose that trade-off
+        for the admin-onboarded seafarer flow (the seafarer already
+        has the phone in hand; the alternative magic-link flow adds
+        a step the Admin wanted to skip). Use the magic-link flow
+        (``send_set_password_link``) for any case where the password
+        must NOT be transmitted in plain text.
+
+        Returns True on success, False on any failure.
+        """
+        ...
+
 
 # ── Default dev backend: log to console ──────────────────────────────
 
@@ -127,6 +152,20 @@ class ConsoleEmailService:
         logger.info(
             "[EMAIL-CONSOLE] To: %s | SET-PASSWORD link=%s | ttl=%d h",
             to_email, link, ttl_hours,
+        )
+        return True
+
+    def send_welcome_credentials_email(
+        self,
+        to_email: str,
+        username: str,
+        password: str,
+        *,
+        first_name: str = "",
+    ) -> bool:
+        logger.info(
+            "[EMAIL-CONSOLE] To: %s | WELCOME-CREDS username=%s password=%s",
+            to_email, username, password,
         )
         return True
 
@@ -231,6 +270,52 @@ class DjangoSMTPEmailService:
             logger.exception(
                 "DjangoSMTPEmailService: send_set_password_link failed "
                 "for to_email=%s",
+                to_email,
+            )
+            return False
+
+    def send_welcome_credentials_email(
+        self,
+        to_email: str,
+        username: str,
+        password: str,
+        *,
+        first_name: str = "",
+    ) -> bool:
+        from django.core.mail import send_mail
+        from django.conf import settings as dj_settings
+
+        greeting = f"Hello {first_name}," if first_name else "Hello,"
+        subject = "Welcome to Sakr Manning Agency — your account is ready"
+        body = (
+            f"{greeting}\n\n"
+            f"Your account on Sakr Manning Agency has been created. "
+            f"Here are your login credentials:\n\n"
+            f"  Username: {username}\n"
+            f"  Password: {password}\n\n"
+            f"You can log in at https://sakrshipping.com/login with "
+            f"these credentials. We recommend changing your password "
+            f"after your first login.\n\n"
+            f"If you did not expect this email, please contact us.\n\n"
+            f"— Sakr Manning Agency"
+        )
+        from_email = getattr(
+            dj_settings, "DEFAULT_FROM_EMAIL", "noreply@sakrshipping.com"
+        )
+
+        try:
+            sent = send_mail(
+                subject=subject,
+                message=body,
+                from_email=from_email,
+                recipient_list=[to_email],
+                fail_silently=False,
+            )
+            return sent == 1
+        except Exception:
+            logger.exception(
+                "DjangoSMTPEmailService: send_welcome_credentials_email "
+                "failed for to_email=%s",
                 to_email,
             )
             return False

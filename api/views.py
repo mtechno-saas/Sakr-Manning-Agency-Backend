@@ -592,6 +592,56 @@ def dispatch_welcome_email(user) -> bool:
     return sent
 
 
+def dispatch_welcome_credentials(user, password: str) -> bool:
+    """Send the "your account is ready, here are your credentials"
+    email to a newly-auto-created seafarer.
+
+    Called from CVSubmissionViewSet.perform_create in the auto-create
+    branch (right after ``Users.objects.create_user``). The email
+    body includes the seafarer's email (username) and the phone
+    number (default password) in plain text.
+
+    SECURITY NOTE: this function embeds the password in the email.
+    It's an explicit project decision (the seafarer already has the
+    phone in hand; we skip the magic-link round-trip). Use the
+    magic-link flow (``dispatch_welcome_email``) for any case where
+    the password must NOT be transmitted in plain text.
+
+    Idempotency: stamps ``welcome_email_sent_at`` on success so
+    subsequent CVSubmissions for the same user don't re-send.
+    Does NOT raise on dispatch failure — the email service
+    catches and logs; the CVSubmission save should never roll
+    back because of an email problem.
+    """
+    if not user or not user.email:
+        return False
+    if user.welcome_email_sent_at is not None:
+        return False
+
+    from api.email import get_email_service
+
+    sent = False
+    try:
+        sent = get_email_service().send_welcome_credentials_email(
+            to_email=user.email,
+            username=user.email,
+            password=password,
+            first_name=user.first_name or "",
+        )
+    except Exception:
+        logger.exception(
+            "dispatch_welcome_credentials: email service raised "
+            "for user id=%s",
+            user.id,
+        )
+
+    if sent:
+        user.welcome_email_sent_at = timezone.now()
+        user.save(update_fields=["welcome_email_sent_at"])
+
+    return sent
+
+
 # ========================
 # /api/me/ — Seafarer self-service
 # ========================
@@ -1856,9 +1906,17 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
             except Users.DoesNotExist:
                 # Auto-create the Users row. Default password is the
                 # phone number (per spec). If no phone was supplied,
-                # fall back to email-as-password so /api/login/
-                # still works; the welcome email prompts the
-                # seafarer to set a real password.
+                # fall back to email-as-password so /api/login/ still
+                # works.
+                #
+                # Side effect: the welcome email is dispatched with
+                # the credentials in plain text (the explicit project
+                # decision). The dispatch is idempotent via
+                # welcome_email_sent_at, but we set it ourselves
+                # right here so the post-save dispatch_welcome_email
+                # (the magic-link variant) short-circuits and doesn't
+                # re-send a different email. See api.email.send_
+                # welcome_credentials_email for the security note.
                 password = phone or email
                 user = Users.objects.create_user(
                     email=email,
@@ -1873,6 +1931,11 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
                     user.phone_number = phone
                 user.role = 'Employee'
                 user.save(update_fields=['phone_number', 'role'])
+
+                # Send the credentials email. This also stamps
+                # welcome_email_sent_at on success so the post-save
+                # dispatch_welcome_email below is a no-op.
+                dispatch_welcome_credentials(user, password)
         else:
             # No 'user' and no 'user_email' (or Employee tried to
             # pass user_email — that's a no-op for them). Fall back
@@ -1895,15 +1958,17 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
 
         instance = serializer.save(user=user)
 
-        # After the CVSubmission is persisted, send the linked seafarer
-        # a "set your password" welcome email (if this is the first
-        # CVSubmission for them and they have an email on file). This
-        # is the admin-onboarded path; the /ai/parse/ flow uses
-        # phone-as-password instead. dispatch_welcome_email is
-        # idempotent (no-op if welcome_email_sent_at is already set)
-        # and never raises — email failures don't roll back the save.
-        if instance and instance.user_id:
-            dispatch_welcome_email(instance.user)
+        # Email dispatch happens in the branches above:
+        #   - auto-create: dispatch_welcome_credentials (username +
+        #     password in plain text, per project decision)
+        #   - existing user: no email (would leak the existing
+        #     user's password)
+        #   - admin/HR/Recruiter fallback (no user info): no email
+        #
+        # The magic-link flow (POST /api/auth/set-password-confirm/)
+        # is still available for "I forgot my password" recovery
+        # and for the /ai/parse/ flow, but it's no longer triggered
+        # by the admin CVSubmission path.
 
     def perform_update(self, serializer):
         # Auto-stamp reviewed_date whenever reviewed_by is being set
