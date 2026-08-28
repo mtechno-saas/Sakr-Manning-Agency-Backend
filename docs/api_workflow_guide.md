@@ -288,8 +288,9 @@ graph TD
 1. **Upload Resume**:
    - **Endpoint**: `POST /ai/upload/`
    - **Headers**: `Content-Type: multipart/form-data`
-   - **Body**: `file: File`
-   - **Response**: `{ "applicant_id": 25, "user_id": 50, "message": "Processed successfully" }`
+   - **Body**: `file: File`, optional `save_to_db=true|false`
+   - **Response**: Full extracted CV in 12-section numbered format
+   - **Full reference**: see [`docs/ai-upload-api.md`](./ai-upload-api.md) (response shape, error codes, routing, OCR behavior, frontend integration notes)
 
 2. **List AI Applicants**:
    - **Endpoint**: `GET /ai/applicants/`
