@@ -336,6 +336,33 @@ GROQ_MODEL_FALLBACKS = [GROQ_MODEL] + [
 ]
 del _ai_os
 
+# ----------------------------------------------------------------------------
+# Ollama (local LLM) — primary fallback for the LLM path in /ai/upload/
+# ----------------------------------------------------------------------------
+# When OLLAMA_HOST is set (and OLLAMA_ENABLED is not "false"), the LLM
+# router in ai_document/document_to_json.py tries Ollama FIRST, before
+# any cloud provider. This makes the LLM fallback path free, private
+# (CV never leaves the server), and immune to API-key leakage.
+#
+# Recommended models for CV extraction (ranked by quality/size):
+#   qwen2.5:7b         4.7 GB  ← good default, JSON-mode, multilingual
+#   qwen2.5:14b        9 GB    ← better on messy CVs, more RAM needed
+#   llama3.1:8b        4.7 GB  ← solid general-purpose
+#   mistral-nemo:12b   7 GB    ← excellent structured output
+#   phi3.5:3.8b        2.3 GB  ← tiny, English-only
+#
+# To install on the server:
+#   curl -fsSL https://ollama.com/install.sh | sh
+#   ollama pull qwen2.5:7b
+#   # ollama serve is the default; listens on 127.0.0.1:11434
+OLLAMA_ENABLED = _os.environ.get("OLLAMA_ENABLED", "true").lower() != "false"
+OLLAMA_HOST = _os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")
+OLLAMA_MODEL = _os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
+# Optional: skip the Ollama check at request time if the server is
+# having a bad day. Leave the default of 0 (always try) unless you
+# want to gate this on a feature flag.
+OLLAMA_TIMEOUT_SECONDS = int(_os.environ.get("OLLAMA_TIMEOUT_SECONDS", "60"))
+
 # Email service for seafarer phone-verification (OTP). The system
 # sends the OTP to the seafarer's email address (on file from the CV).
 # Default is api.email.DjangoSMTPEmailService, which dispatches via

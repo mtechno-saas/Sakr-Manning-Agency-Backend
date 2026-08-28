@@ -23,6 +23,44 @@ def _get_active_llm(api_keys_config: dict):
 
     now = time.time()
 
+    # 0. Try Ollama (local) — primary LLM fallback when configured.
+    #    Free, private, no rate limit. Skipped when:
+    #      * OLLAMA_ENABLED is false
+    #      * api_keys_config contains a hard "ollama_disabled": true
+    #    If the local server isn't running or the model isn't pulled,
+    #    we fall through to Groq (existing behaviour unchanged).
+    if getattr(settings, "OLLAMA_ENABLED", True) and not api_keys_config.get("ollama_disabled"):
+        ollama_host = getattr(settings, "OLLAMA_HOST", "") or os.environ.get("OLLAMA_HOST", "")
+        ollama_model = (
+            api_keys_config.get("ollama_model")
+            or getattr(settings, "OLLAMA_MODEL", "qwen2.5:7b")
+        )
+        if ollama_host:
+            try:
+                from langchain_ollama import ChatOllama
+                llm = ChatOllama(
+                    model=ollama_model,
+                    base_url=ollama_host,
+                    temperature=0,
+                    # JSON-mode: model is told to emit raw JSON only.
+                    # qwen2.5+ / llama3.1+ / mistral-nemo all support this.
+                    format="json",
+                    timeout=getattr(settings, "OLLAMA_TIMEOUT_SECONDS", 60),
+                )
+                return llm, {
+                    "provider": "ollama",
+                    "model": ollama_model,
+                    "host": ollama_host,
+                }
+            except Exception as e:
+                # Most likely causes: ollama not running, model not pulled,
+                # or langchain_ollama not installed. Log and fall through
+                # to Groq so the request still works.
+                print(
+                    f"[Ollama] init failed for {ollama_host} model={ollama_model}: "
+                    f"{e!r} — falling through to Groq"
+                )
+
     # Model candidates in priority order. Read from settings so we
     # can rotate models via env var without a code deploy. The
     # primary (settings.GROQ_MODEL) is first, then settings.GROQ_MODEL_FALLBACKS.
@@ -575,10 +613,28 @@ def convert_text_to_json(
 
     local_result = {}
 
-    # -- 2. Check API Keys -----------------------------------------------------
-    if not api_keys_config:
-        print("[LLM] CRITICAL ERROR: No API keys available.")
-        return {"validation_error": "API KEYS MISSING. Please provide API keys in the Settings."}, api_keys_config
+    # -- 2. Pick an LLM provider (Ollama local, Groq, or Gemini) -----------
+    # An empty api_keys_config is fine when Ollama is running — the
+    # router in _get_active_llm will pick it up. We only return a
+    # hard error when there's NO LLM reachable at all.
+    has_cloud_keys = bool(api_keys_config.get("groq")) or bool(
+        api_keys_config.get("gemini")
+    ) or bool(os.environ.get("GROQ_API_KEY")) or bool(
+        os.environ.get("GEMINI_API_KEY")
+    )
+    ollama_configured = bool(getattr(settings, "OLLAMA_HOST", ""))
+
+    if not has_cloud_keys and not ollama_configured:
+        print("[LLM] CRITICAL ERROR: No LLM provider available.")
+        return {
+            "validation_error": (
+                "No LLM provider is available. Either:\n"
+                "  - Set OLLAMA_HOST env var (e.g. http://127.0.0.1:11434) "
+                "and run `ollama pull qwen2.5:7b` for a free local LLM, OR\n"
+                "  - Supply a Groq key in the request (`groq_api_key` "
+                "form field) for the cloud LLM fallback."
+            )
+        }, api_keys_config
 
     try:
         # -- Pass 1: COMPREHENSIVE (sections 0-7, 10-12) -----------------------

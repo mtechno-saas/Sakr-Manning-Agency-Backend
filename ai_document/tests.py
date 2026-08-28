@@ -594,16 +594,35 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
     @patch("ai_document.views.convert_text_to_json")
     @patch("ai_document.views.SakrTemplateExtractor")
     @patch("ai_document.views.DocumentProcessor")
-    def test_no_api_keys_returns_400_when_deterministic_fails(
+    def test_no_api_keys_passes_empty_dict_to_llm(
         self, mock_processor_cls, mock_extractor_cls, mock_convert,
     ):
-        """Deterministic fails AND no API keys → 400 with
-        ``api_keys_missing`` error code. The LLM is NOT called.
+        """Deterministic fails + no API keys in the request → the
+        view passes an empty dict to the LLM router so the router
+        can try Ollama (local, free) before erroring.
+
+        We mock convert_text_to_json to return the
+        ``validation_error`` it would produce when no provider is
+        available. The view then returns 400 with ``invalid_document``
+        + the helpful "set OLLAMA_HOST" message.
         """
         from ai_document.extractors import ErrorCode
 
         self._mock_processor(mock_processor_cls, text="random text")
         self._mock_extractor_fail(mock_extractor_cls, ErrorCode.NOT_SAKR_TEMPLATE)
+
+        # Simulate the case where Ollama is NOT configured and no
+        # cloud key is supplied — convert_text_to_json would return
+        # a validation_error explaining how to fix it.
+        mock_convert.return_value = (
+            {
+                "validation_error": (
+                    "No LLM provider is available. Either set OLLAMA_HOST "
+                    "or supply a Groq key in the request."
+                )
+            },
+            {},
+        )
 
         # NOTE: no groq_api_key, no api_keys_config in the request.
         response = self.client.post(
@@ -612,10 +631,12 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["success"])
-        self.assertEqual(response.data["error"], "api_keys_missing")
+        self.assertEqual(response.data["error"], "invalid_document")
+        self.assertIn("OLLAMA_HOST", response.data["message"])
         self.assertEqual(response.data["file_name"], "cv.pdf")
-        # LLM was never even tried.
-        mock_convert.assert_not_called()
+        # LLM WAS called (with an empty config) — that's how the
+        # router learns that no provider is available.
+        mock_convert.assert_called_once()
 
     @patch("ai_document.views._save_parser_output")
     @patch("ai_document.views.convert_text_to_json")
@@ -1484,6 +1505,276 @@ class ParserHelpersUnitTest(SimpleTestCase):
         )
         self.assertEqual(_marital_status_to_string("Single"), "Single")
         self.assertEqual(_marital_status_to_string(None), "")
+
+
+class LlmRouterOllamaTest(SimpleTestCase):
+    """Unit tests for the Ollama branch of ``_get_active_llm``.
+
+    The router order is:
+      0. Ollama (local) — first when OLLAMA_HOST is set
+      1. Groq (cloud)
+      2. Gemini (cloud)
+
+    These tests verify:
+      * Ollama is tried FIRST when OLLAMA_HOST is set.
+      * Ollama is skipped (falls through to Groq) when
+        ``api_keys_config["ollama_disabled"] = True``.
+      * Ollama is skipped when ``OLLAMA_ENABLED = False`` (env override).
+      * Ollama falls through to Groq when the import / init fails.
+      * Groq wins when Ollama is not configured at all.
+
+    Note on mocking: ``ChatOllama`` is imported locally inside
+    ``_get_active_llm``, so we mock it at its source module
+    (``langchain_ollama.ChatOllama``), not at
+    ``ai_document.document_to_json.ChatOllama``.
+    """
+
+    def _patch_settings(self, **overrides):
+        """Apply Django settings overrides for the duration of a test."""
+        from django.test import override_settings
+        return override_settings(**overrides)
+
+    @patch("langchain_ollama.ChatOllama")
+    def test_ollama_wins_when_configured(self, mock_chat_ollama):
+        """OLLAMA_HOST set + OLLAMA_ENABLED true → ChatOllama is
+        instantiated and returned. Groq is NEVER instantiated.
+        """
+        from ai_document.document_to_json import _get_active_llm
+        mock_llm_instance = MagicMock(name="ollama_llm")
+        mock_chat_ollama.return_value = mock_llm_instance
+
+        with self._patch_settings(
+            OLLAMA_ENABLED=True,
+            OLLAMA_HOST="http://127.0.0.1:11434",
+            OLLAMA_MODEL="qwen2.5:7b",
+        ):
+            llm, info = _get_active_llm({})
+
+        self.assertIs(llm, mock_llm_instance)
+        self.assertEqual(info["provider"], "ollama")
+        self.assertEqual(info["model"], "qwen2.5:7b")
+        self.assertEqual(info["host"], "http://127.0.0.1:11434")
+
+        # Verify ChatOllama was constructed with JSON-mode + the
+        # configured model + base_url.
+        mock_chat_ollama.assert_called_once()
+        call_kwargs = mock_chat_ollama.call_args.kwargs
+        self.assertEqual(call_kwargs["model"], "qwen2.5:7b")
+        self.assertEqual(call_kwargs["base_url"], "http://127.0.0.1:11434")
+        self.assertEqual(call_kwargs["format"], "json")
+        self.assertEqual(call_kwargs["temperature"], 0)
+
+    @patch("langchain_ollama.ChatOllama")
+    def test_ollama_skipped_when_disabled_in_config(self, mock_chat_ollama):
+        """``api_keys_config["ollama_disabled"] = True`` → router
+        falls through to Groq/Gemini. Even if OLLAMA_HOST is set.
+        """
+        from ai_document.document_to_json import _get_active_llm
+
+        with self._patch_settings(
+            OLLAMA_ENABLED=True,
+            OLLAMA_HOST="http://127.0.0.1:11434",
+        ):
+            # No live Groq keys, no Gemini key — router returns (None, None)
+            llm, info = _get_active_llm({"ollama_disabled": True})
+
+        self.assertIsNone(llm)
+        self.assertIsNone(info)
+        # Ollama was NOT instantiated.
+        mock_chat_ollama.assert_not_called()
+
+    @patch("langchain_ollama.ChatOllama")
+    def test_ollama_skipped_when_globally_disabled(self, mock_chat_ollama):
+        """``OLLAMA_ENABLED = False`` (env override) → router never
+        tries Ollama. The cloud fallbacks still get a chance.
+        """
+        from ai_document.document_to_json import _get_active_llm
+
+        with self._patch_settings(
+            OLLAMA_ENABLED=False,
+            OLLAMA_HOST="http://127.0.0.1:11434",
+        ):
+            llm, info = _get_active_llm({})
+
+        self.assertIsNone(llm)
+        mock_chat_ollama.assert_not_called()
+
+    @patch("langchain_ollama.ChatOllama")
+    def test_ollama_falls_through_to_groq_when_init_fails(
+        self, mock_chat_ollama,
+    ):
+        """ChatOllama(...) raises (e.g. server not running) → router
+        logs the failure and tries the next provider (Groq).
+
+        The local test env may not have ``langchain_groq`` installed,
+        so we inject a stub module into ``sys.modules`` before the
+        router's ``from langchain_groq import ChatGroq`` runs. On
+        prod the real package is in requirements.txt.
+        """
+        import sys
+        import types
+
+        # Stub out langchain_groq so the `from langchain_groq import
+        # ChatGroq` inside _get_active_llm doesn't ModuleNotFoundError.
+        if "langchain_groq" not in sys.modules:
+            fake_groq = types.ModuleType("langchain_groq")
+            fake_llm = MagicMock(name="groq_llm")
+
+            def fake_chat_groq(*args, **kwargs):
+                return fake_llm
+
+            fake_groq.ChatGroq = fake_chat_groq
+            sys.modules["langchain_groq"] = fake_groq
+            self.addCleanup(lambda: sys.modules.pop("langchain_groq", None))
+        else:
+            fake_llm = MagicMock(name="groq_llm")
+            sys.modules["langchain_groq"].ChatGroq = lambda *a, **kw: fake_llm
+
+        from ai_document.document_to_json import _get_active_llm
+        mock_chat_ollama.side_effect = ConnectionError(
+            "ollama not running"
+        )
+
+        with self._patch_settings(
+            OLLAMA_ENABLED=True,
+            OLLAMA_HOST="http://127.0.0.1:11434",
+        ):
+            llm, info = _get_active_llm(
+                {"groq": [{"key": "gsk_test", "status": "live"}]}
+            )
+
+        # Ollama was attempted, failed, and we fell through to Groq.
+        mock_chat_ollama.assert_called_once()
+        self.assertIs(llm, fake_llm)
+        self.assertEqual(info["provider"], "groq")
+
+    @patch("langchain_ollama.ChatOllama")
+    def test_ollama_not_attempted_when_host_empty(self, mock_chat_ollama):
+        """OLLAMA_HOST empty / unset → Ollama branch is skipped
+        entirely (not even imported). The router returns (None, None)
+        because no cloud key is configured in this test.
+        """
+        from ai_document.document_to_json import _get_active_llm
+
+        with self._patch_settings(
+            OLLAMA_ENABLED=True,
+            OLLAMA_HOST="",  # empty → skip Ollama
+        ):
+            llm, info = _get_active_llm({})
+
+        self.assertIsNone(llm)
+        self.assertIsNone(info)
+        mock_chat_ollama.assert_not_called()
+
+    @patch("langchain_ollama.ChatOllama")
+    def test_ollama_model_override_per_request(self, mock_chat_ollama):
+        """``api_keys_config["ollama_model"]`` overrides the default
+        from settings for a single request.
+        """
+        from ai_document.document_to_json import _get_active_llm
+        mock_chat_ollama.return_value = MagicMock(name="llm")
+
+        with self._patch_settings(
+            OLLAMA_ENABLED=True,
+            OLLAMA_HOST="http://127.0.0.1:11434",
+            OLLAMA_MODEL="qwen2.5:7b",
+        ):
+            _get_active_llm({"ollama_model": "llama3.1:8b"})
+
+        # The per-request model name was used.
+        call_kwargs = mock_chat_ollama.call_args.kwargs
+        self.assertEqual(call_kwargs["model"], "llama3.1:8b")
+
+
+class DocumentUploadViewOllamaTest(AuthenticatedAPITestCase):
+    """End-to-end test: /ai/upload/ works without ANY API keys when
+    Ollama is configured locally on the server.
+
+    Mocks convert_text_to_json to act as if it routed through Ollama
+    successfully, then verifies the view returns 200 OK with
+    ``extractor: "groq_llm"`` (the same label we use for any LLM
+    path — we don't expose the underlying provider name in the
+    public API).
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.url = "/ai/upload/"
+
+    def _pdf(self, name="cv.pdf"):
+        return SimpleUploadedFile(
+            name, b"%PDF-1.4 fake", content_type="application/pdf"
+        )
+
+    @patch("ai_document.views._save_parser_output")
+    @patch("ai_document.views.convert_text_to_json")
+    @patch("ai_document.views.SakrTemplateExtractor")
+    @patch("ai_document.views.DocumentProcessor")
+    def test_upload_works_without_api_keys_when_ollama_up(
+        self, mock_processor_cls, mock_extractor_cls,
+        mock_convert, mock_save,
+    ):
+        """No `groq_api_key`, no `api_keys_config` in the request.
+        The view passes an empty config to the LLM router, which
+        picks Ollama (mocked to succeed). Result: 200 OK, save
+        happens, no API key was ever needed.
+        """
+        from ai_document.extractors import ErrorCode
+
+        # Mock the document processor
+        mock_proc = MagicMock()
+        mock_proc.process_document.return_value = {
+            "extracted_text": "text that doesn't match Sakr form",
+            "tables": [],
+            "page_count": 2,
+        }
+        mock_processor_cls.return_value = mock_proc
+
+        # Deterministic extractor fails → LLM path
+        det_result = MagicMock()
+        det_result.ok = False
+        det_result.error = ErrorCode.NOT_SAKR_TEMPLATE
+        det_result.warnings = []
+        mock_extractor_cls.return_value.extract.return_value = det_result
+
+        # LLM path (simulating Ollama) returns a valid CV payload
+        mock_convert.return_value = (
+            {
+                "1_personal_details": {
+                    "full_name": "Ollama Extracted User",
+                    "date_of_birth": "15/06/1990",
+                },
+                "3_contact_details": {
+                    "e_mail": "ollama.user@example.com",
+                    "mobile_tel": "+201234567890",
+                },
+            },
+            {},
+        )
+        mock_save.return_value = (777, 888)
+
+        # NOTE: NO groq_api_key, NO api_keys_config — pure Ollama flow
+        response = self.client.post(
+            self.url, {"file": self._pdf()}, format="multipart"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["extractor"], "groq_llm")
+        self.assertEqual(
+            response.data["data"]["1_personal_details"]["full_name"],
+            "Ollama Extracted User",
+        )
+        # Save happened with the ids _save_parser_output returned.
+        self.assertTrue(response.data["saved"])
+        self.assertEqual(response.data["user_id"], 777)
+        self.assertEqual(response.data["cv_submission_id"], 888)
+
+        # Verify the empty api_keys_config was passed to the LLM
+        # router (which is what lets Ollama be picked up).
+        call_args = mock_convert.call_args
+        passed_config = call_args.kwargs.get("api_keys_config", {})
+        self.assertEqual(passed_config, {})
 
 
 class ParseOnlyViewAuthTest(APITestCase):

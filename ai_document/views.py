@@ -3566,11 +3566,18 @@ class DocumentUploadView(APIView):
        is used.
     2. If the deterministic extractor reports ``NOT_SAKR_TEMPLATE``
        (the document doesn't match the Sakr form), we fall back to
-       the LLM path (``convert_text_to_json``).
+       the LLM path (``convert_text_to_json``). The LLM router
+       inside that helper tries providers in this order:
+         a. **Ollama (local, free)** — set ``OLLAMA_HOST`` env var
+            on the server. Recommended model ``qwen2.5:7b``.
+         b. **Groq (cloud)** — Groq keys in the request or env.
+         c. **Gemini (cloud)** — last resort.
+       When Ollama is up, the LLM path is free and private (the
+       CV never leaves the server).
     3. If the LLM path is also unable to extract a valid maritime
-       CV (validation failure, API keys missing/exhausted), the
-       endpoint returns a 400 with the validation_error message —
-       no save happens.
+       CV (validation failure, every provider down), the endpoint
+       returns a 400 with the validation_error message — no save
+       happens.
 
     Response shape (matches ``/ai/parse/`` exactly)::
 
@@ -3593,9 +3600,11 @@ class DocumentUploadView(APIView):
                          User + CVSubmission via the same flow as
                          ``/ai/parse/``. Pass "false" for a
                          dry-run parse (no DB writes).
-        groq_api_key     optional — per-request Groq key (LLM path)
+        groq_api_key     optional — per-request Groq key (cloud LLM
+                         fallback). Not needed when Ollama is up.
         api_keys_config  optional — JSON string with full key
-                         config (LLM path)
+                         config (cloud LLM fallback). Not needed
+                         when Ollama is up.
 
     Auth: ``AllowAny`` for backwards compatibility with the original
     endpoint. The deterministic path never calls the LLM, so the
@@ -3696,22 +3705,19 @@ class DocumentUploadView(APIView):
                 )
 
                 api_keys_config = self._resolve_api_keys_config(request)
-                if not api_keys_config:
-                    return Response(
-                        {
-                            "success": False,
-                            "error": "api_keys_missing",
-                            "message": (
-                                "Cannot run the LLM fallback: no API keys were "
-                                "provided. Supply a Groq key in the request "
-                                "(`groq_api_key` form field) or set it in the "
-                                "user's settings."
-                            ),
-                            "file_name": file.name,
-                            "warnings": warnings,
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+                # NOTE: With Ollama configured on the server, an empty
+                # api_keys_config is fine — the LLM router in
+                # document_to_json.py will try Ollama first (free,
+                # local, no key needed) before any cloud provider.
+                # The 400 "api_keys_missing" short-circuit was the
+                # right answer in the cloud-only era, but it now
+                # blocks the free local fallback. We always pass the
+                # dict through; if EVERY provider (Ollama + Groq +
+                # Gemini) is unavailable, convert_text_to_json will
+                # return a validation_error and we surface that as
+                # 400 below.
+                if api_keys_config is None:
+                    api_keys_config = {}
 
                 try:
                     llm_result, _updated_keys = convert_text_to_json(
@@ -3860,7 +3866,12 @@ class DocumentUploadView(APIView):
         * If the request supplies ``api_keys_config`` as JSON, parse it.
         * Otherwise accept a per-request ``groq_api_key`` and wrap it
           in the same shape ``convert_text_to_json`` expects.
-        * Returns ``None`` if neither is present (caller returns 400).
+        * Returns ``None`` if neither is present.
+
+        Note: ``None`` here does NOT mean "no LLM available" — the
+        LLM router will still try Ollama (local, free) on the empty
+        dict. Only if Ollama is also down will ``convert_text_to_json``
+        return a validation_error, which the view surfaces as 400.
         """
         import json
         import os
