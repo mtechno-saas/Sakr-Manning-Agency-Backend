@@ -397,7 +397,7 @@ class DocumentUploadViewTest(AuthenticatedAPITestCase):
             self.url,
             {
                 'file': pdf_file,
-                'groq_api_key': 'gsk_fake_test_key',
+                'deepseek_api_key': 'sk_fake_test_key',
             },
             format='multipart',
         )
@@ -406,7 +406,7 @@ class DocumentUploadViewTest(AuthenticatedAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Response shape — must match /ai/parse/.
         self.assertTrue(response.data['success'])
-        self.assertEqual(response.data['extractor'], 'groq_llm')
+        self.assertEqual(response.data['extractor'], 'deepseek_llm')
         self.assertIn('confidence', response.data)
         self.assertIn('1_personal_details', response.data['data'])
         self.assertEqual(
@@ -524,7 +524,7 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
 
         response = self.client.post(
             self.url,
-            {"file": self._pdf(), "groq_api_key": "gsk_dummy"},
+            {"file": self._pdf(), "deepseek_api_key": "sk_dummy"},
             format="multipart",
         )
 
@@ -575,7 +575,7 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
 
         response = self.client.post(
             self.url,
-            {"file": self._pdf(), "groq_api_key": "gsk_dummy"},
+            {"file": self._pdf(), "deepseek_api_key": "sk_dummy"},
             format="multipart",
         )
 
@@ -583,7 +583,7 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
         # LLM WAS called.
         mock_convert.assert_called_once()
         # Response uses the LLM extractor.
-        self.assertEqual(response.data["extractor"], "groq_llm")
+        self.assertEqual(response.data["extractor"], "deepseek_llm")
         self.assertEqual(
             response.data["data"]["1_personal_details"]["full_name"],
             "John Doe",
@@ -618,13 +618,13 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
             {
                 "validation_error": (
                     "No LLM provider is available. Either set OLLAMA_HOST "
-                    "or supply a Groq key in the request."
+                    "or supply a DeepSeek key in the request."
                 )
             },
             {},
         )
 
-        # NOTE: no groq_api_key, no api_keys_config in the request.
+        # NOTE: no deepseek_api_key, no api_keys_config in the request.
         response = self.client.post(
             self.url, {"file": self._pdf()}, format="multipart"
         )
@@ -660,7 +660,7 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
 
         response = self.client.post(
             self.url,
-            {"file": self._pdf(), "groq_api_key": "gsk_dummy"},
+            {"file": self._pdf(), "deepseek_api_key": "sk_dummy"},
             format="multipart",
         )
 
@@ -700,7 +700,7 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
             self.url,
             {
                 "file": self._pdf(),
-                "groq_api_key": "gsk_dummy",
+                "deepseek_api_key": "sk_dummy",
                 "save_to_db": "false",
             },
             format="multipart",
@@ -808,12 +808,12 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
 
         response = self.client.post(
             self.url,
-            {"file": self._pdf(), "groq_api_key": "gsk_dummy"},
+            {"file": self._pdf(), "deepseek_api_key": "sk_dummy"},
             format="multipart",
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["extractor"], "groq_llm")
+        self.assertEqual(response.data["extractor"], "deepseek_llm")
         mock_convert.assert_called_once()
 
 
@@ -1054,14 +1054,14 @@ class IntegrationTest(TransactionTestCase):
 
         response = self.client.post(
             '/ai/upload/',
-            {'file': pdf_file, 'groq_api_key': 'gsk_fake_test_key'},
+            {'file': pdf_file, 'deepseek_api_key': 'sk_fake_test_key'},
             format='multipart',
         )
 
         # New shape mirrors /ai/parse/: 200 OK with a `data` dict.
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['success'])
-        self.assertEqual(response.data['extractor'], 'groq_llm')
+        self.assertEqual(response.data['extractor'], 'deepseek_llm')
         self.assertIn('1_personal_details', response.data['data'])
         self.assertEqual(
             response.data['data']['1_personal_details']['full_name'],
@@ -1512,22 +1512,41 @@ class LlmRouterOllamaTest(SimpleTestCase):
 
     The router order is:
       0. Ollama (local) — first when OLLAMA_HOST is set
-      1. Groq (cloud)
-      2. Gemini (cloud)
+      1. DeepSeek (cloud) — primary cloud LLM
+      2. Gemini (cloud) — fallback
 
     These tests verify:
       * Ollama is tried FIRST when OLLAMA_HOST is set.
-      * Ollama is skipped (falls through to Groq) when
+      * Ollama is skipped (falls through to DeepSeek) when
         ``api_keys_config["ollama_disabled"] = True``.
       * Ollama is skipped when ``OLLAMA_ENABLED = False`` (env override).
-      * Ollama falls through to Groq when the import / init fails.
-      * Groq wins when Ollama is not configured at all.
+      * Ollama falls through to DeepSeek when the import / init fails.
+      * DeepSeek wins when Ollama is not configured at all.
 
     Note on mocking: ``ChatOllama`` is imported locally inside
     ``_get_active_llm``, so we mock it at its source module
     (``langchain_ollama.ChatOllama``), not at
     ``ai_document.document_to_json.ChatOllama``.
     """
+
+    def setUp(self):
+        super().setUp()
+        # Strip any leaked LLM env vars from prior tests so our
+        # override_settings() / api_keys_config={} actually gives us
+        # a "no key" condition. The view's _resolve_api_keys_config
+        # mutates os.environ when a request supplies a key, and that
+        # side-effect would otherwise leak across tests.
+        import os
+        self._saved_env = {}
+        for var in ("DEEPSEEK_API_KEY", "GROQ_API_KEY", "GEMINI_API_KEY"):
+            if var in os.environ:
+                self._saved_env[var] = os.environ.pop(var)
+
+    def tearDown(self):
+        import os
+        for var, value in self._saved_env.items():
+            os.environ[var] = value
+        super().tearDown()
 
     def _patch_settings(self, **overrides):
         """Apply Django settings overrides for the duration of a test."""
@@ -1567,15 +1586,16 @@ class LlmRouterOllamaTest(SimpleTestCase):
     @patch("langchain_ollama.ChatOllama")
     def test_ollama_skipped_when_disabled_in_config(self, mock_chat_ollama):
         """``api_keys_config["ollama_disabled"] = True`` → router
-        falls through to Groq/Gemini. Even if OLLAMA_HOST is set.
+        falls through to DeepSeek/Gemini. Even if OLLAMA_HOST is set.
         """
         from ai_document.document_to_json import _get_active_llm
 
         with self._patch_settings(
             OLLAMA_ENABLED=True,
             OLLAMA_HOST="http://127.0.0.1:11434",
+            DEEPSEEK_API_KEY="",  # don't pick up a leaked env key
         ):
-            # No live Groq keys, no Gemini key — router returns (None, None)
+            # No DeepSeek key, no Gemini key — router returns (None, None)
             llm, info = _get_active_llm({"ollama_disabled": True})
 
         self.assertIsNone(llm)
@@ -1600,35 +1620,35 @@ class LlmRouterOllamaTest(SimpleTestCase):
         mock_chat_ollama.assert_not_called()
 
     @patch("langchain_ollama.ChatOllama")
-    def test_ollama_falls_through_to_groq_when_init_fails(
+    def test_ollama_falls_through_to_deepseek_when_init_fails(
         self, mock_chat_ollama,
     ):
         """ChatOllama(...) raises (e.g. server not running) → router
-        logs the failure and tries the next provider (Groq).
+        logs the failure and tries the next provider (DeepSeek).
 
-        The local test env may not have ``langchain_groq`` installed,
+        The local test env may not have ``langchain_openai`` installed,
         so we inject a stub module into ``sys.modules`` before the
-        router's ``from langchain_groq import ChatGroq`` runs. On
+        router's ``from langchain_openai import ChatOpenAI`` runs. On
         prod the real package is in requirements.txt.
         """
         import sys
         import types
 
-        # Stub out langchain_groq so the `from langchain_groq import
-        # ChatGroq` inside _get_active_llm doesn't ModuleNotFoundError.
-        if "langchain_groq" not in sys.modules:
-            fake_groq = types.ModuleType("langchain_groq")
-            fake_llm = MagicMock(name="groq_llm")
+        # Stub out langchain_openai so the `from langchain_openai import
+        # ChatOpenAI` inside _get_active_llm doesn't ModuleNotFoundError.
+        if "langchain_openai" not in sys.modules:
+            fake_oa = types.ModuleType("langchain_openai")
+            fake_llm = MagicMock(name="deepseek_llm")
 
-            def fake_chat_groq(*args, **kwargs):
+            def fake_chat_openai(*args, **kwargs):
                 return fake_llm
 
-            fake_groq.ChatGroq = fake_chat_groq
-            sys.modules["langchain_groq"] = fake_groq
-            self.addCleanup(lambda: sys.modules.pop("langchain_groq", None))
+            fake_oa.ChatOpenAI = fake_chat_openai
+            sys.modules["langchain_openai"] = fake_oa
+            self.addCleanup(lambda: sys.modules.pop("langchain_openai", None))
         else:
-            fake_llm = MagicMock(name="groq_llm")
-            sys.modules["langchain_groq"].ChatGroq = lambda *a, **kw: fake_llm
+            fake_llm = MagicMock(name="deepseek_llm")
+            sys.modules["langchain_openai"].ChatOpenAI = lambda *a, **kw: fake_llm
 
         from ai_document.document_to_json import _get_active_llm
         mock_chat_ollama.side_effect = ConnectionError(
@@ -1638,15 +1658,14 @@ class LlmRouterOllamaTest(SimpleTestCase):
         with self._patch_settings(
             OLLAMA_ENABLED=True,
             OLLAMA_HOST="http://127.0.0.1:11434",
+            DEEPSEEK_API_KEY="sk_test",
         ):
-            llm, info = _get_active_llm(
-                {"groq": [{"key": "gsk_test", "status": "live"}]}
-            )
+            llm, info = _get_active_llm({})
 
-        # Ollama was attempted, failed, and we fell through to Groq.
+        # Ollama was attempted, failed, and we fell through to DeepSeek.
         mock_chat_ollama.assert_called_once()
         self.assertIs(llm, fake_llm)
-        self.assertEqual(info["provider"], "groq")
+        self.assertEqual(info["provider"], "deepseek")
 
     @patch("langchain_ollama.ChatOllama")
     def test_ollama_not_attempted_when_host_empty(self, mock_chat_ollama):
@@ -1659,6 +1678,7 @@ class LlmRouterOllamaTest(SimpleTestCase):
         with self._patch_settings(
             OLLAMA_ENABLED=True,
             OLLAMA_HOST="",  # empty → skip Ollama
+            DEEPSEEK_API_KEY="",  # don't accidentally pick up a leaked env key
         ):
             llm, info = _get_active_llm({})
 
@@ -1692,7 +1712,7 @@ class DocumentUploadViewOllamaTest(AuthenticatedAPITestCase):
 
     Mocks convert_text_to_json to act as if it routed through Ollama
     successfully, then verifies the view returns 200 OK with
-    ``extractor: "groq_llm"`` (the same label we use for any LLM
+    ``extractor: "deepseek_llm"`` (the same label we use for any LLM
     path — we don't expose the underlying provider name in the
     public API).
     """
@@ -1714,7 +1734,7 @@ class DocumentUploadViewOllamaTest(AuthenticatedAPITestCase):
         self, mock_processor_cls, mock_extractor_cls,
         mock_convert, mock_save,
     ):
-        """No `groq_api_key`, no `api_keys_config` in the request.
+        """No `deepseek_api_key`, no `api_keys_config` in the request.
         The view passes an empty config to the LLM router, which
         picks Ollama (mocked to succeed). Result: 200 OK, save
         happens, no API key was ever needed.
@@ -1753,14 +1773,14 @@ class DocumentUploadViewOllamaTest(AuthenticatedAPITestCase):
         )
         mock_save.return_value = (777, 888)
 
-        # NOTE: NO groq_api_key, NO api_keys_config — pure Ollama flow
+        # NOTE: NO deepseek_api_key, NO api_keys_config — pure Ollama flow
         response = self.client.post(
             self.url, {"file": self._pdf()}, format="multipart"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["success"])
-        self.assertEqual(response.data["extractor"], "groq_llm")
+        self.assertEqual(response.data["extractor"], "deepseek_llm")
         self.assertEqual(
             response.data["data"]["1_personal_details"]["full_name"],
             "Ollama Extracted User",

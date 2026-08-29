@@ -313,27 +313,29 @@ GOOGLE_CLIENT_SECRET = GOOGLE_OAUTH2_CLIENT_SECRET
 import os as _ai_os
 import os as _os  # second alias used by SMS_SERVICE / OTP_TTL_MINUTES below
 
-GROQ_MODEL = _os.environ.get(
-    "GROQ_MODEL", "openai/gpt-oss-120b",
-)
-# Ordered: first non-broken model wins. Update via env var if you
-# want to add/remove without a code deploy.
-GROQ_MODEL_FALLBACKS = [
-    m.strip() for m in _os.environ.get(
-        "GROQ_MODEL_FALLBACKS",
-        # Comma-separated list. Order matters: first live model wins.
-        "openai/gpt-oss-120b,"
-        "qwen/qwen3.6-27b,"
-        "groq/compound,"
-        "groq/compound-mini,"
-        "openai/gpt-oss-20b",
-    ).split(",") if m.strip()
-]
-
-# Prepend the primary so the order is [primary, ...fallbacks].
-GROQ_MODEL_FALLBACKS = [GROQ_MODEL] + [
-    m for m in GROQ_MODEL_FALLBACKS if m != GROQ_MODEL
-]
+# ----------------------------------------------------------------------------
+# DeepSeek (cloud LLM, OpenAI-compatible) — primary cloud LLM
+# ----------------------------------------------------------------------------
+# DeepSeek's API is OpenAI-compatible, so we use langchain-openai with a
+# custom base_url. Default model is `deepseek-chat` (V3) — fast, cheap,
+# no daily token cap on the free tier (Groq's 200K TPD limit was the
+# reason we moved off Groq).
+#
+# Get an API key at https://platform.deepseek.com → API Keys.
+# Pricing: ~$0.14/M input tokens, $0.28/M output tokens.
+# Free tier: small credit on signup, no daily cap, only per-minute rate
+# limits (which are generous — we don't expect to hit them).
+#
+# Supported models:
+#   - deepseek-chat         (V3, fast, recommended for CV extraction)
+#   - deepseek-reasoner     (R1, slower, smarter — overkill for parsing)
+#   - deepseek-coder        (specialized for code — not useful here)
+DEEPSEEK_ENABLED = _os.environ.get("DEEPSEEK_ENABLED", "true").lower() != "false"
+DEEPSEEK_API_KEY = _os.environ.get("DEEPSEEK_API_KEY", "")
+DEEPSEEK_MODEL = _os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
+DEEPSEEK_BASE_URL = _os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+DEEPSEEK_TIMEOUT_SECONDS = int(_os.environ.get("DEEPSEEK_TIMEOUT_SECONDS", "60"))
+DEEPSEEK_MAX_TOKENS = int(_os.environ.get("DEEPSEEK_MAX_TOKENS", "4096"))
 del _ai_os
 
 # ----------------------------------------------------------------------------

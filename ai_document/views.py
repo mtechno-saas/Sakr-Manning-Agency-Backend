@@ -3583,7 +3583,7 @@ class DocumentUploadView(APIView):
 
         {
             "success": true,
-            "extractor": "sakr_template" | "groq_llm",
+            "extractor": "sakr_template" | "deepseek_llm",
             "confidence": 0.95,
             "data": { ... 12-section numbered format ... },
             "warnings": [],
@@ -3600,7 +3600,7 @@ class DocumentUploadView(APIView):
                          User + CVSubmission via the same flow as
                          ``/ai/parse/``. Pass "false" for a
                          dry-run parse (no DB writes).
-        groq_api_key     optional — per-request Groq key (cloud LLM
+        deepseek_api_key  optional — per-request DeepSeek key (cloud LLM
                          fallback). Not needed when Ollama is up.
         api_keys_config  optional — JSON string with full key
                          config (cloud LLM fallback). Not needed
@@ -3798,7 +3798,7 @@ class DocumentUploadView(APIView):
                     )
 
                 result_data = llm_result
-                extractor_name = "groq_llm"
+                extractor_name = "deepseek_llm"
                 # LLM has no numeric confidence in this project; report
                 # 0.7 as a generic "we used an LLM, treat carefully" hint.
                 confidence = 0.7
@@ -3881,7 +3881,7 @@ class DocumentUploadView(APIView):
         Mirrors the legacy behaviour:
 
         * If the request supplies ``api_keys_config`` as JSON, parse it.
-        * Otherwise accept a per-request ``groq_api_key`` and wrap it
+        * Otherwise accept a per-request ``deepseek_api_key`` and wrap it
           in the same shape ``convert_text_to_json`` expects.
         * Returns ``None`` if neither is present.
 
@@ -3903,18 +3903,18 @@ class DocumentUploadView(APIView):
                 if isinstance(parsed, dict):
                     api_keys_config = parsed
             except Exception:
-                # Malformed JSON — fall through to the groq_api_key
+                # Malformed JSON — fall through to the deepseek_api_key
                 # check below.
                 pass
 
         if not api_keys_config:
-            groq_api_key = request.data.get("groq_api_key")
-            if groq_api_key:
-                os.environ["GROQ_API_KEY"] = groq_api_key
+            deepseek_api_key = request.data.get("deepseek_api_key")
+            if deepseek_api_key:
+                os.environ["DEEPSEEK_API_KEY"] = deepseek_api_key
                 api_keys_config = {
-                    "groq": [
+                    "deepseek": [
                         {
-                            "key": groq_api_key,
+                            "key": deepseek_api_key,
                             "status": "live",
                             "reset_time": None,
                         }

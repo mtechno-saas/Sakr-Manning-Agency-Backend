@@ -28,7 +28,7 @@ def _get_active_llm(api_keys_config: dict):
     #      * OLLAMA_ENABLED is false
     #      * api_keys_config contains a hard "ollama_disabled": true
     #    If the local server isn't running or the model isn't pulled,
-    #    we fall through to Groq (existing behaviour unchanged).
+    #    we fall through to DeepSeek (primary cloud LLM).
     if getattr(settings, "OLLAMA_ENABLED", True) and not api_keys_config.get("ollama_disabled"):
         ollama_host = getattr(settings, "OLLAMA_HOST", "") or os.environ.get("OLLAMA_HOST", "")
         ollama_model = (
@@ -55,60 +55,59 @@ def _get_active_llm(api_keys_config: dict):
             except Exception as e:
                 # Most likely causes: ollama not running, model not pulled,
                 # or langchain_ollama not installed. Log and fall through
-                # to Groq so the request still works.
+                # to DeepSeek so the request still works.
                 print(
                     f"[Ollama] init failed for {ollama_host} model={ollama_model}: "
-                    f"{e!r} — falling through to Groq"
+                    f"{e!r} — falling through to DeepSeek"
                 )
 
-    # Model candidates in priority order. Read from settings so we
-    # can rotate models via env var without a code deploy. The
-    # primary (settings.GROQ_MODEL) is first, then settings.GROQ_MODEL_FALLBACKS.
-    # We try each in turn; the first that the ChatGroq client
-    # accepts wins.
-    model_candidates = list(getattr(
-        settings, "GROQ_MODEL_FALLBACKS",
-        ["llama-3.3-70b-versatile"],
-    ))
+    # 1. Try DeepSeek (primary cloud LLM, OpenAI-compatible)
+    #    Free tier has no daily token cap (unlike Groq's 200K TPD limit
+    #    that bit us in production). Default model is `deepseek-chat` (V3).
+    #    API key from https://platform.deepseek.com → API Keys.
+    #    Disable per-request with api_keys_config["deepseek_disabled"] = True.
+    if not api_keys_config.get("deepseek_disabled") and getattr(settings, "DEEPSEEK_ENABLED", True):
+        deepseek_keys = api_keys_config.get("deepseek", [])
+        if not deepseek_keys:
+            # Check settings first (so override_settings works in tests),
+            # then env as a fallback. In production these are the same value
+            # because Django settings reads DEEPSEEK_API_KEY from the env
+            # at startup.
+            env_key = (
+                getattr(settings, "DEEPSEEK_API_KEY", "")
+                or os.environ.get("DEEPSEEK_API_KEY", "")
+            )
+            if env_key:
+                deepseek_keys = [{"key": env_key, "status": "live", "reset_time": None}]
+                api_keys_config["deepseek"] = deepseek_keys
 
-    # 1. Try Groq keys
-    groq_env = os.environ.get("GROQ_API_KEY")
-    groq_keys = api_keys_config.get("groq", [])
-    if not groq_keys and groq_env:
-        groq_keys = [{"key": groq_env, "status": "live", "reset_time": None}]
-        api_keys_config["groq"] = groq_keys
-
-    if "groq" in api_keys_config:
-        for index, key_data in enumerate(api_keys_config["groq"]):
-            if not key_data.get("key"): continue
-            # Auto-recover keys whose reset_time has passed
-            if key_data.get("status") == "exhausted" and key_data.get("reset_time") and now > key_data["reset_time"]:
-                key_data["status"] = "live"
-                key_data["reset_time"] = None
-                print(f"[Key Recovery] Groq key {index} has recovered — marking live.")
+        for key_data in deepseek_keys:
+            if not key_data.get("key"):
+                continue
             if key_data.get("status") != "live":
                 continue
-            for model_name in model_candidates:
-                try:
-                    from langchain_groq import ChatGroq
-                    llm = ChatGroq(
-                        model=model_name,
-                        groq_api_key=key_data["key"],
-                        temperature=0,
-                        max_tokens=4096,
-                    )
-                    return llm, {
-                        "provider": "groq",
-                        "index": index,
-                        "model": model_name,
-                        "key": key_data["key"],
-                    }
-                except Exception as e:
-                    # Try the next model candidate.
-                    print(
-                        f"Failed to init Groq key {index} with model {model_name}: {e}"
-                    )
-                    continue
+            try:
+                from langchain_openai import ChatOpenAI
+                llm = ChatOpenAI(
+                    model=getattr(settings, "DEEPSEEK_MODEL", "deepseek-chat"),
+                    api_key=key_data["key"],
+                    base_url=getattr(
+                        settings, "DEEPSEEK_BASE_URL", "https://api.deepseek.com",
+                    ),
+                    temperature=0,
+                    max_tokens=int(getattr(settings, "DEEPSEEK_MAX_TOKENS", 4096)),
+                    timeout=int(getattr(settings, "DEEPSEEK_TIMEOUT_SECONDS", 60)),
+                )
+                return llm, {
+                    "provider": "deepseek",
+                    "model": getattr(settings, "DEEPSEEK_MODEL", "deepseek-chat"),
+                    "key": key_data["key"],
+                }
+            except Exception as e:
+                # Most likely causes: langchain-openai not installed, or
+                # bad base_url. Log and fall through to Gemini.
+                print(f"[DeepSeek] init failed: {e!r} — falling through to Gemini")
+                continue
 
     # 2. Try Gemini Fallback
     gemini_key = api_keys_config.get("gemini") or os.environ.get("GEMINI_API_KEY")
@@ -126,15 +125,6 @@ def _get_active_llm(api_keys_config: dict):
             print(f"Failed to init Gemini key: {e}")
 
     return None, None
-
-def _parse_groq_reset_time(error_message: str) -> float:
-    match = re.search(r"try again in (?:(\d+)h)?(?:(\d+)m)?([\d.]+)s", error_message)
-    if match:
-        h = float(match.group(1) or 0)
-        m = float(match.group(2) or 0)
-        s = float(match.group(3) or 0)
-        return time.time() + (h * 3600) + (m * 60) + s
-    return time.time() + 3600
 
 def _extract_json_from_text(text: str) -> str:
     """Extract a JSON object from a free-text LLM response.
@@ -234,15 +224,19 @@ def _call_llm_with_retry(prompt: str, schema: type, api_keys_config: dict, max_r
             err = str(exc).lower()
             last_exc = exc
             if "rate limit" in err or "429" in err or "rate_limit" in err or "quota" in err or "exhausted" in err:
-                if source["provider"] == "groq":
-                    reset_time = _parse_groq_reset_time(str(exc))
-                    api_keys_config["groq"][source["index"]]["status"] = "exhausted"
-                    api_keys_config["groq"][source["index"]]["reset_time"] = reset_time
-                    print(f"[Rate-limit] Groq key {source['index']} exhausted. Resets at {reset_time}.")
+                if source["provider"] == "deepseek":
+                    # DeepSeek's API doesn't return a "resets in" hint
+                    # we can reliably parse. Mark the key exhausted; the
+                    # user can rotate it (or wait — limits are generous).
+                    if api_keys_config.get("deepseek"):
+                        api_keys_config["deepseek"][0]["status"] = "exhausted"
+                    print("[Rate-limit] DeepSeek key exhausted. Rotate the key to recover.")
+                    continue
+                elif source["provider"] == "gemini":
+                    api_keys_config["gemini_exhausted"] = True
+                    print("[Rate-limit] Gemini key exhausted.")
                     continue
                 else:
-                    print("[Rate-limit] Gemini key exhausted.")
-                    api_keys_config["gemini_exhausted"] = True
                     continue
             else:
                 retries += 1
@@ -658,13 +652,13 @@ def convert_text_to_json(
 
     local_result = {}
 
-    # -- 2. Pick an LLM provider (Ollama local, Groq, or Gemini) -----------
+    # -- 2. Pick an LLM provider (Ollama local, DeepSeek, or Gemini) -----------
     # An empty api_keys_config is fine when Ollama is running — the
     # router in _get_active_llm will pick it up. We only return a
     # hard error when there's NO LLM reachable at all.
-    has_cloud_keys = bool(api_keys_config.get("groq")) or bool(
+    has_cloud_keys = bool(api_keys_config.get("deepseek")) or bool(
         api_keys_config.get("gemini")
-    ) or bool(os.environ.get("GROQ_API_KEY")) or bool(
+    ) or bool(os.environ.get("DEEPSEEK_API_KEY")) or bool(
         os.environ.get("GEMINI_API_KEY")
     )
     ollama_configured = bool(getattr(settings, "OLLAMA_HOST", ""))
@@ -676,7 +670,8 @@ def convert_text_to_json(
                 "No LLM provider is available. Either:\n"
                 "  - Set OLLAMA_HOST env var (e.g. http://127.0.0.1:11434) "
                 "and run `ollama pull qwen2.5:7b` for a free local LLM, OR\n"
-                "  - Supply a Groq key in the request (`groq_api_key` "
+                "  - Set DEEPSEEK_API_KEY env var, OR\n"
+                "  - Supply a DeepSeek key in the request (`deepseek_api_key` "
                 "form field) for the cloud LLM fallback."
             )
         }, api_keys_config
