@@ -643,11 +643,30 @@ class _StageTwoResult(BaseModel):
     specialised_experience: List[_SpecialisedExperience] = Field(default_factory=list)
 
 def _build_stage_two_prompt(text: str, table_text: str, applicant_name: str) -> str:
-    return f"""Extract Marine Courses and Sea Service records from the text and tables. Applicant: {applicant_name}.
-TEXT: {text}
-TABLES: {table_text}
-Extract all marine courses with their course_name, number, dates.
-Extract all sea service records with company_name, rank, vessel_name, imo_number, flag, dates, vessel_type, dwt, grt, engine_type, bh, kw, and reason_for_sign_off. Include all history available."""
+    return f"""You are an expert maritime CV data extractor. Extract Marine Courses and Sea Service records from this seafarer CV.
+
+## ABSOLUTE RULES:
+1. Copy every value EXACTLY as it appears. Do NOT rephrase, translate, or modify anything.
+2. If a field is empty or not found -> return empty string "".
+3. DO NOT hallucinate or invent data. Only extract what is explicitly written.
+4. Dates: copy exactly as written. e.g. "15/10/1983", "26/07/2020", "16/05/2022".
+5. For Sea Service: extract EVERY row from the sea service table — even if it has the same vessel/rank repeated.
+6. Output ONLY valid JSON, no markdown fences, no explanation, no preamble.
+
+## APPLICANT: {applicant_name}
+
+## FULL DOCUMENT TEXT:
+{text}
+
+## STRUCTURED TABLE DATA FROM DOCUMENT:
+{table_text}
+
+Return a JSON object with three fields:
+  - "courses": array of marine course objects {{course_name, number, issue_date, expiry_date, issued_by_at}}
+  - "service_records": array of sea service objects {{company_name, rank, vessel_name, imo_number, flag, from_date, to_date, vessel_type, dwt, grt, engine_type, bh, kw, reason_for_sign_off}}
+  - "specialised_experience": array of objects {{name, type, from_date, to_date, comments}}
+
+Empty arrays are fine. Empty strings for missing values."""
 # =============================================================================
 # MAIN FUNCTION — comprehensive LLM extraction with Groq
 # =============================================================================
@@ -737,7 +756,11 @@ def convert_text_to_json(
         print("[Stage 2 / Pass 2] LLM extraction - Marine Courses and Sea Service...")
         try:
             stage_two_prompt = _build_stage_two_prompt(text, table_text, applicant_name=applicant_name)
-            stage_two_result = _call_llm_with_retry(stage_two_prompt, _StageTwoResult, api_keys_config)
+            # max_retries=1 (not 3) so a Pass-2 hiccup doesn't make the
+            # whole request hang for 60+ seconds on the gunicorn boundary.
+            # Pass 2 is non-critical — Pass 1 already saved the bulk of
+            # the CV.
+            stage_two_result = _call_llm_with_retry(stage_two_prompt, _StageTwoResult, api_keys_config, max_retries=1)
             
             if stage_two_result:
                 # Map Marine Courses
