@@ -750,79 +750,89 @@ def convert_text_to_json(
         time.sleep(1)
 
         # -- Pass 2: Marine Courses and Sea Service (Sections 8 & 9) -----------
-        table_text = _format_tables_readable(tables)
-        applicant_name = (local_result.get("1_personal_details") or {}).get("full_name", "")
+        # Skip Pass 2's LLM call by default. Pass 2 doubles the request
+        # time (60+s total) which Cloudflare's free/proxy tier 504s.
+        # Trade-off: marine courses + sea service come back empty for
+        # non-Sakr CVs. Set DEEPSEEK_RUN_PASS2=true in the env (or in
+        # the systemd unit) to re-enable. (We'll add pdfplumber-table-
+        # based extraction as a faster, free replacement later.)
+        if not getattr(settings, "DEEPSEEK_RUN_PASS2", False):
+            print("[Stage 2 / Pass 2] Skipped (DEEPSEEK_RUN_PASS2=false). "
+                  "Set env var to true to re-enable.")
+        else:
+            table_text = _format_tables_readable(tables)
+            applicant_name = (local_result.get("1_personal_details") or {}).get("full_name", "")
 
-        print("[Stage 2 / Pass 2] LLM extraction - Marine Courses and Sea Service...")
-        try:
-            stage_two_prompt = _build_stage_two_prompt(text, table_text, applicant_name=applicant_name)
-            # max_retries=1 (not 3) so a Pass-2 hiccup doesn't make the
-            # whole request hang for 60+ seconds on the gunicorn boundary.
-            # Pass 2 is non-critical — Pass 1 already saved the bulk of
-            # the CV.
-            stage_two_result = _call_llm_with_retry(stage_two_prompt, _StageTwoResult, api_keys_config, max_retries=1)
-            
-            if stage_two_result:
-                # Map Marine Courses
-                if stage_two_result.courses:
-                    local_result["8_marine_courses"] = [
-                        {
-                            "course_name":  c.course_name,
-                            "number":       c.number,
-                            "issue_date":   c.issue_date,
-                            "expiry_date":  c.expiry_date,
-                            "issued_by_at": c.issued_by_at,
+            print("[Stage 2 / Pass 2] LLM extraction - Marine Courses and Sea Service...")
+            try:
+                stage_two_prompt = _build_stage_two_prompt(text, table_text, applicant_name=applicant_name)
+                # max_retries=1 (not 3) so a Pass-2 hiccup doesn't make the
+                # whole request hang for 60+ seconds on the gunicorn boundary.
+                # Pass 2 is non-critical — Pass 1 already saved the bulk of
+                # the CV.
+                stage_two_result = _call_llm_with_retry(stage_two_prompt, _StageTwoResult, api_keys_config, max_retries=1)
+
+                if stage_two_result:
+                    # Map Marine Courses
+                    if stage_two_result.courses:
+                        local_result["8_marine_courses"] = [
+                            {
+                                "course_name":  c.course_name,
+                                "number":       c.number,
+                                "issue_date":   c.issue_date,
+                                "expiry_date":  c.expiry_date,
+                                "issued_by_at": c.issued_by_at,
+                            }
+                            for c in stage_two_result.courses
+                        ]
+                        print(f"[Stage 2 / Pass 2] Extracted {len(stage_two_result.courses)} marine courses.")
+
+                    # Map Sea Service
+                    if stage_two_result.service_records:
+                        existing_info = (local_result.get("9_complete_sea_service_details") or {}).get(
+                            "applicant_info", {}
+                        )
+                        local_result["9_complete_sea_service_details"] = {
+                            "applicant_info": existing_info,
+                            "service_records": [
+                                {
+                                    "company_name":          r.company_name,
+                                    "rank":                  r.rank,
+                                    "vessel_name":           r.vessel_name,
+                                    "imo_number":            r.imo_number,
+                                    "flag":                  r.flag,
+                                    "signed_on":             r.signed_on,
+                                    "signed_off":            r.signed_off,
+                                    "period":                r.period,
+                                    "vessel_type":           r.vessel_type,
+                                    "dwt":                   r.dwt,
+                                    "grt":                   r.grt,
+                                    "engine_type":           r.engine_type,
+                                    "bh":                    r.bh,
+                                    "kw":                    r.kw,
+                                    "reason_for_sign_off":   r.reason_for_sign_off,
+                                }
+                                for r in stage_two_result.service_records
+                            ],
+                            "specialised_experience": [
+                                {
+                                    "name":                  s.name,
+                                    "type":                  s.type,
+                                    "from_date":             s.from_date,
+                                    "to_date":               s.to_date,
+                                    "comments":              s.comments,
+                                }
+                                for s in getattr(stage_two_result, "specialised_experience", [])
+                            ],
                         }
-                        for c in stage_two_result.courses
-                    ]
-                    print(f"[Stage 2 / Pass 2] Extracted {len(stage_two_result.courses)} marine courses.")
+                        print(f"[Stage 2 / Pass 2] Extracted {len(stage_two_result.service_records)} sea service records.")
 
-                # Map Sea Service
-                if stage_two_result.service_records:
-                    existing_info = (local_result.get("9_complete_sea_service_details") or {}).get(
-                        "applicant_info", {}
-                    )
-                    local_result["9_complete_sea_service_details"] = {
-                        "applicant_info": existing_info,
-                        "service_records": [
-                            {
-                                "company_name":          r.company_name,
-                                "rank":                  r.rank,
-                                "vessel_name":           r.vessel_name,
-                                "imo_number":            r.imo_number,
-                                "flag":                  r.flag,
-                                "signed_on":             r.signed_on,
-                                "signed_off":            r.signed_off,
-                                "period":                r.period,
-                                "vessel_type":           r.vessel_type,
-                                "dwt":                   r.dwt,
-                                "grt":                   r.grt,
-                                "engine_type":           r.engine_type,
-                                "bh":                    r.bh,
-                                "kw":                    r.kw,
-                                "reason_for_sign_off":   r.reason_for_sign_off,
-                            }
-                            for r in stage_two_result.service_records
-                        ],
-                        "specialised_experience": [
-                            {
-                                "name":                  s.name,
-                                "type":                  s.type,
-                                "from_date":             s.from_date,
-                                "to_date":               s.to_date,
-                                "comments":              s.comments,
-                            }
-                            for s in getattr(stage_two_result, "specialised_experience", [])
-                        ],
-                    }
-                    print(f"[Stage 2 / Pass 2] Extracted {len(stage_two_result.service_records)} sea service records.")
-                    
-        except Exception as exc:
-            if "exhausted" in str(exc).lower():
-                logger.warning(f"Pass 2 failed (keys exhausted): {exc}")
-                raise exc
-            else:
-                logger.warning(f"Pass 2 LLM failed (non-fatal): {exc}")
+            except Exception as exc:
+                if "exhausted" in str(exc).lower():
+                    logger.warning(f"Pass 2 failed (keys exhausted): {exc}")
+                    raise exc
+                else:
+                    logger.warning(f"Pass 2 LLM failed (non-fatal): {exc}")
 
     except Exception as e:
         if "exhausted" in str(e).lower():

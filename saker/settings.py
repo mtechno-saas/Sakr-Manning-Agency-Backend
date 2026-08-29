@@ -336,6 +336,11 @@ DEEPSEEK_MODEL = _os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
 DEEPSEEK_BASE_URL = _os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 DEEPSEEK_TIMEOUT_SECONDS = int(_os.environ.get("DEEPSEEK_TIMEOUT_SECONDS", "120"))
 DEEPSEEK_MAX_TOKENS = int(_os.environ.get("DEEPSEEK_MAX_TOKENS", "2048"))
+# Run the second LLM pass (Marine Courses + Sea Service). Skip by
+# default to keep the request under Cloudflare's proxy timeout. Set
+# DEEPSEEK_RUN_PASS2=true to re-enable; the trade-off is a 60+s total
+# request time that Cloudflare 504s on free/proxy tiers.
+DEEPSEEK_RUN_PASS2 = _os.environ.get("DEEPSEEK_RUN_PASS2", "false").lower() == "true"
 del _ai_os
 
 # ----------------------------------------------------------------------------
