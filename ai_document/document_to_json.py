@@ -149,6 +149,35 @@ def _extract_json_from_text(text: str) -> str:
     return s
 
 
+# Map: LLM-output list field → Pydantic name field on each item.
+# When the LLM returns a list of plain strings (e.g.
+#   "qualifications": ["COOK CERT", "GMDSS", ...])
+# instead of a list of dicts (e.g.
+#   "qualifications": [{"certificate_name": "COOK CERT", ...}, ...]),
+# we wrap each string in a dict with the appropriate name field and
+# leave the other fields empty. The Pydantic model will accept it
+# because the non-name fields all have `default=""`.
+_LIST_OF_DICT_FIELDS = {
+    "qualifications": "certificate_name",
+    "health_certificates": "certificate_type",
+    "travel_documents": "type",
+}
+
+
+def _coerce_list_fields_to_dicts(raw: dict) -> dict:
+    """Coerce any list-of-strings fields into list-of-dicts so Pydantic
+    validation passes even when the LLM emits a simpler shape."""
+    if not isinstance(raw, dict):
+        return raw
+    for field, name_key in _LIST_OF_DICT_FIELDS.items():
+        value = raw.get(field)
+        if isinstance(value, list) and value and all(
+            isinstance(item, str) for item in value
+        ):
+            raw[field] = [{name_key: item} for item in value]
+    return raw
+
+
 def _call_llm_with_retry(prompt: str, schema: type, api_keys_config: dict, max_retries: int = 3):
     """Call the LLM and parse the response into a Pydantic model.
 
@@ -193,7 +222,13 @@ def _call_llm_with_retry(prompt: str, schema: type, api_keys_config: dict, max_r
             except json.JSONDecodeError as exc:
                 raise Exception(f"LLM response is not valid JSON: {exc}") from exc
 
-            # 4. Validate with Pydantic (now permissive — fields have defaults)
+            # 4. Coerce list-of-strings to list-of-dicts (some LLMs emit
+            #    simpler output where a list of objects is just a list
+            #    of name strings). Without this, Pydantic validation
+            #    fails on the dict-typed fields and we waste retries.
+            raw = _coerce_list_fields_to_dicts(raw)
+
+            # 5. Validate with Pydantic (now permissive — fields have defaults)
             try:
                 parsed = schema(**raw)
             except Exception as exc:
@@ -258,30 +293,30 @@ def _int_or_none(val: str) -> int:
 # =============================================================================
 
 class _TravelDocExtract(BaseModel):
-    type: str = Field(..., description="Passport, Seaman Book, or Other Seaman Book")
-    document_no: str = Field(..., description="Document number exactly as written")
-    issue_date: str = Field(..., description="Issue date exactly as written")
-    expiry_date: str = Field(..., description="Expiry date exactly as written")
-    issued_by: str = Field(..., description="Issuing authority name")
-    place_of_issue: str = Field(..., description="Place of issue")
+    type: str = Field(default="", description="Passport, Seaman Book, or Other Seaman Book")
+    document_no: str = Field(default="", description="Document number exactly as written")
+    issue_date: str = Field(default="", description="Issue date exactly as written")
+    expiry_date: str = Field(default="", description="Expiry date exactly as written")
+    issued_by: str = Field(default="", description="Issuing authority name")
+    place_of_issue: str = Field(default="", description="Place of issue")
 
 
 class _QualExtract(BaseModel):
-    certificate_name: str = Field(..., description="Certificate name e.g. COC/Master, GOC, D.P. INDUCTION, D.P. ADVANCED, D.P. OPERATOR (UNLIMITED)")
-    number: str = Field(..., description="Certificate number")
-    issue_date: str = Field(..., description="Issue date")
-    expiry_date: str = Field(..., description="Expiry date")
-    issued_by: str = Field(..., description="Issued by authority")
-    issued_at: str = Field(..., description="Issued at location")
+    certificate_name: str = Field(default="", description="Certificate name e.g. COC/Master, GOC, D.P. INDUCTION, D.P. ADVANCED, D.P. OPERATOR (UNLIMITED)")
+    number: str = Field(default="", description="Certificate number")
+    issue_date: str = Field(default="", description="Issue date")
+    expiry_date: str = Field(default="", description="Expiry date")
+    issued_by: str = Field(default="", description="Issued by authority")
+    issued_at: str = Field(default="", description="Issued at location")
 
 
 class _HealthCertExtract(BaseModel):
-    certificate_type: str = Field(..., description="Certificate type: International Medical, Yellow Fever, Cholera, etc.")
-    number: str = Field(..., description="Certificate number")
-    issue_date: str = Field(..., description="Issue date")
-    expiry_date: str = Field(..., description="Expiry date")
-    issued_by: str = Field(..., description="Issued by")
-    issued_at: str = Field(..., description="Issued at")
+    certificate_type: str = Field(default="", description="Certificate type: International Medical, Yellow Fever, Cholera, etc.")
+    number: str = Field(default="", description="Certificate number")
+    issue_date: str = Field(default="", description="Issue date")
+    expiry_date: str = Field(default="", description="Expiry date")
+    issued_by: str = Field(default="", description="Issued by")
+    issued_at: str = Field(default="", description="Issued at")
 
 
 class _FullCVExtraction(BaseModel):

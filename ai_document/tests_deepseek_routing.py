@@ -207,11 +207,122 @@ class DeepSeekSettingsSanityTests(SimpleTestCase):
         )
 
     def test_deepseek_model_looks_valid(self):
-        """DeepSeek's supported models: deepseek-chat, deepseek-reasoner,
-        deepseek-coder. Anything else is probably a typo."""
+        """When the unit points at deepseek.com, the model should be
+        a known DeepSeek model. If the unit is pointed at a different
+        OpenAI-compatible provider (Groq, OpenRouter, MiniMax, etc.)
+        via DEEPSEEK_BASE_URL, skip this check.
+        """
+        if "deepseek.com" not in self.deepseek_base_url:
+            self.skipTest(
+                f"DEEPSEEK_BASE_URL={self.deepseek_base_url!r} is not "
+                f"deepseek.com — model name is provider-specific, "
+                f"not validated here."
+            )
         valid = {"deepseek-chat", "deepseek-reasoner", "deepseek-coder"}
         self.assertIn(
             self.deepseek_model, valid,
             f"DEEPSEEK_MODEL={self.deepseek_model!r} is not a known "
             f"DeepSeek model. Choose from: {sorted(valid)}.",
         )
+
+
+class LlmResponseCoercionTest(SimpleTestCase):
+    """When an LLM returns a list-of-strings where the schema expects
+    a list-of-dicts, _coerce_list_fields_to_dicts should wrap each
+    string in a dict with the appropriate name field. Without this,
+    Pydantic validation fails and the LLM call retries uselessly."""
+
+    def test_qualifications_list_of_strings_coerced(self):
+        from ai_document.document_to_json import _coerce_list_fields_to_dicts
+        raw = {
+            "qualifications": [
+                "PROFICIENCY IN SURVIVAL CRAFTS AND RESCUE BOATS",
+                "INTERNATIONAL MEDICAL CERTIFICATE FOR SEAFARERS",
+            ],
+        }
+        out = _coerce_list_fields_to_dicts(raw)
+        self.assertEqual(out["qualifications"], [
+            {"certificate_name": "PROFICIENCY IN SURVIVAL CRAFTS AND RESCUE BOATS"},
+            {"certificate_name": "INTERNATIONAL MEDICAL CERTIFICATE FOR SEAFARERS"},
+        ])
+
+    def test_health_certificates_list_of_strings_coerced(self):
+        from ai_document.document_to_json import _coerce_list_fields_to_dicts
+        raw = {
+            "health_certificates": [
+                "INTERNATIONAL MEDICAL CERTIFICATE",
+                "YELLOW FEVER VACCINATION",
+            ],
+        }
+        out = _coerce_list_fields_to_dicts(raw)
+        self.assertEqual(out["health_certificates"], [
+            {"certificate_type": "INTERNATIONAL MEDICAL CERTIFICATE"},
+            {"certificate_type": "YELLOW FEVER VACCINATION"},
+        ])
+
+    def test_travel_documents_list_of_strings_coerced(self):
+        from ai_document.document_to_json import _coerce_list_fields_to_dicts
+        raw = {
+            "travel_documents": ["PASSPORT", "SEAMAN BOOK"],
+        }
+        out = _coerce_list_fields_to_dicts(raw)
+        self.assertEqual(out["travel_documents"], [
+            {"type": "PASSPORT"},
+            {"type": "SEAMAN BOOK"},
+        ])
+
+    def test_dicts_unchanged(self):
+        """If the LLM already returned proper dicts, we leave them alone."""
+        from ai_document.document_to_json import _coerce_list_fields_to_dicts
+        raw = {
+            "qualifications": [
+                {"certificate_name": "COOK CERT", "number": "12345"},
+            ],
+        }
+        out = _coerce_list_fields_to_dicts(raw)
+        self.assertEqual(out, raw)
+
+    def test_mixed_types_left_alone(self):
+        """Mixed lists (some strings, some dicts) are left alone —
+        the LLM clearly knows what it's doing, and coercing only
+        strings would be lossy."""
+        from ai_document.document_to_json import _coerce_list_fields_to_dicts
+        raw = {
+            "qualifications": [
+                "JUST A NAME",
+                {"certificate_name": "FULL DICT"},
+            ],
+        }
+        out = _coerce_list_fields_to_dicts(raw)
+        # No coercion attempted because not all items are strings.
+        self.assertEqual(out, raw)
+
+    def test_empty_list_unchanged(self):
+        from ai_document.document_to_json import _coerce_list_fields_to_dicts
+        raw = {"qualifications": []}
+        out = _coerce_list_fields_to_dicts(raw)
+        self.assertEqual(out, raw)
+
+    def test_pydantic_validation_succeeds_after_coercion(self):
+        """End-to-end: a string-list response validates as a
+        _QualExtract list after coercion. This is the bug we hit
+        in prod (qwen3.8-27b returns strings, schema wants dicts)."""
+        from ai_document.document_to_json import (
+            _coerce_list_fields_to_dicts, _FullCVExtraction,
+        )
+        raw = {
+            "qualifications": [
+                "PROFICIENCY IN SURVIVAL CRAFTS AND RESCUE BOATS",
+                "ABLE SEAFARER ENGINE",
+            ],
+            "health_certificates": ["YELLOW FEVER"],
+        }
+        coerced = _coerce_list_fields_to_dicts(raw)
+        # Must validate without raising.
+        parsed = _FullCVExtraction(**coerced)
+        self.assertEqual(len(parsed.qualifications), 2)
+        self.assertEqual(
+            parsed.qualifications[0].certificate_name,
+            "PROFICIENCY IN SURVIVAL CRAFTS AND RESCUE BOATS",
+        )
+        self.assertEqual(parsed.health_certificates[0].certificate_type, "YELLOW FEVER")
