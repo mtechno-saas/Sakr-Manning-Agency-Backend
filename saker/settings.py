@@ -334,8 +334,8 @@ DEEPSEEK_ENABLED = _os.environ.get("DEEPSEEK_ENABLED", "true").lower() != "false
 DEEPSEEK_API_KEY = _os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_MODEL = _os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
 DEEPSEEK_BASE_URL = _os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-DEEPSEEK_TIMEOUT_SECONDS = int(_os.environ.get("DEEPSEEK_TIMEOUT_SECONDS", "60"))
-DEEPSEEK_MAX_TOKENS = int(_os.environ.get("DEEPSEEK_MAX_TOKENS", "4096"))
+DEEPSEEK_TIMEOUT_SECONDS = int(_os.environ.get("DEEPSEEK_TIMEOUT_SECONDS", "120"))
+DEEPSEEK_MAX_TOKENS = int(_os.environ.get("DEEPSEEK_MAX_TOKENS", "2048"))
 del _ai_os
 
 # ----------------------------------------------------------------------------
