@@ -2656,10 +2656,111 @@ class DocumentViewSet(viewsets.ModelViewSet):
         document = self.get_object()
         if not document.file:
             return Response({"error": "No file attached to this document"}, status=status.HTTP_404_NOT_FOUND)
-        
+
         # FileResponse automatically handles streaming and content type
         response = FileResponse(document.file.open(), as_attachment=False)
         return response
+
+    @action(
+        detail=False,
+        methods=['get', 'post'],
+        url_path='admin-attachments-by-user',
+        parser_classes=[MultiPartParser, FormParser, JSONParser],
+    )
+    def admin_attachments_by_user(self, request):
+        """
+        List/create admin attachments scoped by *seafarer user_id*.
+
+        This is the friendlier counterpart to the contract-scoped
+        ``/api/contracts/<id>/admin-attachments/`` endpoint for callers
+        (e.g. the Admin Related Attachments UI inside the CV
+        Submission edit modal) that already have the seafarer's
+        ``user_id`` but not the contract id.
+
+        GET  /api/documents/admin-attachments-by-user/?user=<id>
+            Returns the admin attachments bound to the seafarer's
+            most recent contract (empty list if no contract yet).
+
+        POST /api/documents/admin-attachments-by-user/
+            Body: ``user``, ``title``, ``file``.
+            Resolves the seafarer's most recent contract and creates
+            a ``Document`` row with ``contract_id=<that contract>``
+            and ``user_id=NULL`` — so it never leaks into the
+            seafarer's CV list.
+
+        If the seafarer has no contract yet, POST returns 400 with
+        a message asking the admin to create the contract first
+        (admin attachments are engagement-scoped, not person-scoped —
+        see the Contract.admin_attachments reverse relation).
+        """
+        from api.models import Contract
+        from api.serializer import DocumentSerializer
+
+        # ---- shared: resolve user -> most recent contract ---------
+        user_id = (
+            request.data.get('user')
+            if request.method == 'POST'
+            else request.query_params.get('user')
+        )
+        if not user_id:
+            return Response(
+                {"detail": "'user' is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        contract = (
+            Contract.objects
+            .filter(user_id=user_id)
+            .order_by('-created_at', '-id')
+            .first()
+        )
+
+        # ---- GET ---------------------------------------------------
+        if request.method == 'GET':
+            if not contract:
+                # No contract yet -> no attachments possible. Return an
+                # empty list (not 404) so the UI renders "no attachments"
+                # without a noisy error toast.
+                return Response([])
+            docs = contract.admin_attachments.all().order_by('-created_at')
+            return Response(
+                DocumentSerializer(
+                    docs, many=True, context={'request': request}
+                ).data
+            )
+
+        # ---- POST --------------------------------------------------
+        title = request.data.get('title')
+        file_obj = request.data.get('file')
+        if not title or not file_obj:
+            return Response(
+                {"detail": "Both 'title' and 'file' are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not contract:
+            return Response(
+                {
+                    "detail": (
+                        "No contract found for this user. Admin "
+                        "attachments must belong to a contract — "
+                        "create the seafarer's contract first."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        document = Document.objects.create(
+            contract=contract,
+            title=title,
+            file=file_obj,
+        )
+        return Response(
+            DocumentSerializer(
+                document, context={'request': request}
+            ).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 class CertificateViewSet(viewsets.ModelViewSet):
     """Certificates - Admin/HR can edit, others read only"""

@@ -1660,6 +1660,208 @@ class ContractAdminAttachmentsEndpointTests(TestCase):
         self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST)
 
 
+class AdminAttachmentsByUserEndpointTests(TestCase):
+    """
+    Regression for the seafarer-scoped admin-attachments endpoint:
+
+      GET  /api/documents/admin-attachments-by-user/?user=<id>
+      POST /api/documents/admin-attachments-by-user/
+
+    This is the friendlier counterpart to the contract-scoped endpoint
+    (`/api/contracts/<id>/admin-attachments/`). The Admin Related
+    Attachments UI inside the CV Submission edit modal already has
+    the seafarer's `user_id` but not the contract id, so we accept
+    the user_id and resolve the contract on the server side.
+
+    The key behavior this guards: admin attachments MUST be bound
+    to the contract, NEVER to the user. Otherwise they leak into
+    the seafarer's CV list (the "ghost user" bug).
+    """
+
+    url = "/api/documents/admin-attachments-by-user/"
+
+    def _login_as_admin(self):
+        admin = Users.objects.create_user(
+            email="aabu-admin@example.com",
+            password="x",
+            first_name="A", middle_name="A", role="Admin",
+            is_staff=True, is_superuser=True,
+        )
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        return client
+
+    def _make_seafarer_with_contract(self, email=None):
+        import datetime
+        from api.models import Contract
+        if email is None:
+            email = f"aabu-seafarer-{Users.objects.count()}@example.com"
+        seafarer = Users.objects.create_user(
+            email=email, password="x", first_name="Sea",
+            middle_name="Farer", role="Employee",
+        )
+        contract = Contract.objects.create(
+            user=seafarer,
+            sign_on_date=datetime.date(2026, 1, 1),
+            sign_off_date=datetime.date(2026, 6, 1),
+        )
+        return seafarer, contract
+
+    def _multipart(self, **fields):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        if "file" not in fields:
+            fields["file"] = SimpleUploadedFile(
+                "test.pdf", b"%PDF-1.4 fake", content_type="application/pdf"
+            )
+        return fields
+
+    # ---- POST ---------------------------------------------------------
+
+    def test_post_creates_document_bound_to_users_most_recent_contract(self):
+        """POST with `user` -> Document bound to user's most recent
+        contract, with `user_id=NULL` (no leak into CV list)."""
+        from api.models import Document
+        client = self._login_as_admin()
+        seafarer, contract = self._make_seafarer_with_contract()
+
+        r = client.post(
+            self.url,
+            self._multipart(user=seafarer.id, title="background check"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        self.assertEqual(Document.objects.count(), 1)
+        d = Document.objects.get(id=r.data["id"])
+        self.assertEqual(d.contract_id, contract.id)
+        self.assertIsNone(
+            d.user_id,
+            "Admin attachments must NOT be linked to a user — "
+            "that's the ghost-user leak we're guarding against."
+        )
+        self.assertEqual(d.title, "background check")
+
+    def test_post_picks_most_recent_contract_when_user_has_multiple(self):
+        """If the seafarer has more than one contract, use the
+        most recent one (highest id, ties broken by created_at)."""
+        import datetime
+        from api.models import Contract, Document
+        client = self._login_as_admin()
+        seafarer, older_contract = self._make_seafarer_with_contract()
+        newer_contract = Contract.objects.create(
+            user=seafarer,
+            sign_on_date=datetime.date(2026, 7, 1),
+            sign_off_date=datetime.date(2026, 12, 1),
+        )
+
+        r = client.post(
+            self.url,
+            self._multipart(user=seafarer.id, title="newer contract doc"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+        d = Document.objects.get(id=r.data["id"])
+        self.assertEqual(d.contract_id, newer_contract.id)
+        self.assertNotEqual(d.contract_id, older_contract.id)
+
+    def test_post_with_no_contract_for_user_returns_400(self):
+        """No contract for this user -> 400 with a helpful message
+        (admins should create the contract first)."""
+        client = self._login_as_admin()
+        lonely = Users.objects.create_user(
+            email="lonely@example.com", password="x",
+            first_name="No", middle_name="Contract", role="Employee",
+        )
+        r = client.post(
+            self.url,
+            self._multipart(user=lonely.id, title="orphan"),
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+        self.assertIn("contract", str(r.data).lower())
+
+    def test_post_without_user_returns_400(self):
+        client = self._login_as_admin()
+        r = client.post(self.url, self._multipart(title="x"), format="multipart")
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+
+    def test_post_requires_title_and_file(self):
+        client = self._login_as_admin()
+        seafarer, _ = self._make_seafarer_with_contract()
+
+        r = client.post(self.url, {"user": seafarer.id}, format="multipart")
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+
+        r = client.post(
+            self.url, {"user": seafarer.id, "title": "no file"}, format="multipart"
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+
+    # ---- GET ----------------------------------------------------------
+
+    def test_get_lists_only_documents_bound_to_users_most_recent_contract(self):
+        """GET ?user=<id> returns admin attachments for that user's
+        most recent contract only — not from any older contract."""
+        import datetime
+        from api.models import Contract, Document
+        client = self._login_as_admin()
+        seafarer, older_contract = self._make_seafarer_with_contract()
+        newer_contract = Contract.objects.create(
+            user=seafarer,
+            sign_on_date=datetime.date(2026, 7, 1),
+            sign_off_date=datetime.date(2026, 12, 1),
+        )
+        # Older contract: 1 doc (should NOT appear)
+        Document.objects.create(contract=older_contract, title="OLD")
+        # Newer contract: 2 docs (these should appear)
+        Document.objects.create(contract=newer_contract, title="NEW1")
+        Document.objects.create(contract=newer_contract, title="NEW2")
+
+        r = client.get(self.url + f"?user={seafarer.id}")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        titles = sorted(d["title"] for d in r.data)
+        self.assertEqual(titles, ["NEW1", "NEW2"])
+        for d in r.data:
+            self.assertEqual(d["contract"], newer_contract.id)
+            self.assertIsNone(
+                d["user"],
+                "Listed admin attachments must have user=null "
+                "so they don't leak into the seafarer's CV list."
+            )
+
+    def test_get_without_user_returns_400(self):
+        client = self._login_as_admin()
+        r = client.get(self.url)
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+
+    def test_get_returns_empty_list_when_user_has_no_contract(self):
+        """No contract -> [] (not 404) so the UI renders 'no attachments'
+        without a noisy error toast."""
+        client = self._login_as_admin()
+        lonely = Users.objects.create_user(
+            email="empty-contracts@example.com", password="x",
+            first_name="No", middle_name="Contract", role="Employee",
+        )
+        r = client.get(self.url + f"?user={lonely.id}")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(r.data, [])
+
+    # ---- Auth ---------------------------------------------------------
+
+    def test_anonymous_post_is_rejected(self):
+        """Unauthenticated POST -> 401 (the legacy AllowAny on `create`
+        must NOT extend to this new action)."""
+        from rest_framework.test import APIClient
+        seafarer, _ = self._make_seafarer_with_contract()
+        r = APIClient().post(
+            self.url,
+            self._multipart(user=seafarer.id, title="anon"),
+            format="multipart",
+        )
+        # 401 (Unauthorized) or 403 (Forbidden) — both are acceptable
+        # rejection codes; the bug we're guarding against is 2xx.
+        self.assertIn(r.status_code, (401, 403), r.data)
+
+
 class UserStatusFiveStateTests(TestCase):
     """
     Tests for the 5-state user_status expansion:
