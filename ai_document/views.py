@@ -3411,6 +3411,7 @@ Follows DRF best practices and uses serializers for validation and responses.
 """
 
 import re
+import os
 import logging
 from collections import Counter
 from rest_framework.views import APIView
@@ -3826,7 +3827,9 @@ class DocumentUploadView(APIView):
             if save_to_db:
                 try:
                     user_id, cv_submission_id = _save_parser_output(
-                        result_data, file
+                        result_data,
+                        file,
+                        extracted_photo_path=proc_result.get("extracted_photo_path"),
                     )
                 except _NoEmailError:
                     return Response(
@@ -4571,7 +4574,9 @@ class ParseOnlyView(APIView):
             if save_to_db:
                 try:
                     user_id, cv_submission_id = _save_parser_output(
-                        result.data, file
+                        result.data,
+                        file,
+                        extracted_photo_path=proc_result.get("extracted_photo_path"),
                     )
                 except _NoEmailError:
                     return Response(
@@ -4703,9 +4708,14 @@ def _marital_status_to_string(ms: dict | str | None) -> str:
     return ""
 
 
-def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
+def _save_parser_output(data: dict, uploaded_file, extracted_photo_path: str | None = None) -> tuple[int, int]:
     """Create or update a Users row + create a CVSubmission from the
     parser output. Returns ``(user_id, cv_submission_id)``.
+
+    If ``extracted_photo_path`` is provided (the best portrait the
+    ``DocumentProcessor`` pulled out of the source DOCX/PDF), it gets
+    attached to the user as ``profile_image``. We never fail the save
+    on a missing/broken photo — we just log and move on.
 
     Raises ``_NoEmailError`` if the contact section has no email (the
     Users model requires a unique, non-null email).
@@ -4795,6 +4805,37 @@ def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
         # password stays in sync if the CV has a new phone number.
         user.set_password(seafarer_password)
         user.save()
+
+        # Attach the extracted portrait photo to the user. We do this
+        # inside the same transaction so the photo is rolled back
+        # together with the User if anything later in this block fails.
+        # A missing/broken photo is never fatal — we just log and
+        # continue with profile_image = the existing value (or None).
+        if extracted_photo_path and os.path.isfile(extracted_photo_path):
+            try:
+                with open(extracted_photo_path, "rb") as photo_file:
+                    photo_name = f"user_{user.id}_{os.path.basename(extracted_photo_path)}"
+                    user.profile_image.save(
+                        photo_name,
+                        ContentFile(photo_file.read()),
+                        save=False,
+                    )
+                user.save(update_fields=["profile_image"])
+                logger.info(
+                    "_save_parser_output: saved profile_image for user id=%s from %s",
+                    user.id, extracted_photo_path,
+                )
+            except Exception:
+                logger.exception(
+                    "_save_parser_output: failed to save profile_image for user id=%s",
+                    user.id,
+                )
+        elif extracted_photo_path:
+            logger.warning(
+                "_save_parser_output: extracted_photo_path %s does not exist; "
+                "skipping profile_image save",
+                extracted_photo_path,
+            )
 
         # Persist the rest of the parsed data (travel docs, qualifications,
         # NOK, health certs, marine courses, sea service) to the related

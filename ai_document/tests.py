@@ -1594,6 +1594,116 @@ class SaveParserOutputIntegrationTest(TransactionTestCase):
         self.assertEqual(ss.imo_number, "IMO 1234567")
         self.assertEqual(ss.flag, "Test Flag")
 
+    def test_save_attaches_profile_image_from_photo_path(self):
+        """Regression: when DocumentProcessor hands us an
+        ``extracted_photo_path``, _save_parser_output must attach it to
+        ``user.profile_image`` — otherwise the seafarer's photo is lost.
+        """
+        import tempfile
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from ai_document.views import _save_parser_output
+        from api.models import Users
+
+        # Build a tiny valid PNG on disk to mimic what
+        # DocumentProcessor leaves behind in its temp dir.
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            img = Image.new("RGB", (200, 260), color=(180, 200, 220))
+            img.save(tmp, format="PNG")
+            photo_path = tmp.name
+
+        try:
+            data = {
+                "1_personal_details": {
+                    "full_name": "PHOTO TEST USER",
+                    "date_of_birth": "01/01/1990",
+                    "marital_status": {"single": True, "married": False},
+                    "nationality": "Egyptian",
+                },
+                "3_contact_details": {
+                    "e_mail": "photo.test@sakrparser.test",
+                    "mobile_tel": "00201000000099",
+                },
+            }
+            uploaded = SimpleUploadedFile(
+                "cv.pdf", b"x", content_type="application/pdf"
+            )
+
+            user_id, _ = _save_parser_output(
+                data, uploaded, extracted_photo_path=photo_path
+            )
+            user = Users.objects.get(id=user_id)
+
+            # profile_image must be set and readable
+            self.assertTrue(user.profile_image, "profile_image should be set")
+            self.assertTrue(user.profile_image.name.startswith("users/"))
+            # Original photo bytes must round-trip into the file we save
+            with user.profile_image.open("rb") as saved:
+                saved_bytes = saved.read()
+            with open(photo_path, "rb") as original:
+                original_bytes = original.read()
+            self.assertEqual(saved_bytes, original_bytes)
+        finally:
+            os.unlink(photo_path)
+
+    def test_save_skips_missing_photo_path(self):
+        """If extracted_photo_path points at a file that no longer
+        exists, _save_parser_output must NOT crash and must NOT set a
+        profile_image — the seafarer just ends up with no photo.
+        """
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from ai_document.views import _save_parser_output
+        from api.models import Users
+
+        data = {
+            "1_personal_details": {
+                "full_name": "NO PHOTO USER",
+                "date_of_birth": "01/01/1990",
+                "marital_status": {"single": True, "married": False},
+            },
+            "3_contact_details": {
+                "e_mail": "no.photo@sakrparser.test",
+                "mobile_tel": "00201000000098",
+            },
+        }
+        uploaded = SimpleUploadedFile(
+            "cv.pdf", b"x", content_type="application/pdf"
+        )
+        user_id, _ = _save_parser_output(
+            data, uploaded, extracted_photo_path="/nonexistent/photo.png"
+        )
+        user = Users.objects.get(id=user_id)
+        # Either no profile_image, or an empty ImageFieldFile — but no
+        # crash. Be lenient because the underlying ImageField can be
+        # either "" or None depending on Django version.
+        self.assertFalse(bool(user.profile_image))
+
+    def test_save_works_without_photo_path(self):
+        """Backward-compat: callers that don't pass a photo path (e.g.
+        legacy /ai/upload/ paths) must keep working.
+        """
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from ai_document.views import _save_parser_output
+        from api.models import Users
+
+        data = {
+            "1_personal_details": {
+                "full_name": "NO PHOTO ARG USER",
+                "date_of_birth": "01/01/1990",
+                "marital_status": {"single": True, "married": False},
+            },
+            "3_contact_details": {
+                "e_mail": "no.arg@sakrparser.test",
+                "mobile_tel": "00201000000097",
+            },
+        }
+        uploaded = SimpleUploadedFile(
+            "cv.pdf", b"x", content_type="application/pdf"
+        )
+        user_id, _ = _save_parser_output(data, uploaded)
+        user = Users.objects.get(id=user_id)
+        self.assertFalse(bool(user.profile_image))
+
 
 class ParserHelpersUnitTest(SimpleTestCase):
     """Pure-function tests for the date/salary/name helpers."""
