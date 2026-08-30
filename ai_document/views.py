@@ -4796,6 +4796,38 @@ def _save_parser_output(data: dict, uploaded_file) -> tuple[int, int]:
         user.set_password(seafarer_password)
         user.save()
 
+        # Persist the rest of the parsed data (travel docs, qualifications,
+        # NOK, health certs, marine courses, sea service) to the related
+        # models. The Sakr parser returns keys like "4_travel_documents"
+        # and "6_next_of_kin_emergency_contact" — the API serializer
+        # expects the short names. Map and delegate to the existing
+        # SeafarerApplicationSerializer.update() which handles all the
+        # FKs (PersonalDocument, NextOfKin, Vaccination, Course,
+        # SeaService, etc.).
+        sea_service = data.get("9_complete_sea_service_details") or {}
+        # Sakr uses "vessel_name_imo"; the serializer expects
+        # "vessel_name_imo_number" (it splits on "/" to separate the
+        # vessel name from the IMO). Rename so the split works.
+        for record in sea_service.get("service_records", []):
+            if "vessel_name_imo" in record and "vessel_name_imo_number" not in record:
+                record["vessel_name_imo_number"] = record.pop("vessel_name_imo")
+
+        api_payload = {
+            "personal_details":        data.get("1_personal_details") or {},
+            "contact_details":         data.get("3_contact_details") or {},
+            "travel_documents":        data.get("4_travel_documents") or [],
+            "professional_qualification": data.get("5_professional_qualification_certificate_of_competency") or [],
+            "next_of_kin":             data.get("6_next_of_kin_emergency_contact") or {},
+            "health_certificates":     data.get("7_health_certificates_and_vaccinations") or {},
+            "marine_courses":          data.get("8_marine_courses") or [],
+            "sea_service_details":     sea_service,
+            "references":              data.get("10_references") or [],
+            "declaration":             data.get("11_declaration") or {},
+            "for_office_use_only":     data.get("12_for_office_use_only") or {},
+        }
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+        SeafarerApplicationSerializer().update(user, api_payload)
+
         cv_submission = CVSubmission.objects.create(
             user=user,
             cv_file=uploaded_file,

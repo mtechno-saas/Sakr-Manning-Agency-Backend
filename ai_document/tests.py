@@ -1459,6 +1459,141 @@ class SaveParserOutputIntegrationTest(TransactionTestCase):
         self.assertEqual(user_id_1, user_id_2)
         self.assertEqual(Users.objects.filter(email="dup@sakrparser.test").count(), 1)
 
+    def test_save_creates_related_records(self):
+        """Regression: _save_parser_output must persist the rest of the
+        Sakr data (travel docs, qualifications, NOK, health certs,
+        marine courses, sea service) to the related models — not just
+        the basic User fields. Otherwise the GET endpoint returns
+        empty arrays for everything except personal_details.
+        """
+        from ai_document.views import _save_parser_output
+        from api.models import (
+            Users, SeaService, NextOfKin, PersonalDocument,
+        )
+        from courses.models import Course
+        from vaccinations.models import Vaccination
+
+        data = {
+            "1_personal_details": {
+                "full_name": "TEST USER FOR RELATED",
+                "date_of_birth": "01/01/1990",
+                "marital_status": {"single": True, "married": False},
+                "nationality": "Egyptian",
+            },
+            "3_contact_details": {
+                "e_mail": "related.test@sakrparser.test",
+                "mobile_tel": "00201000000000",
+            },
+            "4_travel_documents": [
+                {"type": "Passport", "document_no": "TEST123",
+                 "iss_date": "01/01/2020", "exp_date": "01/01/2030",
+                 "iss_by_authority": "Test Authority",
+                 "place_of_issue": "Cairo"},
+                {"type": "Seaman Book", "document_no": "SB123",
+                 "iss_date": "19/5/2025", "exp_date": "13/5/2030",
+                 "iss_by_authority": "EAMS",
+                 "place_of_issue": "Alex."},
+                {"type": "Other Seaman Book", "document_no": "OSB123",
+                 "iss_date": "", "exp_date": "",
+                 "iss_by_authority": "",
+                 "place_of_issue": ""},
+            ],
+            "5_professional_qualification_certificate_of_competency": [
+                {"certificate_name": "COC Master", "number": "COC1",
+                 "issue_date": "01/01/2020", "expiry_date": "01/01/2025",
+                 "issued_by": "Test Auth", "issued_at": "Cairo"},
+            ],
+            "6_next_of_kin_emergency_contact": {
+                "full_name": "Test NOK",
+                "relationship": "Brother",
+                "tel_no_mobile": "00201000000001",
+                "email": "nok@test.com",
+                "address_country": "Cairo",
+            },
+            "7_health_certificates_and_vaccinations": {
+                "certificates": [
+                    {"flag_state": "International Medical",
+                     "number": "MED1", "issue_date": "01/01/2024",
+                     "expiry_date": "01/01/2026", "issued_by": "Test Med",
+                     "issued_at": "Cairo"},
+                ],
+                "covid_19": {
+                    "vaccination_name": "Pfizer",
+                    "first_dose": "01/03/2021",
+                    "second_dose": "01/04/2021",
+                },
+            },
+            "8_marine_courses": [
+                {"course_name": "Basic Safety", "number": "BS1",
+                 "issue_date": "01/01/2020", "expiry_date": "01/01/2025",
+                 "issued_by_at": "Test School"},
+            ],
+            "9_complete_sea_service_details": {
+                "service_records": [
+                    {"company_name": "Test Co", "rank": "Master",
+                     "vessel_name_imo": "TEST VESSEL / IMO 1234567",
+                     "flag": "Test Flag", "signed_on": "01/01/2022",
+                     "signed_off": "01/01/2023", "period": "1 year",
+                     "vessel_type": "Cargo", "dwt_grt": "1000",
+                     "engine_type": "Diesel", "bh_kw": "1000",
+                     "reason_for_sign_off": "End of contract"},
+                ],
+            },
+        }
+        uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        user_id, _ = _save_parser_output(data, uploaded)
+
+        user = Users.objects.get(id=user_id)
+
+        # 4. Travel docs — Passport + Seaman Book + Other Seaman Book all
+        # map to User model fields (not PersonalDocument), based on type.
+        # Passport:
+        self.assertEqual(user.passport_no, "TEST123")
+        # Seaman Book:
+        self.assertEqual(user.seaman_book_no, "SB123")
+        # Other Seaman Book:
+        self.assertEqual(user.other_seaman_book_no, "OSB123")
+
+        # 5. Qualifications → COC set on User model fields
+        self.assertEqual(user.coc_certificate_number, "COC1")
+        self.assertEqual(user.coc_issued_by, "Test Auth")
+
+        # 6. NOK — stored on User model fields (not a separate NextOfKin
+        # record). The serializer exposes them in seafarer_application
+        # via the get_next_of_kin helper.
+        self.assertEqual(user.next_of_kin_full_name, "Test NOK")
+        self.assertEqual(user.next_of_kin_relationship, "Brother")
+        self.assertEqual(user.next_of_kin_email, "nok@test.com")
+        self.assertEqual(user.next_of_kin_phone, "00201000000001")
+        self.assertEqual(user.next_of_kin_address_country, "Cairo")
+
+        # 7. Health certs → 1 Vaccination + User fields
+        self.assertEqual(user.vaccinations.count(), 1)
+        vacc = user.vaccinations.first()
+        self.assertIn("international", vacc.name.lower())
+        self.assertEqual(vacc.number, "MED1")
+        # International Medical fields synced to User
+        self.assertEqual(user.international_medical_number, "MED1")
+
+        # COVID-19 on User
+        self.assertEqual(user.covid_vaccine_name, "Pfizer")
+
+        # 8. Marine courses → 1 Course
+        self.assertEqual(user.courses.count(), 1)
+        course = user.courses.first()
+        self.assertEqual(course.course_name, "Basic Safety")
+        self.assertEqual(course.course_number, "BS1")
+
+        # 9. Sea service → 1 SeaService
+        self.assertEqual(user.sea_services.count(), 1)
+        ss = user.sea_services.first()
+        self.assertEqual(ss.company_name, "Test Co")
+        self.assertEqual(ss.rank, "Master")
+        # vessel_name and imo_number are split from vessel_name_imo
+        self.assertEqual(ss.vessel_name, "TEST VESSEL")
+        self.assertEqual(ss.imo_number, "IMO 1234567")
+        self.assertEqual(ss.flag, "Test Flag")
+
 
 class ParserHelpersUnitTest(SimpleTestCase):
     """Pure-function tests for the date/salary/name helpers."""
