@@ -1011,3 +1011,137 @@ class VaccinationOwnerPermissionTests(TestCase):
         self.record.refresh_from_db()
         self.assertEqual(self.record.number, "YF-OWNER")
 
+
+
+# ============================================================================
+# 9b. Declaration — flexible declaration_date formats
+# ============================================================================
+#
+# Regression: frontend was sending `declaration_date` as DD-MM-YYYY (the
+# default DatePicker format in this app) and the serializer used the
+# stock DRF DateField, which only accepts YYYY-MM-DD. The error was
+#   "Date has wrong format. Use one of these formats instead: YYYY-MM-DD."
+#
+# Fix: DeclarationSerializer.declaration_date now uses
+# FlexibleDateField (same as Users.* and SeaService), which accepts:
+#   YYYY-MM-DD, DD-MM-YYYY, MM-DD-YYYY, DD/MM/YYYY, MM/DD/YYYY.
+# ---------------------------------------------------------------------------
+
+
+class DeclarationFlexibleDateTests(TestCase):
+    """
+    Exercises the formats FlexibleDateField should accept for the
+    Declaration endpoint's `declaration_date` field. Each test posts a
+    declaration with a different date-string format and asserts that
+    the request succeeds (201) and the stored value is the same
+    calendar date.
+    """
+
+    list_url = "/api/users/declarations/"
+
+    @classmethod
+    def setUpTestData(cls):
+        # Reuse the shared helpers — they know the right Users fields
+        # (first_name + middle_name, no last_name) and keep this class
+        # consistent with the rest of the file.
+        cls.admin = _make_admin_user()
+        cls.target = _make_target_user()
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.admin)
+
+    def _post_decl(self, declaration_date):
+        return self.client.post(
+            self.list_url,
+            {
+                "user": self.target.id,
+                "has_disease": False,
+                "disease_details": "",
+                "has_accident": False,
+                "accident_details": "",
+                "has_psychiatric_treatment": False,
+                "psychiatric_treatment_details": "",
+                "has_addiction": False,
+                "addiction_details": "",
+                "consent_given": True,
+                "declaration_place": "Cairo",
+                "declaration_date": declaration_date,
+                "signature": "Target User",
+            },
+            format="json",
+        )
+
+    def test_accepts_iso_yyyy_mm_dd(self):
+        """Baseline: the format DRF stock DateField always accepted."""
+        r = self._post_decl("2026-08-01")
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED,
+            f"YYYY-MM-DD should be accepted; got {r.status_code}: {r.data}",
+        )
+        self.assertEqual(r.data["declaration_date"], "2026-08-01")
+
+    def test_accepts_dd_mm_yyyy_dash(self):
+        """The case the user actually hit on Postman (DD-MM-YYYY)."""
+        r = self._post_decl("31-08-2026")
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED,
+            f"DD-MM-YYYY should be accepted; got {r.status_code}: {r.data}",
+        )
+        # Stored value is normalised to ISO.
+        self.assertEqual(r.data["declaration_date"], "2026-08-31")
+
+    def test_accepts_dd_mm_yyyy_slash(self):
+        """Alternative separator — DD/MM/YYYY."""
+        r = self._post_decl("15/09/2026")
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED,
+            f"DD/MM/YYYY should be accepted; got {r.status_code}: {r.data}",
+        )
+        self.assertEqual(r.data["declaration_date"], "2026-09-15")
+
+    def test_accepts_mm_dd_yyyy_dash(self):
+        """US-style: MM-DD-YYYY."""
+        r = self._post_decl("08-31-2026")
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED,
+            f"MM-DD-YYYY should be accepted; got {r.status_code}: {r.data}",
+        )
+        self.assertEqual(r.data["declaration_date"], "2026-08-31")
+
+    def test_accepts_mm_dd_yyyy_slash(self):
+        """US-style: MM/DD/YYYY."""
+        r = self._post_decl("09/15/2026")
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED,
+            f"MM/DD/YYYY should be accepted; got {r.status_code}: {r.data}",
+        )
+        self.assertEqual(r.data["declaration_date"], "2026-09-15")
+
+    def test_patch_with_dd_mm_yyyy_lands(self):
+        """The exact path the user reported: PATCH /declarations/10/."""
+        # Create the record first.
+        create = self._post_decl("2026-08-01")
+        self.assertEqual(create.status_code, http_status.HTTP_201_CREATED, create.data)
+        decl_id = create.data["id"]
+
+        # Now PATCH with a non-ISO date.
+        r = self.client.patch(
+            f"{self.list_url}{decl_id}/",
+            {"declaration_date": "31-08-2026"},
+            format="json",
+        )
+        self.assertEqual(
+            r.status_code, http_status.HTTP_200_OK,
+            f"PATCH with DD-MM-YYYY should succeed; got {r.status_code}: {r.data}",
+        )
+        self.assertEqual(r.data["declaration_date"], "2026-08-31")
+
+    def test_rejects_garbage(self):
+        """A truly invalid string should still 400 — we only widened, not removed validation."""
+        r = self._post_decl("not-a-date")
+        self.assertEqual(
+            r.status_code, http_status.HTTP_400_BAD_REQUEST,
+            f"Garbage date should be rejected; got {r.status_code}: {r.data}",
+        )
+        self.assertIn("declaration_date", r.data)

@@ -3000,7 +3000,12 @@ class DeclarationSerializer(serializers.ModelSerializer):
     """
     user_name = serializers.SerializerMethodField()
     user_email = serializers.SerializerMethodField()
-    
+
+    # Accept the same date formats as the rest of the project
+    # (YYYY-MM-DD, DD-MM-YYYY, MM-DD-YYYY, DD/MM/YYYY, MM/DD/YYYY)
+    # so the frontend doesn't have to massage the format.
+    declaration_date = FlexibleDateField(required=False, allow_null=True)
+
     class Meta:
         model = Declaration
         fields = [
