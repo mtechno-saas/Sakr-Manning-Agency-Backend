@@ -3981,3 +3981,153 @@ class EmailServiceSendWelcomeCredentialsTests(TestCase):
             password="x",
         )
         self.assertFalse(ok)
+
+
+class DedupeSeaServiceCommandTest(TestCase):
+    """
+    Tests for `python manage.py dedupe_sea_service` — the one-off
+    cleanup command for existing SeaService rows that were saved
+    before the dedup fix landed on /ai/parse/.
+    """
+
+    def _make_user(self, email="cmd-test@example.com"):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="Cmd", middle_name="Test", role="Employee",
+        )
+
+    def _make_record(self, user, vessel, signed_on, signed_off):
+        from api.models import SeaService
+        return SeaService.objects.create(
+            user=user,
+            company_name="ACME",
+            rank="Master",
+            vessel_name=vessel,
+            vessel_name_imo=vessel,
+            signed_on=signed_on,
+            signed_off=signed_off,
+            period="",
+        )
+
+    def test_dry_run_does_not_delete_anything(self):
+        from django.core.management import call_command
+        from io import StringIO
+        from api.models import SeaService
+        from datetime import date
+
+        user = self._make_user()
+        # 3 overlapping records, longest is the middle one
+        a = self._make_record(user, "A", date(2023, 1, 1), date(2023, 4, 16))
+        b = self._make_record(user, "B", date(2023, 2, 11), date(2024, 2, 1))
+        c = self._make_record(user, "C", date(2023, 4, 8), date(2023, 9, 22))
+
+        out = StringIO()
+        call_command("dedupe_sea_service", "--dry-run", stdout=out)
+
+        # Nothing deleted
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 3)
+        self.assertTrue(SeaService.objects.filter(id=a.id).exists())
+        self.assertTrue(SeaService.objects.filter(id=b.id).exists())
+        self.assertTrue(SeaService.objects.filter(id=c.id).exists())
+
+        # But the report mentions what would happen
+        output = out.getvalue()
+        self.assertIn("DRY RUN", output)
+        self.assertIn(user.email, output)
+
+    def test_apply_deletes_overlapping_keeps_longest(self):
+        from django.core.management import call_command
+        from io import StringIO
+        from api.models import SeaService
+        from datetime import date
+
+        user = self._make_user()
+        a = self._make_record(user, "A", date(2023, 1, 1), date(2023, 4, 16))
+        b = self._make_record(user, "B", date(2023, 2, 11), date(2024, 2, 1))
+        c = self._make_record(user, "C", date(2023, 4, 8), date(2023, 9, 22))
+
+        out = StringIO()
+        call_command("dedupe_sea_service", stdout=out)
+
+        # B is the longest (~12 months) — should be kept
+        self.assertTrue(SeaService.objects.filter(id=b.id).exists())
+        # A and C are shorter and overlap with B — should be deleted
+        self.assertFalse(SeaService.objects.filter(id=a.id).exists())
+        self.assertFalse(SeaService.objects.filter(id=c.id).exists())
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+
+    def test_user_filter_only_processes_target_user(self):
+        from django.core.management import call_command
+        from io import StringIO
+        from api.models import SeaService
+        from datetime import date
+
+        user_a = self._make_user("a@example.com")
+        user_b = self._make_user("b@example.com")
+
+        # Both users have overlapping records
+        a1 = self._make_record(user_a, "A1", date(2023, 1, 1), date(2023, 4, 16))
+        a2 = self._make_record(user_a, "A2", date(2023, 2, 11), date(2024, 2, 1))
+        b1 = self._make_record(user_b, "B1", date(2023, 1, 1), date(2023, 4, 16))
+        b2 = self._make_record(user_b, "B2", date(2023, 2, 11), date(2024, 2, 1))
+
+        out = StringIO()
+        call_command("dedupe_sea_service", "--user", str(user_a.id), stdout=out)
+
+        # user_a's rows: only the longer one kept
+        self.assertFalse(SeaService.objects.filter(id=a1.id).exists())
+        self.assertTrue(SeaService.objects.filter(id=a2.id).exists())
+        # user_b's rows: untouched
+        self.assertTrue(SeaService.objects.filter(id=b1.id).exists())
+        self.assertTrue(SeaService.objects.filter(id=b2.id).exists())
+
+    def test_no_overlap_means_no_change(self):
+        from django.core.management import call_command
+        from io import StringIO
+        from api.models import SeaService
+        from datetime import date
+
+        user = self._make_user()
+        r1 = self._make_record(user, "R1", date(2022, 1, 1), date(2022, 6, 1))
+        r2 = self._make_record(user, "R2", date(2022, 7, 1), date(2022, 12, 1))
+
+        out = StringIO()
+        call_command("dedupe_sea_service", stdout=out)
+
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 2)
+        self.assertTrue(SeaService.objects.filter(id=r1.id).exists())
+        self.assertTrue(SeaService.objects.filter(id=r2.id).exists())
+
+    def test_report_json_written_when_requested(self):
+        import json
+        import tempfile
+        from django.core.management import call_command
+        from io import StringIO
+        from datetime import date
+
+        user = self._make_user("report@example.com")
+        self._make_record(user, "A", date(2023, 1, 1), date(2023, 4, 16))
+        self._make_record(user, "B", date(2023, 2, 11), date(2024, 2, 1))
+
+        with tempfile.TemporaryDirectory() as tmp:
+            report_path = f"{tmp}/report.json"
+            out = StringIO()
+            call_command("dedupe_sea_service", "--report", report_path, stdout=out)
+
+            with open(report_path, "r", encoding="utf-8") as f:
+                report = json.load(f)
+            self.assertIn("users", report)
+            self.assertEqual(report["users_processed"], 1)
+            self.assertEqual(report["rows_deleted"], 1)
+            self.assertEqual(report["rows_kept"], 1)
+            self.assertIn("user_email", report["users"][0])
+            self.assertIn(user.email, report["users"][0]["user_email"])
+
+    def test_command_handles_empty_db_gracefully(self):
+        from django.core.management import call_command
+        from io import StringIO
+        out = StringIO()
+        # No users, no SeaService rows
+        call_command("dedupe_sea_service", stdout=out)
+        self.assertIn("No SeaService records to process", out.getvalue())

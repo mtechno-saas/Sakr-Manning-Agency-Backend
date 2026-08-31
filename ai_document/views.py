@@ -4670,12 +4670,24 @@ _VALID_APPLICATION_POSITIONS = {
 }
 
 
-def _parse_date_loose(raw: str):
+def _parse_date_loose(raw):
     """Parse a date from common Sakr-form formats: ``DD/MM/YYYY``,
-    ``DD.MM.YYYY``, ``DD-MM-YYYY``. Returns ``None`` on failure."""
+    ``DD.MM.YYYY``, ``DD-MM-YYYY``.
+
+    Accepts either a string or a ``datetime.date``/``datetime.datetime``
+    instance — useful when the caller already has a DateField value
+    (e.g. when deduping rows from the DB) and the string format is
+    irrelevant. Returns ``None`` on failure / empty input.
+    """
+    if raw is None or raw == "":
+        return None
+    # Already a date-like object — return as-is so the dedup math
+    # can subtract it.
+    if hasattr(raw, "isoformat") and not isinstance(raw, str):
+        return raw
+    raw = str(raw).strip()
     if not raw:
         return None
-    raw = raw.strip()
     for fmt in ("%d/%m/%Y", "%d.%m.%Y", "%d-%m-%Y", "%Y-%m-%d"):
         try:
             return datetime.strptime(raw, fmt).date()
