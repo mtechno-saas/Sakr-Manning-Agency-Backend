@@ -94,55 +94,22 @@ class SeaServiceSerializer(serializers.ModelSerializer):
     def validate(self, data):
         signed_on = data.get('signed_on', self.instance.signed_on if self.instance else None)
         signed_off = data.get('signed_off', self.instance.signed_off if self.instance else None)
-        
+
         from datetime import date
         today = date.today()
         if signed_on and signed_on > today:
             raise serializers.ValidationError({"signed_on": ["Sign-on date cannot be in the future."]})
 
-        # Determine the user instance, because data.get('user') might be empty if derived from request.
-        user = data.get('user')
-        if not user and self.instance:
-            user = self.instance.user
-        if not user and 'request' in self.context and hasattr(self.context['request'], 'user'):
-            user = self.context['request'].user
-            
         if signed_on and signed_off and signed_off < signed_on:
             raise serializers.ValidationError({"signed_off": ["Signed off date cannot be before signed on date."]})
-            
-        if signed_on and user:
-            # Check for overlaps
-            overlapping = SeaService.objects.filter(user=user)
-            if self.instance and self.instance.id:
-                overlapping = overlapping.exclude(id=self.instance.id)
-                
-            for existing in overlapping:
-                if not existing.signed_on:
-                    continue
-                    
-                e_on = existing.signed_on
-                e_off = existing.signed_off
-                
-                overlap = False
-                if signed_off is None and e_off is None:
-                    overlap = True
-                elif signed_off is None:
-                    if e_off >= signed_on:
-                        overlap = True
-                elif e_off is None:
-                    if signed_off >= e_on:
-                        overlap = True
-                else:
-                    if signed_on <= e_off and signed_off >= e_on:
-                        overlap = True
-                        
-                if overlap:
-                    e_on_str = e_on.strftime("%d-%m-%Y")
-                    e_off_str = e_off.strftime("%d-%m-%Y") if e_off else "Present"
-                    raise serializers.ValidationError({
-                        "signed_on": [f"Dates overlap with existing service ({e_on_str} to {e_off_str})."]
-                    })
-                    
+
+        # NOTE: overlap detection used to live here, but it made
+        # legitimate "I edited a date" updates impossible to save
+        # when the new range touched a sibling record. The dedup
+        # logic in SeaServiceViewSet.perform_update now handles
+        # overlap resolution at the view layer (longer record
+        # wins; the other one is dropped). This validate() only
+        # checks per-row sanity (future dates, off-before-on).
         return data
 
     def _calculate_period(self, signed_on, signed_off):

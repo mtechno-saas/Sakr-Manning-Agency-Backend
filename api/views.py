@@ -2240,6 +2240,14 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
     """
     Sea Service Management - Role-based access:
     - Admin/HR Manager/Employee: Full access to all records
+
+    On create AND update, runs the same overlap dedup that
+    `ai_document.views._save_parser_output` uses, so any
+    SeaService record that would overlap with a longer one
+    for the same seafarer is dropped before it lands in the DB.
+    The frontend's `seaServiceService` (POST /users/sea-services/
+    + PATCH /users/sea-services/<id>/) routes through here, so
+    direct form saves also stay clean.
     """
     queryset = SeaService.objects.all()
     serializer_class = SeaServiceSerializer
@@ -2252,17 +2260,107 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
             return SeaService.objects.filter(user_id=user_id)
         return SeaService.objects.filter(user=self.request.user)
 
+    def _resolve_user_id(self):
+        """Pick the user_id this write targets — from the payload,
+        the URL, or the request user. Mirrors the original
+        `perform_create` precedence."""
+        return (
+            self.request.data.get('user')
+            or self.request.query_params.get('user')
+            or self.request.user.id
+        )
+
+    def _dedupe_after_write(self, saved_record):
+        """After a SeaService row has been saved, check whether it
+        overlaps with any other SeaService for the same user. If
+        so, drop the shorter one (the one we just saved if it's
+        shorter; the existing one if the saved one is longer).
+        Returns the list of dropped record ids.
+        """
+        from ai_document.views import _dedupe_overlapping_sea_service
+
+        user_id = saved_record.user_id
+        if not user_id:
+            return []
+
+        # Pull all of this user's sea-service rows (including the one
+        # we just saved) and convert them to the dict shape the
+        # dedup helper expects.
+        siblings = list(
+            SeaService.objects.filter(user_id=user_id).order_by("id")
+        )
+        if not siblings:
+            return []
+
+        dicts = []
+        for r in siblings:
+            d = {
+                "id": r.id,
+                "_is_saved": r.id == saved_record.id,
+                "vessel_name_imo": r.vessel_name_imo or "",
+                "vessel_name": r.vessel_name or "",
+                "company_name": r.company_name or "",
+                "rank": r.rank or "",
+                "signed_on": r.signed_on,
+                "signed_off": r.signed_off,
+                "period": r.period or "",
+            }
+            dicts.append(d)
+
+        kept, dropped = _dedupe_overlapping_sea_service(dicts)
+
+        # If our just-saved row was kept, drop the dropped ones.
+        # If our just-saved row was dropped, drop it AND the others
+        # (so we don't accidentally keep a row that "won" against
+        # the saved one — that winner stays, we only delete our
+        # saved row plus any other losers).
+        #
+        # Note: ``kept`` items are dicts (with a top-level "id" key),
+        # but ``dropped`` items are shaped like
+        #   {"record": {<the dropped row, including id>}, ...}
+        # so we read d["record"]["id"] for the dropped list.
+        kept_ids = {d["id"] for d in kept if d.get("id") is not None}
+        if saved_record.id in kept_ids:
+            ids_to_delete = [
+                d["record"]["id"]
+                for d in dropped
+                if d.get("record", {}).get("id") is not None
+            ]
+        else:
+            # The saved row was itself dropped — delete it and the
+            # other dropped rows. (Kept row is the existing winner.)
+            ids_to_delete = [
+                d["record"]["id"]
+                for d in dropped
+                if d.get("record", {}).get("id") is not None
+            ]
+            if saved_record.id not in ids_to_delete:
+                ids_to_delete.append(saved_record.id)
+
+        if ids_to_delete:
+            SeaService.objects.filter(id__in=ids_to_delete).delete()
+
+        return ids_to_delete
+
     def perform_create(self, serializer):
         user_id = self.request.data.get('user') or self.request.query_params.get('user')
         if user_id:
-            serializer.save(user_id=user_id)
+            saved = serializer.save(user_id=user_id)
         elif self.request.user.role == 'Employee':
-            serializer.save(user=self.request.user)
+            saved = serializer.save(user=self.request.user)
         else:
             if 'user' not in serializer.validated_data:
-                serializer.save(user=self.request.user)
+                saved = serializer.save(user=self.request.user)
             else:
-                serializer.save()
+                saved = serializer.save()
+        # Drop any pre-existing overlapping rows for this user.
+        self._dedupe_after_write(saved)
+
+    def perform_update(self, serializer):
+        saved = serializer.save()
+        # An update can change signed_on/signed_off and turn a
+        # previously non-overlapping row into an overlapping one.
+        self._dedupe_after_write(saved)
 
 class DocumentViewSet(viewsets.ModelViewSet):
     """

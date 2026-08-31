@@ -2364,7 +2364,7 @@ class OTPEmailDispatchTests(APITestCase):
         # This works regardless of the project's LOGGING config
         # because it overrides the effective level.
         with self.assertLogs("api.email", level="INFO") as cm:
-            user_id, _ = _save_parser_output(self.data, self.uploaded)
+            user_id, _, _dropped = _save_parser_output(self.data, self.uploaded)
 
         user = Users.objects.get(id=user_id)
         # The user is NOT phone-verified.
@@ -2658,7 +2658,7 @@ class SaveParserOutputSeafarerPasswordTests(APITestCase):
                 "available_date": "",
             },
         }
-        user_id, _ = _save_parser_output(data, self._make_uploaded_file())
+        user_id, _, _dropped = _save_parser_output(data, self._make_uploaded_file())
 
         user = Users.objects.get(id=user_id)
         # Phone is the password.
@@ -2675,7 +2675,7 @@ class SaveParserOutputSeafarerPasswordTests(APITestCase):
             "3_contact_details": {"e_mail": "jane@sakrshipping.com"},
             "0_application_meta": {},
         }
-        user_id, _ = _save_parser_output(data, self._make_uploaded_file())
+        user_id, _, _dropped = _save_parser_output(data, self._make_uploaded_file())
 
         user = Users.objects.get(id=user_id)
         self.assertTrue(user.check_password("jane@sakrshipping.com"))
@@ -2689,7 +2689,7 @@ class SaveParserOutputSeafarerPasswordTests(APITestCase):
             "3_contact_details": {"e_mail": "bob@sakrshipping.com"},
             "0_application_meta": {},
         }
-        user_id, _ = _save_parser_output(data, self._make_uploaded_file())
+        user_id, _, _dropped = _save_parser_output(data, self._make_uploaded_file())
 
         user = Users.objects.get(id=user_id)
         self.assertEqual(user.role, "Employee")
@@ -4131,3 +4131,256 @@ class DedupeSeaServiceCommandTest(TestCase):
         # No users, no SeaService rows
         call_command("dedupe_sea_service", stdout=out)
         self.assertIn("No SeaService records to process", out.getvalue())
+
+
+class SeaServiceViewSetDedupTests(APITestCase):
+    """
+    Regression: the frontend's `seaServiceService.createSeaService`
+    POSTs directly to `/api/users/sea-services/`, bypassing
+    `/ai/parse/`. The viewset must dedup overlapping records
+    on create AND update so the form-save path stays clean.
+
+    Without this, re-uploading a CV that has overlapping sea-service
+    dates leaves the overlaps in the DB even though `/ai/parse/`
+    would have caught them.
+    """
+
+    def _login_as_admin(self):
+        from api.models import Users
+        admin = Users.objects.create_user(
+            email="ssv-admin@example.com", password="x",
+            first_name="A", middle_name="dmin", role="Admin",
+            is_staff=True, is_superuser=True,
+        )
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        return client
+
+    def _make_user(self, email):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="SSV", middle_name="Test", role="Employee",
+        )
+
+    def test_create_overlapping_record_drops_shorter(self):
+        from api.models import SeaService
+        from datetime import date
+        client = self._login_as_admin()
+        user = self._make_user("ssv-overlap-create@example.com")
+
+        # Step 1: create a long record (12 months)
+        long_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user.id,
+                "company_name": "LONG CO",
+                "rank": "Master",
+                "vessel_name": "BIG VESSEL",
+                "vessel_name_imo": "BIG VESSEL",
+                "signed_on": "2023-02-11",
+                "signed_off": "2024-02-01",
+                "period": "12 months",
+            },
+            format="json",
+        )
+        self.assertEqual(long_resp.status_code, 201, long_resp.data)
+        long_id = long_resp.data["id"]
+
+        # Step 2: create a shorter record that overlaps with the long one
+        short_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user.id,
+                "company_name": "SHORT CO",
+                "rank": "Master",
+                "vessel_name": "TINY VESSEL",
+                "vessel_name_imo": "TINY VESSEL",
+                "signed_on": "2023-01-31",
+                "signed_off": "2023-04-16",
+                "period": "3 months",
+            },
+            format="json",
+        )
+        # The create itself should succeed (HTTP 201) — the
+        # dedup runs as a side effect and drops the OLDER
+        # (shorter-in-time, but the saved row IS the shorter
+        # one so it should be the one dropped).
+        self.assertEqual(short_resp.status_code, 201, short_resp.data)
+        short_id = short_resp.data["id"]
+
+        # Only the long record should remain
+        self.assertTrue(SeaService.objects.filter(id=long_id).exists())
+        self.assertFalse(SeaService.objects.filter(id=short_id).exists())
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+
+    def test_create_longer_record_drops_existing_shorter(self):
+        from api.models import SeaService
+        from datetime import date
+        client = self._login_as_admin()
+        user = self._make_user("ssv-overlap-create-b@example.com")
+
+        # Step 1: create a short record
+        short_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user.id,
+                "company_name": "SHORT CO",
+                "rank": "Master",
+                "vessel_name": "TINY VESSEL",
+                "vessel_name_imo": "TINY VESSEL",
+                "signed_on": "2023-01-31",
+                "signed_off": "2023-04-16",
+                "period": "3 months",
+            },
+            format="json",
+        )
+        self.assertEqual(short_resp.status_code, 201, short_resp.data)
+        short_id = short_resp.data["id"]
+
+        # Step 2: create a longer record that overlaps with the short one
+        long_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user.id,
+                "company_name": "LONG CO",
+                "rank": "Master",
+                "vessel_name": "BIG VESSEL",
+                "vessel_name_imo": "BIG VESSEL",
+                "signed_on": "2023-02-11",
+                "signed_off": "2024-02-01",
+                "period": "12 months",
+            },
+            format="json",
+        )
+        self.assertEqual(long_resp.status_code, 201, long_resp.data)
+        long_id = long_resp.data["id"]
+
+        # The long one is kept, the short one is dropped
+        self.assertTrue(SeaService.objects.filter(id=long_id).exists())
+        self.assertFalse(SeaService.objects.filter(id=short_id).exists())
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+
+    def test_update_into_overlap_drops_existing_overlapping(self):
+        """If a PATCH changes the dates such that the row now
+        overlaps with another, the dedup must drop the shorter one."""
+        from api.models import SeaService
+        client = self._login_as_admin()
+        user = self._make_user("ssv-overlap-update@example.com")
+
+        # Create two non-overlapping records
+        a_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user.id,
+                "vessel_name": "VESSEL A",
+                "vessel_name_imo": "VESSEL A",
+                "signed_on": "2022-01-01",
+                "signed_off": "2022-06-01",
+            },
+            format="json",
+        )
+        self.assertEqual(a_resp.status_code, 201, a_resp.data)
+        a_id = a_resp.data["id"]
+
+        b_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user.id,
+                "vessel_name": "VESSEL B",
+                "vessel_name_imo": "VESSEL B",
+                "signed_on": "2022-07-01",
+                "signed_off": "2023-06-01",  # 11 months
+            },
+            format="json",
+        )
+        self.assertEqual(b_resp.status_code, 201, b_resp.data)
+        b_id = b_resp.data["id"]
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 2)
+
+        # Now PATCH A so it overlaps with B and is LONGER than B
+        # New range: 2022-01-01 -> 2023-12-01 (23 months) — overlaps B
+        # (must pass ?user=<id> so the admin's queryset picks it up)
+        patch_resp = client.patch(
+            f"/api/sea-services/{a_id}/?user={user.id}",
+            {"signed_off": "2023-12-01"},
+            format="json",
+        )
+        self.assertEqual(patch_resp.status_code, 200, patch_resp.data)
+
+        # A is the longer record now — should be kept
+        # B is shorter and overlaps — should be dropped
+        self.assertTrue(SeaService.objects.filter(id=a_id).exists())
+        self.assertFalse(SeaService.objects.filter(id=b_id).exists())
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+
+    def test_create_non_overlapping_record_keeps_both(self):
+        from api.models import SeaService
+        client = self._login_as_admin()
+        user = self._make_user("ssv-no-overlap@example.com")
+
+        a_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user.id,
+                "vessel_name": "VESSEL A",
+                "vessel_name_imo": "VESSEL A",
+                "signed_on": "2022-01-01",
+                "signed_off": "2022-06-01",
+            },
+            format="json",
+        )
+        self.assertEqual(a_resp.status_code, 201, a_resp.data)
+
+        b_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user.id,
+                "vessel_name": "VESSEL B",
+                "vessel_name_imo": "VESSEL B",
+                "signed_on": "2022-07-01",
+                "signed_off": "2022-12-01",
+            },
+            format="json",
+        )
+        self.assertEqual(b_resp.status_code, 201, b_resp.data)
+
+        # Neither overlaps — both should be kept
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 2)
+
+    def test_dedup_does_not_affect_other_users(self):
+        from api.models import SeaService
+        client = self._login_as_admin()
+        user_a = self._make_user("ssv-isolated-a@example.com")
+        user_b = self._make_user("ssv-isolated-b@example.com")
+
+        # Both users have a long record
+        a_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user_a.id,
+                "vessel_name": "USER A",
+                "vessel_name_imo": "USER A",
+                "signed_on": "2023-02-11",
+                "signed_off": "2024-02-01",
+            },
+            format="json",
+        )
+        b_resp = client.post(
+            "/api/sea-services/",
+            {
+                "user": user_b.id,
+                "vessel_name": "USER B",
+                "vessel_name_imo": "USER B",
+                "signed_on": "2023-02-11",
+                "signed_off": "2024-02-01",
+            },
+            format="json",
+        )
+        self.assertEqual(a_resp.status_code, 201)
+        self.assertEqual(b_resp.status_code, 201)
+
+        # Each user has exactly 1 record — dedup should not cross users
+        self.assertEqual(SeaService.objects.filter(user=user_a).count(), 1)
+        self.assertEqual(SeaService.objects.filter(user=user_b).count(), 1)
+
