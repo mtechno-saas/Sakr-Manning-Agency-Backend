@@ -1989,6 +1989,19 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
                 serializer.validated_data['reviewed_date'] = timezone.now()
         serializer.save()
 
+        # Same code-generation hook as update_status — when status is
+        # set to Approved/Hired through a PATCH (not just the dedicated
+        # action), the user must still get their 6-digit generated_id.
+        new_status = serializer.validated_data.get('status')
+        if new_status in ('Approved', 'Hired') and serializer.instance.user:
+            user = serializer.instance.user
+            if not user.generated_id:
+                new_id = ''.join(random.choices(string.digits, k=6))
+                while Users.objects.filter(generated_id=new_id).exists():
+                    new_id = ''.join(random.choices(string.digits, k=6))
+                user.generated_id = new_id
+                user.save(update_fields=['generated_id'])
+
     def perform_destroy(self, instance):
         # If the applicant was assigned to the ship's crew for this CV submission, remove them
         if instance.ship and instance.user:
@@ -2054,18 +2067,35 @@ class CVSubmissionViewSet(viewsets.ModelViewSet):
         """Update CV status - Recruiter+ access"""
         if request.user.role not in ['Admin', 'HR Manager', 'Recruiter']:
             return Response({'error': 'Permission denied'}, status=403)
-        
+
         cv = self.get_object()
         new_status = request.data.get('status')
         if new_status not in dict(CVSubmission.STATUS_CHOICES):
             return Response({'error': 'Invalid status'}, status=400)
-        
+
         cv.status = new_status
         if new_status in ['Approved', 'Rejected']:
             cv.reviewed_by = request.user
             cv.reviewed_date = timezone.now().date()
         cv.save()
-        
+
+        # When a CVSubmission is approved (or hired), the linked user
+        # becomes a "real" seafarer and must get a generated_id (the
+        # 6-digit employee code shown in the CV Submissions board).
+        # Without this hook, the only path that generated IDs was the
+        # legacy Document.status='Active' flow, so CVSubmission-driven
+        # onboarding left the column empty.
+        if new_status in ('Approved', 'Hired') and cv.user:
+            user = cv.user
+            if not user.generated_id:
+                new_id = ''.join(random.choices(string.digits, k=6))
+                # Uniqueness loop — extremely unlikely to need 2+ tries
+                # with 10^6 space, but guard anyway.
+                while Users.objects.filter(generated_id=new_id).exists():
+                    new_id = ''.join(random.choices(string.digits, k=6))
+                user.generated_id = new_id
+                user.save(update_fields=['generated_id'])
+
         return Response(CVSubmissionSerializer(cv).data)
 
     @action(detail=True, methods=['get'], url_path='download-cv',

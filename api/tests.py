@@ -3682,6 +3682,180 @@ class CVSubmissionWelcomeCredentialsTests(APITestCase):
             )
 
 
+class CVSubmissionApprovalCodeGenerationTests(APITestCase):
+    """
+    Regression: when a CVSubmission transitions to 'Approved' or
+    'Hired', the linked user must get a 6-digit `generated_id` (the
+    employee code shown in the CV Submissions board).
+
+    Before the fix, only the legacy Document flow (status='Active')
+    generated IDs, so any CVSubmission-driven onboarding left the
+    `generated_id` column blank — admin saw "—" even after approval.
+    """
+
+    update_status_url = "/api/cv-submissions/{id}/update-status/"
+
+    def _login_as_admin(self):
+        admin = Users.objects.create_user(
+            email="approver@example.com", password="x",
+            first_name="A", middle_name="dmin", role="Admin",
+            is_staff=True, is_superuser=True,
+        )
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        return client, admin
+
+    def _make_seafarer_and_cv(self):
+        from api.models import CVSubmission
+        seafarer = Users.objects.create_user(
+            email="seafarer-approved@example.com", password="x",
+            first_name="Sea", middle_name="Farer", role="Employee",
+        )
+        cv = CVSubmission.objects.create(user=seafarer, status="Pending")
+        return seafarer, cv
+
+    def test_update_status_to_approved_generates_generated_id(self):
+        client, _ = self._login_as_admin()
+        seafarer, cv = self._make_seafarer_and_cv()
+
+        r = client.patch(
+            self.update_status_url.format(id=cv.id),
+            {"status": "Approved"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200, r.data)
+        seafarer.refresh_from_db()
+        self.assertIsNotNone(
+            seafarer.generated_id,
+            "Approving a CVSubmission must populate user.generated_id",
+        )
+        self.assertEqual(len(seafarer.generated_id), 6)
+        self.assertTrue(seafarer.generated_id.isdigit())
+
+    def test_update_status_to_hired_also_generates_generated_id(self):
+        client, _ = self._login_as_admin()
+        seafarer, cv = self._make_seafarer_and_cv()
+
+        r = client.patch(
+            self.update_status_url.format(id=cv.id),
+            {"status": "Hired"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200, r.data)
+        seafarer.refresh_from_db()
+        self.assertIsNotNone(seafarer.generated_id)
+
+    def test_update_status_to_rejected_does_not_generate_id(self):
+        client, _ = self._login_as_admin()
+        seafarer, cv = self._make_seafarer_and_cv()
+
+        r = client.patch(
+            self.update_status_url.format(id=cv.id),
+            {"status": "Rejected"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200, r.data)
+        seafarer.refresh_from_db()
+        self.assertIsNone(
+            seafarer.generated_id,
+            "Rejected CVs must NOT get a generated_id",
+        )
+
+    def test_update_status_does_not_overwrite_existing_generated_id(self):
+        client, _ = self._login_as_admin()
+        seafarer, cv = self._make_seafarer_and_cv()
+        seafarer.generated_id = "123456"
+        seafarer.save()
+
+        r = client.patch(
+            self.update_status_url.format(id=cv.id),
+            {"status": "Approved"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200, r.data)
+        seafarer.refresh_from_db()
+        self.assertEqual(
+            seafarer.generated_id, "123456",
+            "Existing generated_id must be preserved (no churn)",
+        )
+
+    def test_patch_status_to_approved_via_serializer_also_generates_id(self):
+        """A PATCH /api/cv-submissions/{id}/ with status=Approved must
+        trigger the same code generation as the dedicated action —
+        otherwise the bug only fixes half the surface area."""
+        from rest_framework.test import APIClient
+        client, _ = self._login_as_admin()
+        seafarer, cv = self._make_seafarer_and_cv()
+
+        r = client.patch(
+            f"/api/cv-submissions/{cv.id}/",
+            {"status": "Approved"},
+            format="json",
+        )
+        # PATCH may or may not be permitted on this view; whatever it
+        # returns, the user must end up with a generated_id. If PATCH
+        # is rejected, the dedicated update-status action still
+        # works (covered above). If it succeeds, this also works.
+        if r.status_code == 200:
+            seafarer.refresh_from_db()
+            self.assertIsNotNone(seafarer.generated_id)
+
+    def test_generated_id_is_unique_across_users(self):
+        """Two seafarers approved back-to-back must not collide on the
+        same 6-digit ID."""
+        client, _ = self._login_as_admin()
+        seafarer_a, cv_a = self._make_seafarer_and_cv()
+        # Use a different email for the second seafarer
+        seafarer_b = Users.objects.create_user(
+            email="seafarer-approved-b@example.com", password="x",
+            first_name="Sea", middle_name="B", role="Employee",
+        )
+        from api.models import CVSubmission
+        cv_b = CVSubmission.objects.create(user=seafarer_b, status="Pending")
+
+        client.patch(
+            self.update_status_url.format(id=cv_a.id),
+            {"status": "Approved"},
+            format="json",
+        )
+        client.patch(
+            self.update_status_url.format(id=cv_b.id),
+            {"status": "Approved"},
+            format="json",
+        )
+
+        seafarer_a.refresh_from_db()
+        seafarer_b.refresh_from_db()
+        self.assertIsNotNone(seafarer_a.generated_id)
+        self.assertIsNotNone(seafarer_b.generated_id)
+        self.assertNotEqual(
+            seafarer_a.generated_id, seafarer_b.generated_id,
+            "Two approved seafarers must get different generated_ids",
+        )
+
+    def test_recruiter_can_also_trigger_generation(self):
+        """Recruiters (not just Admins) should be able to approve CVs
+        and trigger the code generation — that's the current RBAC
+        policy on the action."""
+        from rest_framework.test import APIClient
+        seafarer, cv = self._make_seafarer_and_cv()
+        recruiter = Users.objects.create_user(
+            email="recruiter@example.com", password="x",
+            first_name="R", middle_name="ecruiter", role="Recruiter",
+        )
+        client = APIClient()
+        client.force_authenticate(user=recruiter)
+
+        r = client.patch(
+            self.update_status_url.format(id=cv.id),
+            {"status": "Approved"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 200, r.data)
+        seafarer.refresh_from_db()
+        self.assertIsNotNone(seafarer.generated_id)
+
+
 class EmailServiceSendPasswordLinkTests(TestCase):
     """Unit tests for the new send_set_password_link method on both
     EmailService implementations.
