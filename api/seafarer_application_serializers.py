@@ -307,6 +307,18 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         if sea_service_data:
             records = sea_service_data.get('service_records', [])
             if records:
+                # Drop overlapping records before writing. The
+                # /ai/parse/ flow already dedupes upstream (see
+                # _dedupe_overlapping_sea_service in ai_document.views)
+                # but this serializer is also called directly from the
+                # Contract create/update path (ContractSerializer) which
+                # does NOT pre-dedup. Running the dedup here keeps both
+                # entry points consistent — half-open overlap, longer
+                # record wins, ties go to the earlier one.
+                from ai_document.views import _dedupe_overlapping_sea_service
+                kept_records, _dropped = _dedupe_overlapping_sea_service(records)
+                records = kept_records
+
                 instance.sea_services.all().delete()
                 for r in records:
                     SeaService.objects.create(

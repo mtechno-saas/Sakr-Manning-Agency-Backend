@@ -4384,3 +4384,132 @@ class SeaServiceViewSetDedupTests(APITestCase):
         self.assertEqual(SeaService.objects.filter(user=user_a).count(), 1)
         self.assertEqual(SeaService.objects.filter(user=user_b).count(), 1)
 
+
+
+class SeafarerApplicationSerializerSeaServiceDedupTests(APITestCase):
+    """
+    Regression: SeafarerApplicationSerializer.update is called from
+    THREE places — _save_parser_output, ContractSerializer.create,
+    and ContractSerializer.update. Only the first pre-dedupes the
+    sea service records. This test class exercises the serializer
+    directly to verify the dedup runs regardless of caller.
+    """
+
+    def _login_as_admin(self):
+        from api.models import Users
+        admin = Users.objects.create_user(
+            email="sas-admin@example.com", password="x",
+            first_name="A", middle_name="dmin", role="Admin",
+            is_staff=True, is_superuser=True,
+        )
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        return client
+
+    def _make_user(self, email="sas-dedup@example.com"):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="SAS", middle_name="Dedup", role="Employee",
+        )
+
+    def _sea_service_payload(self, records):
+        """Wrap a list of sea service records in the shape
+        SeafarerApplicationSerializer.update expects."""
+        return {
+            "sea_service_details": {
+                "service_records": records,
+            },
+        }
+
+    def _r(self, vessel, signed_on, signed_off, company="ACME"):
+        return {
+            "company_name": company,
+            "rank": "Master",
+            "vessel_name_imo_number": vessel,
+            "flag": "Test",
+            "signed_on": signed_on,
+            "signed_off": signed_off,
+            "period": "",
+            "vessel_type": "Cargo",
+            "dwt_grt": "1000/500",
+            "engine_type": "Diesel",
+            "bh_kw": "1000/746",
+            "reason_for_sign_off": "End of contract",
+        }
+
+    def test_serializer_drops_overlapping_records(self):
+        """When the serializer is called with overlapping records,
+        only the longer one survives."""
+        from api.models import SeaService
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+        user = self._make_user()
+
+        payload = self._sea_service_payload([
+            self._r("BIG VESSEL", "2023-02-11", "2024-02-01"),  # 12 months
+            self._r("TINY VESSEL", "2023-01-31", "2023-04-16"),  # 3 months
+        ])
+        SeafarerApplicationSerializer().update(user, payload)
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+        # The long one is kept
+        kept = SeaService.objects.get(user=user)
+        self.assertIn("BIG VESSEL", kept.vessel_name)
+
+    def test_serializer_keeps_non_overlapping_records(self):
+        from api.models import SeaService
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+        user = self._make_user("sas-keepall@example.com")
+
+        payload = self._sea_service_payload([
+            self._r("VESSEL A", "2022-01-01", "2022-06-01"),
+            self._r("VESSEL B", "2022-07-01", "2022-12-01"),
+        ])
+        SeafarerApplicationSerializer().update(user, payload)
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 2)
+
+    def test_serializer_keeps_longest_in_three_way_overlap(self):
+        from api.models import SeaService
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+        user = self._make_user("sas-threeway@example.com")
+
+        payload = self._sea_service_payload([
+            self._r("A", "2023-01-31", "2023-04-16"),  # short
+            self._r("B", "2023-04-08", "2023-09-22"),  # medium
+            self._r("C", "2023-02-11", "2024-02-01"),  # longest
+        ])
+        SeafarerApplicationSerializer().update(user, payload)
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+        kept = SeaService.objects.get(user=user)
+        self.assertIn("C", kept.vessel_name)
+
+    def test_serializer_replaces_old_records_on_each_call(self):
+        """The serializer does delete-all-then-create, so calling it
+        twice with different data should leave only the second call's
+        data (deduped)."""
+        from api.models import SeaService
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+        user = self._make_user("sas-replace@example.com")
+
+        SeafarerApplicationSerializer().update(
+            user,
+            self._sea_service_payload([
+                self._r("OLD VESSEL", "2022-01-01", "2022-06-01"),
+            ]),
+        )
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+        self.assertEqual(SeaService.objects.get(user=user).vessel_name, "OLD VESSEL")
+
+        # Second call with new (overlapping) data
+        SeafarerApplicationSerializer().update(
+            user,
+            self._sea_service_payload([
+                self._r("NEW LONG", "2022-03-01", "2022-12-01"),  # 9 months
+                self._r("NEW SHORT", "2022-04-01", "2022-05-01"),  # 1 month
+            ]),
+        )
+        # Both new records overlap each other; only the longer one survives.
+        # The old record was deleted at the start of the second call.
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+        kept = SeaService.objects.get(user=user)
+        self.assertIn("NEW LONG", kept.vessel_name)
+
