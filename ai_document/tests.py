@@ -384,7 +384,7 @@ class DocumentUploadViewTest(AuthenticatedAPITestCase):
         )
 
         # Mock the save helper to return known ids.
-        mock_save.return_value = (123, 456)
+        mock_save.return_value = (123, 456, [])
 
         pdf_file = SimpleUploadedFile(
             "test_cv.pdf",
@@ -520,7 +520,7 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
         }
         self._mock_extractor_ok(mock_extractor_cls, deterministic_data, confidence=0.95)
 
-        mock_save.return_value = (10, 20)
+        mock_save.return_value = (10, 20, [])
 
         response = self.client.post(
             self.url,
@@ -571,7 +571,7 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
             "3_contact_details": {"e_mail": "john@example.com"},
         }
         mock_convert.return_value = (llm_data, {"groq": [], "gemini": ""})
-        mock_save.return_value = (30, 40)
+        mock_save.return_value = (30, 40, [])
 
         response = self.client.post(
             self.url,
@@ -749,7 +749,7 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
             },
             confidence=0.9,
         )
-        mock_save.return_value = (1, 2)
+        mock_save.return_value = (1, 2, [])
 
         response = self.client.post(
             self.url, {"file": self._pdf()}, format="multipart"
@@ -804,7 +804,7 @@ class DocumentUploadViewPathTest(AuthenticatedAPITestCase):
             },
             {"groq": [], "gemini": ""},
         )
-        mock_save.return_value = (50, 60)
+        mock_save.return_value = (50, 60, [])
 
         response = self.client.post(
             self.url,
@@ -1280,7 +1280,7 @@ class ParseOnlyViewSaveTest(AdminAPITestCase):
         mock_extractor_cls.return_value.extract.return_value = mock_result
 
         # Mock the save function
-        mock_save.return_value = (42, 99)
+        mock_save.return_value = (42, 99, [])
 
         pdf = SimpleUploadedFile("cv.pdf", b"PDF", content_type="application/pdf")
         response = self.client.post(
@@ -1412,7 +1412,7 @@ class SaveParserOutputIntegrationTest(TransactionTestCase):
         }
         uploaded = SimpleUploadedFile("cv.pdf", b"PDF", content_type="application/pdf")
 
-        user_id, cv_submission_id = _save_parser_output(data, uploaded)
+        user_id, cv_submission_id, _dropped = _save_parser_output(data, uploaded)
 
         user = Users.objects.get(id=user_id)
         self.assertEqual(user.email, "mohamed@sakrparser.test")
@@ -1452,8 +1452,8 @@ class SaveParserOutputIntegrationTest(TransactionTestCase):
         }
         uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
 
-        user_id_1, _ = _save_parser_output(data, uploaded)
-        user_id_2, _ = _save_parser_output(data, uploaded)
+        user_id_1, _, _dropped_1 = _save_parser_output(data, uploaded)
+        user_id_2, _, _dropped_2 = _save_parser_output(data, uploaded)
 
         # Same email → same user, not a duplicate
         self.assertEqual(user_id_1, user_id_2)
@@ -1541,7 +1541,7 @@ class SaveParserOutputIntegrationTest(TransactionTestCase):
             },
         }
         uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
-        user_id, _ = _save_parser_output(data, uploaded)
+        user_id, _, _dropped = _save_parser_output(data, uploaded)
 
         user = Users.objects.get(id=user_id)
 
@@ -1629,7 +1629,7 @@ class SaveParserOutputIntegrationTest(TransactionTestCase):
                 "cv.pdf", b"x", content_type="application/pdf"
             )
 
-            user_id, _ = _save_parser_output(
+            user_id, _, _dropped = _save_parser_output(
                 data, uploaded, extracted_photo_path=photo_path
             )
             user = Users.objects.get(id=user_id)
@@ -1669,7 +1669,7 @@ class SaveParserOutputIntegrationTest(TransactionTestCase):
         uploaded = SimpleUploadedFile(
             "cv.pdf", b"x", content_type="application/pdf"
         )
-        user_id, _ = _save_parser_output(
+        user_id, _, _dropped = _save_parser_output(
             data, uploaded, extracted_photo_path="/nonexistent/photo.png"
         )
         user = Users.objects.get(id=user_id)
@@ -1700,7 +1700,7 @@ class SaveParserOutputIntegrationTest(TransactionTestCase):
         uploaded = SimpleUploadedFile(
             "cv.pdf", b"x", content_type="application/pdf"
         )
-        user_id, _ = _save_parser_output(data, uploaded)
+        user_id, _, _dropped = _save_parser_output(data, uploaded)
         user = Users.objects.get(id=user_id)
         self.assertFalse(bool(user.profile_image))
 
@@ -1750,6 +1750,162 @@ class ParserHelpersUnitTest(SimpleTestCase):
         )
         self.assertEqual(_marital_status_to_string("Single"), "Single")
         self.assertEqual(_marital_status_to_string(None), "")
+
+
+class SeaServiceOverlapDedupTest(SimpleTestCase):
+    """
+    Tests for the half-open overlap dedup of sea-service records in
+    ``_dedupe_overlapping_sea_service``.
+
+    Rules under test:
+      * Half-open overlap: sign-on day == previous sign-off day is
+        NOT overlap (seafarers routinely sign off one vessel and sign
+        on another on the same day).
+      * When two records overlap, the LONGER one is kept and the
+        shorter one is dropped. Ties go to the earlier-in-list one.
+      * Records with unparseable dates are kept as-is (we can't
+        reason about their placement in time).
+    """
+
+    def _r(self, vessel, signed_on, signed_off):
+        return {
+            "vessel_name_imo": vessel,
+            "rank": "Fitter",
+            "signed_on": signed_on,
+            "signed_off": signed_off,
+            "period": "",
+            "vessel_type": "Cargo",
+            "flag": "",
+        }
+
+    def test_no_overlap_keeps_all(self):
+        from ai_document.views import _dedupe_overlapping_sea_service
+        records = [
+            self._r("A", "01/01/2022", "01/06/2022"),
+            self._r("B", "01/07/2022", "01/12/2022"),
+            self._r("C", "01/01/2023", "01/06/2023"),
+        ]
+        kept, dropped = _dedupe_overlapping_sea_service(records)
+        self.assertEqual(kept, records)
+        self.assertEqual(dropped, [])
+
+    def test_same_day_touch_is_not_overlap(self):
+        """Sign-off of one vessel on the same day as sign-on of the
+        next is NOT overlap (seafarer convention)."""
+        from ai_document.views import _dedupe_overlapping_sea_service
+        records = [
+            self._r("A", "01/01/2022", "15/03/2022"),
+            self._r("B", "15/03/2022", "01/06/2022"),  # touches A's end
+        ]
+        kept, dropped = _dedupe_overlapping_sea_service(records)
+        self.assertEqual(kept, records)
+        self.assertEqual(dropped, [])
+
+    def test_partial_overlap_drops_shorter(self):
+        """Two records that partially overlap → keep the longer one."""
+        from ai_document.views import _dedupe_overlapping_sea_service
+        a = self._r("A", "01/01/2022", "01/06/2022")  # 5 months
+        b = self._r("B", "01/05/2022", "01/08/2022")  # 3 months, overlaps A
+        kept, dropped = _dedupe_overlapping_sea_service([a, b])
+        self.assertEqual(len(kept), 1)
+        self.assertEqual(len(dropped), 1)
+        # A is longer → kept
+        self.assertEqual(kept[0]["vessel_name_imo"], "A")
+        # B was dropped
+        self.assertEqual(dropped[0]["record"]["vessel_name_imo"], "B")
+        self.assertEqual(dropped[0]["reason"], "overlap_with_longer_record")
+
+    def test_containment_drops_shorter(self):
+        """A record fully contained inside another → drop the contained one."""
+        from ai_document.views import _dedupe_overlapping_sea_service
+        long_record = self._r("LONG", "01/01/2022", "01/12/2022")  # 11 months
+        short_record = self._r("SHORT", "01/04/2022", "01/07/2022")  # 3 months
+        kept, dropped = _dedupe_overlapping_sea_service([long_record, short_record])
+        self.assertEqual(len(kept), 1)
+        self.assertEqual(kept[0]["vessel_name_imo"], "LONG")
+        self.assertEqual(dropped[0]["record"]["vessel_name_imo"], "SHORT")
+
+    def test_three_way_overlap_keeps_longest(self):
+        """Three overlapping records → keep the longest, drop the other two."""
+        from ai_document.views import _dedupe_overlapping_sea_service
+        a = self._r("A", "01/01/2023", "16/04/2023")  # ~3.5 months
+        b = self._r("B", "08/04/2023", "22/09/2023")  # ~5.5 months
+        c = self._r("C", "11/02/2023", "01/02/2024")  # ~12 months, contains A and B
+        kept, dropped = _dedupe_overlapping_sea_service([a, b, c])
+        # C is longest, gets promoted
+        self.assertEqual(len(kept), 1)
+        self.assertEqual(kept[0]["vessel_name_imo"], "C")
+        # A and B are dropped
+        self.assertEqual(len(dropped), 2)
+        dropped_vessels = {d["record"]["vessel_name_imo"] for d in dropped}
+        self.assertEqual(dropped_vessels, {"A", "B"})
+
+    def test_equal_length_keeps_first(self):
+        """When two records overlap with the same length, the
+        earlier-in-list one wins."""
+        from ai_document.views import _dedupe_overlapping_sea_service
+        a = self._r("A", "01/01/2022", "01/04/2022")  # 3 months
+        b = self._r("B", "15/02/2022", "15/05/2022")  # 3 months, overlaps A
+        kept, dropped = _dedupe_overlapping_sea_service([a, b])
+        self.assertEqual(len(kept), 1)
+        self.assertEqual(kept[0]["vessel_name_imo"], "A")
+        self.assertEqual(dropped[0]["record"]["vessel_name_imo"], "B")
+
+    def test_unparseable_dates_are_kept(self):
+        """Records with no/garbage dates are kept as-is and don't
+        participate in overlap detection."""
+        from ai_document.views import _dedupe_overlapping_sea_service
+        good = self._r("GOOD", "01/01/2022", "01/06/2022")
+        bad1 = self._r("BAD1", "", "")  # no dates
+        bad2 = self._r("BAD2", "not a date", "also not a date")
+        kept, dropped = _dedupe_overlapping_sea_service([good, bad1, bad2])
+        # All three should be kept (the two bad ones can't be checked)
+        self.assertEqual(len(kept), 3)
+        self.assertEqual(dropped, [])
+
+    def test_zero_length_record_is_kept(self):
+        """A record with sign-on == sign-off is kept (no length to
+        compare) and doesn't trigger overlap detection."""
+        from ai_document.views import _dedupe_overlapping_sea_service
+        good = self._r("GOOD", "01/01/2022", "01/06/2022")
+        zero = self._r("ZERO", "15/03/2022", "15/03/2022")  # same day
+        kept, dropped = _dedupe_overlapping_sea_service([good, zero])
+        self.assertEqual(len(kept), 2)
+        self.assertEqual(dropped, [])
+
+    def test_empty_list_returns_empty(self):
+        from ai_document.views import _dedupe_overlapping_sea_service
+        kept, dropped = _dedupe_overlapping_sea_service([])
+        self.assertEqual(kept, [])
+        self.assertEqual(dropped, [])
+
+    def test_dropped_records_have_useful_metadata(self):
+        """The dropped_records payload includes enough info for the
+        frontend to show 'we ignored X because it overlaps with Y'."""
+        from ai_document.views import _dedupe_overlapping_sea_service
+        a = self._r("BIG CO", "01/01/2022", "01/12/2022")
+        b = self._r("TINY CO", "01/06/2022", "01/07/2022")
+        kept, dropped = _dedupe_overlapping_sea_service([a, b])
+        self.assertEqual(len(dropped), 1)
+        d = dropped[0]
+        self.assertEqual(d["record"]["vessel_name_imo"], "TINY CO")
+        self.assertEqual(d["kept_record"]["vessel_name_imo"], "BIG CO")
+        self.assertEqual(d["kept_index"], 0)
+        self.assertEqual(d["reason"], "overlap_with_longer_record")
+
+    def test_longer_later_record_promotes_and_drops_existing_short(self):
+        """If a longer record comes AFTER a shorter one in the list
+        and overlaps, the longer one wins and the shorter one is
+        dropped retroactively."""
+        from ai_document.views import _dedupe_overlapping_sea_service
+        a = self._r("A", "01/01/2022", "01/03/2022")  # short, 2 months
+        b = self._r("B", "01/02/2022", "01/12/2022")  # long, 10 months
+        kept, dropped = _dedupe_overlapping_sea_service([a, b])
+        self.assertEqual(len(kept), 1)
+        self.assertEqual(kept[0]["vessel_name_imo"], "B")
+        # A got dropped because B is longer
+        dropped_vessels = {d["record"]["vessel_name_imo"] for d in dropped}
+        self.assertIn("A", dropped_vessels)
 
 
 class LlmRouterOllamaTest(SimpleTestCase):
@@ -2016,7 +2172,7 @@ class DocumentUploadViewOllamaTest(AuthenticatedAPITestCase):
             },
             {},
         )
-        mock_save.return_value = (777, 888)
+        mock_save.return_value = (777, 888, [])
 
         # NOTE: NO deepseek_api_key, NO api_keys_config — pure Ollama flow
         response = self.client.post(
@@ -2426,7 +2582,7 @@ class DocumentUploadViewOcrResponseTest(AdminAPITestCase):
         det_result.data = {"1_personal_details": {"full_name": "OCR USER"}}
         det_result.warnings = []
         mock_extractor_cls.return_value.extract.return_value = det_result
-        mock_save.return_value = (1, 2)
+        mock_save.return_value = (1, 2, [])
 
         response = self.client.post(
             self.url, {"file": self._pdf()}, format="multipart"
@@ -2464,7 +2620,7 @@ class DocumentUploadViewOcrResponseTest(AdminAPITestCase):
         det_result.data = {"1_personal_details": {"full_name": "X"}}
         det_result.warnings = []
         mock_extractor_cls.return_value.extract.return_value = det_result
-        mock_save.return_value = (1, 2)
+        mock_save.return_value = (1, 2, [])
 
         response = self.client.post(
             self.url, {"file": self._pdf()}, format="multipart"

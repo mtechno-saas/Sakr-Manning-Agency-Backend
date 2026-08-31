@@ -3826,7 +3826,7 @@ class DocumentUploadView(APIView):
             # --- 5. Persist (optional) -------------------------------
             if save_to_db:
                 try:
-                    user_id, cv_submission_id = _save_parser_output(
+                    user_id, cv_submission_id, dropped_sea_service = _save_parser_output(
                         result_data,
                         file,
                         extracted_photo_path=proc_result.get("extracted_photo_path"),
@@ -3850,6 +3850,12 @@ class DocumentUploadView(APIView):
                 response_body["saved"] = True
                 response_body["user_id"] = user_id
                 response_body["cv_submission_id"] = cv_submission_id
+                # Surface any sea-service records that were dropped
+                # as overlapping duplicates. Frontend can show a
+                # warning like "X records were ignored because they
+                # overlap with longer records".
+                if dropped_sea_service:
+                    response_body["dropped_sea_service"] = dropped_sea_service
             else:
                 response_body["saved"] = False
 
@@ -4573,7 +4579,7 @@ class ParseOnlyView(APIView):
 
             if save_to_db:
                 try:
-                    user_id, cv_submission_id = _save_parser_output(
+                    user_id, cv_submission_id, dropped_sea_service = _save_parser_output(
                         result.data,
                         file,
                         extracted_photo_path=proc_result.get("extracted_photo_path"),
@@ -4594,6 +4600,12 @@ class ParseOnlyView(APIView):
                 response_body["saved"] = True
                 response_body["user_id"] = user_id
                 response_body["cv_submission_id"] = cv_submission_id
+                # Surface any sea-service records that were dropped
+                # as overlapping duplicates. Frontend can show a
+                # warning like "X records were ignored because they
+                # overlap with longer records".
+                if dropped_sea_service:
+                    response_body["dropped_sea_service"] = dropped_sea_service
             else:
                 response_body["saved"] = False
 
@@ -4708,9 +4720,146 @@ def _marital_status_to_string(ms: dict | str | None) -> str:
     return ""
 
 
-def _save_parser_output(data: dict, uploaded_file, extracted_photo_path: str | None = None) -> tuple[int, int]:
+def _sea_service_record_length_days(record: dict) -> int | None:
+    """Return the length of a sea-service record in whole days, or
+    None if either date is missing/unparseable.
+
+    We treat a record with unparseable dates as "length unknown" so
+    the dedup pass leaves it alone (records without dates can't
+    participate in overlap detection).
+    """
+    start = _parse_date_loose(record.get("signed_on") or "")
+    end = _parse_date_loose(record.get("signed_off") or "")
+    if start is None or end is None:
+        return None
+    delta = (end - start).days
+    # Negative deltas (off before on) are nonsensical — treat as unknown.
+    return delta if delta >= 0 else None
+
+
+def _records_overlap_half_open(a: dict, b: dict) -> bool:
+    """Return True if two sea-service records overlap using the
+    **half-open** rule: ``[start_a, end_a)`` intersects ``[start_b, end_b)``.
+
+    Half-open means sign-on day = previous sign-off day is NOT
+    considered overlap. That's the seafarer convention: a seafarer
+    signs off one vessel and signs on the next on the same day.
+    """
+    start_a = _parse_date_loose(a.get("signed_on") or "")
+    end_a = _parse_date_loose(a.get("signed_off") or "")
+    start_b = _parse_date_loose(b.get("signed_on") or "")
+    end_b = _parse_date_loose(b.get("signed_off") or "")
+    if not all([start_a, end_a, start_b, end_b]):
+        return False
+    return start_a < end_b and start_b < end_a
+
+
+def _dedupe_overlapping_sea_service(records: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Drop sea-service records that overlap with a longer record.
+
+    Rules:
+      * Overlap is detected using the **half-open** interval rule
+        (sign-on day = previous sign-off day is fine, no overlap).
+      * When two records overlap, the **longer** one is kept and the
+        shorter is dropped. If they have the same length, the
+        earlier-in-list (parser order) one is kept.
+      * Records with unparseable dates are kept as-is and excluded
+        from overlap detection (we can't reason about their
+        placement in time).
+
+    Returns:
+        (kept_records, dropped_records)
+
+        ``dropped_records`` is a list of dicts of shape::
+
+            {
+                "index": <original index in the input list>,
+                "record": <the dropped record>,
+                "kept_index": <index of the longer record that won>,
+                "kept_record": <the longer record that won>,
+                "reason": "overlap_with_longer_record",
+            }
+    """
+    kept: list[dict] = []
+    dropped: list[dict] = []
+    for i, record in enumerate(records):
+        length_i = _sea_service_record_length_days(record)
+        # If we can't measure this record's length, just keep it
+        # without checking for overlap (we have no fair way to
+        # decide). Same if length is zero (sign-on == sign-off).
+        if length_i is None or length_i == 0:
+            kept.append(record)
+            continue
+
+        # Find any kept record that overlaps with this one and is
+        # longer-or-equal in length. If we find one, drop the current
+        # record. If we find one that is shorter, drop that one and
+        # keep the current. If multiple kept records overlap, prefer
+        # dropping the shortest (so the current record, presumably
+        # longer, wins).
+        overlap_target_idx = None
+        overlap_target_length = None
+        for j, kept_record in enumerate(kept):
+            if not _records_overlap_half_open(record, kept_record):
+                continue
+            kept_length = _sea_service_record_length_days(kept_record)
+            if kept_length is None:
+                # Can't compare lengths — keep current record by
+                # default (safer not to drop unknown records).
+                continue
+            if (overlap_target_length is None
+                    or kept_length < overlap_target_length):
+                overlap_target_idx = j
+                overlap_target_length = kept_length
+
+        if overlap_target_idx is None:
+            # No overlap with any kept record — keep this one.
+            kept.append(record)
+            continue
+
+        # We have an overlap. Decide who wins.
+        if length_i > overlap_target_length:
+            # Current record is longer — drop the shorter one in
+            # `kept` and add the current.
+            loser = kept.pop(overlap_target_idx)
+            kept.append(record)
+            dropped.append({
+                "index": None,  # filled below
+                "record": loser,
+                "kept_index": len(kept) - 1,  # position after append
+                "kept_record": record,
+                "reason": "overlap_with_longer_record",
+            })
+        else:
+            # Current record is shorter-or-equal — drop current.
+            winner = kept[overlap_target_idx]
+            dropped.append({
+                "index": i,
+                "record": record,
+                "kept_index": overlap_target_idx,
+                "kept_record": winner,
+                "reason": "overlap_with_longer_record",
+            })
+
+    # Fill in the `index` field for records dropped from `kept` —
+    # we don't have a stable original index for those, so use None
+    # and let consumers rely on `record` itself for identification.
+    for d in dropped:
+        if d["index"] is None:
+            d["index"] = None  # already None, but be explicit
+
+    return kept, dropped
+
+
+def _save_parser_output(data: dict, uploaded_file, extracted_photo_path: str | None = None) -> tuple[int, int, list[dict]]:
     """Create or update a Users row + create a CVSubmission from the
-    parser output. Returns ``(user_id, cv_submission_id)``.
+    parser output. Returns ``(user_id, cv_submission_id, dropped_sea_service)``.
+
+    ``dropped_sea_service`` is a list of dicts describing any sea-service
+    records that were filtered out as overlapping duplicates (see
+    ``_dedupe_overlapping_sea_service`` for the shape). Callers
+    surface this list in the response so the frontend can show the
+    user what was filtered out.
 
     If ``extracted_photo_path`` is provided (the best portrait the
     ``DocumentProcessor`` pulled out of the source DOCX/PDF), it gets
@@ -4853,6 +5002,22 @@ def _save_parser_output(data: dict, uploaded_file, extracted_photo_path: str | N
             if "vessel_name_imo" in record and "vessel_name_imo_number" not in record:
                 record["vessel_name_imo_number"] = record.pop("vessel_name_imo")
 
+        # Drop overlapping sea-service records before saving. Two
+        # records that overlap in time are usually a parsing artifact
+        # (the seafarer can't physically be on two vessels at once).
+        # We keep the longer of the two and drop the shorter; if
+        # equal length, the earlier-in-list one wins. The dropped
+        # records are returned to the caller so the response can
+        # surface them to the admin.
+        original_records = sea_service.get("service_records", []) or []
+        if original_records:
+            kept_records, dropped_records = _dedupe_overlapping_sea_service(
+                original_records
+            )
+            sea_service["service_records"] = kept_records
+        else:
+            dropped_records = []
+
         api_payload = {
             "personal_details":        data.get("1_personal_details") or {},
             "contact_details":         data.get("3_contact_details") or {},
@@ -4917,4 +5082,4 @@ def _save_parser_output(data: dict, uploaded_file, extracted_photo_path: str | N
             # seafarer is still on the system; they can re-request.
             logger.exception("_save_parser_output: failed to send initial OTP")
 
-    return user.id, cv_submission.id
+    return user.id, cv_submission.id, dropped_records
