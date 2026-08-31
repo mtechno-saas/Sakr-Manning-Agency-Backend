@@ -3999,16 +3999,22 @@ class DedupeSeaServiceCommandTest(TestCase):
 
     def _make_record(self, user, vessel, signed_on, signed_off):
         from api.models import SeaService
-        return SeaService.objects.create(
-            user=user,
-            company_name="ACME",
-            rank="Master",
-            vessel_name=vessel,
-            vessel_name_imo=vessel,
-            signed_on=signed_on,
-            signed_off=signed_off,
-            period="",
-        )
+        # bulk_create bypasses save() so the post_save dedup signal
+        # doesn't fire and remove the overlapping records before the
+        # test can assert on them. The management command under
+        # test is what should be doing the dedup.
+        return SeaService.objects.bulk_create([
+            SeaService(
+                user=user,
+                company_name="ACME",
+                rank="Master",
+                vessel_name=vessel,
+                vessel_name_imo=vessel,
+                signed_on=signed_on,
+                signed_off=signed_off,
+                period="",
+            )
+        ])[0]
 
     def test_dry_run_does_not_delete_anything(self):
         from django.core.management import call_command
@@ -4512,4 +4518,122 @@ class SeafarerApplicationSerializerSeaServiceDedupTests(APITestCase):
         self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
         kept = SeaService.objects.get(user=user)
         self.assertIn("NEW LONG", kept.vessel_name)
+
+
+
+class SeaServicePostSaveSignalDedupTests(APITestCase):
+    """
+    The ``SeaService.post_save`` signal in api.signals is the
+    LAST line of defense: any code path that creates or updates
+    a SeaService row (direct ORM, shell, admin, future endpoints)
+    gets the overlap dedup for free.
+
+    These tests exercise the signal directly via the ORM, not
+    through any viewset, to prove the safety net holds.
+    """
+
+    def _make_user(self, email):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="Sig", middle_name="Test", role="Employee",
+        )
+
+    def _make_record(self, user, vessel, signed_on, signed_off):
+        """Use ``objects.create()`` so the post_save dedup signal
+        actually fires — that's the whole point of these tests."""
+        from api.models import SeaService
+        return SeaService.objects.create(
+            user=user,
+            company_name="ACME",
+            rank="Master",
+            vessel_name=vessel,
+            vessel_name_imo=vessel,
+            signed_on=signed_on,
+            signed_off=signed_off,
+            period="",
+        )
+
+    def test_direct_orm_create_of_overlapping_record_drops_existing(self):
+        """Even a raw `SeaService.objects.create()` call triggers the
+        dedup via the post_save signal — no need to go through a
+        viewset or serializer."""
+        from api.models import SeaService
+        user = self._make_user("signal-orm-create@example.com")
+
+        # Pre-existing long record
+        self._make_record(user, "BIG", "2023-02-11", "2024-02-01")
+
+        # Direct ORM create of a shorter overlapping record.
+        # The post_save signal should drop the longer one is
+        # wrong — it should drop the SHORTER one (the one we just
+        # created), keeping the long existing one.
+        self._make_record(user, "TINY", "2023-01-31", "2023-04-16")
+
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+        kept = SeaService.objects.get(user=user)
+        self.assertIn("BIG", kept.vessel_name)
+
+    def test_signal_does_not_run_for_unrelated_users(self):
+        from api.models import SeaService
+        user_a = self._make_user("signal-iso-a@example.com")
+        user_b = self._make_user("signal-iso-b@example.com")
+
+        self._make_record(user_a, "A", "2023-02-11", "2024-02-01")
+        # Different user, overlapping dates — should NOT be deduped
+        # (the signal is per-user, not global)
+        self._make_record(user_b, "B", "2023-02-11", "2024-02-01")
+
+        self.assertEqual(SeaService.objects.filter(user=user_a).count(), 1)
+        self.assertEqual(SeaService.objects.filter(user=user_b).count(), 1)
+
+    def test_signal_handles_three_way_overlap(self):
+        from api.models import SeaService
+        user = self._make_user("signal-threeway@example.com")
+
+        self._make_record(user, "A", "2023-01-31", "2023-04-16")  # short
+        self._make_record(user, "B", "2023-04-08", "2023-09-22")  # medium
+        self._make_record(user, "C", "2023-02-11", "2024-02-01")  # longest
+
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+        kept = SeaService.objects.get(user=user)
+        self.assertIn("C", kept.vessel_name)
+
+    def test_signal_keeps_non_overlapping_records(self):
+        from api.models import SeaService
+        user = self._make_user("signal-keepall@example.com")
+
+        self._make_record(user, "A", "2022-01-01", "2022-06-01")
+        self._make_record(user, "B", "2022-07-01", "2022-12-01")
+
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 2)
+
+    def test_signal_also_runs_on_update(self):
+        """Saving an EXISTING record (not just creating) also
+        triggers the dedup — so changing a date into an overlapping
+        range gets caught by the signal too."""
+        from api.models import SeaService
+        user = self._make_user("signal-update@example.com")
+
+        a = self._make_record(user, "A", "2022-01-01", "2022-06-01")
+        b = self._make_record(user, "B", "2022-07-01", "2023-06-01")
+
+        # Extend A so it overlaps B and becomes the longer one
+        a.signed_off = "2023-12-01"
+        a.save()
+
+        # B should have been dropped
+        self.assertFalse(SeaService.objects.filter(id=b.id).exists())
+        # A should still exist
+        self.assertTrue(SeaService.objects.filter(id=a.id).exists())
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
+
+    def test_signal_no_op_when_no_overlap(self):
+        from api.models import SeaService
+        user = self._make_user("signal-noop@example.com")
+
+        a = self._make_record(user, "A", "2022-01-01", "2022-06-01")
+        # Save with no change — should not delete anything
+        a.save()
+        self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
 
