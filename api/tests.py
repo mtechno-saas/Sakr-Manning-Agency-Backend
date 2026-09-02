@@ -4637,3 +4637,190 @@ class SeaServicePostSaveSignalDedupTests(APITestCase):
         a.save()
         self.assertEqual(SeaService.objects.filter(user=user).count(), 1)
 
+
+
+# ============================================================================
+# Regression: PATCH on a CVSubmission (e.g. Principal Placement) must not
+# wipe the linked user's middle_name when the form sends an empty
+# user_middle_name (which it does, because the dropdown only shows
+# first_name and the form just echoes that back).
+# ============================================================================
+
+
+class CVSubmissionUserNamePreservationTests(APITestCase):
+    """
+    Reproduces the bug:
+        Seafarer "Mohamed Atta" (first_name="Mohamed", middle_name="Atta")
+        is placed on a company via the Principal Placement modal.
+        The modal sends PATCH /api/cv-submissions/<id>/ with
+            user_first_name="Mohamed"
+            user_middle_name=""
+        because that's all the form has from the dropdown. The old
+        CVSubmissionSerializer.update() saw `user_middle_name is not
+        None` (empty string IS not None) and did
+        `user.middle_name = ""`, wiping "Atta". The list then showed
+        "Mohamed" instead of "Mohamed Atta".
+    """
+
+    def setUp(self):
+        from api.models import Users
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        self.admin = Users.objects.create_user(
+            email="admin-namefix@sakrshipping.com",
+            password="adminpass",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        # The seafarer we are about to "lose the middle name of".
+        self.seafarer = Users.objects.create_user(
+            email="mohamedatta41235@gmail.com",
+            password="seafarerpass",
+            first_name="Mohamed",
+            middle_name="Atta",
+        )
+        self.seafarer.role = "Employee"
+        self.seafarer.save()
+
+        # And an existing CV submission the admin will PATCH.
+        from api.models import CVSubmission
+        self.cv = CVSubmission.objects.create(
+            user=self.seafarer,
+            status="Pending",
+        )
+        self.detail_url = f"/api/cv-submissions/{self.cv.id}/"
+
+    def test_patch_with_empty_user_middle_name_is_rejected_at_validation(self):
+        """DRF rejects empty string at the serializer (required+blank=False),
+        so the form cannot silently clear a real middle_name by sending ''.
+        This is the first line of defence. The second line (truthy check in
+        update()) is a belt-and-braces guard for any future code path that
+        bypasses DRF field validation.
+        """
+        r = self.client.patch(
+            self.detail_url,
+            {
+                "user_first_name": "Mohamed",
+                "user_middle_name": "",
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+        self.assertIn("user_middle_name", r.data)
+
+        # The real name is untouched.
+        self.seafarer.refresh_from_db()
+        self.assertEqual(self.seafarer.middle_name, "Atta")
+        self.assertEqual(self.seafarer.first_name, "Mohamed")
+
+    def test_patch_with_explicit_middle_name_still_updates(self):
+        """Sanity: the legitimate update path still works."""
+        r = self.client.patch(
+            self.detail_url,
+            {
+                "user_first_name": "Mohamed",
+                "user_middle_name": "Hassan",
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+
+        self.seafarer.refresh_from_db()
+        self.assertEqual(self.seafarer.middle_name, "Hassan")
+        self.assertEqual(self.seafarer.first_name, "Mohamed")
+
+    def test_patch_with_omitted_user_fields_preserves_everything(self):
+        """PATCH that doesn't touch user_* fields must be a no-op for the user."""
+        # Touch a CV-only field.
+        r = self.client.patch(
+            self.detail_url,
+            {"status": "Under Review"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+
+        self.seafarer.refresh_from_db()
+        self.assertEqual(self.seafarer.first_name, "Mohamed")
+        self.assertEqual(self.seafarer.middle_name, "Atta")
+
+
+# ============================================================================
+# Regression: SeafarerApplicationSerializer.update must not wipe an
+# existing middle_name when the caller only supplies a one-word
+# full_name (e.g. the form echoed the dropdown's first_name back).
+# ============================================================================
+
+
+class SeafarerApplicationFullNamePreservationTests(TestCase):
+    """
+    Direct serializer tests (no API roundtrip) for the name-splitting
+    logic in SeafarerApplicationSerializer.update().
+    """
+
+    def setUp(self):
+        from api.models import Users
+        self.user = Users.objects.create_user(
+            email="name-preservation@example.com",
+            password="x",
+            first_name="Mohamed",
+            middle_name="Atta",
+        )
+
+    def _update_personal(self, full_name):
+        from api.seafarer_application_serializers import (
+            SeafarerApplicationSerializer,
+        )
+        serializer = SeafarerApplicationSerializer(
+            instance=self.user,
+            data={"personal_details": {"full_name": full_name}},
+            partial=True,
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        return serializer.save()
+
+    def test_full_name_with_two_words_sets_both(self):
+        """The happy path: 'Mohamed Atta' → first_name='Mohamed', middle_name='Atta'."""
+        self._update_personal("Mohamed Atta")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Mohamed")
+        self.assertEqual(self.user.middle_name, "Atta")
+
+    def test_full_name_with_three_words_keeps_rest_as_middle_name(self):
+        """'Mohamed Atta Hassan' → first='Mohamed', middle='Atta Hassan'."""
+        self._update_personal("Mohamed Atta Hassan")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Mohamed")
+        self.assertEqual(self.user.middle_name, "Atta Hassan")
+
+    def test_one_word_full_name_preserves_existing_middle(self):
+        """The exact bug: 'Mohamed' (no space) must NOT clear the existing
+        middle_name. The user was 'Mohamed Atta' and stays 'Mohamed Atta'."""
+        self.assertEqual(self.user.middle_name, "Atta")
+        self._update_personal("Mohamed")
+        self.user.refresh_from_db()
+        self.assertEqual(
+            self.user.first_name, "Mohamed",
+            "first_name should follow the new full_name"
+        )
+        self.assertEqual(
+            self.user.middle_name, "Atta",
+            "Existing middle_name must NOT be cleared when the new "
+            "full_name is one word (regression: the old "
+            "`parts[1] if len(parts) > 1 else ''` wiped it)."
+        )
+
+    def test_one_word_full_name_does_not_change_existing_first(self):
+        """Sanity: the existing first_name is still updated to the new value
+        even when the new full_name is one word."""
+        self._update_personal("Ahmed")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Ahmed")
+        # middle_name still preserved
+        self.assertEqual(self.user.middle_name, "Atta")

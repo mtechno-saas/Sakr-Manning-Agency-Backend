@@ -771,19 +771,34 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         goc_update = validated_data.pop('goc_update', None)
         licenses_update = validated_data.pop('licenses_update', None)
 
-        # Propagate changes to the User model
+        # Propagate changes to the User model.
+        #
+        # NOTE: for the string fields (user_first_name, user_middle_name,
+        # user_email) we use a truthy check, NOT `is not None`. These
+        # write-only CharField/EmailField are `required=False`, so when
+        # the placement form (which only knows the user's first_name from
+        # the dropdown) sends `user_middle_name=""`, DRF puts "" (not
+        # None) into validated_data. An `is not None` check would treat
+        # that as "user provided a value" and overwrite the real
+        # middle_name with "" — that's the bug that was stripping a
+        # seafarer's full name to just the first name after every
+        # Principal Placement save.
+        #
+        # Numeric/date fields keep `is not None` (0 / a real date
+        # would be falsy and we don't want to drop them).
         user = instance.user
-        if user_first_name is not None:
+        if user_first_name:
             user.first_name = user_first_name
-        if user_middle_name is not None:
+        if user_middle_name:
             user.middle_name = user_middle_name
-        if user_email is not None:
+        if user_email:
             user.email = user_email
         if salary is not None:
             user.salary = salary
         if available_date is not None:
             user.available_date = available_date
-        if any(v is not None for v in [user_first_name, user_middle_name, user_email, salary, available_date]):
+        if (user_first_name or user_middle_name or user_email
+                or salary is not None or available_date is not None):
             user.save()
 
         # Propagate company name to the Company model

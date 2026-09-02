@@ -91,7 +91,15 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
             if full_name:
                 parts = full_name.split(' ', 1)
                 instance.first_name = parts[0]
-                instance.middle_name = parts[1] if len(parts) > 1 else ''
+                # Only overwrite middle_name if the new full_name actually
+                # carries a second word. If the caller only knows the
+                # first_name (e.g. the placement form is echoing the
+                # dropdown's first_name back as full_name, or any other
+                # flow that hands us a one-word name), preserve the
+                # user's existing middle_name. Otherwise the seafarer
+                # loses their full name after every save.
+                if len(parts) > 1:
+                    instance.middle_name = parts[1]
             
             instance.date_of_birth = self._parse_date(personal.get('date_of_birth'))
             status = personal.get('marital_status', {})
