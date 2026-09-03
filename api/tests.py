@@ -4824,3 +4824,119 @@ class SeafarerApplicationFullNamePreservationTests(TestCase):
         self.assertEqual(self.user.first_name, "Ahmed")
         # middle_name still preserved
         self.assertEqual(self.user.middle_name, "Atta")
+
+
+# ============================================================================
+# Ship ?company= filter — accept both id and name
+# ============================================================================
+
+
+class ShipCompanyFilterTests(APITestCase):
+    """
+    /api/ships/?company=<id_or_name> must accept both:
+      - numeric id   → ?company=12
+      - company name → ?company=Octavice+Over+Seas
+    Previously only id worked; names were silently dropped and the
+    response was an empty list.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        from companies.models import Company
+
+        self.admin = Users.objects.create_user(
+            email="admin-shipfilter@sakrshipping.com",
+            password="adminpass",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        # Two companies with distinctly named ships.
+        self.co_a = Company.objects.create(
+            company_name="Octavice Over Seas",
+        )
+        self.co_b = Company.objects.create(
+            company_name="Maritime Giants Ltd",
+        )
+
+        from ships.models import Ship
+        self.ship_a1 = Ship.objects.create(
+            ship_name="Octavice Voyager",
+            company=self.co_a,
+        )
+        self.ship_a2 = Ship.objects.create(
+            ship_name="Octavice Pioneer",
+            company=self.co_a,
+        )
+        self.ship_b1 = Ship.objects.create(
+            ship_name="Giants Mariner",
+            company=self.co_b,
+        )
+
+        self.url = "/api/ships/"
+
+    def test_filter_by_numeric_id_still_works(self):
+        """Regression check: ?company=<id> (the previously-working path)."""
+        r = self.client.get(f"{self.url}?company={self.co_a.id}")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        ids = {row["id"] for row in r.data["results"] if isinstance(r.data, dict) and "results" in r.data}               if isinstance(r.data, dict) else {row["id"] for row in r.data}
+        self.assertIn(self.ship_a1.id, ids)
+        self.assertIn(self.ship_a2.id, ids)
+        self.assertNotIn(self.ship_b1.id, ids)
+
+    def test_filter_by_full_company_name(self):
+        """The exact case the user reported:
+        ?company=Octavice+Over+Seas  (+ is a URL-encoded space)."""
+        from urllib.parse import quote
+        r = self.client.get(f"{self.url}?company={quote(self.co_a.company_name)}")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        rows = r.data["results"] if isinstance(r.data, dict) and "results" in r.data else r.data
+        ids = {row["id"] for row in rows}
+        self.assertIn(self.ship_a1.id, ids)
+        self.assertIn(self.ship_a2.id, ids)
+        self.assertNotIn(self.ship_b1.id, ids)
+
+    def test_filter_by_partial_company_name_substring(self):
+        """icontains semantics: a substring should also match."""
+        r = self.client.get(f"{self.url}?company=Octavice")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        rows = r.data["results"] if isinstance(r.data, dict) and "results" in r.data else r.data
+        ids = {row["id"] for row in rows}
+        self.assertIn(self.ship_a1.id, ids)
+        self.assertIn(self.ship_a2.id, ids)
+        self.assertNotIn(self.ship_b1.id, ids)
+
+    def test_filter_by_unknown_name_returns_empty(self):
+        """Unknown name → empty list (NOT 400, NOT all rows)."""
+        r = self.client.get(f"{self.url}?company=NoSuchCompany")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        rows = r.data["results"] if isinstance(r.data, dict) and "results" in r.data else r.data
+        self.assertEqual(len(rows), 0)
+
+    def test_filter_with_no_param_returns_all(self):
+        """Sanity: no company param → all ships."""
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        rows = r.data["results"] if isinstance(r.data, dict) and "results" in r.data else r.data
+        self.assertGreaterEqual(len(rows), 3)
+
+    def test_filter_by_multiple_companies_mixed_id_and_name(self):
+        """?company=12&company=Octavice — both numeric and string values
+        should resolve to the matching ships."""
+        from urllib.parse import quote
+        r = self.client.get(
+            f"{self.url}?company={self.co_b.id}&company={quote(self.co_a.company_name)}"
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        rows = r.data["results"] if isinstance(r.data, dict) and "results" in r.data else r.data
+        ids = {row["id"] for row in rows}
+        self.assertIn(self.ship_a1.id, ids)
+        self.assertIn(self.ship_a2.id, ids)
+        self.assertIn(self.ship_b1.id, ids)

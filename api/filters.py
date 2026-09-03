@@ -510,7 +510,12 @@ class ShipFilter(django_filters.FilterSet):
 
     def filter_company(self, queryset, name, value):
         """
-        Handle ?company=2&company=10 (multi-select) and ?company=2 (single).
+        Handle ?company=2&company=10 (multi-select) and ?company=2 (single),
+        as well as ?company=Octavice+Over+Seas (name match).
+
+        Each value is classified:
+          - numeric  → filter by Company.id
+          - non-empty string → filter by Company.company_name (icontains)
 
         IMPORTANT: `name` in django-filter method callbacks is the FIELD
         name, which in older versions can resolve to the DB lookup
@@ -524,10 +529,36 @@ class ShipFilter(django_filters.FilterSet):
         if not all_values:
             return queryset
 
-        ids = [int(v) for v in all_values if str(v).strip().isdigit()]
-        if not ids:
-            return queryset.none()
-        return queryset.filter(company__id__in=ids)
+        numeric_ids = []
+        name_terms = []
+        for v in all_values:
+            s = str(v).strip()
+            if not s:
+                continue
+            if s.isdigit():
+                numeric_ids.append(int(s))
+            else:
+                name_terms.append(s)
+
+        # If the caller passed only numbers, use the fast id__in path.
+        if numeric_ids and not name_terms:
+            return queryset.filter(company__id__in=numeric_ids)
+
+        # If the caller passed only names, OR a mix, fall back to a
+        # name icontains match. Numbers in a mixed request are converted
+        # to their string form so "12" still finds a company with
+        # company_name containing "12" (unusual but harmless).
+        if name_terms:
+            from django.db.models import Q
+            q = Q()
+            for term in name_terms:
+                q |= Q(company__company_name__icontains=term)
+            if numeric_ids:
+                q |= Q(company__id__in=numeric_ids)
+            return queryset.filter(q)
+
+        # Edge case: every value was a non-numeric empty string.
+        return queryset.none()
 
 
 class ContractFilter(django_filters.FilterSet):
