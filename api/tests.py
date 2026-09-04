@@ -5062,3 +5062,170 @@ class UserRoleFilterCommaSeparatedTests(APITestCase):
         ids = self._ids(r)
         # Should include the Employee too (no role filter active)
         self.assertIn(self.u_emp.id, ids)
+
+
+# ============================================================================
+# Broken sea-service records (signed_off < signed_on) are silently
+# ignored on PATCH / POST — no error, no save.
+# ============================================================================
+
+
+class SeaServiceBrokenRecordSkipTests(APITestCase):
+    """
+    Per project policy (2026-09-04): when a record has
+    signed_off < signed_on, the backend silently skips the save.
+    No 400, no error. The broken record is left alone.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        self.admin = Users.objects.create_user(
+            email="admin-broken-sea@sakrshipping.com",
+            password="adminpass",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        from api.models import SeaService
+        self.seafarer = Users.objects.create_user(
+            email="seafarer-broken-sea@sakrshipping.com",
+            password="x", first_name="Sea", role="Employee",
+        )
+        # A pre-existing BROKEN record (signed_off BEFORE signed_on).
+        # This represents historical / imported data we cannot trust.
+        self.broken = SeaService.objects.create(
+            user=self.seafarer,
+            company_name="Old Broken Co",
+            rank="Chief Officer",
+            vessel_name="MV Broken",
+            signed_on="2024-06-01",
+            signed_off="2024-01-01",  # BEFORE signed_on — broken!
+        )
+
+        # A pre-existing HEALTHY record (normal order).
+        self.healthy = SeaService.objects.create(
+            user=self.seafarer,
+            company_name="Healthy Co",
+            rank="Chief Officer",
+            vessel_name="MV Healthy",
+            signed_on="2023-01-01",
+            signed_off="2023-06-01",
+        )
+
+        self.url = "/api/sea-services/"
+
+    def test_patch_on_broken_record_is_silently_ignored(self):
+        """PATCH a broken record: 200, but the record is unchanged.
+        The user's request to 'ignore this only record and do not
+        save it' is honoured."""
+        # Refresh first so the in-memory values are date objects
+        # (objects.create() leaves the raw string on the instance
+        # until we read it back from the DB).
+        self.broken.refresh_from_db()
+        original_signed_on = self.broken.signed_on
+        original_signed_off = self.broken.signed_off
+        original_company = self.broken.company_name
+
+        r = self.client.patch(
+            f"{self.url}{self.broken.id}/?user={self.seafarer.id}",
+            {
+                "company_name": "New Company Name That Should NOT Be Saved",
+                "rank": "Master",
+            },
+            format="json",
+        )
+        # 200 (not 400) — we silently accept the PATCH but skip the save
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+
+        self.broken.refresh_from_db()
+        self.assertEqual(
+            self.broken.company_name, original_company,
+            "Broken record must NOT be updated on PATCH"
+        )
+        self.assertEqual(
+            self.broken.rank, "Chief Officer",
+            "Broken record's rank must NOT be changed on PATCH"
+        )
+        self.assertEqual(self.broken.signed_on, original_signed_on)
+        self.assertEqual(self.broken.signed_off, original_signed_off)
+
+    def test_patch_on_broken_record_does_not_crash_even_with_no_payload(self):
+        """Even a no-op PATCH on a broken record returns 200 and does nothing."""
+        r = self.client.patch(
+            f"{self.url}{self.broken.id}/?user={self.seafarer.id}",
+            {},
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.broken.refresh_from_db()
+        self.assertEqual(self.broken.signed_on, datetime.date(2024, 6, 1))
+        self.assertEqual(self.broken.signed_off, datetime.date(2024, 1, 1))
+
+    def test_patch_on_healthy_record_still_validates(self):
+        """Regression: PATCH on a HEALTHY record still raises the
+        off-before-on validation error if the user tries to break it."""
+        r = self.client.patch(
+            f"{self.url}{self.healthy.id}/?user={self.seafarer.id}",
+            {
+                "signed_off": "2022-01-01",  # before the existing signed_on 2023-01-01
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+        self.assertIn("signed_off", r.data)
+
+    def test_patch_on_healthy_record_with_valid_dates_still_saves(self):
+        """Regression: normal edits on healthy records still work."""
+        r = self.client.patch(
+            f"{self.url}{self.healthy.id}/?user={self.seafarer.id}",
+            {
+                "company_name": "Updated Co",
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.healthy.refresh_from_db()
+        self.assertEqual(self.healthy.company_name, "Updated Co")
+
+    def test_post_with_broken_dates_still_raises(self):
+        """The 'skip on broken' policy applies to PATCH on EXISTING
+        broken records. A fresh POST with broken dates should still
+        raise 400 — we don't want to silently create new broken rows."""
+        r = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "company_name": "Should Not Be Created",
+                "rank": "Master",
+                "vessel_name": "MV Ghost",
+                "signed_on": "2024-12-01",
+                "signed_off": "2024-01-01",  # BEFORE signed_on — broken!
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data)
+        self.assertIn("signed_off", r.data)
+
+    def test_post_with_valid_dates_still_creates(self):
+        """Regression: normal POSTs still work."""
+        r = self.client.post(
+            self.url,
+            {
+                "user": self.seafarer.id,
+                "company_name": "New Co",
+                "rank": "Master",
+                "vessel_name": "MV New",
+                "signed_on": "2025-01-01",
+                "signed_off": "2025-06-01",
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)

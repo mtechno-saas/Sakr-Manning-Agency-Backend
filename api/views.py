@@ -2343,6 +2343,15 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
         return ids_to_delete
 
     def perform_create(self, serializer):
+        # Per project policy (2026-09-04): if the new record would be
+        # broken (signed_off < signed_on), silently skip the save.
+        # The historical / imported data is too messy to trust, so we
+        # just don't create the broken row. No 400, no row.
+        signed_on = serializer.validated_data.get('signed_on')
+        signed_off = serializer.validated_data.get('signed_off')
+        if signed_on and signed_off and signed_off < signed_on:
+            return
+
         user_id = self.request.data.get('user') or self.request.query_params.get('user')
         if user_id:
             saved = serializer.save(user_id=user_id)
@@ -2357,6 +2366,15 @@ class SeaServiceViewSet(viewsets.ModelViewSet):
         self._dedupe_after_write(saved)
 
     def perform_update(self, serializer):
+        # Per project policy (2026-09-04): if the EXISTING record is
+        # broken (signed_off < signed_on), silently skip the save.
+        # The historical / imported data is too messy to trust, so we
+        # don't try to "fix" it via an edit either. No 400, no update.
+        instance = serializer.instance
+        if (instance and instance.signed_on and instance.signed_off
+                and instance.signed_off < instance.signed_on):
+            return
+
         saved = serializer.save()
         # An update can change signed_on/signed_off and turn a
         # previously non-overlapping row into an overlapping one.

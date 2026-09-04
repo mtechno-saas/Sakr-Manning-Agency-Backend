@@ -101,7 +101,21 @@ class SeaServiceSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"signed_on": ["Sign-on date cannot be in the future."]})
 
         if signed_on and signed_off and signed_off < signed_on:
-            raise serializers.ValidationError({"signed_off": ["Signed off date cannot be before signed on date."]})
+            # Per project policy (2026-09-04): if a record is ALREADY
+            # broken (signed_off < signed_on in the existing data —
+            # typically historical / imported records), do NOT raise.
+            # The viewset will silently skip the save on broken
+            # records instead. We only raise when this is a fresh
+            # attempt to write a broken record (no existing broken
+            # instance behind it).
+            instance_already_broken = bool(
+                self.instance
+                and self.instance.signed_on
+                and self.instance.signed_off
+                and self.instance.signed_off < self.instance.signed_on
+            )
+            if not instance_already_broken:
+                raise serializers.ValidationError({"signed_off": ["Signed off date cannot be before signed on date."]})
 
         # NOTE: overlap detection used to live here, but it made
         # legitimate "I edited a date" updates impossible to save
