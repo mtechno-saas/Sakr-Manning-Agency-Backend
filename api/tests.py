@@ -5717,3 +5717,135 @@ class UserLastNameFoldingTests(APITestCase):
         r = self.client.get(f"/api/users/users/{self.user.id}/")
         self.assertEqual(r.status_code, http_status.HTTP_200_OK)
         self.assertNotIn("last_name", r.data)
+
+
+# ============================================================================
+# Auto-flip JobOrder.status between "Open" and "Full Filled"
+# ============================================================================
+
+
+class JobOrderAutoFullFilledStatusTests(APITestCase):
+    """
+    When a contract is created against the last open slot of a
+    JobOrderPosition, the parent JobOrder.status should auto-flip
+    from "Open" to "Full Filled". When that contract is later
+    deleted, the status should flip back to "Open" (provided some
+    other position is now under-filled).
+    """
+
+    def setUp(self):
+        from api.models import Users, Rank
+        from companies.models import Company, JobOrder, JobOrderPosition
+        from rest_framework_simplejwt.tokens import RefreshToken
+        from datetime import date
+
+        self.admin = Users.objects.create_user(
+            email="admin-jobstatus@sakrshipping.com",
+            password="adminpass",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        # Two companies so the two JobOrders don't share state
+        self.company_a = Company.objects.create(company_name="Costa Crociere")
+        self.company_b = Company.objects.create(company_name="Anglo-Eastern")
+
+        # One JobOrder with one JobOrderPosition (rank=Waiter, qty=1)
+        self.rank = Rank.objects.create(code="WAITER", name="Waiter")
+        self.job_order = JobOrder.objects.create(
+            company=self.company_a,
+            reference_number="JO-TEST-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+            status="Open",
+        )
+        self.job_position = JobOrderPosition.objects.create(
+            job_order=self.job_order,
+            rank=self.rank,
+            quantity=1,
+        )
+
+        # A seafarer to assign
+        self.seafarer = Users.objects.create_user(
+            email="seafarer-jobstatus@sakrshipping.com",
+            password="x",
+            first_name="MUSTAFA",
+            middle_name="MOHAMMED ALAA",
+        )
+        self.seafarer.role = "Employee"
+        self.seafarer.save()
+
+    def _create_contract(self):
+        from datetime import date
+        return self.client.post(
+            "/api/contracts/",
+            {
+                "user": self.seafarer.id,
+                "company": self.company_a.id,
+                "job_position": self.job_position.id,
+                "rank": self.rank.id,
+                "sign_on_date": "2026-09-05",
+                "status": "Active",
+            },
+            format="json",
+        )
+
+    def test_status_flips_to_full_filled_on_last_slot_contract(self):
+        """Create a contract against the last open slot → status
+        becomes "Full Filled"."""
+        self.assertEqual(self.job_order.status, "Open")
+        r = self._create_contract()
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.job_order.refresh_from_db()
+        self.assertEqual(
+            self.job_order.status, "Full Filled",
+            "Creating a contract against the last open slot must "
+            "auto-flip JobOrder.status from Open to Full Filled"
+        )
+
+    def test_status_stays_open_if_position_quantity_above_one(self):
+        """If the position needs more than 1, status should NOT
+        flip to Full Filled after a single contract."""
+        self.job_position.quantity = 3
+        self.job_position.save()
+        self._create_contract()
+        self.job_order.refresh_from_db()
+        self.assertEqual(
+            self.job_order.status, "Open",
+            "With qty=3, one contract shouldn't fill the order"
+        )
+
+    def test_status_flips_back_to_open_on_contract_delete(self):
+        """Delete the contract → status flips back to "Open"."""
+        r = self._create_contract()
+        contract_id = r.data["id"]
+        self.job_order.refresh_from_db()
+        self.assertEqual(self.job_order.status, "Full Filled")
+
+        d = self.client.delete(f"/api/contracts/{contract_id}/")
+        self.assertEqual(d.status_code, http_status.HTTP_204_NO_CONTENT)
+        self.job_order.refresh_from_db()
+        self.assertEqual(
+            self.job_order.status, "Open",
+            "Deleting the only filled contract must flip the "
+            "JobOrder status back to Open"
+        )
+
+    def test_idempotent_no_op_when_already_full_filled(self):
+        """If the status is already "Full Filled" (e.g. set
+        manually), a new contract should not crash — it just
+        keeps the status."""
+        self.job_order.status = "Full Filled"
+        self.job_order.save()
+        r = self._create_contract()
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED)
+        self.job_order.refresh_from_db()
+        self.assertEqual(self.job_order.status, "Full Filled")

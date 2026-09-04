@@ -1734,6 +1734,16 @@ class ContractSerializer(serializers.ModelSerializer):
         if contract.ship and contract.user:
             contract.ship.crew.add(contract.user)
 
+        # Auto-flip the parent JobOrder status to "Full Filled" when
+        # every position under it is fully filled. Without this, the
+        # list view shows remaining=0 but status="Open", which the
+        # user can't reconcile.
+        if contract.job_position and contract.job_position.job_order:
+            jo = contract.job_position.job_order
+            if jo.is_fully_filled() and jo.status != 'Full Filled':
+                jo.status = 'Full Filled'
+                jo.save(update_fields=['status'])
+
         # Apply Seafarer Application updates to the linked user
         if seafarer_data and contract.user:
             from .seafarer_application_serializers import SeafarerApplicationSerializer

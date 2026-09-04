@@ -1532,6 +1532,18 @@ class ContractViewSet(viewsets.ModelViewSet):
             
         super().perform_destroy(instance)
 
+        # Auto-flip the parent JobOrder status back to "Open" when
+        # removing a contract makes it no longer fully filled.
+        # (The opposite direction — "Open" → "Full Filled" — is
+        # handled in ContractSerializer.create.) This runs AFTER
+        # super().perform_destroy so the contract is already gone
+        # when is_fully_filled() is evaluated.
+        if instance.job_position and instance.job_position.job_order:
+            jo = instance.job_position.job_order
+            if not jo.is_fully_filled() and jo.status == 'Full Filled':
+                jo.status = 'Open'
+                jo.save(update_fields=['status'])
+
     @action(
         detail=True,
         methods=['get', 'post'],
