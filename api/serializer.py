@@ -1612,23 +1612,39 @@ class ContractSerializer(serializers.ModelSerializer):
                         })
 
                 if not cv_sub.position:
-                    raise ValidationError({'error': 'This CV Submission has no assigned position/rank. Cannot generate a contract.'})
+                    # Fallback: if the CV submission has no position/rank
+                    # but the caller supplied a job_position (either in
+                    # the payload or on the CV itself), use the rank
+                    # from that job_position. The frontend Contract
+                    # Setup form always picks a JobOrderPosition, so
+                    # this lets the form work without first having to
+                    # PATCH the CV to set its position field.
+                    fallback_jp = (
+                        validated_data.get('job_position')
+                        or cv_sub.job_position
+                    )
+                    if fallback_jp and getattr(fallback_jp, 'rank', None):
+                        validated_data['rank'] = fallback_jp.rank
+                    else:
+                        raise ValidationError({'error': 'This CV Submission has no assigned position/rank. Cannot generate a contract.'})
+                else:
+                    validated_data['rank'] = cv_sub.position
+
                 if not cv_sub.company:
                     raise ValidationError({'error': 'This CV Submission has no linked company. Cannot generate a contract.'})
-                
+
                 validated_data['user'] = cv_sub.user
                 validated_data['company'] = cv_sub.company
-                validated_data['rank'] = cv_sub.position
-                
+
                 if cv_sub.job_position:
                     validated_data['job_position'] = cv_sub.job_position
-                    
+
                 # Auto-fill salary from CV submission expected salary (user.salary) or fallback to job_position.salary_max
                 if 'salary' not in validated_data or validated_data['salary'] is None:
                     user_sal = None
                     if cv_sub.user and cv_sub.user.salary:
                         user_sal = self.parse_salary_value(cv_sub.user.salary)
-                    
+
                     if user_sal is not None:
                         validated_data['salary'] = user_sal
                     elif cv_sub.job_position and cv_sub.job_position.salary_max:

@@ -5229,3 +5229,149 @@ class SeaServiceBrokenRecordSkipTests(APITestCase):
             format="json",
         )
         self.assertEqual(r.status_code, http_status.HTTP_201_CREATED, r.data)
+
+
+# ============================================================================
+# Contract creation from a CV Submission — fall back to
+# job_position.rank when the CV has no position.
+# ============================================================================
+
+
+class ContractCVPositionFallbackTests(APITestCase):
+    """
+    POST /api/contracts/ with cv_submission_id used to 400 when the
+    CV had no `position` (Rank). The Contract Setup form always
+    supplies a `job_position` (JobOrderPosition), so we now fall back
+    to that job_position's rank when the CV's position is missing.
+    """
+
+    def setUp(self):
+        from api.models import Users, Rank
+        from companies.models import Company
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        self.admin = Users.objects.create_user(
+            email="admin-cv-fallback@sakrshipping.com",
+            password="adminpass",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        # Seafarer
+        self.seafarer = Users.objects.create_user(
+            email="elsayed-marey@sakrshipping.com",
+            password="x", first_name="ELSAYED", role="Employee",
+        )
+
+        # Company
+        self.company = Company.objects.create(
+            company_name="Horizon Athanasia Co",
+        )
+
+        # Two ranks
+        self.rank_eto = Rank.objects.create(code="ETO", name="ETO")
+        self.rank_master = Rank.objects.create(code="MASTER", name="Master")
+
+        # JobOrderPosition for the form's "Job Position" dropdown
+        # (rank=ETO). JobOrderPosition hangs off a JobOrder, not a
+        # Company directly.
+        from companies.models import JobOrder, JobOrderPosition
+        from datetime import date
+        self.job_order = JobOrder.objects.create(
+            company=self.company,
+            reference_number="JO-TEST-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+        )
+        self.job_position = JobOrderPosition.objects.create(
+            job_order=self.job_order,
+            rank=self.rank_eto,
+            quantity=5,
+            salary_min=550,
+            salary_max=6200,
+        )
+
+    def _make_cv(self, *, position=None, job_position=None):
+        from api.models import CVSubmission
+        return CVSubmission.objects.create(
+            user=self.seafarer,
+            company=self.company,
+            position=position,
+            job_position=job_position,
+            status="Pending",
+        )
+
+    def _post_contract(self, **overrides):
+        from datetime import date
+        payload = {
+            "cv_submission_id": self.cv.id,
+            "user": self.seafarer.id,
+            "company": self.company.id,
+            "sign_on_date": "2026-09-05",
+            "sign_off_date": "2028-06-06",
+            "status": "Draft",
+        }
+        payload.update(overrides)
+        return self.client.post("/api/contracts/", payload, format="json")
+
+    # --- The reported case: CV has no position, form sends job_position ---
+
+    def test_cv_without_position_with_job_position_in_payload_succeeds(self):
+        """The user's reported case: CV has no position, but the
+        Contract Setup form sends job_position. The serializer
+        should fall back to job_position.rank and create the contract."""
+        self.cv = self._make_cv(position=None, job_position=None)
+
+        r = self._post_contract(job_position=self.job_position.id)
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["rank"], self.rank_eto.id)
+
+    def test_cv_without_position_with_job_position_on_cv_succeeds(self):
+        """CV has no position, but CV has a job_position set."""
+        self.cv = self._make_cv(
+            position=None, job_position=self.job_position
+        )
+
+        # No job_position in the payload — should still work
+        # because the CV already has one.
+        r = self._post_contract()
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["rank"], self.rank_eto.id)
+
+    # --- Regression: existing behaviour is preserved ---
+
+    def test_cv_with_position_uses_cv_position_not_job_position(self):
+        """When the CV has a position, that wins — even if the
+        payload also sends a job_position with a different rank."""
+        self.cv = self._make_cv(
+            position=self.rank_master, job_position=self.job_position
+        )
+
+        r = self._post_contract(job_position=self.job_position.id)
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        # CV.position (Master) takes precedence over job_position.rank (ETO)
+        self.assertEqual(r.data["rank"], self.rank_master.id)
+
+    def test_cv_without_position_and_no_job_position_anywhere_still_400s(self):
+        """If the CV has no position AND no job_position anywhere
+        (not in payload, not on CV), the original 400 still fires."""
+        self.cv = self._make_cv(position=None, job_position=None)
+
+        r = self._post_contract()  # no job_position in payload either
+        self.assertEqual(
+            r.status_code, http_status.HTTP_400_BAD_REQUEST, r.data
+        )
+        self.assertIn("error", r.data)
+        self.assertIn("position/rank", r.data["error"])
