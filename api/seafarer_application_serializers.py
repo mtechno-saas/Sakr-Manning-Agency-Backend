@@ -90,16 +90,45 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
             full_name = personal.get('full_name', '')
             if full_name:
                 parts = full_name.split(' ', 1)
-                instance.first_name = parts[0]
-                # Only overwrite middle_name if the new full_name actually
-                # carries a second word. If the caller only knows the
-                # first_name (e.g. the placement form is echoing the
-                # dropdown's first_name back as full_name, or any other
-                # flow that hands us a one-word name), preserve the
-                # user's existing middle_name. Otherwise the seafarer
-                # loses their full name after every save.
-                if len(parts) > 1:
-                    instance.middle_name = parts[1]
+                # SAFETY: only apply the new full_name if it has at
+                # least as many words as the existing name. Otherwise
+                # we'd silently truncate a stored full name like
+                # "ELSAYED MAREY MOHAMED" down to "ELSAYED" just
+                # because the caller only echoed the first_name back.
+                # A one-word `full_name` from a caller is almost
+                # always a dropdown echo / partial info — preserve the
+                # existing name in that case.
+                #
+                # NOTE: count words in the FULL existing name
+                # (first_name + " " + middle_name), not just the
+                # number of non-empty parts. A stored first_name of
+                # "ELSAYED MAREY MOHAMED" with empty middle_name
+                # still has 3 words.
+                existing_full = (
+                    (instance.first_name or '') + ' '
+                    + (instance.middle_name or '')
+                ).strip()
+                existing_word_count = (
+                    len(existing_full.split()) if existing_full else 0
+                )
+                new_word_count = len(full_name.split())
+
+                if new_word_count >= existing_word_count and new_word_count >= 2:
+                    # Full information, safe to apply.
+                    instance.first_name = parts[0]
+                    if len(parts) > 1:
+                        instance.middle_name = parts[1]
+                elif new_word_count >= existing_word_count and existing_word_count <= 1:
+                    # Both are single-word (or existing is empty) —
+                    # safe to update first_name to the new value.
+                    instance.first_name = parts[0]
+                    if len(parts) > 1:
+                        instance.middle_name = parts[1]
+                    # else: keep existing middle_name (already-empty
+                    # or not provided by caller)
+                # else: new full_name is shorter than the existing
+                # name — caller is echoing partial info, leave the
+                # existing first_name + middle_name untouched.
             
             instance.date_of_birth = self._parse_date(personal.get('date_of_birth'))
             status = personal.get('marital_status', {})

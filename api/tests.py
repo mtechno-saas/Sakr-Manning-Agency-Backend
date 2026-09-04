@@ -4801,13 +4801,16 @@ class SeafarerApplicationFullNamePreservationTests(TestCase):
 
     def test_one_word_full_name_preserves_existing_middle(self):
         """The exact bug: 'Mohamed' (no space) must NOT clear the existing
-        middle_name. The user was 'Mohamed Atta' and stays 'Mohamed Atta'."""
+        middle_name AND must NOT truncate the existing first_name. The
+        user was 'Mohamed Atta' and stays 'Mohamed Atta'."""
+        self.assertEqual(self.user.first_name, "Mohamed")
         self.assertEqual(self.user.middle_name, "Atta")
         self._update_personal("Mohamed")
         self.user.refresh_from_db()
         self.assertEqual(
             self.user.first_name, "Mohamed",
-            "first_name should follow the new full_name"
+            "first_name must NOT be overwritten with a shorter one-word "
+            "full_name when the existing name has more words"
         )
         self.assertEqual(
             self.user.middle_name, "Atta",
@@ -4816,13 +4819,17 @@ class SeafarerApplicationFullNamePreservationTests(TestCase):
             "`parts[1] if len(parts) > 1 else ''` wiped it)."
         )
 
-    def test_one_word_full_name_does_not_change_existing_first(self):
-        """Sanity: the existing first_name is still updated to the new value
-        even when the new full_name is one word."""
+    def test_one_word_full_name_does_not_truncate_existing_name(self):
+        """Sanity / regression: if the existing name is 2 words
+        and the new full_name is 1 word, the existing name is
+        kept (no truncation). This is the second-wave fix — the
+        earlier fix only preserved middle_name but still
+        overwrote first_name with the one-word value."""
+        # User is currently "Mohamed Atta" (1+1 = 2 words)
         self._update_personal("Ahmed")
         self.user.refresh_from_db()
-        self.assertEqual(self.user.first_name, "Ahmed")
-        # middle_name still preserved
+        # Existing 2-word name is preserved
+        self.assertEqual(self.user.first_name, "Mohamed")
         self.assertEqual(self.user.middle_name, "Atta")
 
 
@@ -5452,3 +5459,110 @@ class ContractCVPositionFallbackTests(APITestCase):
         )
         self.assertEqual(r.data["company"], self.company.id)
         self.assertEqual(r.data["rank"], self.rank_eto.id)
+
+
+# ============================================================================
+# SeafarerApplicationSerializer.update() must not truncate a
+# full name stored in first_name when the caller sends a shorter
+# full_name.
+# ============================================================================
+
+
+class SeafarerApplicationFullNameTruncationTests(TestCase):
+    """
+    In the wild, many seafarers have their full name in
+    `first_name` (e.g. first_name="ELSAYED MAREY MOHAMED",
+    middle_name="") because the data was imported / manually
+    entered that way. When the Contract Setup form (or any other
+    caller) then sends `personal_details.full_name="ELSAYED"`,
+    the old code did:
+
+        parts = full_name.split(" ", 1)   # ["ELSAYED"]
+        instance.first_name = parts[0]     # "ELSAYED"  ← truncated!
+        instance.middle_name = ""          # (with the b00bbc70 fix,
+                                          #  this stays "" either way)
+
+    The new code refuses to apply a full_name that is shorter
+    than the existing name, leaving the stored name intact.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        self.user = Users.objects.create_user(
+            email="truncation-test@example.com",
+            password="x",
+        )
+        self.user.first_name = "ELSAYED MAREY MOHAMED"
+        self.user.middle_name = ""
+        self.user.save()
+
+    def _update_personal(self, full_name):
+        from api.seafarer_application_serializers import (
+            SeafarerApplicationSerializer,
+        )
+        serializer = SeafarerApplicationSerializer(
+            instance=self.user,
+            data={"personal_details": {"full_name": full_name}},
+            partial=True,
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        return serializer.save()
+
+    def test_one_word_full_name_does_not_truncate_existing_full_name(self):
+        """The exact reported case: existing first_name holds the
+        full name, caller sends just the first word. The stored
+        name must NOT be truncated."""
+        self.assertEqual(self.user.first_name, "ELSAYED MAREY MOHAMED")
+        self._update_personal("ELSAYED")
+        self.user.refresh_from_db()
+        self.assertEqual(
+            self.user.first_name, "ELSAYED MAREY MOHAMED",
+            "One-word full_name must NOT truncate a stored full name "
+            "in first_name. (regression: the old code overwrote "
+            "first_name with just the first word)"
+        )
+        self.assertEqual(self.user.middle_name, "")
+
+    def test_two_word_full_name_with_three_word_stored_name_kept(self):
+        """Existing is 3 words, caller sends 2. Keep existing."""
+        self._update_personal("ELSAYED MAREY")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "ELSAYED MAREY MOHAMED")
+
+    def test_three_word_full_name_with_three_word_stored_name_applied(self):
+        """Both are 3 words — safe to apply the new value."""
+        self._update_personal("AHMED HASSAN KHALED")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "AHMED")
+        self.assertEqual(self.user.middle_name, "HASSAN KHALED")
+
+    def test_two_word_full_name_with_empty_stored_name_applied(self):
+        """Edge case: existing is empty / single-word, caller sends
+        a two-word full_name. Apply normally."""
+        self.user.first_name = "Ahmed"
+        self.user.middle_name = ""
+        self.user.save()
+        self._update_personal("Ahmed Hassan")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Ahmed")
+        self.assertEqual(self.user.middle_name, "Hassan")
+
+    def test_one_word_full_name_with_one_word_stored_name_applied(self):
+        """Both are single-word, apply normally (no info loss)."""
+        self.user.first_name = "Ahmed"
+        self.user.middle_name = ""
+        self.user.save()
+        self._update_personal("Hassan")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Hassan")
+        self.assertEqual(self.user.middle_name, "")
+
+    def test_three_word_full_name_with_two_word_stored_name_applied(self):
+        """Existing is 2 words, caller sends 3 (more info). Apply."""
+        self.user.first_name = "Ahmed"
+        self.user.middle_name = "Hassan"
+        self.user.save()
+        self._update_personal("Ahmed Hassan Mohamed")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Ahmed")
+        self.assertEqual(self.user.middle_name, "Hassan Mohamed")
