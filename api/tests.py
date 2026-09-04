@@ -5850,6 +5850,34 @@ class JobOrderAutoFullFilledStatusTests(APITestCase):
         self.job_order.refresh_from_db()
         self.assertEqual(self.job_order.status, "Full Filled")
 
+    def test_position_with_zero_quantity_does_not_block_full_filled(self):
+        """Legacy positions can have quantity=0 in the DB (data
+        quality issue / import). They should be SKIPPED by
+        is_fully_filled(), not failed — otherwise the order is
+        permanently reported as "not full filled" even when a
+        contract is assigned. This was the 2026-09-04 incident
+        with the ETO position on HORIZON ATHANASIA.
+
+        Simulates: contract was created when quantity=1, the
+        ContractSerializer.create() then auto-decremented to 0,
+        so the position now has quantity=0 but still 1 contract
+        filling the (zero) slots. The order should be Full Filled.
+        """
+        # Create the contract first (with quantity=1)
+        r = self._create_contract()
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED)
+        # Now the auto-decrement brought quantity down to 0
+        self.job_position.refresh_from_db()
+        self.assertEqual(self.job_position.quantity, 0)
+        self.job_order.refresh_from_db()
+        # quantity=0 should NOT block the flip
+        self.assertEqual(
+            self.job_order.status, "Full Filled",
+            "Position with quantity=0 (auto-decremented after the "
+            "last contract was created) should be skipped by "
+            "is_fully_filled(), not failed"
+        )
+
 
 # ============================================================================
 # sync_job_order_status management command

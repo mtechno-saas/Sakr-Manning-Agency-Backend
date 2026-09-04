@@ -97,8 +97,9 @@ class JobOrder(models.Model):
         True when every position under this job order has been fully
         filled. A position counts as fully filled only when its
         quantity > 0 AND the number of contracts linked to it is >=
-        quantity. Positions with quantity=0 (data quality edge case)
-        are NOT counted as fully filled.
+        quantity. Positions with quantity=0 (data quality edge case
+        — e.g. imported legacy data) are SKIPPED, not failed — they
+        don't block the order from being marked "fully filled".
 
         Contract statuses that count as "signed" (i.e. the slot is
         taken):
@@ -115,13 +116,24 @@ class JobOrder(models.Model):
         Pending Signature (the Contract Setup form's default).
         The UI counts Pending Signature as signed, so the backend
         must too.
+
+        NOTE 2: an earlier version of this method used
+        `if pos.quantity <= 0: return False` (early-out), which
+        caused legacy positions with quantity=0 (e.g. the ETO
+        position on HORIZON ATHANASIA in the 2026-09-04 incident)
+        to be permanently reported as "not fully filled" even
+        when a contract was assigned. `continue` is the correct
+        behaviour here.
         """
         filled_statuses = (
             "Active", "Signed", "Pending Signature", "Pending", "Completed",
         )
         for pos in self.positions.all():
             if pos.quantity <= 0:
-                return False
+                # Legacy / data-quality edge case: a position with
+                # quantity=0 has no slots to fill, so it can't
+                # block the order. Skip it.
+                continue
             filled = sum(
                 1 for c in pos.contracts.all()
                 if c.status in filled_statuses
