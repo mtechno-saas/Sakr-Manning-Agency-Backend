@@ -166,30 +166,11 @@ class UserSerializer(serializers.ModelSerializer):
         return cache.get(f'online_user_{obj.id}') is not None
 
     def update(self, instance, validated_data):
-        # TEMPORARY DEBUG: Write to a file we can inspect
-        import datetime
-        log_path = r'd:\photo_debug.log'
-        with open(log_path, 'a') as f:
-            f.write(f"\n--- {datetime.datetime.now()} ---\n")
-            f.write(f"Updating user {instance.id}\n")
-            f.write(f"'profile_image' in validated_data: {'profile_image' in validated_data}\n")
-            if 'profile_image' in validated_data:
-                val = validated_data['profile_image']
-                f.write(f"profile_image value: {val}, type: {type(val)}\n")
-            f.write(f"Current DB value BEFORE: {instance.profile_image.name if instance.profile_image else 'EMPTY'}\n")
-            f.write(f"ALL keys in validated_data: {list(validated_data.keys())}\n")
-        
         # FIREWALL: Prevent accidental deletion of profile_image if an empty value is sent!
         if 'profile_image' in validated_data and not validated_data.get('profile_image'):
             validated_data.pop('profile_image')
-            with open(log_path, 'a') as f:
-                f.write(f"FIREWALL ACTIVATED - removed empty profile_image\n")
-            
-        result = super().update(instance, validated_data)
-        
-        with open(log_path, 'a') as f:
-            f.write(f"AFTER save, DB value: {instance.profile_image.name if instance.profile_image else 'EMPTY'}\n")
-        return result
+
+        return super().update(instance, validated_data)
 
 
 class DocumentSerializer(serializers.ModelSerializer):

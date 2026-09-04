@@ -2080,6 +2080,14 @@ class UsersSerializer(serializers.ModelSerializer):
     # round-trip writes.
     full_name = serializers.CharField(read_only=True)
 
+    # `last_name` is a write-only field. The Users model only has
+    # `first_name` and `middle_name`, but the contract / profile
+    # forms send the name split across 3 fields. Without this, the
+    # 3rd word (e.g. "ALAA" in "MUSTAFA MOHAMMED ALAA") gets
+    # silently dropped. We fold `last_name` into `middle_name` on
+    # save — see `update()` / `create()` below.
+    last_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
     # Effective status: one of ON_SITE / ON_BOARD / VACATION /
     # MEDICAL_VACATION / NEW_APPLICANT. Computed from the stored
     # user_status (admin override) and the user's contract history.
@@ -2337,6 +2345,18 @@ class UsersSerializer(serializers.ModelSerializer):
         return representation
 
     def create(self, validated_data):
+        # Same `last_name` folding as update() — see comment there.
+        if 'last_name' in validated_data:
+            last_name = (validated_data.pop('last_name') or '').strip()
+            if last_name:
+                if 'middle_name' in validated_data:
+                    new_middle = (validated_data.get('middle_name') or '').strip()
+                    validated_data['middle_name'] = (
+                        f"{new_middle} {last_name}".strip()
+                    )
+                else:
+                    validated_data['middle_name'] = last_name
+
         # Pop the relationship data first
         codes_data = validated_data.pop('codes', [])
         certificates_data = validated_data.pop('certificates', [])
@@ -2378,6 +2398,29 @@ class UsersSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
+        # `last_name` is a write-only field. The Users model only has
+        # first_name + middle_name, but the contract / profile forms
+        # send the name split across 3 fields. Without this, the 3rd
+        # word gets silently dropped. We fold `last_name` into
+        # `middle_name` on save:
+        #   - middle_name (from payload) + " " + last_name
+        # If `middle_name` is not in the payload, combine with the
+        # EXISTING instance.middle_name so we don't silently lose
+        # whatever was there.
+        if 'last_name' in validated_data:
+            last_name = (validated_data.pop('last_name') or '').strip()
+            if last_name:
+                if 'middle_name' in validated_data:
+                    new_middle = (validated_data.get('middle_name') or '').strip()
+                    validated_data['middle_name'] = (
+                        f"{new_middle} {last_name}".strip()
+                    )
+                else:
+                    existing_middle = (instance.middle_name or '').strip()
+                    validated_data['middle_name'] = (
+                        f"{existing_middle} {last_name}".strip()
+                    )
+
         # Filter out "KEEP_EXISTING" markers (sent by FlexibleFileField for existing URLs)
         validated_data = {k: v for k, v in validated_data.items() if v != "KEEP_EXISTING"}
 

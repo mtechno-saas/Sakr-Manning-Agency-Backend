@@ -5566,3 +5566,154 @@ class SeafarerApplicationFullNameTruncationTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, "Ahmed")
         self.assertEqual(self.user.middle_name, "Hassan Mohamed")
+
+
+# ============================================================================
+# UserSerializer: `last_name` write-only field folds into `middle_name`
+# ============================================================================
+
+
+class UserLastNameFoldingTests(APITestCase):
+    """
+    The contract / profile forms send the name split as
+    first_name / middle_name / last_name. The Users model only has
+    first_name + middle_name, so without this fix the 3rd word is
+    silently dropped.
+
+    Fix: UserSerializer.last_name is a write-only CharField. On
+    save it gets appended to `middle_name` so the stored name
+    reflects what the user typed.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        self.admin = Users.objects.create_user(
+            email="admin-lastname-fold@sakrshipping.com",
+            password="adminpass",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        # A fresh seafarer to PATCH
+        self.user = Users.objects.create_user(
+            email="lastname-fold-seafarer@sakrshipping.com",
+            password="x",
+        )
+        self.user.first_name = "MUSTAFA"
+        self.user.middle_name = ""
+        self.user.save()
+
+    def test_patch_with_last_name_folds_into_middle_name(self):
+        """The exact reported case: PATCH with
+        first_name=MUSTAFA, middle_name=MOHAMMED, last_name=ALAA
+        must produce first_name=MUSTAFA, middle_name=MOHAMMED ALAA."""
+        r = self.client.patch(
+            f"/api/users/users/{self.user.id}/",
+            {
+                "first_name": "MUSTAFA",
+                "middle_name": "MOHAMMED",
+                "last_name": "ALAA",
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "MUSTAFA")
+        self.assertEqual(
+            self.user.middle_name, "MOHAMMED ALAA",
+            "last_name must be folded into middle_name — was "
+            "silently dropped before this fix"
+        )
+
+    def test_patch_with_last_name_and_empty_middle_name(self):
+        """Form sends only first_name + last_name (no middle_name).
+        last_name should become the middle_name."""
+        r = self.client.patch(
+            f"/api/users/users/{self.user.id}/",
+            {
+                "first_name": "MUSTAFA",
+                "last_name": "MOHAMMED",
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "MUSTAFA")
+        self.assertEqual(self.user.middle_name, "MOHAMMED")
+
+    def test_patch_with_last_name_preserves_existing_middle(self):
+        """If the user already has a middle_name and the form sends
+        only first_name + last_name (no middle_name in payload),
+        the new last_name is appended to the EXISTING middle_name
+        rather than overwriting it."""
+        self.user.middle_name = "ATTA"
+        self.user.save()
+
+        r = self.client.patch(
+            f"/api/users/users/{self.user.id}/",
+            {
+                "first_name": "MUSTAFA",
+                "last_name": "HASSAN",
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "MUSTAFA")
+        self.assertEqual(self.user.middle_name, "ATTA HASSAN")
+
+    def test_patch_without_last_name_does_not_change_middle_name(self):
+        """Sanity: if the form doesn't send last_name, nothing
+        changes — no surprise append."""
+        self.user.middle_name = "ATTA"
+        self.user.save()
+
+        r = self.client.patch(
+            f"/api/users/users/{self.user.id}/",
+            {
+                "first_name": "Mohamed",
+                "middle_name": "Atta",
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Mohamed")
+        self.assertEqual(self.user.middle_name, "Atta")
+
+    def test_patch_with_empty_last_name_is_ignored(self):
+        """An empty last_name should not cause a stray space or
+        empty middle_name."""
+        r = self.client.patch(
+            f"/api/users/users/{self.user.id}/",
+            {
+                "first_name": "MUSTAFA",
+                "last_name": "",
+            },
+            format="json",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "MUSTAFA")
+        # middle_name stays empty (we don't set it to "" or " ")
+        self.assertEqual(self.user.middle_name, "")
+
+    def test_response_does_not_expose_last_name_field(self):
+        """last_name is write-only — the GET response should not
+        include it (it's not a real column)."""
+        r = self.client.get(f"/api/users/users/{self.user.id}/")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.assertNotIn("last_name", r.data)
