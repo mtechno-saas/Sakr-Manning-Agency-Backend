@@ -5297,11 +5297,11 @@ class ContractCVPositionFallbackTests(APITestCase):
             salary_max=6200,
         )
 
-    def _make_cv(self, *, position=None, job_position=None):
+    def _make_cv(self, *, position=None, job_position=None, company=None):
         from api.models import CVSubmission
         return CVSubmission.objects.create(
             user=self.seafarer,
-            company=self.company,
+            company=company if company is not None else self.company,
             position=position,
             job_position=job_position,
             status="Pending",
@@ -5415,4 +5415,40 @@ class ContractCVPositionFallbackTests(APITestCase):
         # The contract's rank was resolved via the user's
         # application_for_position, which matched the existing
         # self.rank_eto (name="ETO").
+        self.assertEqual(r.data["rank"], self.rank_eto.id)
+
+    # --- The next-reported case: CV has no company either, but the
+    #     job_position carries a job_order.company we can use.
+
+    def test_cv_without_company_falls_back_to_job_position_job_order_company(self):
+        """Same pattern as the rank fallback: if the CV has no
+        `company` (Principal), use the company on the chosen
+        JobOrderPosition's JobOrder. The form always picks a JP
+        from a Principal-owned JobOrder, so this is reliable."""
+        from companies.models import JobOrder, JobOrderPosition
+        from datetime import date
+
+        # JP with rank=ETO, attached to a JobOrder on self.company
+        jp = JobOrderPosition.objects.create(
+            job_order=JobOrder.objects.create(
+                company=self.company,
+                reference_number="JO-TEST-003",
+                request_date=date.today(),
+                target_joining_date=date.today(),
+            ),
+            rank=self.rank_eto,
+            quantity=1,
+        )
+
+        # CV has no company AND no position (both fallbacks trigger)
+        self.cv = self._make_cv(position=None, company=None, job_position=None)
+
+        # The form only sends cv_submission_id + job_position. No
+        # explicit `company` in the payload — the backend should
+        # resolve it from the JP's JobOrder.
+        r = self._post_contract(job_position=jp.id)
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["company"], self.company.id)
         self.assertEqual(r.data["rank"], self.rank_eto.id)

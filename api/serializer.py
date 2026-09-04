@@ -1653,10 +1653,26 @@ class ContractSerializer(serializers.ModelSerializer):
                     validated_data['rank'] = cv_sub.position
 
                 if not cv_sub.company:
-                    raise ValidationError({'error': 'This CV Submission has no linked company. Cannot generate a contract.'})
+                    # Same fallback pattern as the rank check above.
+                    # If the CV has no company, derive one from the
+                    # job_position (it always has job_order.company).
+                    # The Contract Setup form picks a JobOrderPosition
+                    # whose JobOrder is owned by a Principal, so the
+                    # company is always available via that path.
+                    fallback_company = None
+                    jp_for_company = (
+                        validated_data.get('job_position')
+                        or cv_sub.job_position
+                    )
+                    if jp_for_company and getattr(jp_for_company, 'job_order', None):
+                        fallback_company = jp_for_company.job_order.company
+                    if not fallback_company:
+                        raise ValidationError({'error': 'This CV Submission has no linked company. Cannot generate a contract.'})
+                    validated_data['company'] = fallback_company
+                else:
+                    validated_data['company'] = cv_sub.company
 
                 validated_data['user'] = cv_sub.user
-                validated_data['company'] = cv_sub.company
 
                 if cv_sub.job_position:
                     validated_data['job_position'] = cv_sub.job_position
