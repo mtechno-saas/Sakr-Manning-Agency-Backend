@@ -4940,3 +4940,125 @@ class ShipCompanyFilterTests(APITestCase):
         self.assertIn(self.ship_a1.id, ids)
         self.assertIn(self.ship_a2.id, ids)
         self.assertIn(self.ship_b1.id, ids)
+
+
+# ============================================================================
+# /api/users/users/?role= — accept comma-separated values
+# ============================================================================
+
+
+class UserRoleFilterCommaSeparatedTests(APITestCase):
+    """
+    /api/users/users/?role=... must accept both repeated and
+    comma-separated values, in any combination.
+
+      - ?role=Admin&role=HR+Manager&role=Recruiter  (repeated)
+      - ?role=Admin,HR+Manager,Recruiter            (single value,
+                                                     comma-sep — the
+                                                     case the user hit)
+      - ?role=Admin,HR+Manager&role=Recruiter       (mix)
+
+    All three should return the union of users whose role is in
+    {Admin, HR Manager, Recruiter}.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        self.admin = Users.objects.create_user(
+            email="admin-rolefilter@sakrshipping.com",
+            password="adminpass",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        # Seed one user per non-Admin role + one extra Admin to prove
+        # the filter is selecting on role, not "everything".
+        self.u_admin = Users.objects.create_user(
+            email="u-admin-rolefilter@sakrshipping.com",
+            password="x", first_name="A"
+        )
+        self.u_admin.role = "Admin"
+        self.u_admin.save()
+
+        self.u_hr = Users.objects.create_user(
+            email="u-hr-rolefilter@sakrshipping.com",
+            password="x", first_name="B"
+        )
+        self.u_hr.role = "HR Manager"
+        self.u_hr.save()
+
+        self.u_rec = Users.objects.create_user(
+            email="u-rec-rolefilter@sakrshipping.com",
+            password="x", first_name="C"
+        )
+        self.u_rec.role = "Recruiter"
+        self.u_rec.save()
+
+        self.u_emp = Users.objects.create_user(
+            email="u-emp-rolefilter@sakrshipping.com",
+            password="x", first_name="D"
+        )
+        self.u_emp.role = "Employee"
+        self.u_emp.save()
+
+        self.url = "/api/users/users/"
+
+    def _ids(self, response):
+        rows = response.data["results"] if isinstance(response.data, dict) and "results" in response.data else response.data
+        return {row["id"] for row in rows}
+
+    def test_repeated_param_form(self):
+        """?role=Admin&role=HR+Manager&role=Recruiter (already worked)."""
+        r = self.client.get(f"{self.url}?role=Admin&role=HR%20Manager&role=Recruiter")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        ids = self._ids(r)
+        self.assertIn(self.u_admin.id, ids)
+        self.assertIn(self.u_hr.id, ids)
+        self.assertIn(self.u_rec.id, ids)
+        self.assertNotIn(self.u_emp.id, ids)
+
+    def test_single_value_comma_separated_form(self):
+        """The exact case the user reported:
+        ?role=Admin,HR+Manager,Recruiter (URL-encoded comma)"""
+        from urllib.parse import quote
+        r = self.client.get(f"{self.url}?role={quote('Admin,HR Manager,Recruiter')}")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        ids = self._ids(r)
+        self.assertIn(self.u_admin.id, ids)
+        self.assertIn(self.u_hr.id, ids)
+        self.assertIn(self.u_rec.id, ids)
+        self.assertNotIn(self.u_emp.id, ids)
+
+    def test_mixed_repeated_and_comma(self):
+        """?role=Admin,HR+Manager&role=Recruiter — both styles in one URL."""
+        from urllib.parse import quote
+        r = self.client.get(f"{self.url}?role={quote('Admin,HR Manager')}&role=Recruiter")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        ids = self._ids(r)
+        self.assertIn(self.u_admin.id, ids)
+        self.assertIn(self.u_hr.id, ids)
+        self.assertIn(self.u_rec.id, ids)
+        self.assertNotIn(self.u_emp.id, ids)
+
+    def test_single_role_value_unchanged(self):
+        """Sanity: a single role still works (no commas)."""
+        r = self.client.get(f"{self.url}?role=Recruiter")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        ids = self._ids(r)
+        self.assertIn(self.u_rec.id, ids)
+        self.assertNotIn(self.u_emp.id, ids)
+
+    def test_empty_role_value_returns_all(self):
+        """?role= (empty) → no filter applied → all users."""
+        r = self.client.get(f"{self.url}?role=")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        ids = self._ids(r)
+        # Should include the Employee too (no role filter active)
+        self.assertIn(self.u_emp.id, ids)

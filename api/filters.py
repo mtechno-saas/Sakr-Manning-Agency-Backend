@@ -115,11 +115,29 @@ class UsersFilter(django_filters.FilterSet):
         return queryset.filter(query).distinct()
 
     def _strings_for(self, param_name):
-        """Pull repeated ?key=1&key=2 values from the request as strings."""
+        """
+        Pull repeated ?key=1&key=2 values from the request as strings.
+
+        Also splits each raw value on commas, so callers can pass either
+        of these forms (both must work because the frontend + Postman
+        users mix them):
+          - ?role=Admin&role=HR+Manager&role=Recruiter  (repeated)
+          - ?role=Admin,HR+Manager,Recruiter            (single, comma-separated)
+        Returns None when the param is missing entirely, [] when it
+        was present but every value was empty (so callers can decide
+        between "no filter" vs "filter that matches nothing").
+        """
         raw = self.request.GET.getlist(param_name)
         if not raw:
             return None
-        cleaned = [v.strip() for v in raw if v is not None and str(v).strip() != ""]
+        cleaned = []
+        for v in raw:
+            if v is None:
+                continue
+            for piece in str(v).split(","):
+                piece = piece.strip()
+                if piece:
+                    cleaned.append(piece)
         return cleaned if cleaned else []
 
     def filter_marital_status(self, queryset, name, value):
