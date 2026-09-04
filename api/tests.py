@@ -5849,3 +5849,114 @@ class JobOrderAutoFullFilledStatusTests(APITestCase):
         self.assertEqual(r.status_code, http_status.HTTP_201_CREATED)
         self.job_order.refresh_from_db()
         self.assertEqual(self.job_order.status, "Full Filled")
+
+
+# ============================================================================
+# sync_job_order_status management command
+# ============================================================================
+
+
+class SyncJobOrderStatusCommandTests(TestCase):
+    """
+    One-shot command to back-fill JobOrder.status for orders that
+    were created before the auto-flip fix (5c78d55f) landed.
+    """
+
+    def setUp(self):
+        from api.models import Rank
+        from companies.models import Company, JobOrder, JobOrderPosition
+        from datetime import date
+
+        self.rank = Rank.objects.create(code="C", name="Captain")
+
+        # Order A: under-filled, but status left at "Full Filled"
+        # (data quality issue — needs back-fill to "Open")
+        self.company_a = Company.objects.create(company_name="BackFillCo A")
+        self.jo_a = JobOrder.objects.create(
+            company=self.company_a,
+            reference_number="JO-A",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+            status="Full Filled",  # WRONG — under-filled
+        )
+        JobOrderPosition.objects.create(
+            job_order=self.jo_a, rank=self.rank, quantity=2,
+        )
+
+        # Order B: fully filled, but status left at "Open"
+        # (the exact case the user is seeing — simulate stale data
+        # by overriding the status AFTER the contract is created,
+        # because ContractSerializer.create() now auto-flips it).
+        self.company_b = Company.objects.create(company_name="BackFillCo B")
+        self.jo_b = JobOrder.objects.create(
+            company=self.company_b,
+            reference_number="JO-B",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+        )
+        self.jp_b = JobOrderPosition.objects.create(
+            job_order=self.jo_b, rank=self.rank, quantity=1,
+        )
+        # The contract that fills it (Active status, so it counts)
+        from api.models import Contract, Users
+        self.seafarer = Users.objects.create_user(
+            email="backfill-test@sakrshipping.com",
+            password="x", first_name="X", role="Employee",
+        )
+        Contract.objects.create(
+            user=self.seafarer,
+            company=self.company_b,
+            job_position=self.jp_b,
+            rank=self.rank,
+            sign_on_date=date.today(),
+            status="Active",
+        )
+        # Now force the stale state the user is seeing.
+        JobOrder.objects.filter(id=self.jo_b.id).update(status="Open")
+
+        # Order C: already correct (under-filled + status=Open)
+        self.company_c = Company.objects.create(company_name="BackFillCo C")
+        self.jo_c = JobOrder.objects.create(
+            company=self.company_c,
+            reference_number="JO-C",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+            status="Open",  # already correct
+        )
+        JobOrderPosition.objects.create(
+            job_order=self.jo_c, rank=self.rank, quantity=5,
+        )
+
+    def _call(self, *args):
+        from io import StringIO
+        from django.core.management import call_command
+        out = StringIO()
+        call_command("sync_job_order_status", *args, stdout=out)
+        return out.getvalue()
+
+    def test_dry_run_does_not_write(self):
+        """--dry-run previews but writes nothing to the DB."""
+        out = self._call("--dry-run")
+        self.assertIn("Would change 2", out)
+        self.jo_a.refresh_from_db()
+        self.jo_b.refresh_from_db()
+        self.assertEqual(self.jo_a.status, "Full Filled")
+        self.assertEqual(self.jo_b.status, "Open")
+
+    def test_apply_flips_under_filled_to_open(self):
+        """Order A: under-filled but status='Full Filled' → Open."""
+        self._call()
+        self.jo_a.refresh_from_db()
+        self.assertEqual(self.jo_a.status, "Open")
+
+    def test_apply_flips_fully_filled_to_full_filled(self):
+        """Order B: fully filled but status='Open' → Full Filled."""
+        self._call()
+        self.jo_b.refresh_from_db()
+        self.assertEqual(self.jo_b.status, "Full Filled")
+
+    def test_already_correct_untouched(self):
+        """Order C: already correct, no change reported."""
+        self._call()
+        self.jo_c.refresh_from_db()
+        self.assertEqual(self.jo_c.status, "Open")
