@@ -96,16 +96,35 @@ class JobOrder(models.Model):
         """
         True when every position under this job order has been fully
         filled. A position counts as fully filled only when its
-        quantity > 0 AND the number of Active/Signed contracts linked
-        to it is >= quantity. Positions with quantity=0 (data quality
-        edge case) are NOT counted as fully filled.
+        quantity > 0 AND the number of contracts linked to it is >=
+        quantity. Positions with quantity=0 (data quality edge case)
+        are NOT counted as fully filled.
+
+        Contract statuses that count as "signed" (i.e. the slot is
+        taken):
+          - Active
+          - Signed
+          - Pending Signature
+          - Pending
+          - Completed
+        Draft and Cancelled do NOT count (the slot is free again).
+
+        NOTE: previously this only checked "Active" and "Signed",
+        which made the UI's "remaining=0" disagree with the
+        backend's "fully_filled" when the contract was in
+        Pending Signature (the Contract Setup form's default).
+        The UI counts Pending Signature as signed, so the backend
+        must too.
         """
+        filled_statuses = (
+            "Active", "Signed", "Pending Signature", "Pending", "Completed",
+        )
         for pos in self.positions.all():
             if pos.quantity <= 0:
                 return False
             filled = sum(
                 1 for c in pos.contracts.all()
-                if c.status in ("Active", "Signed")
+                if c.status in filled_statuses
             )
             if filled < pos.quantity:
                 return False
