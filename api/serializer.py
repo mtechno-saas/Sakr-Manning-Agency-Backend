@@ -1623,8 +1623,30 @@ class ContractSerializer(serializers.ModelSerializer):
                         validated_data.get('job_position')
                         or cv_sub.job_position
                     )
-                    if fallback_jp and getattr(fallback_jp, 'rank', None):
-                        validated_data['rank'] = fallback_jp.rank
+                    if fallback_jp:
+                        # 1) job_position.rank (the normal path)
+                        jp_rank = getattr(fallback_jp, 'rank', None)
+                        if jp_rank:
+                            validated_data['rank'] = jp_rank
+                        # 2) if job_position has no rank, the form
+                        #    often knows the rank via the JobOrder's
+                        #    vessel_type or the dropdown label — but
+                        #    the most reliable thing is to fall back
+                        #    to the user's own `application_for_position`
+                        #    on the Seafarer profile (what they applied
+                        #    for). This is the rank they self-declared.
+                        elif (cv_sub.user
+                              and getattr(cv_sub.user, 'application_for_position', None)):
+                            from api.models import Rank
+                            rank_obj = Rank.objects.filter(
+                                name=cv_sub.user.application_for_position
+                            ).first()
+                            if rank_obj:
+                                validated_data['rank'] = rank_obj
+                            else:
+                                raise ValidationError({'error': 'This CV Submission has no assigned position/rank. Cannot generate a contract.'})
+                        else:
+                            raise ValidationError({'error': 'This CV Submission has no assigned position/rank. Cannot generate a contract.'})
                     else:
                         raise ValidationError({'error': 'This CV Submission has no assigned position/rank. Cannot generate a contract.'})
                 else:

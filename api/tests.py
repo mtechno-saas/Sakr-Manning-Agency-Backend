@@ -5375,3 +5375,44 @@ class ContractCVPositionFallbackTests(APITestCase):
         )
         self.assertIn("error", r.data)
         self.assertIn("position/rank", r.data["error"])
+
+    # --- The most-likely-actual reported case: job_position exists
+    #     in the payload but has no `rank` set (quantity>0 job opening
+    #     with no rank attached). The user's application_for_position
+    #     on the Seafarer profile is the next-best fallback.
+
+    def test_job_position_without_rank_falls_back_to_user_application_for_position(self):
+        """Some JobOrderPositions in the system have no rank attached
+        (just salary/qty). The form picks such a JP because the salary
+        matches, and the backend needs a rank. Fall back to the user's
+        declared `application_for_position` on the Seafarer profile."""
+        # Build a rank-less JobOrderPosition
+        from companies.models import JobOrder, JobOrderPosition
+        from datetime import date
+        jp_no_rank = JobOrderPosition.objects.create(
+            job_order=JobOrder.objects.create(
+                company=self.company,
+                reference_number="JO-TEST-002",
+                request_date=date.today(),
+                target_joining_date=date.today(),
+            ),
+            rank=None,  # no rank
+            quantity=2,
+            salary_min=500,
+            salary_max=3000,
+        )
+
+        # Mark the seafarer as having applied for ETO
+        self.seafarer.application_for_position = "ETO"
+        self.seafarer.save()
+
+        self.cv = self._make_cv(position=None, job_position=None)
+
+        r = self._post_contract(job_position=jp_no_rank.id)
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        # The contract's rank was resolved via the user's
+        # application_for_position, which matched the existing
+        # self.rank_eto (name="ETO").
+        self.assertEqual(r.data["rank"], self.rank_eto.id)
