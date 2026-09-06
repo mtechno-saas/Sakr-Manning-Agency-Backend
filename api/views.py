@@ -962,6 +962,113 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserMeSerializer(request.user)
         return Response(serializer.data)
 
+    # ------------------------------------------------------------------
+    # Admin attachments (PERSON-scoped) — per project policy 2026-09-06
+    #
+    # GET    /api/users/<id>/admin-attachments/
+    #         ?cv_submission=<id>   (optional — filter to one CV)
+    # POST   /api/users/<id>/admin-attachments/    (multipart: file, title, cv_submission)
+    # GET    /api/users/<id>/admin-attachments/<attachment_id>/
+    # PATCH  /api/users/<id>/admin-attachments/<attachment_id>/   (title, optionally file)
+    # DELETE /api/users/<id>/admin-attachments/<attachment_id>/
+    # ------------------------------------------------------------------
+
+    @action(
+        detail=True,
+        methods=["get", "post"],
+        url_path="admin-attachments",
+        parser_classes=[MultiPartParser, FormParser, JSONParser],
+    )
+    def admin_attachments(self, request, pk=None):
+        """
+        List / create admin-uploaded files for a specific seafarer.
+
+        GET  /api/users/<id>/admin-attachments/
+            Optional: ?cv_submission=<id>  — return only the
+            attachments linked to that specific CV submission.
+
+        POST /api/users/<id>/admin-attachments/
+            Multipart form data:
+                file            (required) — PDF / DOCX / image
+                title           (optional) — human-readable label
+                cv_submission   (optional) — link to a CV submission
+
+            `user` is always derived from the URL (can't be spoofed).
+            `uploaded_by` is stamped from `request.user` (the admin
+            doing the upload).
+        """
+        from api.models import AdminAttachment
+        from api.serializer import AdminAttachmentSerializer
+
+        # get_object() already enforces the role-based visibility:
+        # Admin/HR/Recruiter see all users, Employee/Crew only see self.
+        user = self.get_object()
+
+        if request.method == "GET":
+            qs = user.admin_attachments.all().order_by("-created_at")
+            cv_id = request.query_params.get("cv_submission")
+            if cv_id:
+                qs = qs.filter(cv_submission_id=cv_id)
+            data = AdminAttachmentSerializer(
+                qs, many=True, context={"request": request}
+            ).data
+            return Response(data)
+
+        # POST
+        serializer = AdminAttachmentSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(
+            user=user,
+            uploaded_by=request.user if request.user.is_authenticated else None,
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(
+        detail=True,
+        methods=["get", "patch", "delete"],
+        url_path=r"admin-attachments/(?P<attachment_id>\d+)",
+    )
+    def admin_attachment_detail(self, request, pk=None, attachment_id=None):
+        """
+        Retrieve / update / delete a single admin attachment for a
+        specific seafarer. The attachment must belong to the user
+        in the URL — otherwise 404.
+        """
+        from api.models import AdminAttachment
+        from api.serializer import AdminAttachmentSerializer
+        from django.shortcuts import get_object_or_404
+
+        user = self.get_object()
+        attachment = get_object_or_404(
+            AdminAttachment,
+            pk=attachment_id,
+            user=user,
+        )
+
+        if request.method == "GET":
+            return Response(
+                AdminAttachmentSerializer(
+                    attachment, context={"request": request}
+                ).data
+            )
+
+        if request.method == "DELETE":
+            attachment.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # PATCH — title and/or file can be updated.
+        serializer = AdminAttachmentSerializer(
+            attachment,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
         """User statistics for dashboard"""

@@ -3129,6 +3129,96 @@ class NextOfKinSerializer(serializers.ModelSerializer):
 # =====================
 from .models import Declaration
 
+class AdminAttachmentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the AdminAttachment model — admin-uploaded
+    files (PDF / DOCX / images) linked to a specific seafarer
+    and optionally to a CV submission.
+
+    This is the PERSON-scoped replacement for the earlier
+    contract-scoped `Document.admin_attachments` design. The frontend
+    hits `/api/users/<id>/admin-attachments/` to list and POST.
+
+    File type validation (PDF / DOCX / common image formats) is
+    enforced in `validate_file` so a wrong-extension upload
+    returns 400 instead of silently saving a useless file.
+    """
+    ALLOWED_CONTENT_TYPES = (
+        # PDFs
+        "application/pdf",
+        # Word documents
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        # Images
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+        "image/gif",
+        "image/webp",
+    )
+
+    download_url = serializers.SerializerMethodField()
+    filename = serializers.CharField(read_only=True)
+    content_type = serializers.CharField(read_only=True)
+    size_bytes = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        from api.models import AdminAttachment  # local import — model lives below
+        model = AdminAttachment
+        fields = [
+            "id",
+            "user",
+            "cv_submission",
+            "uploaded_by",
+            "title",
+            "file",
+            "download_url",
+            "filename",
+            "content_type",
+            "size_bytes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "user",            # always derived from the URL
+            "uploaded_by",      # always set server-side from request.user
+            "created_at",
+            "updated_at",
+            "download_url",
+            "filename",
+            "content_type",
+            "size_bytes",
+        ]
+        extra_kwargs = {
+            "file": {"required": True, "allow_null": False},
+            "title": {"required": False, "allow_blank": True},
+            "cv_submission": {"required": False, "allow_null": True},
+        }
+
+    def get_download_url(self, obj):
+        request = self.context.get("request")
+        if not obj.file or not request:
+            return None
+        return request.build_absolute_uri(obj.file.url)
+
+    def validate_file(self, value):
+        """Reject any file whose content type is not in the
+        allow-list. Uses mimetypes on the file name as a fallback
+        for the case where Django can't sniff the content type
+        (e.g. uploads that arrive without a browser-supplied
+        content_type header)."""
+        import mimetypes
+        ct = (getattr(value, "content_type", "") or "").lower()
+        if not ct:
+            ct = (mimetypes.guess_type(value.name)[0] or "").lower()
+        if ct not in self.ALLOWED_CONTENT_TYPES:
+            raise serializers.ValidationError(
+                f"Unsupported file type '{ct}'. Allowed: "
+                f"PDF, DOC, DOCX, JPG, JPEG, PNG, GIF, WEBP."
+            )
+        return value
+
+
 class DeclarationSerializer(serializers.ModelSerializer):
     """
     Serializer for Declaration model.

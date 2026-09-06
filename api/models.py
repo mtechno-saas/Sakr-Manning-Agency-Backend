@@ -1006,6 +1006,117 @@ class PerformanceAppraisal(models.Model):
 # =====================
 # DOCUMENT MODEL
 # =====================
+class AdminAttachment(models.Model):
+    """
+    Admin-uploaded file (image / PDF / DOCX) attached to a specific
+    seafarer (Users) and optionally to a specific CVSubmission.
+
+    The earlier `Document` model was contract-scoped (`Document.contract`
+    FK), which meant admin uploads lived on the contract, not on the
+    seafarer. Per project policy (2026-09-06) admin attachments are
+    PERSON-scoped (Users) with an optional CV submission link, so the
+    same admin upload can be referenced from the user's profile, the
+    CV edit modal, the contract list — anywhere the admin needs to
+    hang files off a specific person.
+
+    `uploaded_by` records the admin user that put the file there, so
+    the UI can later show "uploaded by Admin X on 2026-09-06".
+
+    The file is validated at the serializer level for the allowed
+    content types (PDF, DOCX, common image formats). See
+    AdminAttachmentSerializer.validate_file.
+    """
+    user = models.ForeignKey(
+        'Users',
+        on_delete=models.CASCADE,
+        related_name='admin_attachments',
+        help_text='The seafarer this admin attachment belongs to.',
+    )
+    cv_submission = models.ForeignKey(
+        'CVSubmission',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='admin_attachments',
+        help_text='Optional CV submission this attachment was created against.',
+    )
+    uploaded_by = models.ForeignKey(
+        'Users',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='admin_attachments_uploaded',
+        help_text='The admin user who uploaded this file.',
+    )
+    title = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text='Optional human-readable title. If empty, the file name is used.',
+    )
+    file = models.FileField(
+        upload_to='admin_attachments/',
+        help_text='The uploaded file (PDF / DOCX / image).',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['cv_submission']),
+        ]
+
+    def __str__(self):
+        return f"{self.title or self.file.name} (user={self.user_id})"
+
+    @property
+    def filename(self):
+        return self.file.name.split('/')[-1] if self.file else ''
+
+    @property
+    def content_type(self):
+        """Best-effort MIME type detection.
+
+        Tries in order:
+          1. The content_type cached on the FieldFile (from the
+             upload). This is what the browser / client sent
+             with the upload and is the most reliable source.
+          2. A small in-process fallback map for extensions that
+             the OS mimetypes DB doesn't know about (notably
+             .docx on minimal Windows installs where the stdlib
+             mimetypes registry is too thin to know
+             application/vnd.openxmlformats-...).
+          3. mimetypes.guess_type from the filename.
+          4. Empty string if all else fails.
+        """
+        if not self.file:
+            return ''
+        cached = getattr(self.file, "content_type", None)
+        if cached:
+            return cached
+        ext = (self.file.name.rsplit(".", 1)[-1] or "").lower()
+        fallback = {
+            "pdf":  "application/pdf",
+            "doc":  "application/msword",
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "jpg":  "image/jpeg",
+            "jpeg": "image/jpeg",
+            "png":  "image/png",
+            "gif":  "image/gif",
+            "webp": "image/webp",
+        }
+        if ext in fallback:
+            return fallback[ext]
+        import mimetypes
+        return mimetypes.guess_type(self.file.name)[0] or ''
+
+    @property
+    def size_bytes(self):
+        try:
+            return self.file.size
+        except (ValueError, OSError):
+            return 0
+
+
 class Document(models.Model):
     """
     Document model for storing user uploaded files (PDF/DOCX).

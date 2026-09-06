@@ -5988,3 +5988,320 @@ class SyncJobOrderStatusCommandTests(TestCase):
         self._call()
         self.jo_c.refresh_from_db()
         self.assertEqual(self.jo_c.status, "Open")
+
+
+# ============================================================================
+# /api/users/<id>/admin-attachments/ — person-scoped admin uploads
+# ============================================================================
+
+
+def _make_pdf(name="hello.pdf", body=b"%PDF-1.4 fake content"):
+    """Create a minimal in-memory PDF that passes Django's
+    FileField upload machinery and our mimetypes sniff."""
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    return SimpleUploadedFile(name, body, content_type="application/pdf")
+
+
+def _make_image(name="photo.png", body=b"\x89PNG\r\n\x1a\n"):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    return SimpleUploadedFile(name, body, content_type="image/png")
+
+
+def _make_docx(name="contract.docx"):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    return SimpleUploadedFile(
+        name,
+        b"PK\x03\x04 fake docx content",
+        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+
+
+def _make_bad(name="evil.exe", body=b"MZ\x90\x00\x03"):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    return SimpleUploadedFile(name, body, content_type="application/octet-stream")
+
+
+class UserAdminAttachmentEndpointTests(APITestCase):
+    """
+    Full CRUD coverage for the person-scoped admin attachments
+    endpoint on UserViewSet.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        self.admin = Users.objects.create_user(
+            email="admin-attach@sakrshipping.com",
+            password="adminpass",
+            first_name="Admin",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        # The seafarer the admin will attach files to
+        self.seafarer = Users.objects.create_user(
+            email="seafarer-attach@sakrshipping.com",
+            password="x",
+            first_name="Sea",
+            role="Employee",
+        )
+
+        # Two CV submissions so we can test the ?cv_submission= filter
+        from api.models import CVSubmission
+        self.cv1 = CVSubmission.objects.create(
+            user=self.seafarer, status="Pending",
+        )
+        self.cv2 = CVSubmission.objects.create(
+            user=self.seafarer, status="Pending",
+        )
+
+        self.url = f"/api/users/users/{self.seafarer.id}/admin-attachments/"
+
+    def test_list_empty_initially(self):
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK, r.data)
+        self.assertEqual(r.data, [])
+
+    def test_create_pdf_with_title(self):
+        r = self.client.post(
+            self.url,
+            {"file": _make_pdf(), "title": "Signed Contract"},
+            format="multipart",
+        )
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["title"], "Signed Contract")
+        self.assertEqual(r.data["user"], self.seafarer.id)
+        self.assertEqual(r.data["uploaded_by"], self.admin.id)
+        self.assertIn("download_url", r.data)
+        self.assertEqual(r.data["content_type"], "application/pdf")
+        self.assertGreater(r.data["size_bytes"], 0)
+
+    def test_create_image_without_title(self):
+        r = self.client.post(
+            self.url,
+            {"file": _make_image()},
+            format="multipart",
+        )
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        # title is optional — empty is fine
+        self.assertEqual(r.data["title"], "")
+        self.assertEqual(r.data["content_type"], "image/png")
+
+    def test_create_docx(self):
+        r = self.client.post(
+            self.url,
+            {"file": _make_docx(), "title": "CV"},
+            format="multipart",
+        )
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["content_type"],
+                         "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+    def test_reject_unsupported_file_type(self):
+        """A .exe (or any non-allow-listed type) must 400, not 201."""
+        r = self.client.post(
+            self.url,
+            {"file": _make_bad(), "title": "Should Fail"},
+            format="multipart",
+        )
+        self.assertEqual(r.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("file", r.data)
+
+    def test_create_with_cv_submission_link(self):
+        r = self.client.post(
+            self.url,
+            {
+                "file": _make_pdf(name="c1.pdf"),
+                "title": "CV1 doc",
+                "cv_submission": self.cv1.id,
+            },
+            format="multipart",
+        )
+        self.assertEqual(
+            r.status_code, http_status.HTTP_201_CREATED, r.data
+        )
+        self.assertEqual(r.data["cv_submission"], self.cv1.id)
+
+    def test_list_filters_by_cv_submission(self):
+        # Two attachments on cv1, one on cv2
+        for _ in range(2):
+            self.client.post(
+                self.url,
+                {
+                    "file": _make_pdf(name="a.pdf"),
+                    "title": "A",
+                    "cv_submission": self.cv1.id,
+                },
+                format="multipart",
+            )
+        self.client.post(
+            self.url,
+            {
+                "file": _make_pdf(name="b.pdf"),
+                "title": "B",
+                "cv_submission": self.cv2.id,
+            },
+            format="multipart",
+        )
+
+        r = self.client.get(f"{self.url}?cv_submission={self.cv1.id}")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(len(r.data), 2)
+        for row in r.data:
+            self.assertEqual(row["cv_submission"], self.cv1.id)
+
+    def test_list_newest_first(self):
+        for i in range(3):
+            self.client.post(
+                self.url,
+                {"file": _make_pdf(name=f"f{i}.pdf"), "title": f"F{i}"},
+                format="multipart",
+            )
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        # created_at DESC → F2, F1, F0
+        titles = [row["title"] for row in r.data]
+        self.assertEqual(titles, ["F2", "F1", "F0"])
+
+    def test_detail_get(self):
+        r = self.client.post(
+            self.url,
+            {"file": _make_pdf(), "title": "Detail"},
+            format="multipart",
+        )
+        att_id = r.data["id"]
+        r2 = self.client.get(f"{self.url}{att_id}/")
+        self.assertEqual(r2.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(r2.data["title"], "Detail")
+        self.assertEqual(r2.data["id"], att_id)
+
+    def test_detail_patch_updates_title(self):
+        r = self.client.post(
+            self.url,
+            {"file": _make_pdf(), "title": "Old Title"},
+            format="multipart",
+        )
+        att_id = r.data["id"]
+
+        r2 = self.client.patch(
+            f"{self.url}{att_id}/",
+            {"title": "New Title"},
+            format="multipart",
+        )
+        self.assertEqual(r2.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(r2.data["title"], "New Title")
+
+    def test_detail_delete(self):
+        r = self.client.post(
+            self.url,
+            {"file": _make_pdf(), "title": "Doomed"},
+            format="multipart",
+        )
+        att_id = r.data["id"]
+
+        d = self.client.delete(f"{self.url}{att_id}/")
+        self.assertEqual(d.status_code, http_status.HTTP_204_NO_CONTENT)
+        # Confirm gone
+        g = self.client.get(f"{self.url}{att_id}/")
+        self.assertEqual(g.status_code, http_status.HTTP_404_NOT_FOUND)
+
+    def test_detail_404_for_attachment_on_another_user(self):
+        """An attachment belonging to user A must 404 when looked
+        up under user B's URL (the URL binds the scope)."""
+        from api.models import Users
+
+        other = Users.objects.create_user(
+            email="other-attach@sakrshipping.com",
+            password="x",
+            first_name="O",
+            role="Employee",
+        )
+        # Create attachment on the OTHER user via direct ORM
+        from api.models import AdminAttachment
+        att = AdminAttachment.objects.create(
+            user=other, file=_make_pdf(), title="X",
+        )
+
+        # Try to read it under SEAFARER's URL — must 404
+        r = self.client.get(f"{self.url}{att.id}/")
+        self.assertEqual(r.status_code, http_status.HTTP_404_NOT_FOUND)
+
+    def test_user_field_cannot_be_spoofed(self):
+        """The user is always derived from the URL — the body
+        must not be able to attach a file to a different user."""
+        from api.models import Users
+        other = Users.objects.create_user(
+            email="spoof-victim@sakrshipping.com",
+            password="x",
+            first_name="V",
+            role="Employee",
+        )
+        r = self.client.post(
+            self.url,
+            {
+                "file": _make_pdf(),
+                "title": "Spoof",
+                "user": other.id,   # try to redirect
+            },
+            format="multipart",
+        )
+        # Even if the response is 201, the file must be attached
+        # to SEAFARER (the URL user), not other.
+        self.assertEqual(r.status_code, http_status.HTTP_201_CREATED)
+        self.assertEqual(
+            r.data["user"], self.seafarer.id,
+            "user must be the URL user, not the body's user field"
+        )
+
+    def test_seafarer_cannot_see_other_users_attachments(self):
+        """The viewset's get_object() filters by role — an
+        Employee can only hit their own URL."""
+        from api.models import Users
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        crew = Users.objects.create_user(
+            email="crew-attach@sakrshipping.com",
+            password="x",
+            first_name="C",
+            role="Employee",
+        )
+        refresh = RefreshToken.for_user(crew)
+        crew_client = APIClient()
+        crew_client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+        # Crew tries to hit SEAFARER's admin-attachments URL
+        r = crew_client.get(self.url)
+        self.assertEqual(
+            r.status_code, http_status.HTTP_404_NOT_FOUND,
+            "Employee must not be able to enumerate other users' "
+            "admin attachments"
+        )
+
+    def test_filter_by_cv_submission_returns_empty_for_unrelated_cv(self):
+        """Attachments on cv1 must not show up when filtering by cv2."""
+        self.client.post(
+            self.url,
+            {
+                "file": _make_pdf(),
+                "title": "On CV1",
+                "cv_submission": self.cv1.id,
+            },
+            format="multipart",
+        )
+        r = self.client.get(f"{self.url}?cv_submission={self.cv2.id}")
+        self.assertEqual(r.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(r.data, [])
