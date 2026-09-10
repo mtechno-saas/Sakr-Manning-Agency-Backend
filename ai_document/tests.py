@@ -2977,3 +2977,187 @@ class SaveParserOutputRankTests(TransactionTestCase):
         self.assertEqual(data["coded_rank"][0]["rank_code"], "ER-4.000")
         self.assertEqual(data["coded_rank"][0]["rank_name"], "Oiler")
 
+
+
+class BackfillCVSubmissionRanksTests(TransactionTestCase):
+    """
+    The /ai/parse/ endpoint learned to populate
+    ``cv_submission.position`` + ``UserRank`` in commit 53651b22.
+    Rows that were parsed BEFORE that commit are still empty in
+    the Crew Management table (POSITION shows "â€”", RANK CODE shows
+    "â€”"). The ``backfill_cv_submission_ranks`` management command
+    walks those rows and fixes them post-hoc.
+
+    These tests cover:
+      - happy path: user has application_for_position, command
+        resolves the Rank and sets position + creates UserRank.
+      - short-form fallback: "Wiper" â†’ "Wiper/Assistant Mechanic"
+      - no-match is reported, not silently skipped.
+      - dry-run does not write.
+      - re-running on a CV that already has a position is a no-op
+        (the queryset filters those out).
+      - --user scope restricts which users are touched.
+    """
+
+    def setUp(self):
+        from api.models import Users, CVSubmission, Rank
+        CVSubmission.objects.all().delete()
+        Users.objects.filter(email__endswith="@backfill.test").delete()
+        Rank.objects.filter(name__in=["Oiler", "Wiper/Assistant Mechanic"]).delete()
+        Rank.objects.create(code="ER-4.000", name="Oiler")
+        Rank.objects.create(code="ER-3.000", name="Wiper/Assistant Mechanic")
+
+    def _make_user(self, email, application_for_position):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email,
+            password="x",
+            first_name="Test",
+            middle_name="User",
+            role="Employee",
+            application_for_position=application_for_position,
+        )
+
+    def _make_cv(self, user):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from api.models import CVSubmission
+        return CVSubmission.objects.create(
+            user=user,
+            cv_file=SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf"),
+            status="Pending",
+        )
+
+    def test_resolves_exact_name_and_sets_position(self):
+        from api.models import CVSubmission, UserRank
+        from django.core.management import call_command
+        from io import StringIO
+
+        user = self._make_user("exact@backfill.test", "Oiler")
+        cv = self._make_cv(user)
+
+        out = StringIO()
+        call_command("backfill_cv_submission_ranks", stdout=out)
+
+        cv.refresh_from_db()
+        self.assertIsNotNone(cv.position)
+        self.assertEqual(cv.position.name, "Oiler")
+        self.assertTrue(
+            UserRank.objects.filter(user=user, rank=cv.position).exists()
+        )
+        self.assertIn("Resolved: 1", out.getvalue())
+
+    def test_short_form_falls_back_to_startswith(self):
+        from api.models import UserRank
+        from django.core.management import call_command
+
+        user = self._make_user("short@backfill.test", "Wiper")
+        self._make_cv(user)
+
+        call_command("backfill_cv_submission_ranks")
+
+        cv = user.cv_submissions.first()
+        cv.refresh_from_db()
+        self.assertEqual(cv.position.name, "Wiper/Assistant Mechanic")
+        self.assertTrue(
+            UserRank.objects.filter(user=user, rank=cv.position).exists()
+        )
+
+    def test_no_match_is_reported_not_silently_skipped(self):
+        from api.models import CVSubmission
+        from django.core.management import call_command
+        from io import StringIO
+
+        user = self._make_user("nomatch@backfill.test", "NotARealRank")
+        self._make_cv(user)
+
+        out = StringIO()
+        call_command("backfill_cv_submission_ranks", stdout=out)
+
+        cv = CVSubmission.objects.get(user=user)
+        # Position is still NULL â€” the command refused to guess.
+        self.assertIsNone(cv.position)
+        self.assertIn("Unresolved: 1", out.getvalue())
+
+    def test_dry_run_does_not_write(self):
+        from api.models import CVSubmission
+        from django.core.management import call_command
+        from io import StringIO
+
+        user = self._make_user("dryrun@backfill.test", "Oiler")
+        self._make_cv(user)
+
+        out = StringIO()
+        call_command(
+            "backfill_cv_submission_ranks", "--dry-run", stdout=out,
+        )
+        cv = CVSubmission.objects.get(user=user)
+        # Still NULL â€” dry-run did not write.
+        self.assertIsNone(cv.position)
+        self.assertIn("DRY RUN", out.getvalue())
+
+    def test_idempotent_skips_cvs_that_already_have_position(self):
+        from api.models import CVSubmission
+        from django.core.management import call_command
+        from io import StringIO
+
+        user = self._make_user("idem@backfill.test", "Oiler")
+        # Pre-existing position â€” should not be touched.
+        from api.models import Rank
+        oiler = Rank.objects.get(name="Oiler")
+        cv = self._make_cv(user)
+        cv.position = oiler
+        cv.save()
+
+        out = StringIO()
+        call_command("backfill_cv_submission_ranks", stdout=out)
+        # Scanned 0 because the queryset filters position__isnull=True.
+        self.assertIn("Scanned: 0", out.getvalue())
+        self.assertIn("Resolved: 0", out.getvalue())
+
+    def test_user_scope_restricts_targets(self):
+        from api.models import CVSubmission
+        from django.core.management import call_command
+        from io import StringIO
+
+        u1 = self._make_user("scope-1@backfill.test", "Oiler")
+        u2 = self._make_user("scope-2@backfill.test", "Oiler")
+        self._make_cv(u1)
+        self._make_cv(u2)
+
+        out = StringIO()
+        call_command(
+            "backfill_cv_submission_ranks",
+            "--user", str(u1.id),
+            stdout=out,
+        )
+        # Only u1 should be processed.
+        u1.cv_submissions.first().refresh_from_db()
+        self.assertIsNotNone(u1.cv_submissions.first().position)
+        u2.cv_submissions.first().refresh_from_db()
+        self.assertIsNone(u2.cv_submissions.first().position)
+        self.assertIn("Scanned: 1", out.getvalue())
+
+    def test_report_path_is_written(self):
+        import os
+        import tempfile
+        from django.core.management import call_command
+
+        user = self._make_user("report@backfill.test", "Oiler")
+        self._make_cv(user)
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False,
+        ) as tmp:
+            path = tmp.name
+        try:
+            call_command(
+                "backfill_cv_submission_ranks",
+                "--report", path,
+            )
+            with open(path, "r", encoding="utf-8") as fh:
+                content = fh.read()
+            self.assertIn("Resolved: 1", content)
+            self.assertIn("SET cv_submission_id=", content)
+        finally:
+            os.remove(path)
+
