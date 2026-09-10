@@ -3161,3 +3161,84 @@ class BackfillCVSubmissionRanksTests(TransactionTestCase):
         finally:
             os.remove(path)
 
+
+
+class AcceptCombinedPositionTests(SimpleTestCase):
+    """
+    ``_accept_combined_position`` is the parser's gate that decides
+    whether to keep or blank ``user.application_for_position``. The
+    Sakr source form lets the seafarer tick multiple "Application
+    For Position" checkboxes, so the parser hands us back a single
+    string joined by ``&`` / ``,`` / ``/`` / ``+`` (e.g. "Fitter &
+    WELDER", "Oiler, Motorman"). Before the helper, the strict
+    equality check blanked every combined form, even when each
+    individual token would have been accepted.
+    """
+
+    def _accept(self, raw):
+        from ai_document.views import _accept_combined_position
+        return _accept_combined_position(raw)
+
+    def test_empty_and_whitespace_return_blank(self):
+        self.assertEqual(self._accept(""), "")
+        self.assertEqual(self._accept("   "), "")
+        self.assertEqual(self._accept(None), "")
+
+    def test_exact_canonical_name_is_returned_unchanged(self):
+        # Fast path: the common case of a single canonical name.
+        self.assertEqual(self._accept("Oiler"), "Oiler")
+        self.assertEqual(self._accept("Welder"), "Welder")
+        self.assertEqual(self._accept("Master / Captain"), "Master / Captain")
+
+    def test_case_insensitive_match_returns_canonical_casing(self):
+        # "oiler" should resolve to "Oiler" (canonical casing).
+        self.assertEqual(self._accept("oiler"), "Oiler")
+        self.assertEqual(self._accept("WELDER"), "Welder")
+        # "wiper" alone isn't in the canonical set — only
+        # "Wiper/Assistant Mechanic" is, so case-insensitive lookup
+        # also doesn't find it. That's correct: the helper only
+        # returns a match for the exact canonical name (or a
+        # delimited token that exactly matches one).
+        self.assertEqual(self._accept("wiper"), "")
+
+    def test_ampersand_combined_form_picks_first_token(self):
+        # The real-world case that broke Mohamed's CV: "Fitter & WELDER".
+        self.assertEqual(self._accept("Fitter & WELDER"), "Fitter")
+        # Order matters: the first match wins.
+        self.assertEqual(self._accept("Oiler & Welder"), "Oiler")
+        self.assertEqual(self._accept("Welder & Fitter"), "Welder")
+
+    def test_comma_combined_form(self):
+        self.assertEqual(self._accept("Oiler, Motorman"), "Oiler")
+        self.assertEqual(self._accept("Cook, Baker"), "Cook")
+
+    def test_slash_combined_form(self):
+        # Some Sakr variants use " / " as a separator.
+        self.assertEqual(self._accept("Cook / Baker"), "Cook")
+        # The slash-separated canonical "Master / Captain" must still
+        # match exactly (not get split into "Master" and "Captain").
+        self.assertEqual(self._accept("Master / Captain"), "Master / Captain")
+
+    def test_plus_combined_form(self):
+        # "Able Seaman" alone isn't in the canonical set (only
+        # "Able Seaman (AB)" is) so the first matching token here is
+        # "Bosun". The user's primary position is preserved; the
+        # unknown second position is dropped (the raw text already
+        # landed in ``other_position`` earlier in the parser).
+        self.assertEqual(self._accept("Able Seaman + Bosun"), "Bosun")
+        self.assertEqual(self._accept("Oiler + Motorman"), "Oiler")
+
+    def test_unknown_combined_form_returns_blank(self):
+        # All tokens unknown â€” keep blank (the previous strict behavior).
+        self.assertEqual(self._accept("Pirate & Ninja"), "")
+        self.assertEqual(self._accept("Foo / Bar / Baz"), "")
+
+    def test_partial_match_falls_back_to_token_check(self):
+        # The whole string isn't canonical, but one token is.
+        self.assertEqual(self._accept("Junior Welder"), "Welder")
+        self.assertEqual(self._accept("Senior Motorman"), "Motorman")
+
+    def test_empty_token_between_delimiters_is_ignored(self):
+        # "Oiler  &&  Motorman" (extra spaces) â€” split() handles that.
+        self.assertEqual(self._accept("Oiler  &  Motorman"), "Oiler")
+

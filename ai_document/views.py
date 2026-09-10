@@ -4670,6 +4670,78 @@ _VALID_APPLICATION_POSITIONS = {
 }
 
 
+# Case-insensitive lookup table of the same set, pre-built once at
+# module load so per-row matching is O(1) instead of re-scanning the
+# set for every upload. Maps lowercase canonical name -> canonical
+# name (preserving the original casing from ``_VALID_APPLICATION_POSITIONS``).
+_VALID_APPLICATION_POSITIONS_LOOKUP: dict[str, str] = {
+    name.lower(): name for name in _VALID_APPLICATION_POSITIONS
+}
+
+
+# Delimiters the Sakr source form uses when the seafarer ticks more
+# than one "Application For Position" checkbox. Real CVs we have seen
+# in the wild: "Fitter & WELDER", "Oiler, Motorman", "Cook / Baker",
+# "Able Seaman + Bosun". Splitting on any of these lets the resolver
+# below match each individual token against a canonical position.
+_COMBINED_POSITION_DELIMITERS = ("&", ",", "/", "+")
+
+
+def _accept_combined_position(raw: str) -> str:
+    """Resolve the parsed ``application_for_position_as`` string to a
+    canonical name from ``_VALID_APPLICATION_POSITIONS``, or return
+    ``""`` if nothing matches.
+
+    The parser hands us back a single string that may contain multiple
+    positions joined by ``&`` / ``,`` / ``/`` / ``+`` because the Sakr
+    source form lets the seafarer tick more than one "Application For
+    Position" checkbox. Before this helper, a value like
+    ``"Fitter & WELDER"`` was silently blanked because the joined
+    string was not in the allowed set, even though each token alone
+    would be. Now we split on the common delimiters and accept the
+    value as long as any token matches a canonical position
+    case-insensitively. The first matching token wins (and is
+    returned in the canonical casing from the set), so the user's
+    ``application_for_position`` ends up normalized to a real choice
+    even when the CV has multiple.
+
+    Returns ``""`` when ``raw`` is empty / whitespace, or when no
+    token in ``raw`` matches any canonical position. The previous
+    strict-equality behavior is preserved as a fast path: if the
+    raw value is already a canonical name (the common case), we
+    return it unchanged.
+    """
+    if not raw:
+        return ""
+    raw = raw.strip()
+    if not raw:
+        return ""
+    # Fast path: already a canonical name (e.g. "Oiler", "Welder").
+    if raw in _VALID_APPLICATION_POSITIONS:
+        return raw
+    # Try case-insensitive match first.
+    if raw.lower() in _VALID_APPLICATION_POSITIONS_LOOKUP:
+        return _VALID_APPLICATION_POSITIONS_LOOKUP[raw.lower()]
+    # Split on common delimiters and try each token. The first
+    # canonical match wins; we don't try to combine tokens because
+    # most real-world cases are 1-2 positions and the first one is
+    # the primary.
+    # Replace each delimiter with a single space so str.split() is
+    # uniform, then re-split.
+    normalized = raw
+    for delim in _COMBINED_POSITION_DELIMITERS:
+        normalized = normalized.replace(delim, " ")
+    for token in normalized.split():
+        token = token.strip()
+        if not token:
+            continue
+        if token in _VALID_APPLICATION_POSITIONS:
+            return token
+        if token.lower() in _VALID_APPLICATION_POSITIONS_LOOKUP:
+            return _VALID_APPLICATION_POSITIONS_LOOKUP[token.lower()]
+    return ""
+
+
 def _parse_date_loose(raw):
     """Parse a date from common Sakr-form formats: ``DD/MM/YYYY``,
     ``DD.MM.YYYY``, ``DD-MM-YYYY``.
@@ -4902,9 +4974,18 @@ def _save_parser_output(data: dict, uploaded_file, extracted_photo_path: str | N
     # Application position: only set if it matches a known choice; else
     # leave blank so the user can pick manually later. The raw text
     # goes to ``other_position`` regardless.
-    application_pos = (meta.get("application_for_position_as") or "").strip()
-    if application_pos not in _VALID_APPLICATION_POSITIONS:
-        application_pos = ""
+    #
+    # Tolerance: the Sakr source form lets the seafarer tick multiple
+    # "Application For Position" checkboxes, which the parser hands us
+    # back as a single string joined by ``&`` (e.g. ``"Fitter & WELDER"``,
+    # ``"Oiler, Motorman"``). Before this fix, those were silently
+    # blanked because the joined string didn't exactly match any entry
+    # in ``_VALID_APPLICATION_POSITIONS``. Now we split on the common
+    # delimiters and accept the value if ANY token matches a canonical
+    # position case-insensitively, picking the first match.
+    application_pos = _accept_combined_position(
+        (meta.get("application_for_position_as") or "").strip()
+    )
 
     user_defaults = {
         "first_name": first_name,
