@@ -5054,6 +5054,45 @@ def _save_parser_output(data: dict, uploaded_file, extracted_photo_path: str | N
             status="Pending",
         )
 
+        # Look up the rank for the position the seafarer applied for.
+        # The Sakr parser stores ``application_for_position_as`` on the
+        # User row already (e.g. "Oiler"). The Crew Management table
+        # also expects ``cv_submission.position`` (FK to Rank) plus a
+        # matching UserRank row so the serializer can compute
+        # ``rank_code`` / ``assigned_code`` / ``coded_rank`` on the list
+        # endpoint. Without this, the CV submission shows up with
+        # ``position: null`` and "—" in the Rank Code column until
+        # someone manually reviews it.
+        #
+        # The lookup is case-insensitive and tolerant of short-form vs
+        # long-form labels (e.g. "Wiper" vs "Wiper/Assistant Mechanic")
+        # — we first try an exact name match, then fall back to a
+        # startswith match against the canonical list.
+        from api.models import Rank, UserRank as _UserRank  # local import keeps module-load clean
+        pos_name = (meta.get("application_for_position_as") or "").strip()
+        matched_rank: Rank | None = None
+        if pos_name:
+            matched_rank = Rank.objects.filter(name__iexact=pos_name).first()
+            if not matched_rank:
+                # Fallback: pick the first rank whose name starts with
+                # the parsed short form (so "Wiper" still finds
+                # "Wiper/Assistant Mechanic").
+                matched_rank = (
+                    Rank.objects.filter(name__istartswith=pos_name)
+                    .order_by("name")
+                    .first()
+                )
+        if matched_rank:
+            cv_submission.position = matched_rank
+            cv_submission.save(update_fields=["position"])
+            # Mirror the manual review flow at
+            # ``CVSubmissionSerializer.create`` lines 755-758: create
+            # a UserRank so the rank's ``assigned_code`` is auto-
+            # generated and ``coded_rank`` on the list endpoint is
+            # non-empty. ``get_or_create`` keeps the fix idempotent —
+            # re-running /ai/parse/ on the same CV is a no-op here.
+            _UserRank.objects.get_or_create(user=user, rank=matched_rank)
+
     # After the transaction commits: send the initial OTP to the
     # seafarer's EMAIL (not their phone) via the configured email
     # service. The admin never sees the OTP in the API response —

@@ -2791,3 +2791,189 @@ class ParseOnlyViewJWTAuthTest(APITestCase):
 
 
 # Run tests with: python manage.py test ai_document.tests
+
+
+class SaveParserOutputRankTests(TransactionTestCase):
+    """
+    When /ai/parse/ persists a CV it must also populate
+    ``cv_submission.position`` (FK to Rank) and create a UserRank so
+    the Crew Management table's POSITION / RANK CODE columns are
+    non-empty. Without this, the table shows "â€”" for every Pending
+    CV until a human reviewer manually sets the rank.
+
+    This regression test exercises the new branch in
+    ``_save_parser_output`` that:
+
+      1. Looks up the Rank by ``application_for_position_as`` (exact
+         name match, then ``istartswith`` fallback for short-form
+         labels like "Wiper" vs canonical "Wiper/Assistant Mechanic").
+      2. Sets ``cv_submission.position = matched_rank``.
+      3. Calls ``UserRank.objects.get_or_create(user, rank)`` so the
+         ``assigned_code`` is auto-generated and the list endpoint's
+         ``coded_rank`` field is non-empty.
+    """
+
+    def setUp(self):
+        from api.models import Users, CVSubmission, Rank
+        CVSubmission.objects.all().delete()
+        Users.objects.filter(email__endswith="@sakrparser.test").delete()
+        # Two ranks: one whose name matches the parsed short form, one
+        # whose canonical name starts with the short form (the fallback
+        # path).
+        Rank.objects.filter(name__in=["Oiler", "Wiper/Assistant Mechanic"]).delete()
+        Rank.objects.create(code="ER-4.000", name="Oiler")
+        Rank.objects.create(code="ER-3.000", name="Wiper/Assistant Mechanic")
+
+    def _payload(self, email, position_name, **extra):
+        return {
+            "0_application_meta": {
+                "application_for_position_as": position_name,
+                "register_code": "",
+                "other_position": "",
+                "register_date": "",
+                "expected_salary": "",
+                "available_date": "",
+            },
+            "1_personal_details": {
+                "full_name": "Test User",
+                "date_of_birth": "01/01/2000",
+                "marital_status": {"single": True, "married": False},
+            },
+            "3_contact_details": {
+                "e_mail": email,
+                "mobile_tel": "00201000000000",
+            },
+            **extra,
+        }
+
+    def test_position_set_when_rank_matches_exact_name(self):
+        """Exact-name match: 'Oiler' â†’ Rank(name='Oiler')."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from ai_document.views import _save_parser_output
+        from api.models import CVSubmission, Rank, UserRank
+
+        uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        _, cv_id, _ = _save_parser_output(
+            self._payload("exact@sakrparser.test", "Oiler"),
+            uploaded,
+        )
+        cv = CVSubmission.objects.get(id=cv_id)
+        self.assertIsNotNone(cv.position)
+        self.assertEqual(cv.position.name, "Oiler")
+        self.assertEqual(cv.position.code, "ER-4.000")
+        # UserRank was created and has an auto-assigned code.
+        ur = UserRank.objects.get(user=cv.user, rank=cv.position)
+        self.assertTrue(ur.assigned_code.startswith("ER-4."))
+
+    def test_position_set_when_rank_matches_short_form_via_startswith(self):
+        """The Sakr parser often emits short forms like 'Wiper'. The
+        fallback (istartswith) should still find the canonical rank
+        'Wiper/Assistant Mechanic' so the CV submission isn't left
+        with position=None."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from ai_document.views import _save_parser_output
+        from api.models import CVSubmission, Rank, UserRank
+
+        uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        _, cv_id, _ = _save_parser_output(
+            self._payload("shortform@sakrparser.test", "Wiper"),
+            uploaded,
+        )
+        cv = CVSubmission.objects.get(id=cv_id)
+        self.assertIsNotNone(cv.position)
+        self.assertEqual(cv.position.name, "Wiper/Assistant Mechanic")
+        self.assertEqual(cv.position.code, "ER-3.000")
+        ur = UserRank.objects.get(user=cv.user, rank=cv.position)
+        self.assertTrue(ur.assigned_code.startswith("ER-3."))
+
+    def test_position_left_null_when_no_rank_matches(self):
+        """Unknown position (e.g. parser typo) â†’ leave position=None
+        and don't create a stray UserRank. The user can still pick a
+        rank manually during review."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from ai_document.views import _save_parser_output
+        from api.models import CVSubmission, UserRank
+
+        uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        _, cv_id, _ = _save_parser_output(
+            self._payload("unknown@sakrparser.test", "NotARealRank"),
+            uploaded,
+        )
+        cv = CVSubmission.objects.get(id=cv_id)
+        self.assertIsNone(cv.position)
+        # No UserRank was created for the (non-existent) rank.
+        self.assertFalse(UserRank.objects.filter(user=cv.user).exists())
+
+    def test_position_left_null_when_parser_omits_field(self):
+        """If the parser didn't return application_for_position_as
+        at all (older extractor versions, malformed CV), don't crash
+        and don't try to look up an empty string."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from ai_document.views import _save_parser_output
+        from api.models import CVSubmission
+
+        uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        data = self._payload("no-meta@sakrparser.test", "Oiler")
+        data.pop("0_application_meta")
+        _, cv_id, _ = _save_parser_output(data, uploaded)
+        cv = CVSubmission.objects.get(id=cv_id)
+        self.assertIsNone(cv.position)
+
+    def test_re_parse_is_idempotent_does_not_duplicate_user_rank(self):
+        """Calling /ai/parse/ twice on the same email (e.g. user
+        re-uploads the same CV after a fix) must not create a
+        second UserRank â€” the get_or_create keeps it at one row."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from ai_document.views import _save_parser_output
+        from api.models import Rank, UserRank
+
+        uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        _save_parser_output(
+            self._payload("idem@sakrparser.test", "Oiler"),
+            uploaded,
+        )
+        _save_parser_output(
+            self._payload("idem@sakrparser.test", "Oiler"),
+            uploaded,
+        )
+        # Only one UserRank for this user + rank.
+        self.assertEqual(
+            UserRank.objects.filter(
+                user__email="idem@sakrparser.test",
+                rank__name="Oiler",
+            ).count(),
+            1,
+        )
+
+    def test_list_endpoint_surfaces_rank_code_after_parse(self):
+        """End-to-end: the CVSubmissionListSerializer must return a
+        non-empty rank_code and a non-empty coded_rank for a CV that
+        was just saved by /ai/parse/. This is the contract the Crew
+        Management table depends on."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from ai_document.views import _save_parser_output
+        from api.models import CVSubmission
+
+        uploaded = SimpleUploadedFile("cv.pdf", b"x", content_type="application/pdf")
+        _, cv_id, _ = _save_parser_output(
+            self._payload("e2e@sakrparser.test", "Oiler"),
+            uploaded,
+        )
+        cv = CVSubmission.objects.get(id=cv_id)
+
+        # The list serializer is what powers /api/cv-submissions/.
+        # We don't go through DRF here â€” we re-use the same code
+        # path the view uses (to_representation) so a serializer
+        # regression will still fail this test.
+        from api.serializer import CVSubmissionListSerializer
+        data = CVSubmissionListSerializer(cv).data
+
+        self.assertEqual(data["position"], cv.position_id)
+        self.assertEqual(data["position_name"], "Oiler")
+        self.assertEqual(data["rank_code"], "ER-4.000")
+        self.assertIsNotNone(data["assigned_code"])
+        self.assertTrue(data["assigned_code"].startswith("ER-4."))
+        self.assertEqual(len(data["coded_rank"]), 1)
+        self.assertEqual(data["coded_rank"][0]["rank_code"], "ER-4.000")
+        self.assertEqual(data["coded_rank"][0]["rank_name"], "Oiler")
+
