@@ -1399,23 +1399,39 @@ class PersonalDocument(models.Model):
 
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='personal_documents')
     document_type = models.CharField(max_length=100, choices=DOCUMENT_TYPE_CHOICES)
-    
+
     document_number = models.CharField(max_length=50, blank=True, null=True)
     issue_date = models.DateField(blank=True, null=True)
     expiry_date = models.DateField(blank=True, null=True)
     issuing_country = models.CharField(max_length=100, blank=True, null=True)
     issued_by = models.CharField(max_length=255, blank=True, null=True, help_text="Authority or entity that issued the document")
     place_of_issue = models.CharField(max_length=255, blank=True, null=True, help_text="City or office where the document was issued")
-    
+
     file = models.FileField(
         upload_to='personal_documents/',
         validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'])],
         blank=True,
         null=True
     )
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        # One PersonalDocument row per (user, document_type) pair.
+        # The Sakr-template parser (SeafarerApplicationSerializer.update)
+        # and the /api/parse/ endpoint both feed this model — without
+        # this constraint, duplicate rows slip in whenever the parsed
+        # table has the same document type listed twice (which happens
+        # for some real Sakr CVs because the source form's travel-doc
+        # table is repeated on the same page in OCR output), and the
+        # serializer's ``update_or_create`` can be bypassed by older code
+        # paths that call ``.create()`` directly. Pair it with the
+        # input-dedup branch in the serializer and the
+        # ``dedupe_personal_documents`` management command (which
+        # repairs historical rows).
+        unique_together = [('user', 'document_type')]
+        ordering = ['document_type']
 
     def __str__(self):
         return f"{self.document_type} - {self.user.email}"

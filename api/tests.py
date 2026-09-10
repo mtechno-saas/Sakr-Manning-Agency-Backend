@@ -6305,3 +6305,408 @@ class UserAdminAttachmentEndpointTests(APITestCase):
         r = self.client.get(f"{self.url}?cv_submission={self.cv2.id}")
         self.assertEqual(r.status_code, http_status.HTTP_200_OK)
         self.assertEqual(r.data, [])
+
+
+class SeafarerApplicationTravelDocsDedupTests(TestCase):
+    """
+    /ai/parse/ used to create two PersonalDocument rows for the same
+    (user, document_type) pair whenever the Sakr source form's travel-doc
+    table was OCR'd twice (which happens for some real CVs because the
+    source form's travel-doc block is repeated on the same page in
+    OCR output). The symptom in the UI was every row in the Travel
+    Documents CRUD table on the Edit modal appearing twice.
+
+    The fix is two-layered:
+
+      1. The serializer now dedupes its parsed ``travel_documents``
+         input by the *resolved* ``document_type`` choice (last entry
+         wins) before calling ``update_or_create``.
+      2. ``PersonalDocument`` has a ``unique_together = ('user',
+         'document_type')`` constraint so any code path that bypasses
+         the dedup fails fast with ``IntegrityError`` instead of
+         silently inserting a duplicate.
+
+    These tests exercise BOTH layers.
+    """
+
+    def _make_user(self, email):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="T", middle_name="D", role="Employee",
+        )
+
+    def _payload(self, travel):
+        """Build the minimal api_payload the serializer.update() expects."""
+        return {
+            "personal_details": {},
+            "contact_details": {},
+            "travel_documents": travel,
+            "professional_qualification": [],
+            "next_of_kin": {},
+            "health_certificates": {},
+            "marine_courses": [],
+            "sea_service_details": {},
+            "references": [],
+            "declaration": {},
+            "for_office_use_only": {},
+        }
+
+    # ---- Layer 1: serializer input dedup ------------------------------
+
+    def test_two_identical_entries_for_same_choice_create_one_row(self):
+        """If the parser hands us the same row twice (OCR duplication),
+        only one PersonalDocument row should be created."""
+        from api.models import PersonalDocument
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("dedup-1@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {
+                "type": "Panama Seaman's Book",
+                "document_no": "P01020500",
+                "iss_date": "11-11-2020",
+                "exp_date": "10-11-2030",
+                "place_of_issue": "GREECE",
+            },
+            {
+                "type": "Panama Seaman's Book",
+                "document_no": "P01020500",
+                "iss_date": "11-11-2020",
+                "exp_date": "10-11-2030",
+                "place_of_issue": "GREECE",
+            },
+        ]))
+        rows = PersonalDocument.objects.filter(user=user, document_type="Panama Seaman's Book")
+        self.assertEqual(rows.count(), 1)
+
+    def test_two_entries_same_choice_different_data_last_wins(self):
+        """If two OCR'd rows disagree, the last one wins (matching the
+        existing ``update_or_create`` semantics)."""
+        from api.models import PersonalDocument
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("dedup-2@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {
+                "type": "US Visa C1/D",
+                "document_no": "FIRST",
+                "iss_date": "01-01-2024",
+                "exp_date": "01-01-2030",
+            },
+            {
+                "type": "US Visa C1/D",
+                "document_no": "SECOND",
+                "iss_date": "11-11-2025",
+                "exp_date": "11-11-2030",
+            },
+        ]))
+        rows = list(PersonalDocument.objects.filter(user=user, document_type="US Visa C1/D"))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].document_number, "SECOND")
+        self.assertEqual(str(rows[0].issue_date), "2025-11-11")
+
+    def test_mixed_doc_types_dedup_per_type(self):
+        """5 doc types with the first 4 each appearing twice should
+        produce exactly 5 rows (one per type), not 9."""
+        from api.models import PersonalDocument
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("dedup-3@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {"type": "Panama Seaman's Book", "document_no": "P01020500"},
+            {"type": "Panama Seaman's Book", "document_no": "P01020500"},
+            {"type": "Palau Seaman's Book",  "document_no": "M511515"},
+            {"type": "Palau Seaman's Book",  "document_no": "M511515"},
+            {"type": "Seaman's Book",         "document_no": "S51515"},
+            {"type": "Seaman's Book",         "document_no": "S51515"},
+            {"type": "US Visa C1/D",          "document_no": "FWFSDF"},
+            {"type": "US Visa C1/D",          "document_no": "FWFSDF"},
+            {"type": "Schengen Visa",         "document_no": "SDGVSD625"},
+        ]))
+        self.assertEqual(PersonalDocument.objects.filter(user=user).count(), 5)
+
+    def test_case_insensitive_dedup(self):
+        """A row that resolves to the same choice (case-insensitive) is
+        still deduped, even when the OCR text varies in capitalization.
+        The exact-match logic uses ``choice.lower() == t_type.lower()``
+        so whitespace variations are NOT collapsed (the OCR layer
+        should normalize whitespace first)."""
+        from api.models import PersonalDocument
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("dedup-4@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {"type": "US Visa C1/D",          "document_no": "A"},
+            {"type": "us visa c1/d",          "document_no": "B"},
+            {"type": "US Visa c1/d",          "document_no": "C"},
+        ]))
+        rows = list(PersonalDocument.objects.filter(user=user, document_type="US Visa C1/D"))
+        self.assertEqual(len(rows), 1)
+        # Last entry that resolves to "US Visa C1/D" wins
+        self.assertEqual(rows[0].document_number, "C")
+
+    def test_passport_branches_are_not_affected_by_dedup(self):
+        """Passport / seaman-book / other-seaman-book still set the
+        user-level scalar fields; the dedup only applies to the
+        PersonalDocument branch.
+
+        Note: 'Seaman's Book' (with apostrophe) does NOT match the
+        'seaman book' substring check in the current code (because of
+        the apostrophe), so it falls through to the PersonalDocument
+        branch. That's pre-existing behavior — the legacy
+        ``seaman_book_no`` field is reserved for the generic
+        'Seaman Book' (no apostrophe) type. We use a non-apostrophe
+        type here to exercise the seaman-book scalar path."""
+        from api.models import PersonalDocument
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("dedup-5@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {"type": "Passport",       "document_no": "P1", "iss_date": "01-01-2020", "exp_date": "01-01-2030"},
+            {"type": "Passport",       "document_no": "P2", "iss_date": "01-01-2024", "exp_date": "01-01-2034"},
+            {"type": "Seaman Book",    "document_no": "S1"},
+            {"type": "Seaman Book",    "document_no": "S2"},
+        ]))
+        # Last passport wins (existing behavior)
+        self.assertEqual(user.passport_no, "P2")
+        # Last seaman book wins (existing behavior)
+        self.assertEqual(user.seaman_book_no, "S2")
+
+    # ---- Layer 2: DB-level unique_together safety net ----------------
+
+    def test_unique_together_blocks_direct_duplicate_create(self):
+        """Even if some future code path bypasses the serializer
+        dedup, the ``unique_together = ('user', 'document_type')``
+        constraint must hard-fail the duplicate insert."""
+        from api.models import PersonalDocument
+        from django.db import IntegrityError, transaction
+
+        user = self._make_user("dedup-6@example.com")
+        PersonalDocument.objects.create(
+            user=user, document_type="US Visa C1/D", document_number="A",
+        )
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                PersonalDocument.objects.create(
+                    user=user, document_type="US Visa C1/D", document_number="B",
+                )
+
+    def test_unique_together_does_not_block_different_users(self):
+        """Two users each having the same document_type is fine
+        (constraint is per-user, not global)."""
+        from api.models import PersonalDocument
+
+        u1 = self._make_user("dedup-7a@example.com")
+        u2 = self._make_user("dedup-7b@example.com")
+        PersonalDocument.objects.create(user=u1, document_type="US Visa C1/D")
+        PersonalDocument.objects.create(user=u2, document_type="US Visa C1/D")
+        self.assertEqual(
+            PersonalDocument.objects.filter(document_type="US Visa C1/D").count(),
+            2,
+        )
+
+    def test_unique_together_does_not_block_different_types(self):
+        """Same user with two DIFFERENT document_types is fine."""
+        from api.models import PersonalDocument
+
+        user = self._make_user("dedup-8@example.com")
+        PersonalDocument.objects.create(user=user, document_type="US Visa C1/D")
+        PersonalDocument.objects.create(user=user, document_type="Schengen Visa")
+        self.assertEqual(PersonalDocument.objects.filter(user=user).count(), 2)
+
+
+class DedupePersonalDocumentsCommandTests(TestCase):
+    """
+    Management command ``dedupe_personal_documents`` keeps the best row
+    in each duplicate (user, document_type) group and deletes the rest.
+    The "best" row is the one with the most recent ``updated_at`` and
+    the most populated fields. ``--dry-run`` is non-destructive;
+    ``--user`` restricts scope; ``--report`` writes a human-readable
+    log.
+    """
+
+    # The whole point of these tests is to set up *duplicate* data and
+    # then run the cleanup command. Migration 0073 added a
+    # unique_together on (user, document_type) which blocks that
+    # setup. We drop the unique index for the duration of this class
+    # and re-add it in tearDownClass so the production schema is
+    # preserved for the rest of the test run. This is a SQLite-only
+    # trick; on Postgres you'd use ``ALTER TABLE ... DROP
+    # CONSTRAINT`` and recreate it. Tests run against SQLite by
+    # default, so this is enough.
+    _UNIQUE_INDEX_NAME = (
+        "api_personaldocument_user_id_document_type_ee0aa82e_uniq"
+    )
+    _UNIQUE_INDEX_SQL = (
+        "CREATE UNIQUE INDEX "
+        f"{_UNIQUE_INDEX_NAME} "
+        "ON api_personaldocument (user_id, document_type)"
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        from django.db import connection
+        super().setUpClass()
+        with connection.cursor() as cur:
+            cur.execute(f"DROP INDEX IF EXISTS {cls._UNIQUE_INDEX_NAME}")
+
+    @classmethod
+    def tearDownClass(cls):
+        from django.db import connection
+        with connection.cursor() as cur:
+            cur.execute(cls._UNIQUE_INDEX_SQL)
+        super().tearDownClass()
+
+    def _make_user(self, email):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="T", middle_name="C", role="Employee",
+        )
+
+    def _make_row(self, user, doc_type, **kwargs):
+        from api.models import PersonalDocument
+        return PersonalDocument.objects.create(
+            user=user, document_type=doc_type, **kwargs,
+        )
+
+    def _make_dup_row_raw(self, user, doc_type, **kwargs):
+        """Insert a duplicate (user, document_type) row by raw SQL.
+
+        The model has a ``unique_together = ('user', 'document_type')``
+        constraint (migration 0073). These tests exercise the cleanup
+        command on historical duplicate data — the kind that existed
+        BEFORE the constraint was added. The class-level setUpClass
+        hook drops the unique index for the whole class, so a raw
+        INSERT here can write the duplicate row. The index is
+        re-created in tearDownClass.
+        """
+        from django.db import connection
+        from api.models import PersonalDocument
+        fields = {
+            "user_id": user.id,
+            "document_type": doc_type,
+            "document_number": kwargs.get("document_number", ""),
+            "issue_date": kwargs.get("issue_date"),
+            "expiry_date": kwargs.get("expiry_date"),
+            "issuing_country": kwargs.get("issuing_country", ""),
+            "issued_by": kwargs.get("issued_by", ""),
+            "place_of_issue": kwargs.get("place_of_issue", ""),
+        }
+        cols = ", ".join(fields.keys())
+        placeholders = ", ".join(["%s"] * len(fields))
+        from django.utils import timezone
+        now = timezone.now()
+        full_cols = cols + ", created_at, updated_at"
+        full_placeholders = placeholders + ", %s, %s"
+        values = list(fields.values()) + [now, now]
+        with connection.cursor() as cur:
+            cur.execute(
+                f"INSERT INTO api_personaldocument ({full_cols}) "
+                f"VALUES ({full_placeholders})",
+                values,
+            )
+            new_id = cur.lastrowid
+        return PersonalDocument.objects.get(id=new_id)
+
+    def test_dry_run_does_not_write(self):
+        from api.models import PersonalDocument
+        from django.core.management import call_command
+        from io import StringIO
+
+        user = self._make_user("cmd-dryrun@example.com")
+        self._make_row(user, "US Visa C1/D", document_number="OLD")
+        # Second row is created via raw SQL because the unique_together
+        # constraint (migration 0073) blocks the .create() path.
+        self._make_dup_row_raw(user, "US Visa C1/D", document_number="NEW")
+
+        out = StringIO()
+        call_command("dedupe_personal_documents", "--dry-run", stdout=out)
+        # Still 2 rows after dry-run
+        self.assertEqual(
+            PersonalDocument.objects.filter(user=user).count(), 2
+        )
+        # The output mentions the duplicate
+        self.assertIn("US Visa C1/D", out.getvalue())
+
+    def test_deletes_duplicate_keeps_best(self):
+        from api.models import PersonalDocument
+        from django.core.management import call_command
+        import datetime
+        from django.utils import timezone
+
+        user = self._make_user("cmd-apply@example.com")
+        old = self._make_row(user, "US Visa C1/D", document_number="OLD")
+        new = self._make_dup_row_raw(
+            user, "US Visa C1/D", document_number="NEW"
+        )
+        # Make 'new' more recently updated
+        PersonalDocument.objects.filter(id=new.id).update(
+            updated_at=timezone.now() + datetime.timedelta(hours=1),
+        )
+
+        call_command("dedupe_personal_documents")
+        rows = list(PersonalDocument.objects.filter(user=user))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].id, new.id)
+        self.assertEqual(rows[0].document_number, "NEW")
+
+    def test_user_filter_restricts_scope(self):
+        from api.models import PersonalDocument
+        from django.core.management import call_command
+
+        u1 = self._make_user("cmd-scope-1@example.com")
+        u2 = self._make_user("cmd-scope-2@example.com")
+        self._make_row(u1, "US Visa C1/D", document_number="A")
+        self._make_dup_row_raw(u1, "US Visa C1/D", document_number="B")
+        self._make_row(u2, "US Visa C1/D", document_number="C")
+        self._make_dup_row_raw(u2, "US Visa C1/D", document_number="D")
+
+        call_command("dedupe_personal_documents", "--user", str(u1.id))
+        # u1 deduped
+        self.assertEqual(PersonalDocument.objects.filter(user=u1).count(), 1)
+        # u2 untouched
+        self.assertEqual(PersonalDocument.objects.filter(user=u2).count(), 2)
+
+    def test_report_path_is_written(self):
+        import os
+        import tempfile
+        from api.models import PersonalDocument
+        from django.core.management import call_command
+
+        user = self._make_user("cmd-report@example.com")
+        self._make_row(user, "US Visa C1/D", document_number="A")
+        self._make_dup_row_raw(user, "US Visa C1/D", document_number="B")
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as tmp:
+            path = tmp.name
+        try:
+            call_command(
+                "dedupe_personal_documents",
+                "--report", path,
+            )
+            with open(path, "r", encoding="utf-8") as fh:
+                content = fh.read()
+            self.assertIn("Total duplicate groups:", content)
+            self.assertIn("US Visa C1/D", content)
+        finally:
+            os.remove(path)
+
+    def test_no_duplicates_no_op(self):
+        """If there's nothing to dedupe, the command runs cleanly and
+        reports 0."""
+        from api.models import PersonalDocument
+        from django.core.management import call_command
+        from io import StringIO
+
+        user = self._make_user("cmd-nodup@example.com")
+        self._make_row(user, "US Visa C1/D", document_number="A")
+
+        out = StringIO()
+        call_command("dedupe_personal_documents", stdout=out)
+        self.assertIn("Total duplicate (user, type) groups: 0", out.getvalue())
+        self.assertEqual(PersonalDocument.objects.filter(user=user).count(), 1)
+

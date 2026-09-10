@@ -200,6 +200,21 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
 
         # 4. Travel Documents
         travel = validated_data.get('travel_documents', [])
+        # The Sakr source form's travel-doc table is sometimes emitted
+        # twice by OCR (e.g. when the same row appears on the same page
+        # in both the original layout and a repeated footer block), so
+        # the parser hands us 2+ entries for the same document type.
+        # Build a per-user, per-type dict up-front — last entry wins,
+        # matching the existing ``update_or_create`` semantics. The
+        # PersonalDocument model also has a ``unique_together`` on
+        # (user, document_type) so any path that bypasses this dedup
+        # and tries to create a second row will hard-fail at the DB.
+        # The passport / seaman-book / other-seaman-book branches are
+        # NOT deduped here because they target user-level scalar fields
+        # (instance.passport_no, etc.) where the existing
+        # ``t.get(..., instance.<field>)`` fallback already gives
+        # last-wins behavior.
+        travel_by_dedup_key: dict[str, dict] = {}
         for t in travel:
             t_type = t.get('type', '')
             if not t_type:
@@ -230,20 +245,28 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                     if choice_val.lower() == t_type.lower():
                         matching_choice = choice_val
                         break
-                
+
                 if matching_choice:
-                    PersonalDocument.objects.update_or_create(
-                        user=instance,
-                        document_type=matching_choice,
-                        defaults={
-                            'document_number': t.get('document_no'),
-                            'issue_date': self._parse_date(t.get('iss_date')),
-                            'expiry_date': self._parse_date(t.get('exp_date')),
-                            'issued_by': t.get('iss_by_authority'),
-                            'place_of_issue': t.get('place_of_issue'),
-                            'issuing_country': t.get('issuing_country', '')
-                        }
-                    )
+                    # Dedup on the resolved model choice (NOT the raw
+                    # t_type — that's case-inconsistent across CVs and
+                    # would defeat the dedup). When two entries map to
+                    # the same choice, the later entry wins (it carries
+                    # the most recent OCR'd values).
+                    travel_by_dedup_key[matching_choice] = t
+
+        for matching_choice, t in travel_by_dedup_key.items():
+            PersonalDocument.objects.update_or_create(
+                user=instance,
+                document_type=matching_choice,
+                defaults={
+                    'document_number': t.get('document_no'),
+                    'issue_date': self._parse_date(t.get('iss_date')),
+                    'expiry_date': self._parse_date(t.get('exp_date')),
+                    'issued_by': t.get('iss_by_authority'),
+                    'place_of_issue': t.get('place_of_issue'),
+                    'issuing_country': t.get('issuing_country', ''),
+                }
+            )
 
         # 5. Professional Qualification
         prof = validated_data.get('professional_qualification', [])
