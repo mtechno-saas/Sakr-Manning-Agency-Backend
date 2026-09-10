@@ -963,7 +963,21 @@ class SeaService(models.Model):
         return f"Sea service for {self.user.email} on {self.vessel_name}"
 
     class Meta:
-        ordering = ['-signed_on']
+        # Default ordering: signed_on ASC (oldest first), then id ASC
+        # as a stable tiebreaker. A seafarer's career reads naturally
+        # chronologically from their earliest vessel to the most
+        # recent one — descending order (newest-first) made the
+        # timeline read bottom-to-top, which the form-side UI kept
+        # reporting as "not automatically arranged". The viewset
+        # queryset (SeaServiceViewSet) does not override this, so
+        # every endpoint that returns sea service rows picks up
+        # the change automatically.
+        #
+        # ``id`` is the secondary key so the order is deterministic
+        # even when two records share a signed_on date (e.g. crew
+        # changes that happen on the same day across multiple
+        # vessels during a yard stay).
+        ordering = ['signed_on', 'id']
 
 
 class BlacklistRecord(models.Model):

@@ -6710,3 +6710,97 @@ class DedupePersonalDocumentsCommandTests(TestCase):
         self.assertIn("Total duplicate (user, type) groups: 0", out.getvalue())
         self.assertEqual(PersonalDocument.objects.filter(user=user).count(), 1)
 
+
+
+class SeaServiceOrderingTests(TestCase):
+    """
+    SeaService.Meta.ordering was changed from ``['-signed_on']``
+    (newest first) to ``['signed_on', 'id']`` (oldest first, with
+    id as a stable tiebreaker) so the seafarer's career reads
+    chronologically â€” the same way the form-side UI was already
+    expecting ("automatically arranged as of the signed on date").
+
+    These tests pin the ordering so a future refactor can't silently
+    flip it back to descending.
+    """
+
+    def _make_user(self, email):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="T", middle_name="S", role="Employee",
+        )
+
+    def _make_service(self, user, signed_on, **kwargs):
+        from api.models import SeaService
+        return SeaService.objects.create(
+            user=user, signed_on=signed_on, **kwargs,
+        )
+
+    def test_default_ordering_is_signed_on_ascending(self):
+        """Reading the model declaration directly is the cheapest
+        way to make sure the field order is what the production UI
+        expects."""
+        from api.models import SeaService
+        self.assertEqual(list(SeaService._meta.ordering), ["signed_on", "id"])
+
+    def test_queryset_returns_oldest_first(self):
+        from datetime import date
+        user = self._make_user("order1@seaservice.test")
+        # Insert in REVERSE chronological order so we can confirm
+        # the queryset is sorting, not just preserving insertion.
+        self._make_service(user, date(2025, 6, 1), vessel_name="Recent")
+        self._make_service(user, date(2020, 1, 1), vessel_name="Oldest")
+        self._make_service(user, date(2022, 3, 15), vessel_name="Middle")
+        # Default queryset â€” what every endpoint that does
+        # ``SeaService.objects.filter(...)`` will see.
+        names = list(
+            user.sea_services.values_list("vessel_name", flat=True)
+        )
+        self.assertEqual(names, ["Oldest", "Middle", "Recent"])
+
+    def test_viewset_queryset_uses_default_ordering(self):
+        from datetime import date
+        from api.models import SeaService
+        user = self._make_user("order2@seaservice.test")
+        self._make_service(user, date(2025, 6, 1), vessel_name="Recent")
+        self._make_service(user, date(2020, 1, 1), vessel_name="Oldest")
+        # The viewset (SeaServiceViewSet) just calls
+        # ``SeaService.objects.filter(user_id=...)`` without
+        # overriding order_by, so it inherits the model's ordering.
+        # Simulate that by reading the model default.
+        self.assertEqual(
+            list(
+                SeaService.objects.filter(user_id=user.id)
+                .values_list("vessel_name", flat=True)
+            ),
+            ["Oldest", "Recent"],
+        )
+
+    def test_id_breaks_ties_when_signed_on_matches(self):
+        """Two records with the same signed_on date should still
+        come back in a stable order (id ASC)."""
+        from datetime import date
+        user = self._make_user("tie@seaservice.test")
+        a = self._make_service(user, date(2024, 3, 1), vessel_name="EarlierId")
+        b = self._make_service(user, date(2024, 3, 1), vessel_name="LaterId")
+        # Default ordering â€” id is the tiebreaker, so the lower id
+        # (created first) comes first.
+        names = list(
+            user.sea_services.values_list("vessel_name", flat=True)
+        )
+        self.assertEqual(names, ["EarlierId", "LaterId"])
+        self.assertLess(a.id, b.id)
+
+    def test_records_with_null_signed_on_dont_break_ordering(self):
+        """Records with signed_on IS NULL should sort without
+        crashing. SQLite puts NULLs first, but the point of this
+        test is that the queryset executes and returns all rows
+        (none are dropped or cause a TypeError)."""
+        from datetime import date
+        user = self._make_user("null@seaservice.test")
+        self._make_service(user, None, vessel_name="NoDate")
+        self._make_service(user, date(2020, 1, 1), vessel_name="HasDate")
+        # No exception, all rows come back.
+        self.assertEqual(user.sea_services.count(), 2)
+
