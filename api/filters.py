@@ -520,6 +520,37 @@ class IncidentReportFilter(django_filters.FilterSet):
     severity = django_filters.CharFilter(field_name="severity", lookup_expr="iexact")
     is_closed = django_filters.BooleanFilter(field_name="is_closed")
 
+# ---------------------------------------------------------------------------
+# Frontend-compatibility alias map for ship_type filter values.
+#
+# The frontend renders VesselType filter checkboxes using labels that DON'T
+# always match the exact `name` stored in the DB. Example: the frontend
+# shows "Container Vessels", but the DB has two rows — "Container Ship"
+# (id 14) and "Container Ships" (id 1) — with ships split between them.
+# When the frontend sends `?ship_type=Container+Vessels` against an exact
+# name lookup, the result is zero.
+#
+# This alias map lets the frontend keep its current labels while the
+# backend expands them to the actual DB names. Keys are matched
+# case-insensitively. Values are the list of DB names the key should
+# expand to.
+#
+# NOTE: this is a TEMPORARY compatibility layer. The proper long-term fix
+# is for the frontend to fetch the live VesselType list and render
+# checkboxes from `name` (no aliases needed). When the frontend is
+# updated, this map can be deleted.
+# ---------------------------------------------------------------------------
+_SHIP_TYPE_ALIASES = {
+    "container vessels": ["Container Ship", "Container Ships"],
+    "bulk carriers": ["Bulk Carrier", "Bulk Carriers"],
+    "tankers": ["Tanker", "Tankers"],
+    "ro-ro vessels": ["Ro-Ro Ship", "Ro-Ro Ships", "RORO SHIP"],
+    "passenger vessels": ["Passenger Ship", "Passenger Ships"],
+    # Add more aliases here as the frontend surfaces new labels that don't
+    # exactly match a DB name.
+}
+
+
 class ShipFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="ship_name", lookup_expr="icontains")
     imo_number = django_filters.CharFilter(field_name="imo_number", lookup_expr="icontains")
@@ -556,6 +587,25 @@ class ShipFilter(django_filters.FilterSet):
                     cleaned.append(piece)
         return cleaned
 
+    @classmethod
+    def expand_ship_type_aliases(cls, values):
+        """
+        Expand a list of frontend ship_type labels into the DB names they
+        stand for. Values that don't match an alias pass through unchanged
+        (so direct DB-name lookups still work).
+
+        Exposed at class level so other code (tests, admin tools) can
+        inspect / reuse the alias map without instantiating a FilterSet.
+        """
+        expanded = []
+        for v in values:
+            alias = _SHIP_TYPE_ALIASES.get(v.lower())
+            if alias:
+                expanded.extend(alias)
+            else:
+                expanded.append(v)
+        return expanded
+
     def filter_flag(self, queryset, name, value):
         cleaned = self._split_values("flag")
         if not cleaned:
@@ -566,7 +616,8 @@ class ShipFilter(django_filters.FilterSet):
         cleaned = self._split_values("ship_type")
         if not cleaned:
             return queryset
-        return queryset.filter(ship_type__name__in=cleaned).distinct()
+        expanded = self.expand_ship_type_aliases(cleaned)
+        return queryset.filter(ship_type__name__in=expanded).distinct()
 
     def filter_company(self, queryset, name, value):
         """

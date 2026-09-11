@@ -289,3 +289,108 @@ class ShipFilterByShipTypeTests(TestCase):
         ids = self._ids()
         for s in (self.ship_passenger, self.ship_container, self.ship_tanker):
             self.assertIn(s.id, ids)
+
+
+class ShipTypeFrontendAliasTests(TestCase):
+    """
+    Frontend sends filter labels that don't exactly match the DB name
+    (e.g. "Container Vessels" vs DB "Container Ship"/"Container Ships").
+    The alias map in api/filters.py expands those labels so the filter
+    returns the right rows without requiring a frontend change.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from core.models import VesselType, Flag
+        from ships.models import Ship
+
+        # Real DB shape: each concept has both a singular and a plural row.
+        cls.container_singular, _ = VesselType.objects.get_or_create(name="Container Ship")
+        cls.container_plural, _ = VesselType.objects.get_or_create(name="Container Ships")
+        cls.passenger_singular, _ = VesselType.objects.get_or_create(name="Passenger Ship")
+        cls.passenger_plural, _ = VesselType.objects.get_or_create(name="Passenger Ships")
+        cls.tanker_singular, _ = VesselType.objects.get_or_create(name="Tanker")
+        cls.tanker_plural, _ = VesselType.objects.get_or_create(name="Tankers")
+
+        cls.flag, _ = Flag.objects.get_or_create(name="Egypt")
+
+        cls.ship_container_s = Ship.objects.create(
+            ship_name="MV Container Singular",
+            imo_number="9000001",
+            ship_type=cls.container_singular,
+            flag=cls.flag,
+        )
+        cls.ship_container_p = Ship.objects.create(
+            ship_name="MV Container Plural",
+            imo_number="9000002",
+            ship_type=cls.container_plural,
+            flag=cls.flag,
+        )
+        cls.ship_passenger_p = Ship.objects.create(
+            ship_name="MV Passenger Plural",
+            imo_number="9000003",
+            ship_type=cls.passenger_plural,
+            flag=cls.flag,
+        )
+
+    def test_unit_alias_map_expands_plural_label_to_both_variants(self):
+        """Unit test: the class method returns both DB names for the alias."""
+        from api.filters import ShipFilter
+        out = ShipFilter.expand_ship_type_aliases(["Container Vessels"])
+        self.assertEqual(out, ["Container Ship", "Container Ships"])
+
+    def test_unit_alias_map_is_case_insensitive(self):
+        from api.filters import ShipFilter
+        out = ShipFilter.expand_ship_type_aliases(["container VESSELS"])
+        self.assertEqual(out, ["Container Ship", "Container Ships"])
+
+    def test_unit_alias_map_passes_through_unknown_values(self):
+        """Unknown labels are kept verbatim — direct DB lookups still work."""
+        from api.filters import ShipFilter
+        out = ShipFilter.expand_ship_type_aliases(["VLCC", "Container Vessels"])
+        self.assertIn("VLCC", out)
+        self.assertIn("Container Ship", out)
+        self.assertIn("Container Ships", out)
+
+    def test_e2e_container_vessels_alias_returns_both_ships(self):
+        """The original bug: ?ship_type=Container+Vessels must return both ships."""
+        ids = self._ids("ship_type=Container+Vessels")
+        self.assertIn(self.ship_container_s.id, ids)
+        self.assertIn(self.ship_container_p.id, ids)
+
+    def test_e2e_passenger_vessels_alias_returns_plural_ship(self):
+        """?ship_type=Passenger+Vessels matches the DB's "Passenger Ships" rows."""
+        ids = self._ids("ship_type=Passenger+Vessels")
+        self.assertIn(self.ship_passenger_p.id, ids)
+
+    def test_e2e_combined_aliases_union(self):
+        """Both alias labels in one request → union across all expanded DB names."""
+        ids = self._ids(
+            "ship_type=Container+Vessels&ship_type=Passenger+Vessels"
+        )
+        self.assertIn(self.ship_container_s.id, ids)
+        self.assertIn(self.ship_container_p.id, ids)
+        self.assertIn(self.ship_passenger_p.id, ids)
+
+    def test_e2e_direct_db_name_still_works(self):
+        """Frontend can also send the exact DB name directly; the filter still matches."""
+        ids = self._ids("ship_type=Container+Ship")
+        self.assertIn(self.ship_container_s.id, ids)
+        self.assertNotIn(self.ship_container_p.id, ids)
+
+    def _ids(self, query=""):
+        from rest_framework.test import APIClient
+        from api.models import Users
+        if not hasattr(self, "client"):
+            self.user = Users.objects.create_user(
+                email="ship_alias_tester@example.com",
+                password="x",
+                first_name="Tester",
+            )
+            self.client = APIClient()
+            self.client.force_authenticate(user=self.user)
+        resp = self.client.get(f"/api/ships/?{query}" if query else "/api/ships/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
