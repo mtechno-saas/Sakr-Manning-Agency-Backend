@@ -11,12 +11,33 @@ from rest_framework import serializers
 from .models import Ship
 # Import the Users model
 from api.models import Users
+from core.models import VesselType
 
 # A simple serializer to represent a user in the crew list
 class CrewMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = ['id', 'first_name', 'middle_name', 'email']
+
+
+class ShipTypeNameField(serializers.PrimaryKeyRelatedField):
+    """
+    Like a PrimaryKeyRelatedField, but on read it returns the related
+    VesselType's `name` string instead of the integer PK.
+
+    Writes still accept either an integer ID or a string name (the serializer's
+    `to_internal_value` converts string names to IDs before this field sees them).
+    """
+    def use_pk_only_optimization(self):
+        # Force DRF to fetch the full VesselType row (so we have access to `.name`)
+        # instead of the PK-only stub it would normally pass to `to_representation`.
+        return False
+
+    def to_representation(self, value):
+        # value is a VesselType instance; return its name.
+        if value is None:
+            return None
+        return value.name
 
 
 class ShipSerializer(serializers.ModelSerializer):
@@ -33,8 +54,17 @@ class ShipSerializer(serializers.ModelSerializer):
     )
 
     # Expose the string names for ForeignKeys so the frontend doesn't just get IDs (like 105)
-    flag_name = serializers.CharField(source='flag.name', read_only=True)
-    ship_type_name = serializers.CharField(source='ship_type.name', read_only=True)
+    # `ship_type` itself returns the VesselType.name string on read (was: the integer ID).
+    # `ship_type_name` is kept as an alias for backwards compatibility.
+    ship_type = ShipTypeNameField(queryset=VesselType.objects.all(), required=False, allow_null=True)
+    ship_type_name = serializers.SerializerMethodField()
+    flag_name = serializers.SerializerMethodField()
+
+    def get_ship_type_name(self, obj):
+        return obj.ship_type.name if obj.ship_type_id else None
+
+    def get_flag_name(self, obj):
+        return obj.flag.name if obj.flag_id else None
     
     # Expose related Job Orders and their positions
     job_orders = serializers.SerializerMethodField()
