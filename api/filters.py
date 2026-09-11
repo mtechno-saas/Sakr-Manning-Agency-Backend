@@ -525,12 +525,48 @@ class ShipFilter(django_filters.FilterSet):
     imo_number = django_filters.CharFilter(field_name="imo_number", lookup_expr="icontains")
     company = django_filters.CharFilter(method="filter_company")
     status = django_filters.AllValuesMultipleFilter(field_name="status")
-    flag = CharInFilter(field_name="flag__name", lookup_expr="in")
-    ship_type = CharInFilter(field_name="ship_type__name", lookup_expr="in")
+    # `flag` and `ship_type` are ForeignKeys to Flag/VesselType; filter on the
+    # related `name` (the string the API exposes), not the FK ID.
+    # CharInFilter only splits a single comma-separated value — it does NOT
+    # respect repeated query params (BaseInFilter reads through a CharField
+    # form field that returns the LAST value). Use a method-based filter
+    # that calls request.GET.getlist() so ?ship_type=A&ship_type=B returns
+    # the union, not just B.
+    flag = django_filters.CharFilter(method="filter_flag")
+    ship_type = django_filters.CharFilter(method="filter_ship_type")
 
     class Meta:
         model = Ship
         fields = ["name", "imo_number", "company", "status", "flag", "ship_type"]
+
+    def _split_values(self, param_name):
+        """
+        Read repeated (?key=A&key=B) and/or comma-separated (?key=A,B)
+        values from the query string. Returns an empty list if the param
+        is absent, or a list of stripped non-empty strings otherwise.
+        """
+        raw = self.request.GET.getlist(param_name)
+        cleaned = []
+        for v in raw:
+            if v is None:
+                continue
+            for piece in str(v).split(","):
+                piece = piece.strip()
+                if piece:
+                    cleaned.append(piece)
+        return cleaned
+
+    def filter_flag(self, queryset, name, value):
+        cleaned = self._split_values("flag")
+        if not cleaned:
+            return queryset
+        return queryset.filter(flag__name__in=cleaned).distinct()
+
+    def filter_ship_type(self, queryset, name, value):
+        cleaned = self._split_values("ship_type")
+        if not cleaned:
+            return queryset
+        return queryset.filter(ship_type__name__in=cleaned).distinct()
 
     def filter_company(self, queryset, name, value):
         """
