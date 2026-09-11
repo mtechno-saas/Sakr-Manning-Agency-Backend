@@ -15,9 +15,13 @@ from core.models import VesselType
 
 # A simple serializer to represent a user in the crew list
 class CrewMemberSerializer(serializers.ModelSerializer):
+    # Canonical single-string display name (first + middle). See Users.full_name.
+    # The frontend should prefer this over concatenating first_name/middle_name.
+    full_name = serializers.CharField(read_only=True)
+
     class Meta:
         model = Users
-        fields = ['id', 'first_name', 'middle_name', 'email']
+        fields = ['id', 'first_name', 'middle_name', 'full_name', 'email']
 
 
 class ShipTypeNameField(serializers.PrimaryKeyRelatedField):

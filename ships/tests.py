@@ -74,6 +74,64 @@ class ShipTypeAsStringTests(TestCase):
         self.assertEqual(ShipSerializer(ship).data["ship_type"], "Bulk Carrier")
 
 
+class CrewMemberFullNameTests(TestCase):
+    """
+    Regression: GET /api/ships/<id>/ must expose each crew member's
+    `full_name` (the canonical first+middle string), so the frontend
+    can render names without manually concatenating first_name+middle_name.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.vtype, _ = VesselType.objects.get_or_create(name="Cargo")
+        cls.flag, _ = Flag.objects.get_or_create(name="Egypt")
+        cls.company = Company.objects.create(company_name="Crew Co")
+        cls.ship = Ship.objects.create(
+            ship_name="MV Crew Test",
+            imo_number="7777777",
+            ship_type=cls.vtype,
+            flag=cls.flag,
+            company=cls.company,
+        )
+        cls.crew_with_middle = Users.objects.create_user(
+            email="crew_with_middle@example.com",
+            password="x",
+            first_name="Ahmed",
+            middle_name="Gomaa",
+        )
+        cls.crew_no_middle = Users.objects.create_user(
+            email="crew_no_middle@example.com",
+            password="x",
+            first_name="Mahmoud",
+        )
+        cls.ship.crew.add(cls.crew_with_middle, cls.crew_no_middle)
+
+    def test_crew_full_name_with_middle(self):
+        data = ShipSerializer(self.ship).data
+        crew_by_id = {c["id"]: c for c in data["crew"]}
+        self.assertEqual(
+            crew_by_id[self.crew_with_middle.id]["full_name"],
+            "Ahmed Gomaa",
+        )
+
+    def test_crew_full_name_without_middle(self):
+        data = ShipSerializer(self.ship).data
+        crew_by_id = {c["id"]: c for c in data["crew"]}
+        # Falls back to first_name only when middle_name is empty.
+        self.assertEqual(
+            crew_by_id[self.crew_no_middle.id]["full_name"],
+            "Mahmoud",
+        )
+
+    def test_crew_full_name_field_present(self):
+        """The crew payload must include the `full_name` key."""
+        data = ShipSerializer(self.ship).data
+        for member in data["crew"]:
+            self.assertIn("full_name", member)
+            self.assertIsInstance(member["full_name"], str)
+            self.assertGreater(len(member["full_name"]), 0)
+
+
 class ShipTypeNameFieldUnitTests(TestCase):
     """Direct unit tests for the ShipTypeNameField class."""
 
