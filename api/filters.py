@@ -413,6 +413,12 @@ class UsersFilter(django_filters.FilterSet):
 
 
 class CompanyFilter(django_filters.FilterSet):
+    # NOTE: this filter is dead code — the actual CompanyViewSet that serves
+    # /api/companies/ lives in companies.views and uses
+    # `companies.filters.CompanyFilter`, not this one. Kept here only because
+    # it was previously referenced from api.views (which itself is dead
+    # code). The real fix for `?company_type=` multi-value filtering lives in
+    # companies/filters.py.
     name = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
     company_type = django_filters.AllValuesMultipleFilter(field_name="company_type")
     status = django_filters.AllValuesMultipleFilter(field_name="status")

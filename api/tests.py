@@ -6804,3 +6804,111 @@ class SeaServiceOrderingTests(TestCase):
         # No exception, all rows come back.
         self.assertEqual(user.sea_services.count(), 2)
 
+
+class CompanyFilterByCompanyTypeTests(APITestCase):
+    """
+    /api/companies/?company_type=... must filter by CompanyType.name (the
+    string the API exposes), NOT by the FK ID. Previously the filter used
+    AllValuesMultipleFilter(field_name='company_type') which compared the
+    string against an integer column — multi-value filters like
+    ?company_type=A&company_type=B silently returned nothing or wrong rows.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users
+        from companies.models import Company
+        from core.models import CompanyType
+
+        cls.admin = Users.objects.create_user(
+            email="admin-companyfilter@sakrshipping.com",
+            password="adminpass",
+            first_name="CoFilter",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.shipping, _ = CompanyType.objects.get_or_create(
+            name="Shipping Manning Principals"
+        )
+        cls.cruise, _ = CompanyType.objects.get_or_create(
+            name="Cruise & Hospitality Manning Principals"
+        )
+        cls.other, _ = CompanyType.objects.get_or_create(name="Other Type")
+
+        cls.co_shipping = Company.objects.create(
+            company_name="Alpha Shipping Co",
+            company_type=cls.shipping,
+        )
+        cls.co_cruise = Company.objects.create(
+            company_name="Beta Cruise Co",
+            company_type=cls.cruise,
+        )
+        cls.co_other = Company.objects.create(
+            company_name="Gamma Other Co",
+            company_type=cls.other,
+        )
+        cls.co_no_type = Company.objects.create(
+            company_name="Delta No Type Co",
+            company_type=None,
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _list_ids(self, query=""):
+        resp = self.client.get(f"/api/companies/?{query}" if query else "/api/companies/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        # Paginated or not, depends on the viewset config; tolerate both.
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_filter_by_single_company_type_name(self):
+        ids = self._list_ids("company_type=Cruise+%26+Hospitality+Manning+Principals")
+        self.assertIn(self.co_cruise.id, ids)
+        self.assertNotIn(self.co_shipping.id, ids)
+        self.assertNotIn(self.co_other.id, ids)
+        self.assertNotIn(self.co_no_type.id, ids)
+
+    def test_filter_by_repeated_company_type_params_returns_union(self):
+        """
+        The original bug: ?company_type=A&company_type=B should match BOTH A
+        and B companies. Previously returned only 1 (and the wrong row).
+        """
+        ids = self._list_ids(
+            "company_type=Shipping+Manning+Principals"
+            "&company_type=Cruise+%26+Hospitality+Manning+Principals"
+        )
+        self.assertIn(self.co_shipping.id, ids)
+        self.assertIn(self.co_cruise.id, ids)
+        self.assertNotIn(self.co_other.id, ids)
+        self.assertNotIn(self.co_no_type.id, ids)
+
+    def test_filter_by_comma_separated_company_type(self):
+        ids = self._list_ids(
+            "company_type=Shipping+Manning+Principals%2CCruise+%26+Hospitality+Manning+Principals"
+        )
+        self.assertIn(self.co_shipping.id, ids)
+        self.assertIn(self.co_cruise.id, ids)
+        self.assertNotIn(self.co_other.id, ids)
+
+    def test_no_company_type_returns_all(self):
+        """No filter param → all companies, including None-type ones."""
+        ids = self._list_ids()
+        for co in (self.co_shipping, self.co_cruise, self.co_other, self.co_no_type):
+            self.assertIn(co.id, ids)
+
+    def test_filter_by_name_uses_company_name_field(self):
+        """
+        The Company model field is `company_name` (not `name`). The `?name=`
+        filter must search that field, not a non-existent `name` column.
+        """
+        ids = self._list_ids("name=Alpha")
+        self.assertEqual(ids, [self.co_shipping.id])
+
