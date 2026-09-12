@@ -868,6 +868,97 @@ class CompanyWebsiteFieldNoAutoPrefixTests(TestCase):
         )
 
 
+class JobPositionStatusFilterTests(TestCase):
+    """
+    /api/companies/job-positions/?status=... filters positions by their
+    parent JobOrder.status. Confirms all three STATUS_CHOICES values work:
+
+        Open         — Open / Sourcing
+        Close        — Closed
+        Full Filled  — Full Filled
+
+    Regression: previously 'Full Filled' was missing from STATUS_CHOICES
+    even though the prod DB contained rows with that status. Filtering by
+    status=Full+Filled must now return those rows.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.company = _make_company()
+        cls.ship = _make_ship(company=cls.company)
+        cls.rank_a = _make_rank(code="MAS-1", name="Master")
+        cls.rank_b = _make_rank(code="MAS-2", name="Chief Officer")
+        cls.rank_c = _make_rank(code="MAS-3", name="Able Seafarer Deck")
+
+        # Three job orders, one per status, each with one position.
+        cls.jo_open = _make_job_order(
+            cls.company, cls.ship,
+            reference="JO-OPEN-001", status="Open",
+        )
+        cls.pos_open = _make_position(cls.jo_open, cls.rank_a, quantity=2)
+
+        cls.jo_close = _make_job_order(
+            cls.company, cls.ship,
+            reference="JO-CLOSE-001", status="Close",
+        )
+        cls.pos_close = _make_position(cls.jo_close, cls.rank_b, quantity=1)
+
+        cls.jo_full = _make_job_order(
+            cls.company, cls.ship,
+            reference="JO-FULL-001", status="Full Filled",
+        )
+        cls.pos_full = _make_position(cls.jo_full, cls.rank_c, quantity=3)
+
+        cls.user = _make_user("jpflt@example.com", "Filter", "Tester")
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def _ids(self, query=""):
+        resp = self.client.get(
+            f"/api/companies/job-positions/?{query}" if query else "/api/companies/job-positions/"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_filter_open_returns_only_open_positions(self):
+        ids = self._ids("status=Open")
+        self.assertIn(self.pos_open.id, ids)
+        self.assertNotIn(self.pos_close.id, ids)
+        self.assertNotIn(self.pos_full.id, ids)
+
+    def test_filter_close_returns_only_close_positions(self):
+        ids = self._ids("status=Close")
+        self.assertIn(self.pos_close.id, ids)
+        self.assertNotIn(self.pos_open.id, ids)
+        self.assertNotIn(self.pos_full.id, ids)
+
+    def test_filter_full_filled_returns_only_full_filled_positions(self):
+        """
+        The original gap: 'Full Filled' was a real status used in the
+        prod DB but wasn't in STATUS_CHOICES. The filter must now
+        recognize it.
+        """
+        ids = self._ids("status=Full+Filled")
+        self.assertIn(self.pos_full.id, ids)
+        self.assertNotIn(self.pos_open.id, ids)
+        self.assertNotIn(self.pos_close.id, ids)
+
+    def test_filter_multiple_status_returns_union(self):
+        ids = self._ids("status=Open&status=Full+Filled")
+        self.assertIn(self.pos_open.id, ids)
+        self.assertIn(self.pos_full.id, ids)
+        self.assertNotIn(self.pos_close.id, ids)
+
+    def test_filter_no_status_returns_all(self):
+        ids = self._ids()
+        for p in (self.pos_open, self.pos_close, self.pos_full):
+            self.assertIn(p.id, ids)
+
+
 class JobOrderVacancyRollupsTests(TestCase):
     """
     Tests for the three vacancy rollup fields on JobOrderSerializer:

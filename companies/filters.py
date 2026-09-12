@@ -38,16 +38,42 @@ class JobOrderPositionFilter(django_filters.FilterSet):
     """
     Mirrors the JobOrderPositionSerializer.to_internal_value() behavior:
     - rank     can be a numeric ID OR a name (case-insensitive)
-    - status   filters on the related job_order.status
+    - status   filters on the related job_order.status (supports multiple values)
     - company  filters on the related job_order.company.company_name (or numeric ID)
     """
     rank = django_filters.CharFilter(method="filter_rank")
-    status = django_filters.CharFilter(field_name="job_order__status", lookup_expr="iexact")
+    # Use a method-based filter instead of CharFilter so that repeated
+    # ?status=A&status=B query params (and the comma-separated form) both
+    # work — CharFilter only sees the LAST value for repeated params.
+    status = django_filters.CharFilter(method="filter_status")
     company = django_filters.CharFilter(method="filter_company")
 
     class Meta:
         model = JobOrderPosition
         fields = ["rank", "status", "company"]
+
+    def _split_values(self, param_name):
+        """
+        Read repeated (?key=A&key=B) and/or comma-separated (?key=A,B)
+        values from the query string. Returns an empty list if the param
+        is absent, or a list of stripped non-empty strings otherwise.
+        """
+        raw = self.request.GET.getlist(param_name)
+        cleaned = []
+        for v in raw:
+            if v is None:
+                continue
+            for piece in str(v).split(","):
+                piece = piece.strip()
+                if piece:
+                    cleaned.append(piece)
+        return cleaned
+
+    def filter_status(self, queryset, name, value):
+        cleaned = self._split_values("status")
+        if not cleaned:
+            return queryset
+        return queryset.filter(job_order__status__in=cleaned).distinct()
 
     def filter_rank(self, queryset, name, value):
         if not value:
