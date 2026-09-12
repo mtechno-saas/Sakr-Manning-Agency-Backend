@@ -6912,3 +6912,145 @@ class CompanyFilterByCompanyTypeTests(APITestCase):
         ids = self._list_ids("name=Alpha")
         self.assertEqual(ids, [self.co_shipping.id])
 
+
+class ContractFilterStatusChoicesTests(APITestCase):
+    """
+    Regression: GET /api/contracts/?status=Signed previously returned
+    "Select a valid choice. Signed is not one of the available choices."
+    because AllValuesMultipleFilter populated its choices from the DB,
+    and the prod DB happened to have zero Signed contracts — so 'Signed'
+    wasn't in the choices list, even though it IS in Contract.CONTRACT_STATUS.
+
+    The new filter uses MultipleChoiceFilter with explicit choices=
+    Contract.CONTRACT_STATUS, so every enum value is accepted (returning
+    an empty list when no rows match) and only true typos are rejected
+    with a 400. Also exercises multi-value union (repeated params).
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users, Contract
+        from companies.models import Company, JobOrder, JobOrderPosition
+        from core.models import Flag
+        from api.models import Rank
+
+        cls.admin = Users.objects.create_user(
+            email="admin-contractfilter@example.com",
+            password="adminpass",
+            first_name="CoFlt",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.user = Users.objects.create_user(
+            email="seafarer-contractfilter@example.com",
+            password="x",
+            first_name="Ahmed",
+            middle_name="Gomaa",
+        )
+        cls.company = Company.objects.create(company_name="Test Co")
+        cls.flag, _ = Flag.objects.get_or_create(name="Egypt")
+        from ships.models import Ship
+        cls.ship = Ship.objects.create(
+            ship_name="MV Filter Test",
+            imo_number="4444444",
+            company=cls.company,
+        )
+        cls.rank = Rank.objects.create(code="MAS-1", name="Master")
+
+        # Two contracts in different statuses. NO 'Signed' contract.
+        from datetime import date
+        cls.jo = JobOrder.objects.create(
+            company=cls.company,
+            ship=cls.ship,
+            reference_number="JO-FLT-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+        )
+        cls.pos = JobOrderPosition.objects.create(
+            job_order=cls.jo,
+            rank=cls.rank,
+            quantity=1,
+        )
+        cls.c_pending_sig = Contract.objects.create(
+            user=cls.user,
+            ship=cls.ship,
+            company=cls.company,
+            rank=cls.rank,
+            job_position=cls.pos,
+            sign_on_date=date.today(),
+            sign_off_date=date.today(),
+            status="Pending Signature",
+        )
+        cls.c_active = Contract.objects.create(
+            user=cls.user,
+            ship=cls.ship,
+            company=cls.company,
+            rank=cls.rank,
+            job_position=cls.pos,
+            sign_on_date=date.today(),
+            sign_off_date=date.today(),
+            status="Active",
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _list(self, query=""):
+        resp = self.client.get(f"/api/contracts/?{query}" if query else "/api/contracts/")
+        return resp
+
+    def test_status_enum_value_with_zero_rows_returns_empty_list_not_400(self):
+        """
+        The original bug: ?status=Signed returned 400 because no Signed
+        contracts existed in the DB. Now it should return an empty list
+        (200) because 'Signed' is a valid enum value.
+        """
+        resp = self._list("status=Signed")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        self.assertEqual(results, [])
+
+    def test_status_enum_value_with_matching_rows_returns_them(self):
+        resp = self._list("status=Pending+Signature")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        ids = [r["id"] for r in results]
+        self.assertIn(self.c_pending_sig.id, ids)
+        self.assertNotIn(self.c_active.id, ids)
+
+    def test_status_unknown_value_still_returns_400(self):
+        """True typos should still be rejected — that's useful feedback."""
+        resp = self._list("status=Signe")  # typo
+        self.assertEqual(resp.status_code, 400, resp.content)
+        body = resp.json()
+        self.assertIn("status", body)
+        # Error message should mention the invalid value
+        self.assertIn("Signe", str(body["status"]))
+
+    def test_status_repeated_params_returns_union(self):
+        """MultipleChoiceFilter natively handles ?status=A&status=B union."""
+        resp = self._list("status=Pending+Signature&status=Active")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        ids = [r["id"] for r in results]
+        self.assertIn(self.c_pending_sig.id, ids)
+        self.assertIn(self.c_active.id, ids)
+
+    def test_status_no_filter_returns_all(self):
+        resp = self._list()
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        ids = [r["id"] for r in results]
+        for c in (self.c_pending_sig, self.c_active):
+            self.assertIn(c.id, ids)
+

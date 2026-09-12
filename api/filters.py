@@ -677,7 +677,17 @@ class ContractFilter(django_filters.FilterSet):
     ship = django_filters.CharFilter(method="filter_ship")
     company = django_filters.CharFilter(method="filter_company_id")
     rank = django_filters.CharFilter(method="filter_rank_id")
-    status = django_filters.AllValuesMultipleFilter(field_name="status")
+    # Use MultipleChoiceFilter with explicit enum choices instead of
+    # AllValuesMultipleFilter, which populated its choices from the DB
+    # and rejected enum values that happened to have zero rows in prod
+    # (e.g. ?status=Signed returned 400 instead of an empty list when
+    # no Signed contracts existed). MultipleChoiceFilter also natively
+    # handles repeated query params (?status=A&status=B) and returns
+    # the union via MultipleChoiceField.
+    status = django_filters.MultipleChoiceFilter(
+        field_name="status",
+        choices=Contract.CONTRACT_STATUS,
+    )
 
     sign_on_from = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="gte")
     sign_on_to = django_filters.DateFilter(field_name="sign_on_date", lookup_expr="lte")
