@@ -7545,3 +7545,102 @@ class UsersJobPositionNameFilterTests(APITestCase):
         ):
             self.assertIn(u.id, ids)
 
+
+class UsersRankNameFilterTests(APITestCase):
+    """
+    ?rank_name=... on /api/users/users/ must match by rank name through
+    EITHER path (the legacy `codes` M2M, or the UserRank FK).
+
+    Regression: the previous filter used `codes__name` only. Prod has
+    0 users with `codes` set and 532 with UserRank rows, so the filter
+    silently returned 0 rows for every rank query.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users, UserRank, Rank
+
+        cls.admin = Users.objects.create_user(
+            email="admin-rnf@example.com",
+            password="adminpass",
+            first_name="RnF",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.rank_oiler, _ = Rank.objects.get_or_create(code="OIL-1", name="Oiler")
+        cls.rank_able, _ = Rank.objects.get_or_create(
+            code="ABLE-1", name="ABLE SEAFARER DECK"
+        )
+        cls.rank_chief, _ = Rank.objects.get_or_create(
+            code="CO-1", name="Chief Officer"
+        )
+
+        cls.user_oiler = Users.objects.create_user(
+            email="oiler-rnf@example.com", password="x", first_name="OilerUser",
+        )
+        UserRank.objects.create(user=cls.user_oiler, rank=cls.rank_oiler)
+
+        cls.user_able = Users.objects.create_user(
+            email="able-rnf@example.com", password="x", first_name="AbleUser",
+        )
+        UserRank.objects.create(user=cls.user_able, rank=cls.rank_able)
+
+        cls.user_chief = Users.objects.create_user(
+            email="chief-rnf@example.com", password="x", first_name="ChiefUser",
+        )
+        UserRank.objects.create(user=cls.user_chief, rank=cls.rank_chief)
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _ids(self, query=""):
+        resp = self.client.get(
+            f"/api/users/users/?{query}" if query else "/api/users/users/"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_single_rank_name_matches_user_rank(self):
+        """The original bug: codes__name was empty, so all queries returned 0."""
+        ids = self._ids("rank_name=Oiler")
+        self.assertIn(self.user_oiler.id, ids)
+        self.assertNotIn(self.user_able.id, ids)
+        self.assertNotIn(self.user_chief.id, ids)
+
+    def test_rank_name_is_case_insensitive_partial(self):
+        ids = self._ids("rank_name=oiler")
+        self.assertIn(self.user_oiler.id, ids)
+        ids2 = self._ids("rank_name=OIL")
+        self.assertIn(self.user_oiler.id, ids2)
+
+    def test_repeated_rank_name_params_returns_union(self):
+        ids = self._ids("rank_name=Oiler&rank_name=ABLE+SEAFARER+DECK")
+        self.assertIn(self.user_oiler.id, ids)
+        self.assertIn(self.user_able.id, ids)
+        self.assertNotIn(self.user_chief.id, ids)
+
+    def test_comma_separated_rank_name(self):
+        ids = self._ids("rank_name=Oiler,ABLE+SEAFARER+DECK")
+        self.assertIn(self.user_oiler.id, ids)
+        self.assertIn(self.user_able.id, ids)
+        self.assertNotIn(self.user_chief.id, ids)
+
+    def test_unrelated_rank_does_not_match(self):
+        ids = self._ids("rank_name=Chief+Officer")
+        self.assertIn(self.user_chief.id, ids)
+        self.assertNotIn(self.user_oiler.id, ids)
+        self.assertNotIn(self.user_able.id, ids)
+
+    def test_no_filter_returns_all(self):
+        ids = self._ids()
+        for u in (self.user_oiler, self.user_able, self.user_chief):
+            self.assertIn(u.id, ids)
+

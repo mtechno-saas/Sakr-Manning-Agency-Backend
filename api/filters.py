@@ -315,7 +315,12 @@ class UsersFilter(django_filters.FilterSet):
             return queryset.none()
         return queryset.filter(nationality__in=vals)
 
-    rank_name = django_filters.CharFilter(field_name="codes__name", lookup_expr="icontains")
+    # Match by rank name through EITHER path:
+    #   (a) the legacy `codes` M2M (empty in prod but kept for back-compat), OR
+    #   (b) the UserRank FK (the actual source of rank assignments today).
+    # The previous filter only followed path (a), which silently returned
+    # 0 rows because prod has 0 users with `codes` set.
+    rank_name = django_filters.CharFilter(method="filter_rank_name")
     assigned_code = django_filters.CharFilter(field_name="user_ranks__assigned_code", lookup_expr="icontains")
 
     role = django_filters.CharFilter(method="filter_role")
@@ -368,6 +373,31 @@ class UsersFilter(django_filters.FilterSet):
             Q(contracts__job_position__rank__name__icontains=term)
             | Q(user_ranks__rank__name__icontains=term)
         ).distinct()
+
+    def filter_rank_name(self, queryset, name, value):
+        """
+        Match users by rank name through EITHER path:
+          (a) the legacy `codes` M2M (empty in prod, kept for back-compat), OR
+          (b) a UserRank entry whose rank name contains the term.
+
+        Accepts repeated query params (?rank_name=A&rank_name=B) and
+        comma-separated (?rank_name=A,B) — both return the union.
+        """
+        terms = self._strings_for("rank_name")
+        if terms is None:
+            return queryset
+        if not terms:
+            return queryset.none()
+        q = Q()
+        for term in terms:
+            t = term.strip()
+            if not t:
+                continue
+            q |= (
+                Q(codes__name__icontains=t)
+                | Q(user_ranks__rank__name__icontains=t)
+            )
+        return queryset.filter(q).distinct()
 
     def filter_ship(self, queryset, name, value):
         ids = [int(v) for v in self.request.GET.getlist("ship") if str(v).strip().isdigit()]
