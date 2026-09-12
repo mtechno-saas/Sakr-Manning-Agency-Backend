@@ -456,7 +456,11 @@ class FinanceRecordFilter(django_filters.FilterSet):
 
 class CVSubmissionFilter(django_filters.FilterSet):
     user = django_filters.NumberFilter(field_name="user__id")
-    position = django_filters.NumberFilter(field_name="position__id")
+    # Use a method-based Filter (not NumberFilter) so the form-field
+    # validation (IntegerField) doesn't run. Repeated ?position=A&position=B
+    # then returns the union via getlist() instead of silently dropping
+    # all but the last value.
+    position = django_filters.Filter(method="filter_position")
     status = django_filters.CharFilter(field_name="status", lookup_expr="iexact")
     submitted_date_from = django_filters.DateFilter(field_name="submitted_date", lookup_expr="gte")
     submitted_date_to = django_filters.DateFilter(field_name="submitted_date", lookup_expr="lte")
@@ -464,6 +468,29 @@ class CVSubmissionFilter(django_filters.FilterSet):
     class Meta:
         model = CVSubmission
         fields = ["user", "position", "status"]
+
+    def _split_int_values(self, param_name):
+        """
+        Read repeated (?key=1&key=2) and/or comma-separated (?key=1,2)
+        values from the query string and parse each as an int.
+        Returns an empty list if absent.
+        """
+        raw = self.request.GET.getlist(param_name)
+        cleaned = []
+        for v in raw:
+            if v is None:
+                continue
+            for piece in str(v).split(","):
+                piece = piece.strip()
+                if piece.isdigit():
+                    cleaned.append(int(piece))
+        return cleaned
+
+    def filter_position(self, queryset, name, value):
+        ids = self._split_int_values("position")
+        if not ids:
+            return queryset
+        return queryset.filter(position_id__in=ids).distinct()
 
 
 class JobOrderFilter(django_filters.FilterSet):

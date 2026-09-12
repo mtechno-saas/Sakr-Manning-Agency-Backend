@@ -7054,3 +7054,101 @@ class ContractFilterStatusChoicesTests(APITestCase):
         for c in (self.c_pending_sig, self.c_active):
             self.assertIn(c.id, ids)
 
+
+class CVSubmissionPositionFilterTests(APITestCase):
+    """
+    Regression: GET /api/cv-submissions/?position=35&position=38 must
+    return CV submissions for BOTH positions, not just the last value.
+
+    Previously used NumberFilter(field_name='position__id') which goes
+    through an IntegerField form field that keeps only the LAST value
+    for repeated query params.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users, Rank, CVSubmission
+
+        cls.admin = Users.objects.create_user(
+            email="admin-cvflt@example.com",
+            password="adminpass",
+            first_name="CvFlt",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.seafarer_a = Users.objects.create_user(
+            email="a-cvflt@example.com",
+            password="x",
+            first_name="SeafarerA",
+        )
+        cls.seafarer_b = Users.objects.create_user(
+            email="b-cvflt@example.com",
+            password="x",
+            first_name="SeafarerB",
+        )
+
+        cls.rank_35, _ = Rank.objects.get_or_create(code="POS-35", name="Pos Thirty-Five")
+        cls.rank_38, _ = Rank.objects.get_or_create(code="POS-38", name="Pos Thirty-Eight")
+        cls.rank_other, _ = Rank.objects.get_or_create(code="POS-99", name="Pos Other")
+
+        # Two CVs under different positions.
+        cls.cv_at_35 = CVSubmission.objects.create(
+            user=cls.seafarer_a,
+            position=cls.rank_35,
+        )
+        cls.cv_at_38 = CVSubmission.objects.create(
+            user=cls.seafarer_b,
+            position=cls.rank_38,
+        )
+        # One under a third position — should be filtered out by the
+        # union test below.
+        cls.cv_at_other = CVSubmission.objects.create(
+            user=cls.seafarer_a,
+            position=cls.rank_other,
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _ids(self, query=""):
+        resp = self.client.get(
+            f"/api/cv-submissions/?{query}" if query else "/api/cv-submissions/"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_single_position_filter(self):
+        ids = self._ids(f"position={self.rank_35.id}")
+        self.assertIn(self.cv_at_35.id, ids)
+        self.assertNotIn(self.cv_at_38.id, ids)
+        self.assertNotIn(self.cv_at_other.id, ids)
+
+    def test_repeated_position_params_returns_union(self):
+        """
+        The original bug: ?position=A&position=B returned only CVs
+        for position B (the last value). Now returns CVs for both.
+        """
+        ids = self._ids(f"position={self.rank_35.id}&position={self.rank_38.id}")
+        self.assertIn(self.cv_at_35.id, ids)
+        self.assertIn(self.cv_at_38.id, ids)
+        self.assertNotIn(self.cv_at_other.id, ids)
+
+    def test_comma_separated_position(self):
+        ids = self._ids(f"position={self.rank_35.id},{self.rank_38.id}")
+        self.assertIn(self.cv_at_35.id, ids)
+        self.assertIn(self.cv_at_38.id, ids)
+        self.assertNotIn(self.cv_at_other.id, ids)
+
+    def test_no_position_returns_all(self):
+        ids = self._ids()
+        for cv in (self.cv_at_35, self.cv_at_38, self.cv_at_other):
+            self.assertIn(cv.id, ids)
+
