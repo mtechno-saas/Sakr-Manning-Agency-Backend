@@ -340,8 +340,34 @@ class UsersFilter(django_filters.FilterSet):
 
     ship = django_filters.CharFilter(method="filter_ship")
     ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
-    
-    job_position_name = django_filters.CharFilter(field_name="contracts__job_position__rank__name", lookup_expr="icontains")
+
+    # Match by either (a) an active contract whose job_position's rank name
+    # contains the term, OR (b) a UserRank entry for a rank whose name
+    # contains the term. The OR matters because in practice most users
+    # get their rank via UserRank (assigned_code), not via a contract's
+    # job_position — and in dev environments the JobOrderPosition table
+    # is often empty. A single field_name lookup on
+    # contracts__job_position__rank__name silently misses all UserRank
+    # users.
+    job_position_name = django_filters.CharFilter(method="filter_job_position_name")
+
+    def filter_job_position_name(self, queryset, name, value):
+        """
+        Match users by rank name through EITHER of two paths:
+          (a) an Active/Signed contract whose job_position's rank name
+              contains the term (current placement), or
+          (b) a UserRank entry whose rank name contains the term
+              (assigned qualification, regardless of placement).
+        """
+        if not value:
+            return queryset
+        term = value.strip()
+        if not term:
+            return queryset
+        return queryset.filter(
+            Q(contracts__job_position__rank__name__icontains=term)
+            | Q(user_ranks__rank__name__icontains=term)
+        ).distinct()
 
     def filter_ship(self, queryset, name, value):
         ids = [int(v) for v in self.request.GET.getlist("ship") if str(v).strip().isdigit()]

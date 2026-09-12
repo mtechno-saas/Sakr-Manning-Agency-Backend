@@ -7409,3 +7409,139 @@ class RecomputeUserStatusCommandTests(TestCase):
             if os.path.exists(path):
                 os.remove(path)
 
+
+class UsersJobPositionNameFilterTests(APITestCase):
+    """
+    ?job_position_name=... on /api/users/users/ must match users by rank
+    name through EITHER path:
+      - an Active/Signed contract whose job_position's rank matches, OR
+      - a UserRank entry whose rank matches.
+
+    Regression: previously the filter only followed the contract path,
+    so users whose only rank assignment was via UserRank (which is most
+    users in practice) silently got 0 rows.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users, UserRank, Contract, Rank
+        from companies.models import Company, JobOrder, JobOrderPosition
+        from datetime import date
+
+        cls.admin = Users.objects.create_user(
+            email="admin-jpnf@example.com",
+            password="adminpass",
+            first_name="JpNF",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.company = Company.objects.create(company_name="Test Co")
+        cls.rank_oiler, _ = Rank.objects.get_or_create(code="OIL-1", name="Oiler")
+        cls.rank_chief_officer, _ = Rank.objects.get_or_create(code="CO-1", name="Chief Officer")
+        cls.rank_bosun, _ = Rank.objects.get_or_create(code="BOS-1", name="Bosun")
+
+        # User 1: qualified as Oiler via UserRank only (the common path).
+        cls.user_via_user_rank = Users.objects.create_user(
+            email="oiler-via-user-rank@example.com",
+            password="x",
+            first_name="OilerUserRank",
+        )
+        UserRank.objects.create(user=cls.user_via_user_rank, rank=cls.rank_oiler)
+
+        # User 2: currently on a contract for an Oiler position (rare path,
+        # but covers the OR branch).
+        cls.user_via_contract = Users.objects.create_user(
+            email="oiler-via-contract@example.com",
+            password="x",
+            first_name="OilerContract",
+        )
+        cls.jo = JobOrder.objects.create(
+            company=cls.company,
+            reference_number="JO-OILER-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+        )
+        cls.pos_oiler = JobOrderPosition.objects.create(
+            job_order=cls.jo, rank=cls.rank_oiler, quantity=1,
+        )
+        Contract.objects.create(
+            user=cls.user_via_contract,
+            company=cls.company,
+            rank=cls.rank_oiler,
+            job_position=cls.pos_oiler,
+            sign_on_date=date.today(),
+            sign_off_date=date.today().replace(year=date.today().year + 1),
+            status="Active",
+        )
+
+        # User 3: rank is Chief Officer — should NOT match an Oiler filter.
+        cls.user_chief = Users.objects.create_user(
+            email="chief@example.com",
+            password="x",
+            first_name="ChiefOfficer",
+        )
+        UserRank.objects.create(user=cls.user_chief, rank=cls.rank_chief_officer)
+
+        # User 4: qualified as Bosun — should NOT match.
+        cls.user_bosun = Users.objects.create_user(
+            email="bosun@example.com",
+            password="x",
+            first_name="Bosun",
+        )
+        UserRank.objects.create(user=cls.user_bosun, rank=cls.rank_bosun)
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _ids(self, query=""):
+        resp = self.client.get(
+            f"/api/users/users/?{query}" if query else "/api/users/users/"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_oiler_filter_matches_user_rank_path(self):
+        """The original bug: only the contract path was checked."""
+        ids = self._ids("job_position_name=oiler")
+        self.assertIn(
+            self.user_via_user_rank.id, ids,
+            "UserRank path should match even when no contract exists",
+        )
+        self.assertIn(
+            self.user_via_contract.id, ids,
+            "Contract path should also still match",
+        )
+        self.assertNotIn(self.user_chief.id, ids)
+        self.assertNotIn(self.user_bosun.id, ids)
+
+    def test_partial_match_is_case_insensitive(self):
+        """`?job_position_name=OIL` should still match (icontains)."""
+        ids = self._ids("job_position_name=OIL")
+        self.assertIn(self.user_via_user_rank.id, ids)
+        self.assertIn(self.user_via_contract.id, ids)
+
+    def test_unrelated_rank_does_not_match(self):
+        ids = self._ids("job_position_name=chief+officer")
+        self.assertIn(self.user_chief.id, ids)
+        self.assertNotIn(self.user_via_user_rank.id, ids)
+        self.assertNotIn(self.user_via_contract.id, ids)
+        self.assertNotIn(self.user_bosun.id, ids)
+
+    def test_no_filter_returns_all(self):
+        ids = self._ids()
+        for u in (
+            self.user_via_user_rank,
+            self.user_via_contract,
+            self.user_chief,
+            self.user_bosun,
+        ):
+            self.assertIn(u.id, ids)
+
