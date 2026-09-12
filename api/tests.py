@@ -7152,3 +7152,260 @@ class CVSubmissionPositionFilterTests(APITestCase):
         for cv in (self.cv_at_35, self.cv_at_38, self.cv_at_other):
             self.assertIn(cv.id, ids)
 
+
+class UsersUserStatusStoredFilterTests(APITestCase):
+    """
+    `?user_status=` on /api/users/users/ is the EFFECTIVE status filter
+    (derives ON_BOARD / NEW_APPLICANT from contracts).
+
+    `?user_status_stored=` is the companion that bypasses contract
+    logic and matches the literal stored field. Useful for audit
+    reports / data-quality checks.
+
+    Regression: with 10 users stored as ON_SITE but only 1 truly
+    between contracts, the effective filter returns 1; the stored
+    filter returns all 10.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users, User_Status, Contract
+        from companies.models import Company
+        from api.models import Rank
+        from datetime import date
+
+        cls.admin = Users.objects.create_user(
+            email="admin-ussf@example.com",
+            password="adminpass",
+            first_name="UssF",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        # Move the admin off ON_SITE so it doesn't pollute the
+        # `user_status_stored=ON_SITE` count (admin defaults to ON_SITE
+        # via the model default, which would inflate the result by 1).
+        cls.admin.user_status = User_Status.NEW_APPLICANT.value
+        cls.admin.save(update_fields=["role", "is_staff", "user_status"])
+
+        cls.company = Company.objects.create(company_name="Test Co")
+        cls.rank = Rank.objects.create(code="MAS-1", name="Master")
+        cls.ship = None  # not needed for User-status logic
+
+        # 10 users all stored as ON_SITE.
+        cls.users_on_site_stored = []
+        for i in range(10):
+            u = Users.objects.create_user(
+                email=f"onsite-{i}@example.com",
+                password="x",
+                first_name=f"OnSite{i}",
+            )
+            u.user_status = User_Status.ON_SITE.value
+            u.save(update_fields=["user_status"])
+            cls.users_on_site_stored.append(u)
+
+        # 9 of them get an Active contract with sign_off_date in the future,
+        # making them EFFECTIVELY ON_BOARD but STORED as ON_SITE.
+        for u in cls.users_on_site_stored[:9]:
+            Contract.objects.create(
+                user=u,
+                company=cls.company,
+                rank=cls.rank,
+                job_position=None,
+                ship=None,
+                sign_on_date=date.today(),
+                sign_off_date=date.today().replace(year=date.today().year + 1),
+                status="Active",
+            )
+
+        # 1 stays truly between contracts (stored ON_SITE, has a past
+        # completed contract, no active contract).
+        # Filter definition: stored=ON_SITE AND has_any_contract AND
+        # NOT has_active_contract — all three must hold for ON_SITE.
+        cls.user_truly_on_site = cls.users_on_site_stored[9]
+        Contract.objects.create(
+            user=cls.user_truly_on_site,
+            company=cls.company,
+            rank=cls.rank,
+            job_position=None,
+            ship=None,
+            sign_on_date=date(2020, 1, 1),
+            sign_off_date=date(2020, 6, 1),
+            status="Completed",
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _ids(self, query=""):
+        resp = self.client.get(
+            f"/api/users/users/?{query}" if query else "/api/users/users/"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_effective_on_site_returns_only_truly_between_contracts(self):
+        """The original 'only 1 result' behavior — correct under effective logic."""
+        ids = self._ids("user_status=ON_SITE")
+        self.assertEqual(len(ids), 1, f"expected 1, got {len(ids)}: {ids}")
+        self.assertIn(self.user_truly_on_site.id, ids)
+        # The 9 stale-stored users should NOT appear because they have
+        # active contracts and are effectively ON_BOARD.
+        for u in self.users_on_site_stored[:9]:
+            self.assertNotIn(u.id, ids)
+
+    def test_stored_on_site_returns_all_ten_stale_records(self):
+        """Companion filter that bypasses contract logic — all 10 stored ON_SITE."""
+        ids = self._ids("user_status_stored=ON_SITE")
+        self.assertEqual(len(ids), 10, f"expected 10, got {len(ids)}: {ids}")
+        for u in self.users_on_site_stored:
+            self.assertIn(u.id, ids)
+
+    def test_stored_filter_rejects_invalid_value(self):
+        resp = self.client.get("/api/users/users/?user_status_stored=BOGUS")
+        self.assertEqual(resp.status_code, 400, resp.content)
+        body = resp.json()
+        self.assertIn("user_status_stored", body)
+        self.assertIn("BOGUS", str(body["user_status_stored"]))
+
+    def test_stored_filter_normalizes_case_and_spaces(self):
+        """`?user_status_stored=medical vacation` should map to MEDICAL_VACATION."""
+        # Create one MEDICAL_VACATION user to check the lookup works.
+        from api.models import User_Status
+        u = Users.objects.create_user(
+            email="mv@example.com",
+            password="x",
+            first_name="MedicalVac",
+        )
+        u.user_status = User_Status.MEDICAL_VACATION.value
+        u.save(update_fields=["user_status"])
+
+        ids = self._ids("user_status_stored=medical+vacation")
+        self.assertIn(u.id, ids)
+
+
+class RecomputeUserStatusCommandTests(TestCase):
+    """Tests for api/management/commands/recompute_user_status.py."""
+
+    def setUp(self):
+        from api.models import Users, User_Status, Contract
+        from companies.models import Company
+        from api.models import Rank
+        from datetime import date
+
+        self.company = Company.objects.create(company_name="Test Co")
+        self.rank = Rank.objects.create(code="MAS-1", name="Master")
+
+        # Stored == effective: ON_SITE with a Completed (past) contract.
+        # get_effective_status(): stored not VACATION/MEDICAL_VACATION,
+        # no Active contract, has contract history -> ON_SITE. No change.
+        self.user_truly_on_site = self._make_user("on-site@x.com", "OnSite")
+        Contract.objects.create(
+            user=self.user_truly_on_site,
+            company=self.company,
+            rank=self.rank,
+            job_position=None,
+            ship=None,
+            sign_on_date=date(2020, 1, 1),
+            sign_off_date=date(2020, 6, 1),
+            status="Completed",
+        )
+
+        # Stale: stored ON_SITE, has Active contract. Effective should be
+        # ON_BOARD after recompute. CHANGES.
+        self.user_stale_on_site = self._make_user("stale@x.com", "Stale")
+        Contract.objects.create(
+            user=self.user_stale_on_site,
+            company=self.company,
+            rank=self.rank,
+            job_position=None,
+            ship=None,
+            sign_on_date=date.today(),
+            sign_off_date=date.today().replace(year=date.today().year + 1),
+            status="Active",
+        )
+
+        # Manual override wins: stored VACATION stays VACATION regardless.
+        self.user_on_vacation = self._make_user("vac@x.com", "Vacation")
+        from api.models import User_Status
+        self.user_on_vacation.user_status = User_Status.VACATION.value
+        self.user_on_vacation.save(update_fields=["user_status"])
+
+    @staticmethod
+    def _make_user(email, first_name):
+        from api.models import Users
+        u = Users.objects.create_user(email=email, password="x", first_name=first_name)
+        u.user_status = "ON_SITE"  # default for everyone we make
+        u.save(update_fields=["user_status"])
+        return u
+
+    def _run(self, **opts):
+        from io import StringIO
+        from django.core.management import call_command
+        out = StringIO()
+        call_command("recompute_user_status", stdout=out, **opts)
+        return out.getvalue()
+
+    def test_dry_run_does_not_save(self):
+        # Before
+        from api.models import User_Status
+        self.assertEqual(self.user_stale_on_site.user_status, "ON_SITE")
+        out = self._run(dry_run=True, quiet=True)
+        self.user_stale_on_site.refresh_from_db()
+        self.assertEqual(
+            self.user_stale_on_site.user_status, "ON_SITE",
+            "dry-run must not persist changes",
+        )
+        self.assertIn("would change", out)
+
+    def test_real_run_updates_stale_users(self):
+        from api.models import User_Status
+        out = self._run(quiet=True)
+        self.user_stale_on_site.refresh_from_db()
+        self.assertEqual(self.user_stale_on_site.user_status, "ON_BOARD")
+        self.assertIn("changed", out)
+
+    def test_real_run_leaves_correct_users_alone(self):
+        # Truly-on-site user: stored == effective, no save needed.
+        out = self._run(quiet=True)
+        self.user_truly_on_site.refresh_from_db()
+        self.assertEqual(self.user_truly_on_site.user_status, "ON_SITE")
+
+    def test_real_run_preserves_vacation_override(self):
+        from api.models import User_Status
+        self._run(quiet=True)
+        self.user_on_vacation.refresh_from_db()
+        self.assertEqual(self.user_on_vacation.user_status, "VACATION")
+
+    def test_user_scope_only_targets_specified_id(self):
+        from api.models import User_Status
+        self._run(user=[self.user_truly_on_site.id], quiet=True)
+        # The stale user should NOT be touched.
+        self.user_stale_on_site.refresh_from_db()
+        self.assertEqual(self.user_stale_on_site.user_status, "ON_SITE")
+
+    def test_report_writes_csv(self):
+        import tempfile
+        from api.models import User_Status
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="w+") as f:
+            path = f.name
+        try:
+            self._run(quiet=True, report=path)
+            with open(path) as fh:
+                rows = fh.read().splitlines()
+            self.assertEqual(rows[0], "id,email,before,after")
+            # The stale user should appear in the report; the others should not.
+            csv_body = "\n".join(rows[1:])
+            self.assertIn("stale@x.com", csv_body)
+            self.assertNotIn("on-site@x.com", csv_body)
+            self.assertNotIn("vac@x.com", csv_body)
+        finally:
+            import os
+            if os.path.exists(path):
+                os.remove(path)
+

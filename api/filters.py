@@ -88,7 +88,12 @@ class UsersFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(method='filter_by_name')
     age = django_filters.NumberFilter(field_name="age", lookup_expr="exact")
     marital_status = django_filters.CharFilter(method="filter_marital_status")
+    # `user_status` is the EFFECTIVE status filter (derives ON_BOARD /
+    # NEW_APPLICANT from contract history). For raw stored-field filtering
+    # (e.g. audit reports, "show me everyone stored as ON_SITE regardless
+    # of contracts"), use `user_status_stored` instead.
     user_status = django_filters.CharFilter(method="filter_user_status")
+    user_status_stored = django_filters.CharFilter(method="filter_user_status_stored")
     nationality = django_filters.CharFilter(method="filter_nationality")
     nearest_port = django_filters.CharFilter(field_name="nearest_port", lookup_expr="icontains")
 
@@ -272,6 +277,35 @@ class UsersFilter(django_filters.FilterSet):
             ))
 
         return queryset.filter(effective_q).distinct()
+
+    def filter_user_status_stored(self, queryset, name, value):
+        """
+        Filter on the literal stored `user_status` field only (no contract
+        derivation). Use this for audit reports / data-quality checks when
+        you want to see what the DB has on file, independent of whether
+        the user is currently ON_BOARD or NEW_APPLICANT by contract logic.
+        """
+        from rest_framework.exceptions import ValidationError
+        from api.models import User_Status
+
+        vals = self._strings_for("user_status_stored")
+        if vals is None:
+            return queryset
+        if not vals:
+            return queryset.none()
+        # Normalize: case-insensitive + replace spaces with underscores
+        # so "MEDICAL VACATION" (the human label) works.
+        norm = [v.strip().upper().replace(" ", "_") for v in vals]
+        allowed = {s.value for s in User_Status}
+        invalid = [v for v in norm if v not in allowed]
+        if invalid:
+            raise ValidationError({
+                "user_status_stored": (
+                    f"Invalid value(s): {invalid}. "
+                    f"Allowed: {sorted(allowed)}"
+                )
+            })
+        return queryset.filter(user_status__in=norm).distinct()
 
     def filter_nationality(self, queryset, name, value):
         vals = self._strings_for("nationality")
