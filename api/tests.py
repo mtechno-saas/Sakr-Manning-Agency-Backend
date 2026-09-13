@@ -7644,3 +7644,117 @@ class UsersRankNameFilterTests(APITestCase):
         for u in (self.user_oiler, self.user_able, self.user_chief):
             self.assertIn(u.id, ids)
 
+
+class NationalitiesEndpointTests(APITestCase):
+    """
+    GET /api/nationalities/ returns the distinct nationality values
+    currently stored in Users.nationality, with user counts per value.
+
+    The values returned here are EXACTLY the strings accepted by the
+    ?nationality= filter on /api/users/users/ — so the frontend can
+    render its dropdown from this endpoint and trust that sending any
+    value back will match the right rows.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users
+
+        cls.admin = Users.objects.create_user(
+            email="admin-nat@example.com",
+            password="adminpass",
+            first_name="Nat",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        # 5 Egyptians, 1 American, 4 with no nationality.
+        for i in range(5):
+            u = Users.objects.create_user(
+                email=f"egy-{i}@example.com",
+                password="x",
+                first_name=f"Egy{i}",
+            )
+            u.nationality = "Egyptian"
+            u.save(update_fields=["nationality"])
+        u = Users.objects.create_user(
+            email="amer@example.com",
+            password="x",
+            first_name="Amer",
+        )
+        u.nationality = "American"
+        u.save(update_fields=["nationality"])
+        # 4 more users with no nationality (NULL or empty)
+        for i in range(3):
+            Users.objects.create_user(
+                email=f"nonat-{i}@example.com",
+                password="x",
+                first_name=f"NoNat{i}",
+            )
+        # 1 with explicitly empty string
+        u = Users.objects.create_user(
+            email="emptystr@example.com",
+            password="x",
+            first_name="EmptyStr",
+        )
+        u.nationality = ""
+        u.save(update_fields=["nationality"])
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def test_returns_distinct_values_with_counts(self):
+        resp = self.client.get("/api/nationalities/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        data = resp.json()
+        # Sorted by count DESC, then value ASC.
+        self.assertEqual(
+            data,
+            [
+                {"value": "Egyptian", "count": 5},
+                {"value": "American", "count": 1},
+            ],
+        )
+
+    def test_excludes_null_and_empty_nationality(self):
+        resp = self.client.get("/api/nationalities/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        data = resp.json()
+        values = [row["value"] for row in data]
+        self.assertNotIn("", values)
+        # Only 2 distinct non-empty values exist; the 4 NULL/empty users are
+        # excluded.
+        self.assertEqual(len(data), 2)
+
+    def test_values_match_filter_exactly(self):
+        """
+        The contract: every value returned here is a string the
+        ?nationality= filter on /api/users/users/ accepts and matches
+        for. Round-trip check.
+        """
+        resp = self.client.get("/api/nationalities/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        data = resp.json()
+        for row in data:
+            v = row["value"]
+            users_resp = self.client.get(f"/api/users/users/?nationality={v}")
+            self.assertEqual(users_resp.status_code, 200, users_resp.content)
+            body = users_resp.json()
+            results = body if isinstance(body, list) else body.get("results", [])
+            self.assertEqual(
+                len(results), row["count"],
+                f"nationality={v!r}: endpoint reported {row['count']} but "
+                f"filter returned {len(results)}",
+            )
+
+    def test_requires_authentication(self):
+        from rest_framework.test import APIClient
+        anon = APIClient()
+        resp = anon.get("/api/nationalities/")
+        self.assertIn(resp.status_code, (401, 403))
+

@@ -3559,6 +3559,46 @@ def get_document_types(request):
     ]
     return Response(choices)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_nationalities(request):
+    """
+    Return the distinct nationality values currently stored in
+    Users.nationality, with user counts per value.
+
+    The values returned here are the EXACT strings accepted by the
+    ?nationality= filter on /api/users/users/ (the filter does an
+    exact-match lookup). If the frontend dropdown uses one of these
+    values as the option label and sends it back as-is, the filter
+    will return the right rows. NULL/empty nationality values are
+    excluded — users with no nationality set are not represented here.
+
+    Sorted by count DESC then value ASC, so the most-common values
+    appear first.
+
+    GET /api/nationalities/
+
+    Response shape:
+    [
+      {"value": "Egyptian", "count": 5},
+      {"value": "American", "count": 1}
+    ]
+    """
+    from django.db.models import Count, Q
+    qs = (
+        Users.objects
+        .exclude(Q(nationality__isnull=True) | Q(nationality=""))
+        .values("nationality")
+        .annotate(count=Count("id"))
+        .order_by("-count", "nationality")
+    )
+    return Response([
+        {"value": row["nationality"], "count": row["count"]}
+        for row in qs
+    ])
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_flags(request):
