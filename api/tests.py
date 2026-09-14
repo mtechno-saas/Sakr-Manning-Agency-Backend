@@ -8084,3 +8084,170 @@ class UsersCompanyNameFilterTests(APITestCase):
         ):
             self.assertIn(u.id, ids)
 
+
+class UsersShipTypeFilterTests(APITestCase):
+    """
+    ?ship_type=... on /api/users/users/ must match users with contracts
+    at ships of that type. The frontend label is expanded via the
+    same alias map used by /api/ships/ (e.g. "Container Vessels" ->
+    "Container Ship" + "Container Ships").
+
+    Regression: previously the filter did exact-match on the literal
+    frontend label, so "Container Vessels" (the dropdown label) never
+    matched "Container Ships" / "Container Ship" (the DB names).
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users, Contract, Rank
+        from companies.models import Company, JobOrder, JobOrderPosition
+        from core.models import Flag, VesselType
+        from ships.models import Ship
+        from datetime import date
+
+        cls.admin = Users.objects.create_user(
+            email="admin-stf@example.com",
+            password="adminpass",
+            first_name="StF",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.company = Company.objects.create(company_name="Test Co")
+        cls.rank, _ = Rank.objects.get_or_create(code="MAS-1", name="Master")
+        cls.flag, _ = Flag.objects.get_or_create(name="Egypt")
+
+        # Two vessel types matching the alias expansion.
+        cls.vt_container_singular, _ = VesselType.objects.get_or_create(
+            name="Container Ship"
+        )
+        cls.vt_container_plural, _ = VesselType.objects.get_or_create(
+            name="Container Ships"
+        )
+        cls.vt_passenger_singular, _ = VesselType.objects.get_or_create(
+            name="Passenger Ship"
+        )
+        cls.vt_bulk, _ = VesselType.objects.get_or_create(name="Bulk Carrier")
+
+        # Two ships with different types.
+        cls.ship_container = Ship.objects.create(
+            ship_name="MV Container One",
+            imo_number="9000001",
+            ship_type=cls.vt_container_singular,
+            flag=cls.flag,
+            company=cls.company,
+        )
+        cls.ship_passenger = Ship.objects.create(
+            ship_name="MV Passenger One",
+            imo_number="9000002",
+            ship_type=cls.vt_passenger_singular,
+            flag=cls.flag,
+            company=cls.company,
+        )
+
+        cls.jo = JobOrder.objects.create(
+            company=cls.company,
+            reference_number="JO-STF-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+        )
+        cls.pos_container = JobOrderPosition.objects.create(
+            job_order=cls.jo, rank=cls.rank, quantity=1,
+        )
+        cls.pos_passenger = JobOrderPosition.objects.create(
+            job_order=cls.jo, rank=cls.rank, quantity=1,
+        )
+
+        # Two users with contracts at the two different ships.
+        cls.user_at_container = Users.objects.create_user(
+            email="stf-container@example.com",
+            password="x",
+            first_name="StFContainer",
+        )
+        Contract.objects.create(
+            user=cls.user_at_container,
+            company=cls.company,
+            rank=cls.rank,
+            job_position=cls.pos_container,
+            ship=cls.ship_container,
+            sign_on_date=date.today(),
+            sign_off_date=date.today().replace(year=date.today().year + 1),
+            status="Active",
+        )
+
+        cls.user_at_passenger = Users.objects.create_user(
+            email="stf-passenger@example.com",
+            password="x",
+            first_name="StFPassenger",
+        )
+        Contract.objects.create(
+            user=cls.user_at_passenger,
+            company=cls.company,
+            rank=cls.rank,
+            job_position=cls.pos_passenger,
+            ship=cls.ship_passenger,
+            sign_on_date=date.today(),
+            sign_off_date=date.today().replace(year=date.today().year + 1),
+            status="Active",
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _ids(self, query=""):
+        resp = self.client.get(
+            f"/api/users/users/?{query}" if query else "/api/users/users/"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_frontend_label_expanded_to_db_names(self):
+        """The original bug: 'Container Vessels' (frontend) -> 'Container Ship'/'Container Ships' (DB)."""
+        ids = self._ids("ship_type=Container+Vessels")
+        self.assertIn(self.user_at_container.id, ids)
+        self.assertNotIn(self.user_at_passenger.id, ids)
+
+    def test_passenger_label_expanded(self):
+        ids = self._ids("ship_type=Passenger+Vessels")
+        self.assertIn(self.user_at_passenger.id, ids)
+        self.assertNotIn(self.user_at_container.id, ids)
+
+    def test_repeated_ship_type_params_returns_union(self):
+        """The original bug from the user's URL: repeated params silently kept only the last."""
+        ids = self._ids(
+            "ship_type=Passenger+Vessels&ship_type=Container+Vessels"
+        )
+        self.assertIn(self.user_at_container.id, ids)
+        self.assertIn(self.user_at_passenger.id, ids)
+
+    def test_comma_separated_ship_type(self):
+        ids = self._ids(
+            "ship_type=Passenger+Vessels,Container+Vessels"
+        )
+        self.assertIn(self.user_at_container.id, ids)
+        self.assertIn(self.user_at_passenger.id, ids)
+
+    def test_direct_db_name_still_works(self):
+        """Frontend can also send the exact DB name directly."""
+        ids = self._ids("ship_type=Container+Ship")
+        self.assertIn(self.user_at_container.id, ids)
+        self.assertNotIn(self.user_at_passenger.id, ids)
+
+    def test_no_match_returns_empty(self):
+        """Unrelated type returns no rows."""
+        ids = self._ids("ship_type=Bulk+Carriers")
+        self.assertNotIn(self.user_at_container.id, ids)
+        self.assertNotIn(self.user_at_passenger.id, ids)
+
+    def test_no_filter_returns_all(self):
+        ids = self._ids()
+        for u in (self.user_at_container, self.user_at_passenger):
+            self.assertIn(u.id, ids)
+

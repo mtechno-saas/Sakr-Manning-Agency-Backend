@@ -483,12 +483,17 @@ class UsersFilter(django_filters.FilterSet):
         return queryset.filter(contracts__company__company_type__name__in=vals).distinct()
 
     def filter_ship_type(self, queryset, name, value):
+        # Same multi-value + alias expansion as ShipFilter.ship_type
+        # (companies.filters and api.filters both reuse the same
+        # _SHIP_TYPE_ALIASES map and expand_ship_type_aliases helper so
+        # the contract is consistent across endpoints).
         vals = self._strings_for("ship_type")
         if vals is None:
             return queryset
         if not vals:
             return queryset.none()
-        return queryset.filter(contracts__ship__ship_type__name__in=vals).distinct()
+        expanded = ShipFilter.expand_ship_type_aliases(vals)
+        return queryset.filter(contracts__ship__ship_type__name__in=expanded).distinct()
 
     passport_no = django_filters.CharFilter(field_name="passport_no", lookup_expr="icontains")
     passport_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")
