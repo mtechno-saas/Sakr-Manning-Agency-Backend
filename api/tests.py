@@ -8407,3 +8407,140 @@ class UsersShipTypeViaCVPathTests(APITestCase):
         self.assertNotIn(self.user_contract.id, ids)
         self.assertNotIn(self.user_cv.id, ids)
 
+
+class UsersCompanyTypeFilterTests(APITestCase):
+    """
+    ?company_type=... on /api/users/users/ must match users associated
+    with companies of that type through EITHER path:
+      - Contracts at a company of the type
+      - CV submissions to a company of the type
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users, Contract, CVSubmission, Rank
+        from companies.models import Company, CompanyType, JobOrder, JobOrderPosition
+        from datetime import date
+
+        cls.admin = Users.objects.create_user(
+            email="admin-ctf@example.com",
+            password="adminpass",
+            first_name="CtF",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.ct_shipping, _ = CompanyType.objects.get_or_create(
+            name="Shipping Manning Principals"
+        )
+        cls.ct_cruise, _ = CompanyType.objects.get_or_create(
+            name="Cruise & Hospitality Manning Principals"
+        )
+        cls.ct_other, _ = CompanyType.objects.get_or_create(name="Other")
+
+        cls.company_shipping = Company.objects.create(
+            company_name="Alpha Shipping", company_type=cls.ct_shipping,
+        )
+        cls.company_cruise = Company.objects.create(
+            company_name="Beta Cruise", company_type=cls.ct_cruise,
+        )
+
+        cls.rank, _ = Rank.objects.get_or_create(code="MAS-1", name="Master")
+        cls.jo = JobOrder.objects.create(
+            company=cls.company_shipping,
+            reference_number="JO-CTF-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+        )
+        cls.pos = JobOrderPosition.objects.create(
+            job_order=cls.jo, rank=cls.rank, quantity=1,
+        )
+
+        # User 1: contract at a Shipping company.
+        cls.user_via_contract = Users.objects.create_user(
+            email="ctf-contract@example.com",
+            password="x",
+            first_name="ContractUser",
+        )
+        Contract.objects.create(
+            user=cls.user_via_contract,
+            company=cls.company_shipping,
+            rank=cls.rank,
+            job_position=cls.pos,
+            sign_on_date=date.today(),
+            sign_off_date=date.today().replace(year=date.today().year + 1),
+            status="Active",
+        )
+
+        # User 2: CV submission (no contract) to a Cruise company.
+        cls.user_via_cv = Users.objects.create_user(
+            email="ctf-cv@example.com",
+            password="x",
+            first_name="CVUser",
+        )
+        CVSubmission.objects.create(
+            user=cls.user_via_cv,
+            company=cls.company_cruise,
+        )
+
+        # User 3: no relevant associations.
+        cls.user_unrelated = Users.objects.create_user(
+            email="ctf-unrelated@example.com",
+            password="x",
+            first_name="UnrelatedUser",
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _ids(self, query=""):
+        resp = self.client.get(
+            f"/api/users/users/?{query}" if query else "/api/users/users/"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_single_company_type_matches_contract_path(self):
+        ids = self._ids("company_type=Shipping+Manning+Principals")
+        self.assertIn(self.user_via_contract.id, ids)
+        self.assertNotIn(self.user_via_cv.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_single_company_type_matches_cv_path(self):
+        ids = self._ids("company_type=Cruise+%26+Hospitality+Manning+Principals")
+        self.assertIn(self.user_via_cv.id, ids)
+        self.assertNotIn(self.user_via_contract.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_repeated_company_type_returns_union(self):
+        """The original bug: only the last value was applied."""
+        ids = self._ids(
+            "company_type=Shipping+Manning+Principals"
+            "&company_type=Cruise+%26+Hospitality+Manning+Principals"
+        )
+        self.assertIn(self.user_via_contract.id, ids)
+        self.assertIn(self.user_via_cv.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_comma_separated_company_type(self):
+        ids = self._ids(
+            "company_type=Shipping+Manning+Principals"
+            "%2CCruise+%26+Hospitality+Manning+Principals"
+        )
+        self.assertIn(self.user_via_contract.id, ids)
+        self.assertIn(self.user_via_cv.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_unrelated_company_type_returns_no_users(self):
+        ids = self._ids("company_type=Other")
+        self.assertNotIn(self.user_via_contract.id, ids)
+        self.assertNotIn(self.user_via_cv.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+

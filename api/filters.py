@@ -480,7 +480,13 @@ class UsersFilter(django_filters.FilterSet):
             return queryset
         if not vals:
             return queryset.none()
-        return queryset.filter(contracts__company__company_type__name__in=vals).distinct()
+        # Match by EITHER path:
+        #   (a) Contracts at a company of the given type
+        #   (b) CV submissions to a company of the given type (candidates)
+        return queryset.filter(
+            Q(contracts__company__company_type__name__in=vals)
+            | Q(cv_submissions__company__company_type__name__in=vals)
+        ).distinct()
 
     def filter_ship_type(self, queryset, name, value):
         # Same multi-value + alias expansion as ShipFilter.ship_type
