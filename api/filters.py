@@ -487,13 +487,21 @@ class UsersFilter(django_filters.FilterSet):
         # (companies.filters and api.filters both reuse the same
         # _SHIP_TYPE_ALIASES map and expand_ship_type_aliases helper so
         # the contract is consistent across endpoints).
+        #
+        # Match by EITHER path:
+        #   (a) Contracts: user has a contract at a ship of this type
+        #   (b) CV submissions: user has applied to a company that owns
+        #       a ship of this type (candidates not yet placed)
         vals = self._strings_for("ship_type")
         if vals is None:
             return queryset
         if not vals:
             return queryset.none()
         expanded = ShipFilter.expand_ship_type_aliases(vals)
-        return queryset.filter(contracts__ship__ship_type__name__in=expanded).distinct()
+        return queryset.filter(
+            Q(contracts__ship__ship_type__name__in=expanded)
+            | Q(cv_submissions__company__ships__ship_type__name__in=expanded)
+        ).distinct()
 
     passport_no = django_filters.CharFilter(field_name="passport_no", lookup_expr="icontains")
     passport_type = django_filters.CharFilter(field_name="personal_documents__document_type", lookup_expr="icontains")

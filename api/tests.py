@@ -8251,3 +8251,159 @@ class UsersShipTypeFilterTests(APITestCase):
         for u in (self.user_at_container, self.user_at_passenger):
             self.assertIn(u.id, ids)
 
+
+class UsersShipTypeViaCVPathTests(APITestCase):
+    """
+    Regression: ?ship_type=... on /api/users/users/ should also match
+    users who have a CV submission to a company that owns a ship of
+    that type (candidates who applied but aren't placed yet).
+
+    Previously the filter only checked the contracts path, so a user
+    with a CV submission (no contract) was missed. Now the filter
+    ORs across both paths.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users, Contract, CVSubmission, Rank
+        from companies.models import Company, JobOrder, JobOrderPosition
+        from core.models import Flag, VesselType
+        from ships.models import Ship
+        from datetime import date
+
+        cls.admin = Users.objects.create_user(
+            email="admin-stcv@example.com",
+            password="adminpass",
+            first_name="StCV",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.company_at_sea = Company.objects.create(company_name="Owner Co")
+        cls.company_unrelated = Company.objects.create(company_name="Unrelated Co")
+        cls.rank, _ = Rank.objects.get_or_create(code="MAS-1", name="Master")
+        cls.flag, _ = Flag.objects.get_or_create(name="Egypt")
+
+        cls.vt_passenger, _ = VesselType.objects.get_or_create(name="Passenger Ships")
+        cls.vt_container, _ = VesselType.objects.get_or_create(name="Container Ship")
+        cls.vt_bulk, _ = VesselType.objects.get_or_create(name="Bulk Carrier")
+
+        cls.ship_passenger = Ship.objects.create(
+            ship_name="MV Sea Voyager",
+            imo_number="7000001",
+            ship_type=cls.vt_passenger,
+            flag=cls.flag,
+            company=cls.company_at_sea,
+        )
+        cls.ship_container = Ship.objects.create(
+            ship_name="MV Container One",
+            imo_number="7000002",
+            ship_type=cls.vt_container,
+            flag=cls.flag,
+            company=cls.company_at_sea,
+        )
+        cls.ship_bulk = Ship.objects.create(
+            ship_name="MV Bulk One",
+            imo_number="7000003",
+            ship_type=cls.vt_bulk,
+            flag=cls.flag,
+            company=cls.company_unrelated,
+        )
+
+        # User 1: contract at a Passenger Ships ship.
+        cls.jo = JobOrder.objects.create(
+            company=cls.company_at_sea,
+            reference_number="JO-STCV-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+        )
+        cls.pos = JobOrderPosition.objects.create(
+            job_order=cls.jo, rank=cls.rank, quantity=1,
+        )
+        cls.user_contract = Users.objects.create_user(
+            email="stcv-contract@example.com",
+            password="x",
+            first_name="ContractUser",
+        )
+        Contract.objects.create(
+            user=cls.user_contract,
+            company=cls.company_at_sea,
+            rank=cls.rank,
+            job_position=cls.pos,
+            ship=cls.ship_passenger,
+            sign_on_date=date.today(),
+            sign_off_date=date.today().replace(year=date.today().year + 1),
+            status="Active",
+        )
+
+        # User 2: CV submission (no contract) to a company that owns
+        # both a Passenger ship AND a Container ship.
+        cls.user_cv = Users.objects.create_user(
+            email="stcv-cv@example.com",
+            password="x",
+            first_name="CVUser",
+        )
+        CVSubmission.objects.create(
+            user=cls.user_cv,
+            company=cls.company_at_sea,
+        )
+
+        # User 3: no relevant associations.
+        cls.user_unrelated = Users.objects.create_user(
+            email="stcv-unrelated@example.com",
+            password="x",
+            first_name="UnrelatedUser",
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _ids(self, query=""):
+        resp = self.client.get(
+            f"/api/users/users/?{query}" if query else "/api/users/users/"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_cv_submission_path_matches_user_with_no_contract(self):
+        """The original gap: User 2 has no contract but applied to a company that owns Passenger Ships."""
+        ids = self._ids("ship_type=Passenger+Vessels")
+        # User 1 (contract at Passenger Ships ship) matches via path (a)
+        self.assertIn(self.user_contract.id, ids)
+        # User 2 (CV submission to the owning company) matches via path (b)
+        self.assertIn(self.user_cv.id, ids)
+        # User 3 (unrelated) does not match
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_both_paths_match_for_ships_owned_by_target_company(self):
+        ids = self._ids("ship_type=Container+Vessels")
+        # User 2 has CV to a company owning Container Ship; User 1 doesn't.
+        self.assertIn(self.user_cv.id, ids)
+        self.assertNotIn(self.user_contract.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_multi_value_union_with_both_paths(self):
+        ids = self._ids(
+            "ship_type=Passenger+Vessels&ship_type=Container+Vessels"
+        )
+        # Both users should appear (User 1 via contract, User 2 via CV).
+        self.assertIn(self.user_contract.id, ids)
+        self.assertIn(self.user_cv.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_unrelated_company_ships_not_picked_up(self):
+        """A company owning an unrelated ship_type shouldn't pull in its CV submitters."""
+        ids = self._ids("ship_type=Bulk+Carriers")
+        # Unrelated Co owns a Bulk Carrier. User 3 has no association at all,
+        # so they shouldn't appear. User 1 and User 2 are CV-only/contract-only
+        # with the OTHER company (owner of Passenger/Container ships).
+        self.assertNotIn(self.user_contract.id, ids)
+        self.assertNotIn(self.user_cv.id, ids)
+
