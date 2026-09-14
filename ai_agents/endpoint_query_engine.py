@@ -94,6 +94,15 @@ If the data is a list, present it in a readable format.
 If count_only is true, state the count clearly.
 If results are empty, say no matching records were found.
 
+CRITICAL FORMATTING RULES:
+- Output MUST be plain text only. Do NOT use any Markdown syntax.
+- Do NOT use **bold**, *italics*, # headers, or pipe-tables (|).
+- Do NOT wrap any word or value in ** or * or `.
+- Each result record should be presented as a block, one record per block, separated by a blank line.
+- For each record, list the meaningful fields as "Label: value" lines.
+- Begin with a short plain-text sentence stating the total count, e.g.
+  "There are currently 9 matching records:"
+
 User Question: {question}
 Query Hint: {hint}
 Total Matching Records: {total}
@@ -399,7 +408,7 @@ def summarize_query_results(question: str, query_result: dict, model) -> str:
     from .sql_agent import extract_text
 
     if query_result.get("count_only"):
-        return f"There are **{query_result['total']}** matching records."
+        return f"There are currently {query_result['total']} matching records."
 
     if not query_result.get("results"):
         return "I couldn't find any records matching your criteria."
