@@ -3601,6 +3601,35 @@ def get_nationalities(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def get_nationality_choices(request):
+    """
+    Return the FULL canonical list of nationalities allowed by
+    `Users.nationality.choices` (the `Nationality` TextChoices enum).
+
+    Distinct from /api/nationalities/, which returns only the values
+    currently in the DB. The frontend should use BOTH:
+      - GET /api/nationality-choices/  → full canonical list (always
+                                         ~110, used to populate the
+                                         dropdown options)
+      - GET /api/nationalities/        → in-use subset (used to show
+                                         counts / highlight commonly used)
+
+    Response shape:
+    [
+      {"value": "Egyptian", "label": "Egyptian"},
+      {"value": "Filipino", "label": "Filipino"},
+      ...
+    ]
+    """
+    from api.models import Nationality
+    return Response([
+        {"value": value, "label": label}
+        for value, label in Nationality.choices
+    ])
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_flags(request):
     """
     Return all available maritime flag states from dynamic core.models.Flag.

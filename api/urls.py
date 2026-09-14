@@ -45,6 +45,7 @@ from .views import (
     get_coc_choices,
     get_document_types,
     get_nationalities,
+    get_nationality_choices,
     NextOfKinViewSet,
     PhoneLoginView,
     MeView,
@@ -110,4 +111,5 @@ urlpatterns = [
     path('coc-choices/', get_coc_choices, name='get-coc-choices'),
     path('document-types/', get_document_types, name='get-document-types'),
     path('nationalities/', get_nationalities, name='get-nationalities'),
+    path('nationality-choices/', get_nationality_choices, name='get-nationality-choices'),
 ]

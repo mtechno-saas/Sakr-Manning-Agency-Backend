@@ -7838,3 +7838,102 @@ class UsersNationalityChoicesTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.nationality, "")
 
+
+class NationalityChoicesEndpointTests(APITestCase):
+    """
+    GET /api/nationality-choices/ returns the full canonical list of
+    nationalities from the `Nationality` TextChoices enum — distinct
+    from /api/nationalities/ which returns only the values currently
+    in the DB.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        self.admin = Users.objects.create_user(
+            email="admin-nce@example.com",
+            password="adminpass",
+            first_name="Nce",
+        )
+        self.admin.role = "Admin"
+        self.admin.is_staff = True
+        self.admin.save()
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def test_returns_full_canonical_list(self):
+        from api.models import Nationality
+        resp = self.client.get("/api/nationality-choices/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        data = resp.json()
+        # Full canonical list — every Nationality.choices entry is present.
+        expected_count = len(Nationality.choices)
+        self.assertEqual(len(data), expected_count)
+
+    def test_each_entry_has_value_and_label(self):
+        resp = self.client.get("/api/nationality-choices/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        data = resp.json()
+        for row in data:
+            self.assertIn("value", row)
+            self.assertIn("label", row)
+            self.assertIsInstance(row["value"], str)
+            self.assertIsInstance(row["label"], str)
+            self.assertGreater(len(row["value"]), 0)
+
+    def test_includes_common_seafarer_nations(self):
+        resp = self.client.get("/api/nationality-choices/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        values = {row["value"] for row in resp.json()}
+        for nat in ("Egyptian", "Filipino", "Indian", "Chinese", "British",
+                    "Greek", "Turkish", "Ukrainian", "Russian", "American"):
+            self.assertIn(nat, values)
+
+    def test_choices_endpoint_independent_of_db_contents(self):
+        """
+        The choices endpoint should return the FULL canonical list even
+        when no users have any nationality set (it's a static enum).
+        """
+        from api.models import Users
+        # Wipe all nationalities
+        Users.objects.update(nationality=None)
+        resp = self.client.get("/api/nationality-choices/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        # Still has all ~110 entries
+        self.assertGreater(len(resp.json()), 50)
+
+    def test_requires_authentication(self):
+        from rest_framework.test import APIClient
+        anon = APIClient()
+        resp = anon.get("/api/nationality-choices/")
+        self.assertIn(resp.status_code, (401, 403))
+
+    def test_no_overlap_with_in_use_endpoint(self):
+        """
+        The two endpoints return DIFFERENT things: choices = full enum,
+        nationalities = in-DB values. They may overlap on values but
+        never contradict.
+        """
+        # Create one user with a known nationality
+        from api.models import Users
+        u = Users.objects.create_user(
+            email="nce-test@example.com",
+            password="x",
+            first_name="NceTest",
+        )
+        u.nationality = "Filipino"
+        u.save(update_fields=["nationality"])
+
+        resp_db = self.client.get("/api/nationalities/")
+        resp_choices = self.client.get("/api/nationality-choices/")
+        db_values = {row["value"] for row in resp_db.json()}
+        choice_values = {row["value"] for row in resp_choices.json()}
+
+        # The in-DB value MUST be in the choices list (contract).
+        self.assertEqual(db_values, {"Filipino"})
+        self.assertIn("Filipino", choice_values)
+        # Choices is larger than DB.
+        self.assertGreater(len(choice_values), len(db_values))
+
