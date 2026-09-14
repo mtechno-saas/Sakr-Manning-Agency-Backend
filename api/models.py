@@ -42,6 +42,160 @@ class User_Status(models.TextChoices):
     NEW_APPLICANT = 'NEW_APPLICANT', 'NEW APPLICANT'
 
 
+class Nationality(models.TextChoices):
+    """
+    Curated list of nationalities commonly seen in the maritime
+    workforce, used as a UI hint on Users.nationality.
+
+    This is an OPT-IN constraint at the form/serializer layer only —
+    the DB column is still VARCHAR(50), so:
+      - existing rows with values NOT in this list stay valid
+      - direct SQL inserts (or `Model.objects.create(nationality=...)`
+        bypassing the serializer) can still set any string
+      - the frontend dropdown can show this entire list to give
+        users options that aren't yet in the DB
+
+    The /api/nationalities/ endpoint returns ONLY the values that are
+    actually in the DB, so adding choices here doesn't immediately
+    populate the dropdown — values appear once a user is assigned
+    them. The frontend can use GET /api/nationalities/ to render the
+    current dropdown and fall back to this list (via OPTIONS on the
+    user endpoint) if needed.
+
+    Stored value (left side) is the canonical spelling; display label
+    (right side) is the human-friendly form. For consistency with
+    existing prod data we use the demonym ("Egyptian", "Filipino")
+    rather than the country name ("Egypt", "Philippines") so the
+    dropdown options match what's already in the DB.
+    """
+    # --- MENA / Africa ---
+    EGYPTIAN = 'Egyptian', 'Egyptian'
+    ALGERIAN = 'Algerian', 'Algerian'
+    MOROCCAN = 'Moroccan', 'Moroccan'
+    TUNISIAN = 'Tunisian', 'Tunisian'
+    LIBYAN = 'Libyan', 'Libyan'
+    SUDANESE = 'Sudanese', 'Sudanese'
+    SOUTH_AFRICAN = 'South African', 'South African'
+    NIGERIAN = 'Nigerian', 'Nigerian'
+    GHANAIAN = 'Ghanaian', 'Ghanaian'
+    KENYAN = 'Kenyan', 'Kenyan'
+    ETHIOPIAN = 'Ethiopian', 'Ethiopian'
+
+    # --- Asia ---
+    INDIAN = 'Indian', 'Indian'
+    PAKISTANI = 'Pakistani', 'Pakistani'
+    BANGLADESHI = 'Bangladeshi', 'Bangladeshi'
+    SRI_LANKAN = 'Sri Lankan', 'Sri Lankan'
+    FILIPINO = 'Filipino', 'Filipino'
+    INDONESIAN = 'Indonesian', 'Indonesian'
+    MALAYSIAN = 'Malaysian', 'Malaysian'
+    SINGAPOREAN = 'Singaporean', 'Singaporean'
+    THAI = 'Thai', 'Thai'
+    VIETNAMESE = 'Vietnamese', 'Vietnamese'
+    BURMESE = 'Burmese', 'Burmese'
+    CAMBODIAN = 'Cambodian', 'Cambodian'
+    CHINESE = 'Chinese', 'Chinese'
+    HONG_KONGER = 'Hong Konger', 'Hong Konger'
+    TAIWANESE = 'Taiwanese', 'Taiwanese'
+    JAPANESE = 'Japanese', 'Japanese'
+    SOUTH_KOREAN = 'South Korean', 'South Korean'
+    NORTH_KOREAN = 'North Korean', 'North Korean'
+    MONGOLIAN = 'Mongolian', 'Mongolian'
+    NEPALESE = 'Nepalese', 'Nepalese'
+
+    # --- Middle East ---
+    TURKISH = 'Turkish', 'Turkish'
+    SAUDI = 'Saudi', 'Saudi'
+    EMIRATI = 'Emirati', 'Emirati'
+    QATARI = 'Qatari', 'Qatari'
+    KUWAITI = 'Kuwaiti', 'Kuwaiti'
+    BAHRAINI = 'Bahraini', 'Bahraini'
+    OMANI = 'Omani', 'Omani'
+    YEMENI = 'Yemeni', 'Yemeni'
+    JORDANIAN = 'Jordanian', 'Jordanian'
+    LEBANESE = 'Lebanese', 'Lebanese'
+    SYRIAN = 'Syrian', 'Syrian'
+    IRAQI = 'Iraqi', 'Iraqi'
+    IRANIAN = 'Iranian', 'Iranian'
+    ISRAELI = 'Israeli', 'Israeli'
+    PALESTINIAN = 'Palestinian', 'Palestinian'
+
+    # --- Europe ---
+    BRITISH = 'British', 'British'
+    IRISH = 'Irish', 'Irish'
+    FRENCH = 'French', 'French'
+    GERMAN = 'German', 'German'
+    DUTCH = 'Dutch', 'Dutch'
+    BELGIAN = 'Belgian', 'Belgian'
+    SPANISH = 'Spanish', 'Spanish'
+    PORTUGUESE = 'Portuguese', 'Portuguese'
+    ITALIAN = 'Italian', 'Italian'
+    GREEK = 'Greek', 'Greek'
+    SWEDISH = 'Swedish', 'Swedish'
+    NORWEGIAN = 'Norwegian', 'Norwegian'
+    DANISH = 'Danish', 'Danish'
+    FINNISH = 'Finnish', 'Finnish'
+    ICELANDIC = 'Icelandic', 'Icelandic'
+    SWISS = 'Swiss', 'Swiss'
+    AUSTRIAN = 'Austrian', 'Austrian'
+    POLISH = 'Polish', 'Polish'
+    CZECH = 'Czech', 'Czech'
+    SLOVAK = 'Slovak', 'Slovak'
+    HUNGARIAN = 'Hungarian', 'Hungarian'
+    ROMANIAN = 'Romanian', 'Romanian'
+    BULGARIAN = 'Bulgarian', 'Bulgarian'
+    SERBIAN = 'Serbian', 'Serbian'
+    CROATIAN = 'Croatian', 'Croatian'
+    BOSNIAN = 'Bosnian', 'Bosnian'
+    MONTENEGRIN = 'Montenegrin', 'Montenegrin'
+    ALBANIAN = 'Albanian', 'Albanian'
+    MACEDONIAN = 'Macedonian', 'Macedonian'
+    SLOVENIAN = 'Slovenian', 'Slovenian'
+    GREEK_CYPRIOT = 'Greek Cypriot', 'Greek Cypriot'
+    TURKISH_CYPRIOT = 'Turkish Cypriot', 'Turkish Cypriot'
+    MALTESE = 'Maltese', 'Maltese'
+
+    # --- Eastern Europe / Central Asia ---
+    RUSSIAN = 'Russian', 'Russian'
+    UKRAINIAN = 'Ukrainian', 'Ukrainian'
+    BELARUSIAN = 'Belarusian', 'Belarusian'
+    MOLDOVAN = 'Moldovan', 'Moldovan'
+    GEORGIAN = 'Georgian', 'Georgian'
+    ARMENIAN = 'Armenian', 'Armenian'
+    AZERBAIJANI = 'Azerbaijani', 'Azerbaijani'
+    KAZAKH = 'Kazakh', 'Kazakh'
+    UZBEK = 'Uzbek', 'Uzbek'
+    TURKMEN = 'Turkmen', 'Turkmen'
+    KYRGYZ = 'Kyrgyz', 'Kyrgyz'
+    TAJIK = 'Tajik', 'Tajik'
+
+    # --- Baltic ---
+    LITHUANIAN = 'Lithuanian', 'Lithuanian'
+    LATVIAN = 'Latvian', 'Latvian'
+    ESTONIAN = 'Estonian', 'Estonian'
+
+    # --- Americas ---
+    AMERICAN = 'American', 'American'
+    CANADIAN = 'Canadian', 'Canadian'
+    MEXICAN = 'Mexican', 'Mexican'
+    BRAZILIAN = 'Brazilian', 'Brazilian'
+    ARGENTINE = 'Argentine', 'Argentine'
+    CHILEAN = 'Chilean', 'Chilean'
+    COLOMBIAN = 'Colombian', 'Colombian'
+    PERUVIAN = 'Peruvian', 'Peruvian'
+    VENEZUELAN = 'Venezuelan', 'Venezuelan'
+    ECUADORIAN = 'Ecuadorian', 'Ecuadorian'
+
+    # --- Oceania ---
+    AUSTRALIAN = 'Australian', 'Australian'
+    NEW_ZEALANDER = 'New Zealander', 'New Zealander'
+    FIJIAN = 'Fijian', 'Fijian'
+    PAPUA_NEW_GUINEAN = 'Papua New Guinean', 'Papua New Guinean'
+
+    # --- Catch-all ---
+    OTHER = 'Other', 'Other'
+
+
 
 RANKS = [
     ('DO-1.000', 'Master / Captain'),
@@ -466,7 +620,12 @@ class Users(AbstractBaseUser, PermissionsMixin):
     is_blacklisted = models.BooleanField(default=False)
     blacklist_reason = models.TextField(blank=True, null=True)
 
-    nationality = models.CharField(max_length=50, null=True, blank=True)
+    nationality = models.CharField(
+        max_length=50,
+        choices=Nationality.choices,
+        null=True,
+        blank=True,
+    )
     Place_Of_Birth = models.CharField(max_length=100, null=True, blank=True)
     Nearest_Port = models.CharField(max_length=200, null=True)
     Height_Cm = models.IntegerField(null=True, blank=True)

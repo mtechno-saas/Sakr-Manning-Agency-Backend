@@ -7758,3 +7758,83 @@ class NationalitiesEndpointTests(APITestCase):
         resp = anon.get("/api/nationalities/")
         self.assertIn(resp.status_code, (401, 403))
 
+
+class UsersNationalityChoicesTests(TestCase):
+    """
+    Users.nationality now has `choices=Nationality.choices` (~100
+    maritime-relevant nationalities). This is an OPT-IN constraint at
+    the serializer/form layer; the DB column is still VARCHAR(50)
+    and accepts any string, so existing rows aren't invalidated.
+    """
+
+    def setUp(self):
+        from api.models import Users, Nationality
+        self.Users = Users
+        self.Nationality = Nationality
+        self.user = Users.objects.create_user(
+            email="nat-choices@example.com",
+            password="x",
+            first_name="Choices",
+        )
+
+    def test_nationality_choices_includes_common_seafarer_nations(self):
+        """The curated list covers the major seafarer-source countries."""
+        expected = {
+            "Egyptian", "Filipino", "Indian", "Chinese", "British",
+            "Greek", "Turkish", "Ukrainian", "Russian", "Indonesian",
+            "American", "Burmese", "Pakistani", "Bangladeshi", "Sri Lankan",
+        }
+        actual = {value for value, _ in self.Nationality.choices}
+        for n in expected:
+            self.assertIn(n, actual, f"{n} should be in Nationality.choices")
+
+    def test_can_save_user_with_choices_nationality(self):
+        """A valid choice round-trips through save without error."""
+        self.user.nationality = self.Nationality.FILIPINO
+        self.user.save()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nationality, "Filipino")
+
+    def test_serializer_rejects_invalid_nationality_choice(self):
+        """PUT with a string not in Nationality.choices returns 400."""
+        from api.serializer import UsersSerializer
+        from rest_framework.test import APIRequestFactory
+        factory = APIRequestFactory()
+        req = factory.put("/", {"nationality": "Atlantis"}, format="json")
+        req.user = self.user
+        serializer = UsersSerializer(self.user, data={"nationality": "Atlantis"}, context={"request": req}, partial=True)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("nationality", serializer.errors)
+
+    def test_db_still_accepts_arbitrary_nationality_string(self):
+        """
+        The `choices=` constraint is a UI hint, not a DB constraint.
+        Direct `Model.save()` with a value NOT in the choices list
+        still works — preserves backward-compat with any existing
+        rows that might be outside the curated list.
+        """
+        # Use raw manager update so we bypass any model-level validation
+        self.Users.objects.filter(id=self.user.id).update(nationality="Atlantis")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nationality, "Atlantis")
+
+    def test_existing_prod_values_still_resolve(self):
+        """The 2 values currently in prod are both in the new choices."""
+        for prod_value in ("Egyptian", "American"):
+            self.assertIn(
+                prod_value,
+                {value for value, _ in self.Nationality.choices},
+                f"{prod_value} must be in the new choices list",
+            )
+
+    def test_null_and_empty_nationality_still_allowed(self):
+        """`null=True, blank=True` on the field is preserved."""
+        self.user.nationality = None
+        self.user.save()
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.nationality)
+        self.user.nationality = ""
+        self.user.save()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nationality, "")
+
