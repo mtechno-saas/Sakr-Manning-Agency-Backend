@@ -7937,3 +7937,150 @@ class NationalityChoicesEndpointTests(APITestCase):
         # Choices is larger than DB.
         self.assertGreater(len(choice_values), len(db_values))
 
+
+class UsersCompanyNameFilterTests(APITestCase):
+    """
+    ?company_name=... on /api/users/users/ must match users associated
+    with the named company through ANY of:
+      - Contracts (current or past placement)
+      - CV submissions (candidates applied)
+      - Interviews (interviewed at the company)
+
+    Regression: previously CharFilter only matched via contracts and only
+    kept the LAST value for repeated query params, so multi-value filters
+    silently returned 0 rows.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import (
+            Users, Contract, CVSubmission, Interview, Rank,
+        )
+        from companies.models import Company, JobOrder, JobOrderPosition
+        from datetime import date
+
+        cls.admin = Users.objects.create_user(
+            email="admin-cnf@example.com",
+            password="adminpass",
+            first_name="CnF",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.company_a, _ = Company.objects.get_or_create(
+            company_name="3 SEAS SHIPPING"
+        )
+        cls.company_b, _ = Company.objects.get_or_create(
+            company_name="Octavice Over Seas"
+        )
+        cls.company_other, _ = Company.objects.get_or_create(
+            company_name="Unrelated Co"
+        )
+
+        # User with a contract at Company A.
+        cls.rank, _ = Rank.objects.get_or_create(code="MAS-1", name="Master")
+        cls.jo = JobOrder.objects.create(
+            company=cls.company_a,
+            reference_number="JO-CNF-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+        )
+        cls.pos = JobOrderPosition.objects.create(
+            job_order=cls.jo, rank=cls.rank, quantity=1,
+        )
+        cls.user_via_contract = Users.objects.create_user(
+            email="cnf-contract@example.com",
+            password="x",
+            first_name="CnFContract",
+        )
+        Contract.objects.create(
+            user=cls.user_via_contract,
+            company=cls.company_a,
+            rank=cls.rank,
+            job_position=cls.pos,
+            sign_on_date=date.today(),
+            sign_off_date=date.today().replace(year=date.today().year + 1),
+            status="Active",
+        )
+
+        # User with a CV submission to Company B (no contract).
+        cls.user_via_cv = Users.objects.create_user(
+            email="cnf-cv@example.com",
+            password="x",
+            first_name="CnFCV",
+        )
+        CVSubmission.objects.create(
+            user=cls.user_via_cv,
+            company=cls.company_b,
+        )
+
+        # User at an unrelated company — should NOT match either filter.
+        cls.user_unrelated = Users.objects.create_user(
+            email="cnf-unrelated@example.com",
+            password="x",
+            first_name="CnFUnrelated",
+        )
+        CVSubmission.objects.create(
+            user=cls.user_unrelated,
+            company=cls.company_other,
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _ids(self, query=""):
+        resp = self.client.get(
+            f"/api/users/users/?{query}" if query else "/api/users/users/"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        return [r["id"] for r in results]
+
+    def test_single_company_name_matches_contract_path(self):
+        ids = self._ids("company_name=3+SEAS+SHIPPING")
+        self.assertIn(self.user_via_contract.id, ids)
+        self.assertNotIn(self.user_via_cv.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_single_company_name_matches_cv_path(self):
+        ids = self._ids("company_name=Octavice+Over+Seas")
+        self.assertIn(self.user_via_cv.id, ids)
+        self.assertNotIn(self.user_via_contract.id, ids)
+
+    def test_repeated_company_name_returns_union(self):
+        """The original bug: multi-value silently kept only the last value."""
+        ids = self._ids(
+            "company_name=3+SEAS+SHIPPING&company_name=Octavice+Over+Seas"
+        )
+        self.assertIn(self.user_via_contract.id, ids)
+        self.assertIn(self.user_via_cv.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_comma_separated_company_name(self):
+        ids = self._ids(
+            "company_name=3+SEAS+SHIPPING,Octavice+Over+Seas"
+        )
+        self.assertIn(self.user_via_contract.id, ids)
+        self.assertIn(self.user_via_cv.id, ids)
+        self.assertNotIn(self.user_unrelated.id, ids)
+
+    def test_partial_match_is_case_insensitive(self):
+        """?company_name=seas should match '3 SEAS SHIPPING' via icontains."""
+        ids = self._ids("company_name=seas")
+        self.assertIn(self.user_via_contract.id, ids)
+
+    def test_no_filter_returns_all(self):
+        ids = self._ids()
+        for u in (
+            self.user_via_contract,
+            self.user_via_cv,
+            self.user_unrelated,
+        ):
+            self.assertIn(u.id, ids)
+

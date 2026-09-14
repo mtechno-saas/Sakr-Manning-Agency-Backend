@@ -335,13 +335,50 @@ class UsersFilter(django_filters.FilterSet):
         return queryset.filter(role__in=vals)
 
     company = django_filters.CharFilter(method="filter_company")
-    company_name = django_filters.CharFilter(field_name="contracts__company__company_name", lookup_expr="icontains")
+    # Match by company name through MULTIPLE paths (the same user may be
+    # associated with a company via different relations):
+    #   - Contracts (current or past placement)
+    #   - CV submissions (candidates applied to a company)
+    #   - Interviews (interviewed at a company)
+    # Also accepts repeated query params (?company_name=A&company_name=B)
+    # and comma-separated (?company_name=A,B), returning the union via
+    # .distinct(). The previous CharFilter only kept the LAST value.
+    company_name = django_filters.CharFilter(method="filter_company_name")
 
     def filter_company(self, queryset, name, value):
         ids = [int(v) for v in self.request.GET.getlist("company") if str(v).strip().isdigit()]
         if not ids:
             return queryset
         return queryset.filter(contracts__company__id__in=ids).distinct()
+
+    def filter_company_name(self, queryset, name, value):
+        """
+        Match users by company name through multiple paths:
+          (a) Contracts (current or past placement)
+          (b) CV submissions (candidates applied)
+          (c) Interviews (interviewed at the company)
+        Each user is matched if their company_name (case-insensitive partial)
+        appears in any of those relations.
+
+        Accepts repeated query params (?company_name=A&company_name=B) and
+        comma-separated (?company_name=A,B) — both return the union.
+        """
+        terms = self._strings_for("company_name")
+        if terms is None:
+            return queryset
+        if not terms:
+            return queryset.none()
+        q = Q()
+        for t in terms:
+            term = t.strip()
+            if not term:
+                continue
+            q |= (
+                Q(contracts__company__company_name__icontains=term)
+                | Q(cv_submissions__company__company_name__icontains=term)
+                | Q(interviews__company__company_name__icontains=term)
+            )
+        return queryset.filter(q).distinct()
 
     ship = django_filters.CharFilter(method="filter_ship")
     ship_name = django_filters.CharFilter(field_name="contracts__ship__ship_name", lookup_expr="icontains")
