@@ -8544,3 +8544,198 @@ class UsersCompanyTypeFilterTests(APITestCase):
         self.assertNotIn(self.user_via_cv.id, ids)
         self.assertNotIn(self.user_unrelated.id, ids)
 
+
+class JobOrderFilterStatusChoicesTests(APITestCase):
+    """
+    Regression: GET /api/companies/job-orders/?status=Open returned 400
+    "Select a valid choice. Open is not one of the available choices."
+    on prod because AllValuesMultipleFilter populated its choices from
+    the DB. Prod had no JobOrder rows with status='Open' at the moment
+    of the query, so 'Open' was missing from the choices list even though
+    it IS in JobOrder.STATUS_CHOICES.
+
+    The new filter uses MultipleChoiceFilter with explicit choices=
+    JobOrder.STATUS_CHOICES, so every enum value is accepted (returning
+    an empty list when no rows match) and only true typos are rejected
+    with a 400. Also exercises multi-value union (repeated params).
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users
+        from companies.models import Company, JobOrder
+
+        cls.admin = Users.objects.create_user(
+            email="admin-jofilter@example.com",
+            password="adminpass",
+            first_name="JoFlt",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.company = Company.objects.create(company_name="Test JO Co")
+
+        from datetime import date
+        # Two job orders in different statuses. NO 'Open' job order.
+        cls.jo_full_filled = JobOrder.objects.create(
+            company=cls.company,
+            reference_number="JO-FF-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+            status="Full Filled",
+        )
+        cls.jo_close = JobOrder.objects.create(
+            company=cls.company,
+            reference_number="JO-CL-001",
+            request_date=date.today(),
+            target_joining_date=date.today(),
+            status="Close",
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _list(self, query=""):
+        url = "/api/companies/job-orders/"
+        if query:
+            url += "?" + query
+        return self.client.get(url)
+
+    def test_status_enum_value_with_zero_rows_returns_empty_list_not_400(self):
+        """
+        The original bug: ?status=Open returned 400 because no Open
+        job orders existed in the DB. Now it should return an empty list
+        (200) because 'Open' is a valid enum value.
+        """
+        resp = self._list("status=Open")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        self.assertEqual(results, [])
+
+    def test_status_enum_value_with_matching_rows_returns_them(self):
+        resp = self._list("status=Full+Filled")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        ids = [r["id"] for r in results]
+        self.assertIn(self.jo_full_filled.id, ids)
+        self.assertNotIn(self.jo_close.id, ids)
+
+    def test_status_unknown_value_still_returns_400(self):
+        """True typos should still be rejected -- that's useful feedback."""
+        resp = self._list("status=Opn")  # typo of Open
+        self.assertEqual(resp.status_code, 400, resp.content)
+        body = resp.json()
+        self.assertIn("status", body)
+        self.assertIn("Opn", str(body["status"]))
+
+    def test_status_repeated_params_returns_union(self):
+        """MultipleChoiceFilter natively handles ?status=A&status=B union."""
+        resp = self._list("status=Full+Filled&status=Close")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        ids = [r["id"] for r in results]
+        self.assertIn(self.jo_full_filled.id, ids)
+        self.assertIn(self.jo_close.id, ids)
+
+
+class ShipFilterStatusChoicesTests(APITestCase):
+    """
+    Regression: GET /api/ships/?status=Under+Maintenance returned 400
+    "Select a valid choice. Under Maintenance is not one of the available
+    choices." when prod had no ships in that status, even though
+    'Under Maintenance' IS in Ship.SHIP_STATUS.
+
+    Same root cause as ContractFilterStatusChoicesTests and
+    JobOrderFilterStatusChoicesTests -- AllValuesMultipleFilter pulls
+    choices from DB distinct values. Fixed by switching to
+    MultipleChoiceFilter with explicit choices=Ship.SHIP_STATUS.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from api.models import Users
+        from companies.models import Company
+        from ships.models import Ship
+
+        cls.admin = Users.objects.create_user(
+            email="admin-shipflt@example.com",
+            password="adminpass",
+            first_name="ShipFlt",
+        )
+        cls.admin.role = "Admin"
+        cls.admin.is_staff = True
+        cls.admin.save()
+
+        cls.company = Company.objects.create(company_name="Test Ship Co")
+
+        cls.ship_active = Ship.objects.create(
+            ship_name="MV Active",
+            imo_number="7777771",
+            company=cls.company,
+            status="Active",
+        )
+        cls.ship_inactive = Ship.objects.create(
+            ship_name="MV Inactive",
+            imo_number="7777772",
+            company=cls.company,
+            status="Inactive",
+        )
+
+    def setUp(self):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.admin)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _list(self, query=""):
+        url = "/api/ships/"
+        if query:
+            url += "?" + query
+        return self.client.get(url)
+
+    def test_status_enum_value_with_zero_rows_returns_empty_list_not_400(self):
+        """
+        Original bug: ?status=Under+Maintenance returned 400 because
+        no ships were in that status. Now it returns 200 with empty list
+        because 'Under Maintenance' is a valid enum value.
+        """
+        resp = self._list("status=Under+Maintenance")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        self.assertEqual(results, [])
+
+    def test_status_enum_value_with_matching_rows_returns_them(self):
+        resp = self._list("status=Active")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        ids = [r["id"] for r in results]
+        self.assertIn(self.ship_active.id, ids)
+        self.assertNotIn(self.ship_inactive.id, ids)
+
+    def test_status_unknown_value_still_returns_400(self):
+        resp = self._list("status=Acitve")  # typo
+        self.assertEqual(resp.status_code, 400, resp.content)
+        body = resp.json()
+        self.assertIn("status", body)
+        self.assertIn("Acitve", str(body["status"]))
+
+    def test_status_repeated_params_returns_union(self):
+        resp = self._list("status=Active&status=Inactive")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        body = resp.json()
+        results = body if isinstance(body, list) else body.get("results", [])
+        ids = [r["id"] for r in results]
+        self.assertIn(self.ship_active.id, ids)
+        self.assertIn(self.ship_inactive.id, ids)
+

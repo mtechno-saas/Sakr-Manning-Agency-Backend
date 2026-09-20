@@ -642,7 +642,16 @@ class CVSubmissionFilter(django_filters.FilterSet):
 class JobOrderFilter(django_filters.FilterSet):
     company = django_filters.NumberFilter(field_name="company__id")
     ship = django_filters.NumberFilter(field_name="ship__id")
-    status = django_filters.AllValuesMultipleFilter(field_name="status")
+    # Use MultipleChoiceFilter with explicit enum choices instead of
+    # AllValuesMultipleFilter. Same regression as ContractFilter.status:
+    # AllValuesMultipleFilter populated its choices from the DB and rejected
+    # enum values with zero rows in prod (e.g. ?status=Open returned
+    # "Select a valid choice. Open is not one of the available choices."
+    # because prod had no Open job orders at the moment of the query).
+    status = django_filters.MultipleChoiceFilter(
+        field_name="status",
+        choices=JobOrder.STATUS_CHOICES,
+    )
     reference_number = django_filters.CharFilter(field_name="reference_number", lookup_expr="icontains")
     request_date_from = django_filters.DateFilter(field_name="request_date", lookup_expr="gte")
     request_date_to = django_filters.DateFilter(field_name="request_date", lookup_expr="lte")
@@ -728,7 +737,15 @@ class ShipFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="ship_name", lookup_expr="icontains")
     imo_number = django_filters.CharFilter(field_name="imo_number", lookup_expr="icontains")
     company = django_filters.CharFilter(method="filter_company")
-    status = django_filters.AllValuesMultipleFilter(field_name="status")
+    # Use MultipleChoiceFilter with explicit enum choices instead of
+    # AllValuesMultipleFilter (same regression as ContractFilter.status and
+    # JobOrderFilter.status): enum values with zero rows in prod used to
+    # return 400 "Select a valid choice. <X> is not one of the available
+    # choices." even though <X> IS in Ship.SHIP_STATUS.
+    status = django_filters.MultipleChoiceFilter(
+        field_name="status",
+        choices=Ship.SHIP_STATUS,
+    )
     # `flag` and `ship_type` are ForeignKeys to Flag/VesselType; filter on the
     # related `name` (the string the API exposes), not the FK ID.
     # CharInFilter only splits a single comma-separated value — it does NOT
