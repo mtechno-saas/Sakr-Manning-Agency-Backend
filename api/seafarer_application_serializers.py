@@ -8,6 +8,7 @@ from vaccinations.models import Vaccination
 from licenses.models import UserLicense
 from api.serializers import FlexibleDateField, FlexibleFileField
 from datetime import datetime
+import re
 
 class SeafarerApplicationSerializer(serializers.ModelSerializer):
     # Define these as fields that can be read and written
@@ -107,6 +108,47 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         if not s:
             return False
         return any(phrase in s for phrase in self.NO_EXPIRY_PHRASES)
+
+    # IMO numbers are exactly 7 digits, sometimes prefixed with "IMO",
+    # "I.M.O.", "IMO:", or similar. Used by _split_vessel_and_imo to
+    # decide whether a "/" inside a "Vessel Name/IMO Number" PDF cell is
+    # a vessel-name/IMO separator or just part of a vessel name prefix
+    # like "M/V" (Motor Vessel) or "S/V" (Sailing Vessel).
+    _IMO_NUMBER_RE = re.compile(
+        r'\b(?:IMO[\s\.\:]*|I\.M\.O\.[\s\.\:]*)?(\d{7})\b',
+        re.IGNORECASE,
+    )
+
+    def _split_vessel_and_imo(self, raw_cell):
+        """
+        Parse a "Vessel Name / IMO Number" PDF cell into
+        ``(vessel_name, imo_number)``.
+
+        The original parser did ``cell.split('/')``, which silently broke
+        every vessel whose name contains a "/" -- most commonly the
+        ``M/V`` (Motor Vessel) prefix. So ``"M/V LILY OF SEA"`` came
+        out as ``vessel_name="M", imo_number="V LILY OF SEA"`` -- bogus
+        IMO number, corrupted vessel name, bad data.
+
+        New rule: only split at ``/`` if a 7-digit IMO number actually
+        exists somewhere in the cell. Otherwise the whole cell is the
+        vessel name (M/V prefix preserved, no IMO).
+        """
+        if not raw_cell:
+            return '', ''
+        raw = str(raw_cell).strip()
+        if not raw:
+            return '', ''
+
+        m = self._IMO_NUMBER_RE.search(raw)
+        if m:
+            imo = m.group(1)
+            vessel = raw[:m.start()].rstrip(' /\t').strip()
+            return vessel, imo
+
+        # No actual IMO number. Whole cell is the vessel name. Don't
+        # touch the slash -- "M/V LILY OF SEA" must stay intact.
+        return raw, ''
 
     def update(self, instance, validated_data):
         # 1. Personal Details & Application Header
@@ -523,12 +565,15 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
 
                 instance.sea_services.all().delete()
                 for r in records:
+                    vessel_name, imo_number = self._split_vessel_and_imo(
+                        r.get('vessel_name_imo_number', '')
+                    )
                     SeaService.objects.create(
                         user=instance,
                         company_name=r.get('company_name', ''),
                         rank=r.get('rank', ''),
-                        vessel_name=r.get('vessel_name_imo_number', '').split('/')[0].strip() if '/' in r.get('vessel_name_imo_number', '') else r.get('vessel_name_imo_number', ''),
-                        imo_number=r.get('vessel_name_imo_number', '').split('/')[1].strip() if '/' in r.get('vessel_name_imo_number', '') else '',
+                        vessel_name=vessel_name,
+                        imo_number=imo_number,
                         flag=r.get('flag', ''),
                         signed_on=self._parse_date(r.get('signed_on')),
                         signed_off=self._parse_date(r.get('signed_off')),

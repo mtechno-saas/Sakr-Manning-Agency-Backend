@@ -9205,3 +9205,117 @@ class SeafarerApplicationAliasAwareFieldsTests(APITestCase):
         self.assertEqual(self.user.trouser_size, "32")
         self.assertEqual(self.user.salary, "3000")
 
+
+class SeaServiceVesselImoSplitTests(TestCase):
+    """
+    Regression: the sea-service parser used to split
+    ``r.get('vessel_name_imo_number', '')`` at the literal "/" character,
+    which silently corrupted every vessel whose name contains a slash.
+    The most common offender is the "M/V" (Motor Vessel) prefix -- a
+    real Sakr CV had:
+        row 1: "M/V LILY OF SEA"   -> vessel="M", imo="V LILY OF SEA"
+        row 2: "M/V SC II"         -> vessel="M", imo="V SC II"
+        row 3: "M/V SIRIOS CEMENT V" -> vessel="M", imo="V SIRIOS CEMENT V"
+    producing a bogus IMO number for every M/V vessel and trashing the
+    vessel name to just "M".
+
+    The fix splits at "/" only if the cell actually contains a 7-digit
+    IMO number (optionally prefixed with "IMO" / "I.M.O."). When the
+    slash is part of a vessel name prefix, the whole cell stays as the
+    vessel name and the IMO column is left empty.
+    """
+
+    def _make_user(self, email):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="S", middle_name="S", role="Employee",
+        )
+
+    def _payload(self, service_records):
+        return {
+            "personal_details": {},
+            "contact_details": {},
+            "travel_documents": [],
+            "professional_qualification": [],
+            "next_of_kin": {},
+            "health_certificates": {},
+            "marine_courses": [],
+            "sea_service_details": {"service_records": service_records},
+            "references": [],
+            "declaration": {},
+            "for_office_use_only": {},
+        }
+
+    def _save_and_get(self, raw_cell):
+        from api.models import SeaService
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+        user = self._make_user(
+            f"ss-vessel-{abs(hash(raw_cell)) & 0xfff}@example.com"
+        )
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {
+                "company_name": "TEST CO",
+                "rank": "AB",
+                "vessel_name_imo_number": raw_cell,
+                "flag": "PANAMA",
+                "signed_on": "01-01-2020",
+                "signed_off": "01-06-2020",
+            },
+        ]))
+        svc = SeaService.objects.filter(user=user).first()
+        return svc.vessel_name, svc.imo_number
+
+    def test_mv_prefix_preserved_as_vessel_name_no_split(self):
+        """The original bug."""
+        vessel, imo = self._save_and_get("M/V LILY OF SEA")
+        self.assertEqual(vessel, "M/V LILY OF SEA")
+        self.assertEqual(imo, "")
+
+    def test_mv_sc_ii_preserved_intact(self):
+        vessel, imo = self._save_and_get("M/V SC II")
+        self.assertEqual(vessel, "M/V SC II")
+        self.assertEqual(imo, "")
+
+    def test_mv_sirios_cement_v_preserved_intact(self):
+        vessel, imo = self._save_and_get("M/V SIRIOS CEMENT V")
+        self.assertEqual(vessel, "M/V SIRIOS CEMENT V")
+        self.assertEqual(imo, "")
+
+    def test_mv_kemet_star_preserved_intact(self):
+        vessel, imo = self._save_and_get("M/V KEMET STAR")
+        self.assertEqual(vessel, "M/V KEMET STAR")
+        self.assertEqual(imo, "")
+
+    def test_plain_vessel_name_no_split(self):
+        vessel, imo = self._save_and_get("HARMONY V")
+        self.assertEqual(vessel, "HARMONY V")
+        self.assertEqual(imo, "")
+
+    def test_plain_vessel_name_pegasus_no_split(self):
+        vessel, imo = self._save_and_get("PEGASUS")
+        self.assertEqual(vessel, "PEGASUS")
+        self.assertEqual(imo, "")
+
+    def test_vessel_with_real_imo_after_slash_splits(self):
+        """When there IS an IMO number, the split should still work."""
+        vessel, imo = self._save_and_get("HARMONY V / 9876543")
+        self.assertEqual(vessel, "HARMONY V")
+        self.assertEqual(imo, "9876543")
+
+    def test_vessel_with_mv_prefix_and_real_imo_splits(self):
+        vessel, imo = self._save_and_get("M/V SC II / 1234567")
+        self.assertEqual(vessel, "M/V SC II")
+        self.assertEqual(imo, "1234567")
+
+    def test_imo_prefix_with_colon_splits(self):
+        """OCR sometimes emits 'IMO: 9876543' as part of the cell."""
+        vessel, imo = self._save_and_get("HARMONY V IMO: 9876543")
+        self.assertEqual(vessel, "HARMONY V")
+        self.assertEqual(imo, "9876543")
+
+    def test_empty_cell(self):
+        vessel, imo = self._save_and_get("")
+        self.assertEqual(vessel, "")
+        self.assertEqual(imo, "")
+
