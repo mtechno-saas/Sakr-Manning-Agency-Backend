@@ -2196,6 +2196,31 @@ class UsersSerializer(serializers.ModelSerializer):
                 data['first_name'] = parts[0]
                 data['middle_name'] = parts[1] if len(parts) > 1 else ''
 
+        # Normalize nationality to canonical case BEFORE DRF's choices
+        # validation runs. ``Users.nationality`` has ``choices=Nationality.choices``
+        # (e.g. "Egyptian"), and DRF's ChoiceField rejects any case variant
+        # with "X is not a valid choice.". The frontend's nationality
+        # dropdown has shipped values like "EGYPTIAN" / "egyptian" /
+        # "Egypt" depending on the calling code path. Map any case
+        # variant of a known choice back to the canonical value before
+        # DRF validation rejects it.
+        if 'nationality' in data and data['nationality'] is not None:
+            raw_n = data['nationality']
+            if isinstance(raw_n, str):
+                from api.models import Nationality
+                # Build a one-time lookup {lower -> canonical} from the
+                # enum. Falls back to the original value if no case-
+                # insensitive match (so unknown nationalities still
+                # pass through and hit DRF's normal validation).
+                _nat_lookup = {v.lower(): v for v, _ in Nationality.choices}
+                canonical = _nat_lookup.get(raw_n.strip().lower())
+                if canonical and canonical != raw_n:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['nationality'] = canonical
+
         # Pre-process 'application_for_position' if it's a list or an ID
         if 'application_for_position' in data:
             val = data.get('application_for_position')
@@ -2810,6 +2835,22 @@ class RegisterSerializer(serializers.ModelSerializer):
                 parts = full_name.split(' ', 1)
                 data['first_name'] = parts[0]
                 data['middle_name'] = parts[1] if len(parts) > 1 else ''
+
+        # Same nationality case normalization as UsersSerializer --
+        # users created via the signup flow have hit the same
+        # "EGYPTIAN is not a valid choice" error otherwise.
+        if 'nationality' in data and data['nationality'] is not None:
+            raw_n = data['nationality']
+            if isinstance(raw_n, str):
+                from api.models import Nationality
+                _nat_lookup = {v.lower(): v for v, _ in Nationality.choices}
+                canonical = _nat_lookup.get(raw_n.strip().lower())
+                if canonical and canonical != raw_n:
+                    if hasattr(data, 'copy'):
+                        data = data.copy()
+                    else:
+                        data = dict(data)
+                    data['nationality'] = canonical
 
         # Pre-process 'application_for_position' if it's a list or an ID
         if 'application_for_position' in data:

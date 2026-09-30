@@ -112,7 +112,49 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
         # 1. Personal Details & Application Header
         personal = validated_data.get('personal_details', {})
         header = validated_data.get('application_header', {})
-        
+
+        # Defensive aliases: the frontend's "Position & Personal Details"
+        # section is a single combined UI block and historically has sent
+        # the data under several different key names depending on which
+        # developer wired the form. DRF strips top-level keys it does
+        # not recognize as serializer fields, so anything the frontend
+        # sends under an unknown key never reaches ``validated_data``.
+        # We therefore also read from the raw request payload and look
+        # for the three target fields anywhere in either source.
+        #
+        # The canonical keys (``personal_details`` and
+        # ``application_header``) take precedence -- existing payloads
+        # are unchanged.
+        request = self.context.get('request') if hasattr(self, 'context') else None
+        raw_payload = request.data if request is not None else {}
+
+        _position_aliases = (
+            raw_payload.get('position_personal_details') or {},
+            raw_payload.get('position_information') or {},
+            raw_payload.get('position_info') or {},
+        )
+        _size_aliases = (
+            raw_payload.get('sizes') or {},
+        )
+
+        # Top-level aliases: if the frontend ever sends the three fields
+        # flat at the top of the payload (e.g. ``{"trouser_size": "44"}``)
+        # treat them as last-resort fallbacks.
+        _top_level_keys = raw_payload if isinstance(raw_payload, dict) else {}
+
+        def _first_present(*sources, key, sentinel):
+            """Return the first value found in any of the sources for the
+            given key, or the shared ``sentinel`` if not found in any
+            source. The sentinel is passed in by the caller so the
+            comparison ``value is sentinel`` actually works (a fresh
+            ``object()`` inside this function would never compare equal
+            to the caller's sentinel).
+            """
+            for src in sources:
+                if isinstance(src, dict) and key in src:
+                    return src[key]
+            return sentinel
+
         if personal:
             full_name = personal.get('full_name', '')
             if full_name:
@@ -171,22 +213,64 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
             instance.overall_size = personal.get('overall_size', instance.overall_size)
             instance.shirt_size = personal.get('shirt_size', instance.shirt_size)
             instance.Nearest_Port = personal.get('nearest_port', instance.Nearest_Port)
-            instance.trouser_size = personal.get('trouser_size', instance.trouser_size)
-            instance.shoes_size = personal.get('shoes_size', instance.shoes_size)
 
         if header:
             instance.application_for_position = header.get('application_for_position_as', instance.application_for_position)
             instance.register_code = header.get('register_code', instance.register_code)
             instance.other_position = header.get('other_position_if_any', instance.other_position)
             instance.register_date = self._parse_date(header.get('register_date'))
-            
-            if 'expected_salary' in header:
-                instance.salary = header.get('expected_salary')
-            
-            if 'available_date' in header:
-                instance.available_date = self._parse_date(header.get('available_date'))
-            elif 'expected_salary_available_date' in header:
-                instance.available_date = self._parse_date(header.get('expected_salary_available_date'))
+
+        # Salary + available_date: these live under canonical
+        # ``application_header`` AND under several position-section
+        # aliases (``position_personal_details``,
+        # ``position_information``, ``position_info``) and may also be
+        # sent flat at the top of the payload. _first_present picks the
+        # first value present in any source and uses a sentinel to
+        # distinguish "key absent" from "key present with empty string"
+        # -- so an explicit empty string in any block is still applied
+        # (matches prior parser semantics).
+        #
+        # This block runs even when ``header`` is empty (e.g. the
+        # frontend put everything under ``position_personal_details`` and
+        # DRF stripped that top-level key, leaving ``validated_data`` empty
+        # for the header block). That's why we read from ``raw_payload``
+        # directly for the alias sources.
+        _sentinel = object()
+        _salary = _first_present(
+            header, *_position_aliases, _top_level_keys,
+            key='expected_salary', sentinel=_sentinel,
+        )
+        if _salary is not _sentinel:
+            instance.salary = _salary
+
+        _available = _first_present(
+            header, *_position_aliases, _top_level_keys,
+            key='available_date', sentinel=_sentinel,
+        )
+        _available_alt = _first_present(
+            header, *_position_aliases, _top_level_keys,
+            key='expected_salary_available_date', sentinel=_sentinel,
+        )
+        if _available is not _sentinel:
+            instance.available_date = self._parse_date(_available)
+        elif _available_alt is not _sentinel:
+            instance.available_date = self._parse_date(_available_alt)
+
+        # trouser_size + shoes_size: same alias-aware pattern. Run
+        # unconditionally (not gated by ``if personal:``) because the
+        # frontend may have sent the sizes only under an alias key.
+        _trouser = _first_present(
+            personal, *_position_aliases, *_size_aliases, _top_level_keys,
+            key='trouser_size', sentinel=_sentinel,
+        )
+        if _trouser is not _sentinel:
+            instance.trouser_size = _trouser
+        _shoes = _first_present(
+            personal, *_position_aliases, *_size_aliases, _top_level_keys,
+            key='shoes_size', sentinel=_sentinel,
+        )
+        if _shoes is not _sentinel:
+            instance.shoes_size = _shoes
 
         # 2. Education
         edu = validated_data.get('education', {})

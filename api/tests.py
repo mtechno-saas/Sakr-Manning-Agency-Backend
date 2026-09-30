@@ -9004,3 +9004,204 @@ class SeafarerApplicationHealthCertNoExpiryTests(TestCase):
         self.assertTrue(health["cholera_no_expiry"])
         self.assertTrue(health["international_medical_no_expiry"])
 
+
+class NationalityCaseNormalizationTests(APITestCase):
+    """
+    Regression: PATCH /api/users/users/{id}/ with `nationality: "EGYPTIAN"`
+    (uppercase) returned 400
+        {"nationality": ["\"EGYPTIAN\" is not a valid choice."]}
+    because ``Users.nationality`` has ``choices=Nationality.choices``
+    ("Egyptian") and DRF's ChoiceField is case-sensitive. The frontend
+    dropdown has shipped any-case variants depending on the calling code
+    path ("EGYPTIAN" / "egyptian" / "Egypt"), all of which used to 400.
+
+    The fix normalizes the input in ``UsersSerializer.to_internal_value``
+    (and RegisterSerializer.to_internal_value, same bug on signup):
+    any case-insensitive match against Nationality.choices is rewritten
+    to the canonical case BEFORE DRF validates. Unknown nationalities
+    (e.g. "Egypt" -- a country, not a nationality enum value) still 400
+    with the same "is not a valid choice" message, which is correct.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        self.user = Users.objects.create_user(
+            email="nat-norm@example.com", password="x",
+            first_name="Test", role="Employee",
+        )
+        # Auth so we don't get 401 noise.
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _patch_nationality(self, value):
+        return self.client.patch(
+            f"/api/users/users/{self.user.id}/",
+            {"first_name": "Test", "email": "nat-norm@example.com",
+             "nationality": value},
+            format="json",
+        )
+
+    def test_uppercase_egyptian_normalized_to_canonical(self):
+        from api.models import Users
+        resp = self._patch_nationality("EGYPTIAN")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nationality, "Egyptian")
+
+    def test_lowercase_egyptian_normalized_to_canonical(self):
+        from api.models import Users
+        resp = self._patch_nationality("egyptian")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nationality, "Egyptian")
+
+    def test_mixed_case_filipino_normalized(self):
+        from api.models import Users
+        resp = self._patch_nationality("FILIPINO")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nationality, "Filipino")
+
+    def test_already_canonical_passes_through_unchanged(self):
+        from api.models import Users
+        resp = self._patch_nationality("Egyptian")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nationality, "Egyptian")
+
+    def test_unknown_nationality_still_returns_400(self):
+        """Unknown values must still 400 -- we don't accept everything."""
+        resp = self._patch_nationality("Martian")
+        self.assertEqual(resp.status_code, 400, resp.content)
+        body = resp.json()
+        self.assertIn("nationality", body)
+        self.assertIn("Martian", str(body["nationality"]))
+
+    def test_none_nationality_is_a_no_op(self):
+        """Sending `null` should not trip the normalization."""
+        from api.models import Users
+        resp = self._patch_nationality(None)
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.nationality)
+
+
+class SeafarerApplicationAliasAwareFieldsTests(APITestCase):
+    """
+    Regression: trouser_size / expected_salary / available_date silently
+    dropped when the frontend's "Position & Personal Details" combined
+    section sent the form data under any key other than the canonical
+    ``personal_details`` and ``application_header``. The original parser
+    only updated those fields inside ``if personal:`` / ``if header:``
+    gates, AND DRF strips unknown top-level keys from ``validated_data``.
+
+    The fix:
+    - For trouser_size / shoes_size: look in ``personal_details``, the
+      alias blocks (``position_personal_details``,
+      ``position_information``, ``position_info``, ``sizes``) and the
+      raw top-level request payload.
+    - For expected_salary / available_date: same alias lookup, gated
+      only on "key present in some source" so a frontend that sends
+      ONLY the alias block still saves.
+    """
+
+    def setUp(self):
+        from api.models import Users
+        self.user = Users.objects.create_user(
+            email="alias-fmt@example.com", password="x",
+            first_name="T", role="Employee",
+        )
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
+
+    def _update(self, payload):
+        return self.client.put(
+            f"/api/seafarer-application/{self.user.id}/",
+            payload,
+            format="json",
+        )
+
+    def _reload(self):
+        self.user.refresh_from_db()
+
+    def test_canonical_payload_saves_all_three_fields(self):
+        resp = self._update({
+            "personal_details": {"trouser_size": "44"},
+            "application_header": {
+                "expected_salary": "5000",
+                "available_date": "01-12-2026",
+            },
+        })
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self._reload()
+        self.assertEqual(self.user.trouser_size, "44")
+        self.assertEqual(self.user.salary, "5000")
+        self.assertEqual(str(self.user.available_date), "2026-12-01")
+
+    def test_combined_position_personal_details_block_saves_all_three(self):
+        """The frontend's "Position & Personal Details" combined UI sends
+        one nested block. If it lands under a key the parser doesn't
+        recognize as a declared field, DRF strips it from
+        ``validated_data`` and the original parser silently dropped all
+        three fields. Now the parser also reads from the raw request
+        payload so any plausible alias key works.
+        """
+        resp = self._update({
+            "position_personal_details": {
+                "trouser_size": "44",
+                "expected_salary": "5000",
+                "available_date": "01-12-2026",
+            },
+        })
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self._reload()
+        self.assertEqual(self.user.trouser_size, "44")
+        self.assertEqual(self.user.salary, "5000")
+        self.assertEqual(str(self.user.available_date), "2026-12-01")
+
+    def test_flat_top_level_fields_saved(self):
+        """Frontend that flattens the form data at the top of the body."""
+        resp = self._update({
+            "trouser_size": "44",
+            "expected_salary": "5000",
+            "available_date": "01-12-2026",
+        })
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self._reload()
+        self.assertEqual(self.user.trouser_size, "44")
+        self.assertEqual(self.user.salary, "5000")
+        self.assertEqual(str(self.user.available_date), "2026-12-01")
+
+    def test_position_info_alias_saves_salary_and_date(self):
+        resp = self._update({
+            "personal_details": {"trouser_size": "44"},
+            "position_info": {
+                "expected_salary": "5000",
+                "available_date": "01-12-2026",
+            },
+        })
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self._reload()
+        self.assertEqual(self.user.trouser_size, "44")
+        self.assertEqual(self.user.salary, "5000")
+
+    def test_existing_values_preserved_when_keys_absent(self):
+        """Sanity check: a payload without any trouser/salary/date keys
+        does NOT clobber existing values."""
+        self.user.trouser_size = "32"
+        self.user.salary = "3000"
+        self.user.save()
+        resp = self._update({
+            "personal_details": {"height_cm": 175},
+        })
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self._reload()
+        self.assertEqual(self.user.trouser_size, "32")
+        self.assertEqual(self.user.salary, "3000")
+
