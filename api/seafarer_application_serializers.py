@@ -81,6 +81,33 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                 continue
         return None
 
+    # Strings that mean "no expiry" on a health certificate. Matched
+    # case-insensitively as substrings, so we tolerate OCR noise like
+    # "Valid for life long" / "LIFETIME" / "No expiry" / "Unlimited" /
+    # "Never expires". Used by the health/vaccinations branch of update()
+    # to set the corresponding ``*_no_expiry`` boolean on Users when the
+    # raw expiry_date column can't be parsed.
+    NO_EXPIRY_PHRASES = (
+        "valid for life",
+        "valid for life long",
+        "life long",
+        "lifetime",
+        "no expiry",
+        "no expiration",
+        "never expires",
+        "unlimited",
+        "no exp",
+    )
+
+    def _has_no_expiry_indicator(self, raw_value):
+        """True iff the raw expiry cell text indicates 'no expiry'."""
+        if raw_value is None:
+            return False
+        s = str(raw_value).strip().lower()
+        if not s:
+            return False
+        return any(phrase in s for phrase in self.NO_EXPIRY_PHRASES)
+
     def update(self, instance, validated_data):
         # 1. Personal Details & Application Header
         personal = validated_data.get('personal_details', {})
@@ -330,16 +357,28 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                     instance.international_medical_number = c.get('number', instance.international_medical_number)
                     instance.international_medical_issue_date = self._parse_date(c.get('issue_date'))
                     instance.international_medical_expiry_date = self._parse_date(c.get('expiry_date'))
+                    # If the expiry cell text indicates "no expiry" (e.g. "Valid
+                    # for life long"), flip the boolean flag instead of leaving
+                    # the date field NULL with no indicator.
+                    instance.international_medical_no_expiry = self._has_no_expiry_indicator(
+                        c.get('expiry_date')
+                    ) or instance.international_medical_no_expiry
                     instance.health_issued_by = c.get('issued_by', instance.health_issued_by)
                     instance.health_issued_at = c.get('issued_at', instance.health_issued_at)
                 elif 'yellow fever' in fs_lower:
                     instance.yellow_fever_number = c.get('number', instance.yellow_fever_number)
                     instance.yellow_fever_issue_date = self._parse_date(c.get('issue_date'))
                     instance.yellow_fever_expiry_date = self._parse_date(c.get('expiry_date'))
+                    instance.yellow_fever_no_expiry = self._has_no_expiry_indicator(
+                        c.get('expiry_date')
+                    ) or instance.yellow_fever_no_expiry
                 elif 'cholera' in fs_lower:
                     instance.cholera_number = c.get('number', instance.cholera_number)
                     instance.cholera_issue_date = self._parse_date(c.get('issue_date'))
                     instance.cholera_expiry_date = self._parse_date(c.get('expiry_date'))
+                    instance.cholera_no_expiry = self._has_no_expiry_indicator(
+                        c.get('expiry_date')
+                    ) or instance.cholera_no_expiry
                 
                 # Save to Vaccination model
                 Vaccination.objects.create(
@@ -714,6 +753,13 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
 
         return {
             "certificates": certs,
+            # Booleans for the three health certs whose PDF source form has
+            # a "Valid for life long" / "Lifetime" expiry cell. The frontend
+            # can bind its "No expiry date (unlimited)" checkbox to these
+            # instead of inferring it from a NULL expiry_date.
+            "international_medical_no_expiry": bool(obj.international_medical_no_expiry),
+            "yellow_fever_no_expiry": bool(obj.yellow_fever_no_expiry),
+            "cholera_no_expiry": bool(obj.cholera_no_expiry),
             "covid_19": {
                 "vaccination_name": obj.covid_vaccine_name or "",
                 "first_dose": obj.covid_first_dose or "",

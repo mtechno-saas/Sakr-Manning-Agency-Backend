@@ -714,14 +714,26 @@ class Users(AbstractBaseUser, PermissionsMixin):
     international_medical_number = models.CharField(max_length=100, blank=True, null=True)
     international_medical_issue_date = models.DateField(blank=True, null=True)
     international_medical_expiry_date = models.DateField(blank=True, null=True)
+    international_medical_no_expiry = models.BooleanField(
+        default=False,
+        help_text="True when the certificate has no expiry (e.g. 'Valid for life long').",
+    )
 
     yellow_fever_number = models.CharField(max_length=100, blank=True, null=True)
     yellow_fever_issue_date = models.DateField(blank=True, null=True)
     yellow_fever_expiry_date = models.DateField(blank=True, null=True)
+    yellow_fever_no_expiry = models.BooleanField(
+        default=False,
+        help_text="True when the certificate has no expiry (e.g. 'Valid for life long').",
+    )
 
     cholera_number = models.CharField(max_length=100, blank=True, null=True)
     cholera_issue_date = models.DateField(blank=True, null=True)
     cholera_expiry_date = models.DateField(blank=True, null=True)
+    cholera_no_expiry = models.BooleanField(
+        default=False,
+        help_text="True when the certificate has no expiry (e.g. 'Valid for life long').",
+    )
 
     # COVID-19 Vaccination
     covid_vaccine_name = models.CharField(max_length=100, blank=True, null=True)

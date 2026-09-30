@@ -8864,3 +8864,143 @@ class ShipFilterStatusChoicesTests(APITestCase):
         self.assertIn(self.ship_active.id, ids)
         self.assertIn(self.ship_inactive.id, ids)
 
+
+class SeafarerApplicationHealthCertNoExpiryTests(TestCase):
+    """
+    The Sakr source form's Health Certificates table often has a row whose
+    Expiry Date column is the text "Valid for life long" (or "Lifetime" /
+    "No expiry" / "Unlimited") instead of an actual date. Before this fix,
+    ``_parse_date`` returned None and the certificate was saved with
+    expiry_date=NULL and no flag indicating "this has no expiry" — so the
+    frontend's "No expiry date (unlimited)" checkbox could not be hydrated
+    on reload, and the original "lifetime" semantic was lost.
+
+    The fix adds three boolean fields on Users
+    (``international_medical_no_expiry``, ``yellow_fever_no_expiry``,
+    ``cholera_no_expiry``) and a parser pass that recognizes the common
+    "no expiry" indicator phrases and sets the matching boolean to True
+    while leaving expiry_date NULL.
+    """
+
+    def _make_user(self, email):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="H", middle_name="C", role="Employee",
+        )
+
+    def _payload(self, health):
+        return {
+            "personal_details": {},
+            "contact_details": {},
+            "travel_documents": [],
+            "professional_qualification": [],
+            "next_of_kin": {},
+            "health_certificates": health,
+            "marine_courses": [],
+            "sea_service_details": {},
+            "references": [],
+            "declaration": {},
+            "for_office_use_only": {},
+        }
+
+    def test_yellow_fever_valid_for_life_sets_no_expiry_true(self):
+        """The exact PDF wording from the user's CV."""
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("yf-life@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload({
+            "certificates": [
+                {
+                    "flag_state": "Yellow Fever",
+                    "number": "1546",
+                    "issue_date": "29-08-2016",
+                    "expiry_date": "Valid for life long",
+                    "issued_by": "Ministry of Health",
+                },
+            ],
+            "covid_19": {},
+        }))
+        user.refresh_from_db()
+        self.assertTrue(user.yellow_fever_no_expiry)
+        self.assertIsNone(user.yellow_fever_expiry_date)
+
+    def test_cholera_unlimited_phrase_sets_no_expiry_true(self):
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("cholera-life@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload({
+            "certificates": [
+                {
+                    "flag_state": "Cholera",
+                    "number": "",
+                    "issue_date": "29-08-2016",
+                    "expiry_date": "LIFETIME",
+                    "issued_by": "Ministry of Health",
+                },
+            ],
+            "covid_19": {},
+        }))
+        user.refresh_from_db()
+        self.assertTrue(user.cholera_no_expiry)
+        self.assertIsNone(user.cholera_expiry_date)
+
+    def test_international_medical_no_expiry_phrase(self):
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("imc-life@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload({
+            "certificates": [
+                {
+                    "flag_state": "International Medical",
+                    "number": "50069",
+                    "issue_date": "14-09-2025",
+                    "expiry_date": "no expiry",
+                    "issued_by": "EAMS",
+                    "issued_at": "Alex.",
+                },
+            ],
+            "covid_19": {},
+        }))
+        user.refresh_from_db()
+        self.assertTrue(user.international_medical_no_expiry)
+        self.assertIsNone(user.international_medical_expiry_date)
+
+    def test_normal_date_leaves_no_expiry_false(self):
+        """Sanity check: a normal date does NOT trip the no-expiry flag."""
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("normal-yf@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload({
+            "certificates": [
+                {
+                    "flag_state": "Yellow Fever",
+                    "number": "9999",
+                    "issue_date": "01-01-2020",
+                    "expiry_date": "01-01-2030",
+                    "issued_by": "WHO",
+                },
+            ],
+            "covid_19": {},
+        }))
+        user.refresh_from_db()
+        self.assertFalse(user.yellow_fever_no_expiry)
+        self.assertEqual(str(user.yellow_fever_expiry_date), "2030-01-01")
+
+    def test_to_representation_exposes_no_expiry_booleans(self):
+        """The API response must include the three booleans so the frontend
+        can hydrate its "No expiry date (unlimited)" checkboxes."""
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("torep-noexp@example.com")
+        user.yellow_fever_no_expiry = True
+        user.cholera_no_expiry = True
+        user.international_medical_no_expiry = True
+        user.save()
+
+        body = SeafarerApplicationSerializer().to_representation(user)
+        health = body["7_health_certificates_and_vaccinations"]
+        self.assertTrue(health["yellow_fever_no_expiry"])
+        self.assertTrue(health["cholera_no_expiry"])
+        self.assertTrue(health["international_medical_no_expiry"])
+
