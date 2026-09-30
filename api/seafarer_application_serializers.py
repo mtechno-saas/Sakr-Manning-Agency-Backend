@@ -239,12 +239,31 @@ class SeafarerApplicationSerializer(serializers.ModelSerializer):
                 instance.other_seaman_book_issued_by = t.get('iss_by_authority', instance.other_seaman_book_issued_by)
                 instance.other_seaman_book_place_of_issue = t.get('place_of_issue', instance.other_seaman_book_place_of_issue)
             else:
-                # Find matching choice in PersonalDocument choices to use its exact model choice capitalization
+                # Find matching choice in PersonalDocument choices to use its exact model choice capitalization.
+                #
+                # Two passes:
+                # 1. Exact case-insensitive match (preferred — preserves the model's canonical capitalization)
+                # 2. Substring match in either direction
+                #
+                # Pass 2 is the fix for OCR output like "REPUBLIC OF CYPRUS" (a real
+                # Sakr CV had a row whose Type column was the issuing country because
+                # the OCR mis-placed the Authority into the Type slot). Without pass 2
+                # the parser silently drops the row even though PersonalDocument has a
+                # "Cyprus" choice that should have caught it. We only fall through to
+                # substring matching after the exact match fails, so model-canonical
+                # capitalization is still preferred when both are present.
                 matching_choice = None
+                t_lower = t_type.lower()
                 for choice_val, _ in PersonalDocument.DOCUMENT_TYPE_CHOICES:
-                    if choice_val.lower() == t_type.lower():
+                    if choice_val.lower() == t_lower:
                         matching_choice = choice_val
                         break
+                if matching_choice is None:
+                    for choice_val, _ in PersonalDocument.DOCUMENT_TYPE_CHOICES:
+                        c_lower = choice_val.lower()
+                        if c_lower and (c_lower in t_lower or t_lower in c_lower):
+                            matching_choice = choice_val
+                            break
 
                 if matching_choice:
                     # Dedup on the resolved model choice (NOT the raw

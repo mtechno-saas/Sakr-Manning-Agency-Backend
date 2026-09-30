@@ -6516,6 +6516,131 @@ class SeafarerApplicationTravelDocsDedupTests(TestCase):
         self.assertEqual(PersonalDocument.objects.filter(user=user).count(), 2)
 
 
+class SeafarerApplicationTravelDocsFuzzyMatchTests(TestCase):
+    """
+    Regression: when the LLM/OCR mis-labels the issuing country into the
+    Type column of a travel-doc row (real Sakr CV: a row whose Type column
+    read ``"REPUBLIC OF CYPRUS"`` because OCR pushed the Authority into
+    the wrong slot), the parser used to silently drop the row because the
+    else-branch only did exact case-insensitive match against
+    ``PersonalDocument.DOCUMENT_TYPE_CHOICES``.
+
+    The fix: after the exact-match pass, fall back to substring match in
+    either direction so ``"REPUBLIC OF CYPRUS"`` -> ``"Cyprus"``,
+    ``"australian visa"`` -> ``"Australian Visa Crew"``, etc.
+
+    These tests exercise the otherwise-miscategorized PersonalDocument rows.
+    The Cyprus case is the original bug report; the exact-match preference
+    test guards against regressing the canonical-capitalization behavior.
+    """
+
+    def _make_user(self, email):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x",
+            first_name="F", middle_name="M", role="Employee",
+        )
+
+    def _payload(self, travel):
+        return {
+            "personal_details": {},
+            "contact_details": {},
+            "travel_documents": travel,
+            "professional_qualification": [],
+            "next_of_kin": {},
+            "health_certificates": {},
+            "marine_courses": [],
+            "sea_service_details": {},
+            "references": [],
+            "declaration": {},
+            "for_office_use_only": {},
+        }
+
+    def test_republic_of_cyprus_substring_match_creates_cyprus_row(self):
+        """The original bug: OCR emitted Type='REPUBLIC OF CYPRUS'; the
+        parser used to drop it because 'cyprus' != 'republic of cyprus'.
+        Now substring match maps it to the PersonalDocument 'Cyprus' choice."""
+        from api.models import PersonalDocument
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("cyprus-fuzzy@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {
+                "type": "REPUBLIC OF CYPRUS",
+                "document_no": "CY 341229",
+                "iss_date": "28-02-2022",
+                "exp_date": "28-02-2032",
+                "iss_by_authority": "CYPRUS",
+            },
+        ]))
+        rows = PersonalDocument.objects.filter(user=user, document_type="Cyprus")
+        self.assertEqual(rows.count(), 1)
+        self.assertEqual(rows.first().document_number, "CY 341229")
+
+    def test_substring_match_either_direction(self):
+        """Both 'choice in t_type' and 't_type in choice' should resolve."""
+        from api.models import PersonalDocument
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("fuzzy-multi@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {
+                "type": "Brazil",
+                "document_no": "BR-001",
+                "iss_date": "01-01-2024",
+                "exp_date": "01-01-2034",
+            },
+            {
+                "type": "UAE - Emirates",
+                "document_no": "UAE-002",
+                "iss_date": "02-02-2024",
+                "exp_date": "02-02-2034",
+            },
+        ]))
+        types = list(
+            PersonalDocument.objects.filter(user=user).values_list("document_type", flat=True)
+        )
+        self.assertIn("Brazil", types)
+        self.assertIn("UAE", types)
+
+    def test_exact_match_still_wins_over_substring(self):
+        """If the type exactly matches a choice (case-insensitive), that
+        choice wins over a longer substring it might also belong to."""
+        from api.models import PersonalDocument
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("fuzzy-prefer-exact@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {
+                "type": "Schengen Visa",
+                "document_no": "SV-001",
+                "iss_date": "01-01-2024",
+                "exp_date": "01-01-2034",
+            },
+        ]))
+        row = PersonalDocument.objects.get(user=user, document_number="SV-001")
+        self.assertEqual(row.document_type, "Schengen Visa")
+
+    def test_truly_unknown_type_is_silently_dropped(self):
+        """If neither exact nor substring match, the row is dropped (same
+        pre-fix behavior for non-matches). The parser must NOT invent a
+        choice out of nothing."""
+        from api.models import PersonalDocument
+        from api.seafarer_application_serializers import SeafarerApplicationSerializer
+
+        user = self._make_user("fuzzy-unknown@example.com")
+        SeafarerApplicationSerializer().update(user, self._payload([
+            {
+                "type": "Made-Up Doc Type XYZ",
+                "document_no": "X-001",
+                "iss_date": "01-01-2024",
+                "exp_date": "01-01-2034",
+            },
+        ]))
+        # No PersonalDocument row created.
+        self.assertEqual(PersonalDocument.objects.filter(user=user).count(), 0)
+
+
 class DedupePersonalDocumentsCommandTests(TestCase):
     """
     Management command ``dedupe_personal_documents`` keeps the best row
