@@ -9319,3 +9319,451 @@ class SeaServiceVesselImoSplitTests(TestCase):
         self.assertEqual(vessel, "")
         self.assertEqual(imo, "")
 
+
+class CleanupSeaServiceMvCommandTests(TestCase):
+    """
+    Tests for api/management/commands/cleanup_sea_service_mv.py.
+
+    The old sea-service parser split the "Vessel Name / IMO Number" PDF cell
+    on the literal ``/`` character. Every ``M/V`` vessel got corrupted into
+    ``vessel_name="M"`` and ``imo_number="V LILY OF SEA"``. This command
+    walks existing SeaService rows, re-runs the new (idempotent) split,
+    and updates the DB only when the result differs.
+
+    These tests cover the five shapes of broken/clean row we expect to see
+    in prod after the parser fix landed.
+    """
+
+    @staticmethod
+    def _make_user(email="cleanup-mv@example.com"):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email,
+            password="x",
+            first_name="CleanupMv",
+        )
+
+    @staticmethod
+    def _make_row(user, vessel_name, imo_number, vessel_name_imo="",
+                  signed_on="2020-01-01", signed_off="2020-06-01"):
+        from api.models import SeaService
+        return SeaService.objects.create(
+            user=user,
+            company_name="TEST CO",
+            rank="AB",
+            vessel_name=vessel_name,
+            imo_number=imo_number,
+            vessel_name_imo=vessel_name_imo,
+            signed_on=signed_on,
+            signed_off=signed_off,
+        )
+
+    def _run(self, **opts):
+        from io import StringIO
+        from django.core.management import call_command
+        out = StringIO()
+        call_command("cleanup_sea_service_mv", stdout=out, **opts)
+        return out.getvalue()
+
+    # --- Detection ------------------------------------------------------
+
+    def test_mv_split_corruption_is_detected_and_repaired(self):
+        """The original bug: M/V LILY OF SEA saved as ('M', 'V LILY OF SEA')."""
+        user = self._make_user("m1@example.com")
+        row = self._make_row(user, vessel_name="M", imo_number="V LILY OF SEA")
+
+        self._run()  # no --dry-run, real apply
+
+        row.refresh_from_db()
+        self.assertEqual(row.vessel_name, "M/V LILY OF SEA")
+        self.assertEqual(row.imo_number, "")
+
+    def test_mv_with_real_imo_after_slash_is_repaired(self):
+        """Old parser on 'M/V SC II / IMO 1234567' produced ('M', 'V SC II / IMO 1234567')."""
+        user = self._make_user("m2@example.com")
+        row = self._make_row(
+            user,
+            vessel_name="M",
+            imo_number="V SC II / IMO 1234567",
+        )
+
+        self._run()
+
+        row.refresh_from_db()
+        self.assertEqual(row.vessel_name, "M/V SC II")
+        self.assertEqual(row.imo_number, "1234567")
+
+    def test_legacy_vessel_name_imo_with_real_imo_is_authoritative(self):
+        """
+        If the legacy ``vessel_name_imo`` field still holds the original PDF
+        text AND that text contains a real 7-digit IMO, trust it as the
+        source of truth (don't reconstruct from the possibly-broken split
+        fields).
+        """
+        user = self._make_user("m3@example.com")
+        # vessel_name/imo_number are clean already, but legacy was also kept.
+        row = self._make_row(
+            user,
+            vessel_name="HARMONY V",
+            imo_number="9876543",
+            vessel_name_imo="HARMONY V IMO: 9876543",
+        )
+
+        self._run()
+
+        row.refresh_from_db()
+        # Still correct, idempotent re-split gives same result.
+        self.assertEqual(row.vessel_name, "HARMONY V")
+        self.assertEqual(row.imo_number, "9876543")
+
+    def test_legacy_vessel_name_imo_with_mv_and_no_imo_preserved(self):
+        """
+        When legacy has 'M/V LILY OF SEA' (no real IMO) and the new split
+        fields are already correct, no change. Just confirms we don't
+        damage good rows.
+        """
+        user = self._make_user("m4@example.com")
+        row = self._make_row(
+            user,
+            vessel_name="M/V LILY OF SEA",
+            imo_number="",
+            vessel_name_imo="M/V LILY OF SEA",
+        )
+
+        self._run()
+
+        row.refresh_from_db()
+        self.assertEqual(row.vessel_name, "M/V LILY OF SEA")
+        self.assertEqual(row.imo_number, "")
+
+    def test_clean_row_without_legacy_field_is_untouched(self):
+        """Row that was saved correctly and has no vessel_name_imo -- no-op."""
+        user = self._make_user("m5@example.com")
+        row = self._make_row(user, vessel_name="PEGASUS", imo_number="")
+
+        self._run()
+
+        row.refresh_from_db()
+        self.assertEqual(row.vessel_name, "PEGASUS")
+        self.assertEqual(row.imo_number, "")
+
+    def test_row_with_real_imo_only_is_untouched(self):
+        """vessel_name='LILY OF SEA' imo='1234567' -- already correct, no-op."""
+        user = self._make_user("m6@example.com")
+        row = self._make_row(user, vessel_name="LILY OF SEA", imo_number="1234567")
+
+        self._run()
+
+        row.refresh_from_db()
+        self.assertEqual(row.vessel_name, "LILY OF SEA")
+        self.assertEqual(row.imo_number, "1234567")
+
+    def test_sv_and_tv_prefixes_also_repaired(self):
+        """
+        The same split bug affected S/V (Sailing Vessel) and any other
+        /'-prefixed vessel type, not just M/V.
+        """
+        user_a = self._make_user("sv1@example.com")
+        user_b = self._make_user("tv1@example.com")
+        row_sv = self._make_row(user_a, vessel_name="S", imo_number="V NORTH STAR")
+        row_tv = self._make_row(user_b, vessel_name="T", imo_number="V OCEANIC")
+
+        self._run()
+
+        row_sv.refresh_from_db()
+        self.assertEqual(row_sv.vessel_name, "S/V NORTH STAR")
+        self.assertEqual(row_sv.imo_number, "")
+
+        row_tv.refresh_from_db()
+        self.assertEqual(row_tv.vessel_name, "T/V OCEANIC")
+        self.assertEqual(row_tv.imo_number, "")
+
+    # --- Options --------------------------------------------------------
+
+    def test_dry_run_does_not_persist_changes(self):
+        user = self._make_user("dry@example.com")
+        row = self._make_row(user, vessel_name="M", imo_number="V LILY OF SEA")
+
+        out = self._run(dry_run=True)
+
+        row.refresh_from_db()
+        self.assertEqual(row.vessel_name, "M", "dry-run must not persist")
+        self.assertEqual(row.imo_number, "V LILY OF SEA")
+        self.assertIn("DRY RUN", out)
+        self.assertIn("would be rewritten" if "would be rewritten" in out else "no changes written", out)
+
+    def test_user_scope_only_targets_specified_user(self):
+        user_a = self._make_user("scope-a@example.com")
+        user_b = self._make_user("scope-b@example.com")
+        row_a = self._make_row(user_a, vessel_name="M", imo_number="V LILY OF SEA")
+        row_b = self._make_row(user_b, vessel_name="M", imo_number="V SC II")
+
+        self._run(user=user_a.id)
+
+        row_a.refresh_from_db()
+        self.assertEqual(row_a.vessel_name, "M/V LILY OF SEA")
+
+        row_b.refresh_from_db()
+        self.assertEqual(row_b.vessel_name, "M", "out-of-scope user must not be touched")
+        self.assertEqual(row_b.imo_number, "V SC II")
+
+    def test_limit_caps_rows_scanned(self):
+        """When --limit=N is given, only the first N rows (ordered by user_id, id) are processed."""
+        from datetime import date, timedelta
+        user = self._make_user("limit@example.com")
+        # Distinct date ranges so the post_save overlap-dedup signal
+        # (``api.signals.dedupe_sea_service_on_save``) doesn't merge
+        # all 5 rows into 1.
+        rows = [
+            self._make_row(
+                user,
+                vessel_name="M",
+                imo_number=f"V VESSEL {i}",
+                signed_on=date(2020, 1, 1) + timedelta(days=i * 90),
+                signed_off=date(2020, 3, 1) + timedelta(days=i * 90),
+            )
+            for i in range(5)
+        ]
+
+        out = self._run(limit=2)
+
+        # Only the first 2 (lowest ids) should have been repaired.
+        for row in rows[:2]:
+            row.refresh_from_db()
+            self.assertTrue(row.vessel_name.startswith("M/V VESSEL "))
+            self.assertEqual(row.imo_number, "")
+        for row in rows[2:]:
+            row.refresh_from_db()
+            self.assertEqual(row.vessel_name, "M", "row outside --limit must stay broken")
+            self.assertTrue(row.imo_number.startswith("V VESSEL "))
+
+        self.assertIn("Scanning 2 SeaService row", out)
+
+    def test_report_writes_json_with_every_fix(self):
+        import json
+        import tempfile
+        import os
+        user_a = self._make_user("rpt-a@example.com")
+        user_b = self._make_user("rpt-b@example.com")
+        self._make_row(user_a, vessel_name="M", imo_number="V LILY OF SEA")
+        # Second row already correct -- must NOT appear in the report.
+        self._make_row(user_b, vessel_name="PEGASUS", imo_number="")
+
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w+") as f:
+            path = f.name
+        try:
+            self._run(report=path)
+            with open(path) as fh:
+                report = json.load(fh)
+            self.assertEqual(report["rows_fixed"], 1)
+            self.assertEqual(report["rows_unchanged"], 1)
+            self.assertEqual(len(report["rows"]), 1)
+            entry = report["rows"][0]
+            self.assertEqual(entry["was_vessel_name"], "M")
+            self.assertEqual(entry["was_imo_number"], "V LILY OF SEA")
+            self.assertEqual(entry["new_vessel_name"], "M/V LILY OF SEA")
+            self.assertEqual(entry["new_imo_number"], "")
+            # The reconstructed source -- broken fields joined back with "/".
+            self.assertEqual(entry["source_reconstructed"], "M/V LILY OF SEA")
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+
+    def test_empty_db_does_nothing_silently(self):
+        """No rows at all -> friendly 'nothing to process' message, no crash."""
+        out = self._run()
+        self.assertIn("No SeaService records to process", out)
+
+
+class ReportHealthCertNoExpiryCandidatesCommandTests(TestCase):
+    """
+    Tests for api/management/commands/report_health_cert_no_expiry_candidates.py.
+
+    The "no expiry" indicator on International Medical / Yellow Fever /
+    Cholera certificates is a boolean that the parser started setting
+    correctly only after commit 491d08f2 (the "Valid for life long"
+    fix). Rows saved BEFORE that fix may have a NULL expiry_date with
+    the flag still False -- those rows are the report's candidates.
+
+    The command itself does NOT mutate the DB; it just lists the rows
+    an admin should eyeball against the original CV.
+    """
+
+    @staticmethod
+    def _make_user(email, **cert_kwargs):
+        from api.models import Users
+        return Users.objects.create_user(
+            email=email, password="x", first_name=email.split("@")[0],
+            **cert_kwargs,
+        )
+
+    def _run(self, **opts):
+        from io import StringIO
+        from django.core.management import call_command
+        out = StringIO()
+        call_command(
+            "report_health_cert_no_expiry_candidates", stdout=out, **opts
+        )
+        return out.getvalue()
+
+    # --- Detection ------------------------------------------------------
+
+    def test_user_with_number_and_full_dates_is_not_a_candidate(self):
+        """Cert with both issue and expiry dates is NOT a candidate."""
+        from datetime import date
+        self._make_user(
+            "full@example.com",
+            international_medical_number="IM-001",
+            international_medical_issue_date=date(2020, 1, 1),
+            international_medical_expiry_date=date(2025, 1, 1),
+        )
+
+        out = self._run()
+
+        self.assertIn("Nothing to report", out)
+        self.assertNotIn("full@example.com", out)
+
+    def test_user_with_number_but_null_expiry_is_a_candidate(self):
+        """Cert with number but no expiry date -- the classic pre-fix shape."""
+        self._make_user(
+            "missing@example.com",
+            yellow_fever_number="YF-999",
+        )
+
+        out = self._run()
+
+        self.assertIn("missing@example.com", out)
+        self.assertIn("Yellow Fever", out)
+        self.assertIn("YF-999", out)
+
+    def test_user_with_number_and_already_set_no_expiry_is_not_a_candidate(self):
+        """A row that's already been correctly marked no_expiry=True must not reappear."""
+        self._make_user(
+            "already@example.com",
+            cholera_number="CH-1",
+            cholera_no_expiry=True,
+        )
+
+        out = self._run()
+
+        self.assertNotIn("already@example.com", out)
+
+    def test_user_with_no_number_at_all_is_not_a_candidate(self):
+        """A row with empty cert number must be ignored."""
+        self._make_user(
+            "blank@example.com",
+            international_medical_number="",
+            international_medical_no_expiry=False,
+        )
+
+        out = self._run()
+
+        self.assertNotIn("blank@example.com", out)
+
+    def test_all_three_certs_scanned(self):
+        """Each cert is checked independently -- one user can have up to 3 candidates."""
+        from datetime import date
+        self._make_user(
+            "all3@example.com",
+            international_medical_number="IM-1",
+            international_medical_issue_date=date(2020, 1, 1),
+            international_medical_expiry_date=date(2025, 1, 1),
+            yellow_fever_number="YF-1",
+            cholera_number="CH-1",
+        )
+
+        out = self._run()
+
+        self.assertIn("all3@example.com", out)
+        self.assertIn("Yellow Fever", out)
+        self.assertIn("Cholera", out)
+        # International Medical has an expiry date so must not show up.
+        self.assertNotIn("International Medical", out)
+
+    def test_empty_db_reports_clean(self):
+        """No users at all -> 'Nothing to report' message."""
+        out = self._run()
+        self.assertIn("Nothing to report", out)
+
+    # --- Options --------------------------------------------------------
+
+    def test_user_scope_only_targets_specified_user(self):
+        self._make_user(
+            "scope-a@example.com", yellow_fever_number="YF-A",
+        )
+        self._make_user(
+            "scope-b@example.com", yellow_fever_number="YF-B",
+        )
+
+        # Look up scope-a's id
+        from api.models import Users
+        target_id = Users.objects.get(email="scope-a@example.com").id
+
+        out = self._run(user=target_id)
+
+        self.assertIn("scope-a@example.com", out)
+        self.assertNotIn("scope-b@example.com", out)
+
+    def test_quiet_prints_only_count(self):
+        self._make_user(
+            "q@example.com", yellow_fever_number="YF-Q",
+        )
+
+        out = self._run(quiet=True)
+
+        self.assertIn("candidates: 1", out)
+        # No per-row detail in quiet mode
+        self.assertNotIn("q@example.com", out)
+
+    def test_report_writes_json(self):
+        import json
+        import tempfile
+        import os
+        self._make_user(
+            "rpt@example.com",
+            yellow_fever_number="YF-RPT",
+            cholera_number="CH-RPT",
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w+") as f:
+            path = f.name
+        try:
+            self._run(report=path)
+            with open(path) as fh:
+                report = json.load(fh)
+            self.assertEqual(report["candidates_total"], 2)
+            self.assertEqual(report["users_with_candidates"], 1)
+            self.assertEqual(len(report["rows"]), 2)
+            certs = {r["certificate"] for r in report["rows"]}
+            self.assertEqual(certs, {"Yellow Fever", "Cholera"})
+            # Every row carries an actionable fix hint for the admin.
+            for row in report["rows"]:
+                self.assertIn("fix_action", row)
+                self.assertIn("no_expiry", row["fix_action"])
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+
+    def test_does_not_mutate_db(self):
+        """The command is read-only. Re-running must give the same result."""
+        from datetime import date
+        self._make_user(
+            "no-mutate@example.com",
+            yellow_fever_number="YF-NM",
+        )
+
+        before = self._run()
+        self._run()  # second pass -- must not change the result
+        after = self._run()
+
+        self.assertIn("no-mutate@example.com", before)
+        self.assertIn("no-mutate@example.com", after)
+        self.assertEqual(
+            before.count("YF-NM"), after.count("YF-NM"),
+            "report must be idempotent -- no DB mutation",
+        )
+        # And the no_expiry flag must still be False
+        from api.models import Users
+        u = Users.objects.get(email="no-mutate@example.com")
+        self.assertFalse(u.yellow_fever_no_expiry)
+
