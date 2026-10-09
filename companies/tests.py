@@ -1430,3 +1430,108 @@ class JobOrderAutoFulfilledSignalTests(TestCase):
         self.assertEqual(jo.status, "Full Filled")
 
 
+class JobOrderCompatShimTests(TestCase):
+    """
+    Tests for the compat shim that mirrors the JobOrderViewSet at
+    /api/job-orders/ in addition to the canonical /api/companies/job-orders/.
+
+    The dashboard's create form was POSTing to /api/job-orders/ (a 404),
+    because the actual router registration lives at
+    ``/api/companies/job-orders/`` (see ``companies/urls.py:9``). The shim
+    in ``saker/urls.py`` mounts the same viewset under the un-prefixed path
+    so the dashboard works without a frontend change. This test makes sure
+    the shim is wired correctly AND the canonical URL still works.
+
+    REMOVE THIS CLASS once the frontend switches to the canonical URL.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        from companies.models import Company
+        from core.models import CompanyType, Flag
+        from ships.models import Ship
+
+        cls.company_type, _ = CompanyType.objects.get_or_create(
+            name="Compat Shim Test Co",
+        )
+        cls.company = Company.objects.create(
+            company_name="Compat Shim Co",
+            company_type=cls.company_type,
+        )
+        cls.ship = Ship.objects.create(
+            ship_name="Compat Ship",
+            imo_number="1111111",
+            company=cls.company,
+        )
+
+    def setUp(self):
+        from api.models import Users
+        self.user = Users.objects.create_user(
+            email="compat-shim@example.com",
+            password="x",
+            first_name="Compat",
+        )
+        # Admin role so we can create job orders
+        self.user.role = "Admin"
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save()
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def _create_payload(self, reference):
+        return {
+            "reference_number": reference,
+            "request_date": "2026-10-09",
+            "target_joining_date": "2026-11-13",
+            "status": "Open",
+            "company": self.company.id,
+            "ship": self.ship.id,
+        }
+
+    def test_canonical_url_still_works(self):
+        """The canonical /api/companies/job-orders/ endpoint must still 201."""
+        r = self.client.post(
+            "/api/companies/job-orders/",
+            data=self._create_payload("JO-CANONICAL"),
+            format="json",
+        )
+        self.assertEqual(r.status_code, 201, r.content)
+        self.assertEqual(r.data["reference_number"], "JO-CANONICAL")
+
+    def test_shim_url_creates_the_same_way(self):
+        """POST /api/job-orders/ must also 201 and create a row."""
+        r = self.client.post(
+            "/api/job-orders/",
+            data=self._create_payload("JO-SHIM"),
+            format="json",
+        )
+        self.assertEqual(r.status_code, 201, r.content)
+        self.assertEqual(r.data["reference_number"], "JO-SHIM")
+        # Confirm the row actually exists in the DB
+        self.assertTrue(
+            JobOrder.objects.filter(reference_number="JO-SHIM").exists()
+        )
+
+    def test_shim_and_canonical_list_the_same_rows(self):
+        """Both URLs must list the same rows (no duplicate data)."""
+        self.client.post(
+            "/api/companies/job-orders/",
+            data=self._create_payload("JO-LIST-A"),
+            format="json",
+        )
+        self.client.post(
+            "/api/job-orders/",
+            data=self._create_payload("JO-LIST-B"),
+            format="json",
+        )
+
+        canonical = self.client.get("/api/companies/job-orders/").json()
+        shim = self.client.get("/api/job-orders/").json()
+        canonical_refs = {r["reference_number"] for r in canonical["results"]}
+        shim_refs = {r["reference_number"] for r in shim["results"]}
+        self.assertEqual(canonical_refs, shim_refs)
+        self.assertIn("JO-LIST-A", canonical_refs)
+        self.assertIn("JO-LIST-B", canonical_refs)
+
+

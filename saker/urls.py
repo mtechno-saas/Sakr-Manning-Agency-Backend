@@ -58,6 +58,29 @@ urlpatterns = [
     ),  # Historical Data for Companies page
 ]
 
+# ----------------------------------------------------------------------------
+# Compat shim: /api/job-orders/  -->  /api/companies/job-orders/
+# ----------------------------------------------------------------------------
+# The dashboard's job-order create form POSTs to ``/api/job-orders/`` (a
+# 404 today), but the canonical URL the router actually serves is
+# ``/api/companies/job-orders/`` (see ``companies/urls.py:9``). Rather
+# than block on the frontend dev, we mirror the JobOrderViewSet at
+# BOTH paths. The shim is basenamed ``job-order-compat`` so the
+# reverse-lookup ``reverse('job-order-compat-list')`` is unambiguous.
+#
+# REMOVE THIS BLOCK once the frontend switches to the canonical URL.
+# ----------------------------------------------------------------------------
+from companies.routers import TrailingSlashOptionalRouter
+from companies.views import JobOrderViewSet
+
+_job_order_compat_router = TrailingSlashOptionalRouter()
+_job_order_compat_router.register(
+    r'api/job-orders',
+    JobOrderViewSet,
+    basename='job-order-compat',
+)
+urlpatterns += _job_order_compat_router.urls
+
 from django.views.static import serve
 from django.urls import re_path
 
