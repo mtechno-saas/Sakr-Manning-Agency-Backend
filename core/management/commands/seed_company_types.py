@@ -32,11 +32,24 @@ from core.models import CompanyType
 # uses (companies_data[i]['type']) and with what the frontend offers in the
 # company-type dropdown. If the frontend adds a new option, add it here too
 # OR the next deploy on a fresh DB will hit the same 400.
+#
+# This list is the union of the two hardcoded dropdowns in the frontend
+# repo (https://github.com/Karim-Nady/Sakr-Manning-Agency-Frontend):
+#   - src/utils/dashboard/fieldConfigs.js (11 entries, the broader set)
+#   - src/components/dashboard/Content/Company.jsx (8 entries, subset)
+# Any value the user can pick in either form MUST exist in this list.
 CANONICAL_TYPES = [
-    "Full Crew Management Companies",
-    "Cruise & Hospitality Manning Companies",
-    "Cargo Manning Companies",
-    "Offshore & Oil/Gas Manning Companies",
+    "Cargo Manning Principals",
+    "Cruise & Hospitality Manning Principals",
+    "Fishing Fleet Manning Principals",
+    "Full Crew Management Principals",
+    "General Crew Manning Principals",
+    "Offshore & Oil/Gas Manning Principals",
+    "Vessel Owner",
+    "Shipping Manning Principals",
+    "Specialized Marine Manning Principals",
+    "Temporary / Contract Manning Agencies",
+    "Other",
 ]
 
 
