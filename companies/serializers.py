@@ -183,18 +183,19 @@ class JobOrderPositionSerializer(serializers.ModelSerializer):
     
     filled_slots = serializers.SerializerMethodField()
     remaining_slots = serializers.SerializerMethodField()
-    # qty-display-patch
-    # Override the default ModelSerializer field of the same name so the
-    # UI shows TOTAL slots needed (= remaining + already-filled) instead of the
-    # post-decrement model value (which is 'remaining slots'). Contract.create
-    # decrements obj.quantity by 1 per signed contract
-    # (api/serializer.py:1725) and Contract.delete increments back
-    # (api/views.py:1611). That math is preserved; this just makes the API
-    # surface the original 'total needed' number the dashboard uses in
-    # its REQUIRED column.
-    quantity = serializers.SerializerMethodField()
+    # qty-display-patch (revised)
+    # `quantity` is the writable model field (= remaining slots; decremented by
+    # Contract.create in api/serializer.py:1725 and re-incremented by
+    # Contract.delete in api/views.py:1611). DO NOT override it as a
+    # SerializerMethodField - making it read-only would silently drop the input
+    # value on POST and force the model's default=1 to win.
+    #
+    # `total_slots` is a read-only computed field = total slots that were
+    # originally requested (obj.quantity + filled_slots). The dashboard's
+    # 'REQUIRED' column reads this.
+    total_slots = serializers.SerializerMethodField()
     assigned_to = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = JobOrderPosition
         fields = '__all__'
@@ -204,21 +205,15 @@ class JobOrderPositionSerializer(serializers.ModelSerializer):
             return getattr(obj, 'filled_slots')
         return len([c for c in obj.contracts.all() if c.status in ['Active', 'Signed']])
 
-    def get_quantity(self, obj):
-
-        # qty-display-patch: total slots = remaining + filled.
-
+    def get_total_slots(self, obj):
+        # qty-display-patch (revised): total slots = remaining + filled.
         return obj.quantity + self.get_filled_slots(obj)
 
-
     def get_remaining_slots(self, obj):
-
-        # qty-display-patch: the actual remaining slots are obj.quantity itself
-
-        # (post-decrement). Previously the serializer computed
-
-        # max(0, obj.quantity - filled), which double-counted the decrement.
-
+        # qty-display-patch (revised): the actual remaining slots are
+        # obj.quantity itself (post-decrement). Previously the serializer
+        # computed max(0, obj.quantity - filled), which double-counted the
+        # decrement.
         return obj.quantity
 
     def get_assigned_to(self, obj):
