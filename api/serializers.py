@@ -1,6 +1,6 @@
 from datetime import datetime
 from rest_framework import serializers
-from .models import Users, Document
+from .models import Users, Document, SIZE_CHOICES
 from django.core.cache import cache
 
 class CaseInsensitiveChoiceField(serializers.ChoiceField):
@@ -114,8 +114,8 @@ class UserSerializer(serializers.ModelSerializer):
     user_status = CaseInsensitiveChoiceField(choices=[('VACATION', 'VACATION'), ('ON_SITE', 'ON_SITE'), ('MEDICAL VACATION', 'MEDICAL VACATION')], required=False, allow_blank=True, allow_null=True)
 
     # Size choice fields — accept canonical, lowercase, and quote-wrapped values
-    overall_size = SizeChoiceField(choices=Users.SIZE_CHOICES, required=False, allow_null=True, allow_blank=True)
-    shirt_size = SizeChoiceField(choices=Users.SIZE_CHOICES, required=False, allow_null=True, allow_blank=True)
+    overall_size = SizeChoiceField(choices=SIZE_CHOICES, required=False, allow_null=True, allow_blank=True)
+    shirt_size = SizeChoiceField(choices=SIZE_CHOICES, required=False, allow_null=True, allow_blank=True)
 
     # Flexible Dates
     date_of_birth = FlexibleDateField(required=False, allow_null=True)
