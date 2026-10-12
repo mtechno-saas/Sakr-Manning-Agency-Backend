@@ -649,7 +649,7 @@ class ParseHealthCertificatesTests(SimpleTestCase):
         ]
         out = _parse_health_certificates(rows)
         self.assertEqual(len(out["certificates"]), 2)
-        self.assertEqual(out["certificates"][0]["certificate_type"], "International Medical")
+        self.assertEqual(out["certificates"][0]["flag_state"], "International Medical")
         self.assertEqual(out["covid_19"]["vaccination_name"], "Sino Farm")
         self.assertEqual(out["covid_19"]["first_dose"], "11/11/2021")
         self.assertEqual(out["covid_19"]["second_dose"], "2/12/2021")
@@ -852,7 +852,7 @@ class RealCVSmokeTest(SimpleTestCase):
         self.assertTrue(r.ok)
         certs = r.data["7_health_certificates_and_vaccinations"]["certificates"]
         self.assertEqual(len(certs), 3)
-        types = [c["certificate_type"] for c in certs]
+        types = [c["flag_state"] for c in certs]
         self.assertEqual(
             types,
             ["International Medical", "Yellow Fever", "Cholera"],

@@ -284,7 +284,64 @@ class ExpiringDocumentsView(APIView):
                 "source": "personal_document",
             })
 
-        # ---- sort by urgency ----
+
+        # =====================================================================
+        # Source 3: Contract sign_off_date
+        # =====================================================================
+        from api.models import Contract
+        contracts = (
+            Contract.objects
+            .select_related("user", "ship", "company", "rank")
+            .prefetch_related("user__user_ranks__rank")
+            .filter(sign_off_date__lte=soon)
+        )
+
+        for contract in contracts:
+            if not contract.sign_off_date:
+                continue
+            days_to_expiry = (contract.sign_off_date - today).days
+            cat = _categorize(days_to_expiry)
+            if category_filter and category_filter != "all" and cat != category_filter:
+                continue
+
+            user = contract.user
+            if user:
+                user_name = (getattr(user, "full_name", "") or "").strip() or getattr(user, "email", "Unknown")
+                user_email = user.email
+                user_id = user.id
+                user_position = _user_position(user)
+            else:
+                user_name = "Unknown"
+                user_email = None
+                user_id = None
+                user_position = None
+
+            rank_name = contract.rank.name if contract.rank else None
+            ship_name = contract.ship.ship_name if contract.ship else None
+            company_name = contract.company.company_name if contract.company else None
+
+            all_items.append({
+                "id": f"con_{contract.id}",
+                "type": "Contract Sign Off",
+                "name": f"Contract #{contract.id} - {rank_name or 'Position'}{' @ ' + company_name if company_name else ''}",
+                "number": str(contract.id),
+                "user": user_name,
+                "userId": user_id,
+                "userEmail": user_email,
+                "userPosition": user_position,
+                "expiryDate": contract.sign_off_date.isoformat(),
+                "daysToExpiry": days_to_expiry,
+                "category": cat,
+                "source": "contract",
+                "extra": {
+                    "rank": rank_name,
+                    "ship": ship_name,
+                    "company": company_name,
+                    "status": contract.status,
+                },
+            })
+
+                # ---- sort by urgency ----
         all_items.sort(key=lambda x: x["daysToExpiry"])
 
         counts = {

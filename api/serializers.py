@@ -1,6 +1,6 @@
 from datetime import datetime
 from rest_framework import serializers
-from .models import Users, Document
+from .models import Users, Document, SIZE_CHOICES
 from django.core.cache import cache
 
 class CaseInsensitiveChoiceField(serializers.ChoiceField):
@@ -17,6 +17,41 @@ class CaseInsensitiveChoiceField(serializers.ChoiceField):
             pass
             
         self.fail('invalid_choice', input=data)
+
+class SizeChoiceField(serializers.ChoiceField):
+    """ChoiceField that strips wrapping ASCII quotes and uppercases the input
+    before delegating to the standard ChoiceField validation.
+
+    Accepts: 'XL', 'xl', '"XL"', "'XL'" -> all return canonical 'XL'.
+    Rejects: 'foo', '"foo"' (non-canonical) -> raises invalid_choice.
+
+    This is necessary because DRF runs `Field.to_internal_value()` BEFORE
+    `Serializer.validate_<field>()`, and the standard ChoiceField rejects
+    the value if it isn't in choices. A serializer-level validator never
+    gets a chance to normalise the input.
+    """
+
+    def to_internal_value(self, data):
+        # Allow null/blank through unchanged.
+        if data is None:
+            return None
+        if data == '' and self.allow_blank:
+            return ''
+
+        if isinstance(data, str):
+            v = data.strip()
+            # Strip wrapping quote pairs (up to 4 levels deep for safety).
+            for _ in range(4):
+                if len(v) >= 2 and v[0] == v[-1] and v[0] in ('"', "'"):
+                    v = v[1:-1].strip()
+                else:
+                    break
+            if v:
+                # Use the post-strip value (upper-cased) for the choices lookup.
+                data = v.upper()
+
+        return super().to_internal_value(data)
+
 
 class FlexibleFileField(serializers.FileField):
     def to_internal_value(self, data):
@@ -77,6 +112,10 @@ class UserSerializer(serializers.ModelSerializer):
     coc_certificate_name = CaseInsensitiveChoiceField(choices=Users.COC_CERTIFICATE_CHOICES, required=False, allow_blank=True, allow_null=True)
     marital_status = CaseInsensitiveChoiceField(choices=[('SINGLE', 'SINGLE'), ('MARRIED', 'MARRIED')], required=False, allow_blank=True, allow_null=True)
     user_status = CaseInsensitiveChoiceField(choices=[('VACATION', 'VACATION'), ('ON_SITE', 'ON_SITE'), ('MEDICAL VACATION', 'MEDICAL VACATION')], required=False, allow_blank=True, allow_null=True)
+
+    # Size choice fields — accept canonical, lowercase, and quote-wrapped values
+    overall_size = SizeChoiceField(choices=SIZE_CHOICES, required=False, allow_null=True, allow_blank=True)
+    shirt_size = SizeChoiceField(choices=SIZE_CHOICES, required=False, allow_null=True, allow_blank=True)
 
     # Flexible Dates
     date_of_birth = FlexibleDateField(required=False, allow_null=True)
@@ -171,6 +210,46 @@ class UserSerializer(serializers.ModelSerializer):
             validated_data.pop('profile_image')
 
         return super().update(instance, validated_data)
+
+    # ------------------------------------------------------------------------
+    # Defensive normalization for SIZE_CHOICES CharFields
+    #   - Strips surrounding matching ASCII quotes (", ') so `"XL"` -> `XL`
+    #   - Lets DRF's normal choices validator run AFTER strip; if still invalid,
+    #     DRF returns the same 400 the frontend already shows, instead of silent
+    #     data corruption. We DO NOT null out garbage here, only normalize.
+    # ------------------------------------------------------------------------
+    _SIZE_CANONICAL = frozenset({"S", "M", "L", "XL", "XXL", "XXXL"})
+
+    @staticmethod
+    def _strip_wrapping_quotes(value):
+        if not isinstance(value, str):
+            return value
+        v = value.strip()
+        # Recursively strip outermost matching quote pairs: "X" -> X, 'Y' -> Y
+        # Bounded to 4 iterations to defend against pathological inputs.
+        for _ in range(4):
+            if len(v) >= 2 and v[0] == v[-1] and v[0] in ('"', "'"):
+                v = v[1:-1].strip()
+            else:
+                break
+        return v
+
+    def _validate_size_choice(self, value):
+        if value in (None, ""):
+            return value
+        v = self._strip_wrapping_quotes(str(value))
+        # Canonicalize case (xl, XL, Xl all -> XL)
+        if v.upper() in self._SIZE_CANONICAL:
+            return v.upper()
+        # Hand the post-strip value back to DRF so we get the same 400 message
+        # the user already sees, instead of silently nulling the field.
+        return v
+
+    def validate_overall_size(self, value):
+        return self._validate_size_choice(value)
+
+    def validate_shirt_size(self, value):
+        return self._validate_size_choice(value)
 
 
 class DocumentSerializer(serializers.ModelSerializer):

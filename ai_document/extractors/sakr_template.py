@@ -483,7 +483,7 @@ _QUALIFICATION_COLUMNS = [
 ]
 
 _HEALTH_CERT_COLUMNS = [
-    ("certificate_type",    ("Flag State", "Certificate Type", "Type")),
+    ("flag_state",          ("Flag State", "Certificate Type", "Type")),
     ("number",              ("Number",)),
     ("issue_date",          ("Issue Date", "Issued Date")),
     ("expiry_date",         ("Expiry Date", "Exp. Date", "Exp Date")),

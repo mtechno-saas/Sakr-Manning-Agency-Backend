@@ -129,16 +129,17 @@ class JobOrder(models.Model):
             "Active", "Signed", "Pending Signature", "Pending", "Completed",
         )
         for pos in self.positions.all():
-            if pos.quantity <= 0:
-                # Legacy / data-quality edge case: a position with
-                # quantity=0 has no slots to fill, so it can't
-                # block the order. Skip it.
+            # remaining-slots-check
+            # pos.quantity is the POST-decrement value (= remaining slots).
+            # So pos.quantity > 0 means the position still has open slots.
+            if pos.quantity > 0:
+                return False
+            # pos.quantity < 0 is the legacy / data-quality edge case; skip it.
+            if pos.quantity < 0:
+                # remaining-slots-check: legacy negative-quantity positions don't block
                 continue
-            filled = sum(
-                1 for c in pos.contracts.all()
-                if c.status in filled_statuses
-            )
-            if filled < pos.quantity:
+            # pos.quantity == 0 (saturated). Sanity-check at least 1 signed contract.
+            if not any(c.status in filled_statuses for c in pos.contracts.all()):
                 return False
         # No positions at all -> not "fully filled" (no work was
         # requested to begin with).

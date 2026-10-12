@@ -20,7 +20,7 @@ The pre-existing dedups in the viewset + serializer are still the
 first line of defense — this signal just guarantees no path can
 slip a duplicate into the DB.
 """
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 
@@ -75,3 +75,20 @@ def dedupe_sea_service_on_save(sender, instance, created, **kwargs):
 
     if ids_to_delete:
         SeaService.objects.filter(id__in=ids_to_delete).delete()
+
+# --- Form-mapper wipe protection ---------------------------------------------
+@receiver(pre_save, sender="api.Users")
+def preserve_users_name_fields_on_empty_save(sender, instance, **kwargs):
+    pk = getattr(instance, "pk", None)
+    if not pk:
+        return
+    try:
+        old = sender.objects.get(pk=pk)
+    except sender.DoesNotExist:
+        return
+    for field in ("first_name", "middle_name"):
+        new_val = getattr(instance, field, None)
+        old_val = getattr(old, field, None)
+        if (new_val or "") == "" and (old_val or "") != "":
+            setattr(instance, field, old_val)
+# ---------------------------------------------------------------------------
