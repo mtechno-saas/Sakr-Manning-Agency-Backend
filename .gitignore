@@ -21,3 +21,18 @@ all_json_files_processed/
 # Django runtime logs (polluted by test runs, regenerated on every run)
 django_errors.log
 *.log
+
+# Server-local dev/diagnostic artifacts
+*.bak.*
+diag_*.py
+fix_*.py
+patch_*.py
+restore_*.py
+rollback_*.py
+trace_*.py
+apply_*.py
+extend_expiring_*.py
+migrate_ranks_*.py
+inspect_*.py
+add_users_pre_save_signal.py
+staticfiles/
