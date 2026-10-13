@@ -25,6 +25,20 @@ load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# ==========================================
+# UPLOAD SIZE LIMITS
+# ==========================================
+# Django's defaults (2.5 MB in-memory, 2.5 MB file upload) are too small for
+# the Admin Related Attachments section (PDFs / DOCX / images up to 50 MB).
+# Raise to 50 MB so admin uploads stop failing with HTTP 413 Payload Too Large.
+# The 50 MB ceiling is the hard upper bound; the AdminAttachmentSerializer
+# also enforces a 20 MB cap at the application layer, but a larger
+# DATA_UPLOAD_MAX_MEMORY_SIZE prevents Django from rejecting the request
+# before the serializer ever sees it.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024   # 50 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024   # 50 MB (above this, files stream to disk)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000             # form fields ceiling (default 1000 is too low for big payloads)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 # Quick-start development settings - unsuitable for production
