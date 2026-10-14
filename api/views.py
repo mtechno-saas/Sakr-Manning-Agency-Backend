@@ -2576,7 +2576,14 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
         # If we have either, save and return.
         if save_kwargs:
-            serializer.save(**save_kwargs)
+            instance = serializer.save(**save_kwargs)
+            # After the row exists, sync the snapshot fields from the
+            # linked user so the legacy "Document.name stores just the
+            # first word" bug doesn't recur for new uploads. We use
+            # `user.full_name` (first + middle) as the authoritative name
+            # and only overwrite if the request didn't supply a longer
+            # value than the user has on file.
+            self._sync_snapshot_from_user(instance)
             return
 
         # 3. Employee uploading for themselves (preserves the
@@ -2588,7 +2595,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
             and req_user.role == 'Employee'
             and not req_user.is_superuser
         ):
-            serializer.save(user=req_user)
+            instance = serializer.save(user=req_user)
+            self._sync_snapshot_from_user(instance)
             return
 
         # 4. Admin/HR "Add CV" for a NEW applicant: create a real
@@ -2601,7 +2609,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
                 name=doc_name, email=doc_email
             )
             if new_user is not None:
-                serializer.save(user_id=new_user.id)
+                instance = serializer.save(user_id=new_user.id)
+                self._sync_snapshot_from_user(instance)
                 return
 
         # 5. Nothing usable supplied — reject.
@@ -2677,6 +2686,46 @@ class DocumentViewSet(viewsets.ModelViewSet):
             return new_user
         except Exception:
             return None
+
+    def _sync_snapshot_from_user(self, document):
+        """
+        After a Document is saved, update its name/email/phone snapshot
+        fields from the linked User's profile when the request-side
+        values look stale (single-word name, empty email, etc).
+
+        The Document model stores `name`, `email`, `phone_number` as
+        snapshot columns at upload time. The CV parser that originally
+        populated them only extracted the first name ("Omar" instead
+        of "Omar Elgamal"), so legacy rows show truncated names in the
+        Applicants table. To stop the bleeding for new rows, prefer
+        `user.full_name` (first + middle) when populating `name` here,
+        and only overwrite if the linked user has a longer full_name
+        than what was supplied.
+        """
+        user = getattr(document, 'user', None)
+        if not user:
+            return
+
+        update_fields = []
+
+        # Backfill `name` from the linked user's full_name when the stored
+        # snapshot is missing OR shorter than what the user has now.
+        full_name = (getattr(user, 'full_name', '') or '').strip()
+        stored_name = (document.name or '').strip()
+        if full_name and len(full_name.split()) > len(stored_name.split()):
+            document.name = full_name
+            update_fields.append('name')
+
+        # Backfill email/phone_number from the user when blank.
+        if not (document.email or '').strip() and getattr(user, 'email', None):
+            document.email = user.email
+            update_fields.append('email')
+        if not (document.phone_number or '').strip() and getattr(user, 'phone_number', None):
+            document.phone_number = user.phone_number
+            update_fields.append('phone_number')
+
+        if update_fields:
+            document.save(update_fields=update_fields)
 
     def _sync_user_data(self, document):
         """Helper to sync Document data to User profile when Active"""

@@ -2928,17 +2928,30 @@ class DocumentSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         pos_value = instance.position
         pos_id = instance.position_id
-        
+
         # Keep 'position' as a string for the UI to prevent React rendering errors
         # Provide 'position_id' as a separate field for logic/IDs
         if pos_value or pos_id:
             from api.models import Rank
             # Sync name/ID if one is missing
             rank = Rank.objects.filter(name__iexact=pos_value).first() if pos_value else None
-            
+
             representation['position'] = pos_value or (rank.name if rank else None)
             representation['position_id'] = pos_id or (rank.id if rank else None)
-        
+
+        # --- Backfill `name` from the linked user when the stored snapshot
+        # is just a single word (the legacy "Omar" bug) and the user has a
+        # longer full_name on file. The Document model stores its own `name`
+        # snapshot at upload time, but CV parsers historically extracted
+        # only the first name. Without this fallback, the Applicants table
+        # would forever show truncated names for legacy rows.
+        stored_name = (representation.get('name') or '').strip()
+        user = instance.user
+        if user and not stored_name:
+            representation['name'] = user.full_name or user.first_name or ''
+        elif user and user.full_name and len(user.full_name.split()) > len(stored_name.split()):
+            representation['name'] = user.full_name
+
         return representation
     
     def to_internal_value(self, data):
