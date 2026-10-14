@@ -11,6 +11,15 @@ VACCINE_CHOICES = [
     ("Typhoid Vaccination", "Typhoid Vaccination"),
     ("Varicella Immunization", "Varicella Immunization"),
     ("Yellow Fever Immunization", "Yellow Fever Immunization"),
+    # --- Legacy aliases (Sept 2026 migration) ---------------------------------
+    # The pre-2026 inline HealthForm saved Vaccination rows using the section
+    # header as the `name`. To keep those existing rows editable without a
+    # data migration, the three legacy names are accepted as aliases below.
+    # New records can use either the legacy or the long form.
+    ("Cholera", "Cholera"),
+    ("International Medical", "International Medical"),
+    ("Yellow Fever", "Yellow Fever"),
+    # -------------------------------------------------------------------------
     ("Chickenpox Immunity Screening", "Chickenpox Immunity Screening"),
     ("Color Vision Certificate", "Color Vision Certificate"),
     ("Covid-Sars Vaccination", "Covid-Sars Vaccination"),
