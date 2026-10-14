@@ -2918,10 +2918,17 @@ class DocumentSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.company_name', read_only=True)
     job_position_details = serializers.SerializerMethodField()
     job_position_name = serializers.CharField(source='job_position.rank.name', read_only=True)
+    # Human-readable basename of the uploaded file. The `file` URL itself
+    # is URL-encoded by Django's storage backend (so a CV named
+    # "سي.pdf" is stored at /media/documents/%D8%B3%D9%8A.pdf). Frontends
+    # that display `instance.file` directly end up showing the raw
+    # percent-encoded string in the table. `filename` is the
+    # URL-decoded basename so the UI can render the original name.
+    filename = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
-        fields = ['id', 'user', 'title', 'file', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'position_id', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details', 'contract']
+        fields = ['id', 'user', 'title', 'file', 'filename', 'created_at', 'updated_at', 'name', 'email', 'phone_number', 'position', 'position_id', 'status', 'generated_id', 'company', 'company_name', 'job_position', 'job_position_name', 'job_position_details', 'contract']
         read_only_fields = ['user', 'contract', 'created_at', 'updated_at']
 
     def to_representation(self, instance):
@@ -2953,6 +2960,26 @@ class DocumentSerializer(serializers.ModelSerializer):
             representation['name'] = user.full_name
 
         return representation
+
+    def get_filename(self, obj):
+        """
+        URL-decoded basename of the uploaded file. Django's storage backend
+        stores the path with percent-encoded non-ASCII characters (e.g.
+        "سي.pdf" becomes "%D8%B3%D9%8A.pdf"). When the frontend renders
+        `instance.file` directly, the table shows the raw encoded string.
+        This method decodes the path so the UI can show the original name.
+        """
+        import os
+        from urllib.parse import unquote
+        if not obj.file:
+            return None
+        try:
+            # obj.file.name is the relative storage path (e.g.
+            # "documents/%D8%B3%D9%8A.pdf"). Take the basename and
+            # URL-decode the percent-escapes.
+            return unquote(os.path.basename(obj.file.name))
+        except Exception:
+            return None
     
     def to_internal_value(self, data):
         # Make data mutable for field aliasing below.
