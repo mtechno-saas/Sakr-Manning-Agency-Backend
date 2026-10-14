@@ -809,6 +809,19 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             user.email = user_email
         if salary is not None:
             user.salary = salary
+            # Also propagate to CVSubmission.expected_salary — the API contract
+            # for the list view exposes this as `salary` (DecimalField, source
+            # 'expected_salary'). Without this, PATCHing the detail endpoint
+            # with `{"salary": "700"}` only updates Users.salary (visible as
+            # `salary_display`) and leaves expected_salary untouched, so the
+            # Crew Management "SALARY" column reads stale data.
+            try:
+                instance.expected_salary = float(salary)
+            except (TypeError, ValueError):
+                # Non-numeric input (e.g. "USD 700" or "1,000"): leave
+                # expected_salary as-is so the explicit Decimal field isn't
+                # corrupted by a malformed value.
+                pass
         if available_date is not None:
             user.available_date = available_date
         if (user_first_name or user_middle_name or user_email
@@ -832,7 +845,13 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
             try:
                 ship_obj = Ship.objects.get(ship_name__iexact=ship_name_input)
                 instance.ship = ship_obj
-                instance.save(update_fields=['ship'])
+                # Persist ship plus any expected_salary that was just assigned above
+                # so a PATCH that includes both fields doesn't lose the salary
+                # because of the narrow update_fields= list.
+                if salary is not None:
+                    instance.save(update_fields=['ship', 'expected_salary'])
+                else:
+                    instance.save(update_fields=['ship'])
             except Ship.DoesNotExist:
                 raise ValidationError({'ship_name_input': f"Ship with name '{ship_name_input}' not found."})
 
