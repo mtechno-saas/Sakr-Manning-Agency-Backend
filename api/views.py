@@ -1607,14 +1607,15 @@ class ContractViewSet(viewsets.ModelViewSet):
         return Contract.objects.filter(user=user)
 
     def perform_destroy(self, instance):
-        if instance.job_position:
-            instance.job_position.quantity += 1
-            instance.job_position.save(update_fields=['quantity'])
-            
-            # Restore company's open_positions
-            if instance.company:
-                instance.company.open_positions += 1
-                instance.company.save(update_fields=['open_positions'])
+        # JobOrderPosition.quantity is the originally-requested total and
+        # is NOT re-incremented on Contract.delete. The remaining_slots
+        # computed field handles the math (quantity - filled_slots).
+        # See qty-display-patch in api/serializer.py for the create side.
+
+        # Restore company's open_positions
+        if instance.company:
+            instance.company.open_positions += 1
+            instance.company.save(update_fields=['open_positions'])
             
         # If the applicant was assigned to the ship's crew for this contract, remove them
         if instance.ship and instance.user:

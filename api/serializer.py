@@ -1739,15 +1739,17 @@ class ContractSerializer(serializers.ModelSerializer):
         
         contract = super().create(validated_data)
 
-        # Decrease Job Order Position quantity
-        if contract.job_position:
-            contract.job_position.quantity = max(0, contract.job_position.quantity - 1)
-            contract.job_position.save(update_fields=['quantity'])
-            
-            # Also decrease the company's overall open_positions
-            if contract.company:
-                contract.company.open_positions = max(0, contract.company.open_positions - 1)
-                contract.company.save(update_fields=['open_positions'])
+        # JobOrderPosition.quantity is the originally-requested total and
+        # is NOT decremented on Contract.create. `remaining_slots` is a
+        # computed field (quantity - filled_slots) so the dashboard's
+        # Required/Signed/Remaining columns stay correct without any
+        # client-side re-derivation. See qty-display-patch in
+        # companies/serializers.py for the read side.
+
+        # Also decrease the company's overall open_positions
+        if contract.company:
+            contract.company.open_positions = max(0, contract.company.open_positions - 1)
+            contract.company.save(update_fields=['open_positions'])
 
         # Add user to ship's crew
         if contract.ship and contract.user:

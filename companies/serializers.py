@@ -206,15 +206,15 @@ class JobOrderPositionSerializer(serializers.ModelSerializer):
         return len([c for c in obj.contracts.all() if c.status in ['Active', 'Signed']])
 
     def get_total_slots(self, obj):
-        # qty-display-patch (revised): total slots = remaining + filled.
-        return obj.quantity + self.get_filled_slots(obj)
+        # qty-display-patch (reverted to pre-decrement):
+        # `quantity` is the originally-requested total, so total = quantity.
+        return obj.quantity
 
     def get_remaining_slots(self, obj):
-        # qty-display-patch (revised): the actual remaining slots are
-        # obj.quantity itself (post-decrement). Previously the serializer
-        # computed max(0, obj.quantity - filled), which double-counted the
-        # decrement.
-        return obj.quantity
+        # qty-display-patch (reverted to pre-decrement):
+        # remaining = quantity - filled_slots. Clamp at 0 for safety in
+        # case a stale Contract row over-decrements the filled count.
+        return max(0, obj.quantity - self.get_filled_slots(obj))
 
     def get_assigned_to(self, obj):
         """
