@@ -10082,14 +10082,16 @@ class StaffPromotionApprovalTests(TestCase):
     # a pending applicant while the API field said otherwise.
 
     def test_user_status_filter_does_not_report_staff_as_new_applicant(self):
-        from django.test import Client
         admin = _make_admin("admin@example.com")
         hr = _make_hr("hr@example.com")
         rec = _make_recruiter("rec@example.com")
         emp = _make_user("emp@example.com", "Emp", "Loyee", role="Employee")
 
-        client = Client()
-        client.force_login(admin)
+        # The API is JWT-only -- Client.force_login() (session auth)
+        # returns 401. Use APIClient + force_authenticate like the rest
+        # of this suite does.
+        client = APIClient()
+        client.force_authenticate(user=admin)
 
         resp = client.get("/api/users/users/?user_status=NEW_APPLICANT")
         self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
@@ -10108,14 +10110,14 @@ class StaffPromotionApprovalTests(TestCase):
         self.assertNotIn(emp.email, emails2)
 
     def test_user_status_filter_keeps_vacation_override_for_staff(self):
-        from django.test import Client
         admin = _make_admin("admin@example.com")
         hr = _make_user("hr-vac@example.com", "HR", "OnLeave", role="HR Manager",
                         password="hrpass", user_status="VACATION")
-        client = Client()
-        client.force_login(admin)
+        client = APIClient()
+        client.force_authenticate(user=admin)
 
         resp = client.get("/api/users/users/?user_status=VACATION")
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
         emails = {u["email"] for u in resp.json()["results"]}
         self.assertIn(hr.email, emails)
 
