@@ -10075,3 +10075,50 @@ class StaffPromotionApprovalTests(TestCase):
         emp.refresh_from_db()
         self.assertEqual(emp.role, "HR Manager")
         self.assertEqual(emp.user_status, "ON_SITE")
+    # --- the ?user_status= FILTER path -------------------------------
+    # The filter re-implements the effective-status rules in ORM (it
+    # can't call the Python method per row), so it needed the same
+    # staff rule -- otherwise it kept reporting every staff account as
+    # a pending applicant while the API field said otherwise.
+
+    def test_user_status_filter_does_not_report_staff_as_new_applicant(self):
+        from django.test import Client
+        admin = _make_admin("admin@example.com")
+        hr = _make_hr("hr@example.com")
+        rec = _make_recruiter("rec@example.com")
+        emp = _make_user("emp@example.com", "Emp", "Loyee", role="Employee")
+
+        client = Client()
+        client.force_login(admin)
+
+        resp = client.get("/api/users/users/?user_status=NEW_APPLICANT")
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        emails = {u["email"] for u in resp.json()["results"]}
+        self.assertNotIn(admin.email, emails, "admin must not be a pending applicant")
+        self.assertNotIn(hr.email, emails, "HR must not be a pending applicant")
+        self.assertNotIn(rec.email, emails, "recruiter must not be a pending applicant")
+        self.assertIn(emp.email, emails, "an employee with no contracts IS a new applicant")
+
+        resp2 = client.get("/api/users/users/?user_status=ON_SITE")
+        self.assertEqual(resp2.status_code, http_status.HTTP_200_OK)
+        emails2 = {u["email"] for u in resp2.json()["results"]}
+        self.assertIn(admin.email, emails2)
+        self.assertIn(hr.email, emails2)
+        self.assertIn(rec.email, emails2)
+        self.assertNotIn(emp.email, emails2)
+
+    def test_user_status_filter_keeps_vacation_override_for_staff(self):
+        from django.test import Client
+        admin = _make_admin("admin@example.com")
+        hr = _make_user("hr-vac@example.com", "HR", "OnLeave", role="HR Manager",
+                        password="hrpass", user_status="VACATION")
+        client = Client()
+        client.force_login(admin)
+
+        resp = client.get("/api/users/users/?user_status=VACATION")
+        emails = {u["email"] for u in resp.json()["results"]}
+        self.assertIn(hr.email, emails)
+
+        resp2 = client.get("/api/users/users/?user_status=ON_SITE")
+        emails2 = {u["email"] for u in resp2.json()["results"]}
+        self.assertNotIn(hr.email, emails2, "a staff member on leave is VACATION, not ON_SITE")

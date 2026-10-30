@@ -167,6 +167,11 @@ class UsersFilter(django_filters.FilterSet):
                            or sign-off in the future)
           NEW_APPLICANT  = stored != VACATION/MEDICAL_VACATION
                            AND has no contracts at all
+
+        Staff accounts (Admin / HR Manager / Recruiter) are always
+        effectively ON_SITE (unless the admin put them on leave) and
+        are never NEW_APPLICANT -- they never hold ship contracts.
+        Mirrors Users.get_effective_status().
         """
         from django.utils import timezone
         from django.db.models import Exists, OuterRef
@@ -233,6 +238,20 @@ class UsersFilter(django_filters.FilterSet):
         # of these effective statuses" semantics.
         effective_q = Q()
 
+        manual_block = (
+            Q(user_status=User_Status.VACATION.value)
+            | Q(user_status=User_Status.MEDICAL_VACATION.value)
+        )
+
+        # Staff accounts (Admin / HR Manager / Recruiter) are never
+        # applicants. They never hold ship contracts, so the
+        # contract-derived rules below would file every one of them
+        # under NEW_APPLICANT -- which is exactly what happened to
+        # admin@ and both of the HR managers. This mirrors
+        # Users.get_effective_status(), which is the source of truth.
+        from api.models import STAFF_ROLES
+        staff_q = Q(role__in=STAFF_ROLES)
+
         if "ON_SITE" in stored_vals:
             # Effective ON_SITE = stored is ON_SITE, AND user has at
             # least one contract (so they're not NEW_APPLICANT), AND
@@ -242,6 +261,10 @@ class UsersFilter(django_filters.FilterSet):
             ) & ~Q(
                 pk__in=queryset.model.objects.filter(has_active_contract).values("pk")
             )
+            # Staff are effectively ON_SITE regardless of contract
+            # state (they have none) -- unless the admin put them on
+            # leave, which the manual_block still wins over.
+            effective_q |= staff_q & ~manual_block
         for v in stored_vals:
             if v == User_Status.ON_SITE.value:
                 continue
@@ -249,10 +272,6 @@ class UsersFilter(django_filters.FilterSet):
             # they apply regardless of contract state.
             effective_q |= Q(user_status=v)
 
-        manual_block = (
-            Q(user_status=User_Status.VACATION.value)
-            | Q(user_status=User_Status.MEDICAL_VACATION.value)
-        )
         if wants_on_board:
             # Has an Active/Signed contract that hasn't been signed off.
             today = timezone.localdate()
@@ -272,7 +291,7 @@ class UsersFilter(django_filters.FilterSet):
             # Run the subquery against the queryset's model so this
             # works for any model the filter is mounted on (Users
             # today, possibly others later).
-            effective_q |= (~manual_block & Q(
+            effective_q |= (~manual_block & ~staff_q & Q(
                 pk__in=queryset.model.objects.filter(no_contracts).values("pk")
             ))
 
