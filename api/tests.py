@@ -9970,7 +9970,8 @@ class StaffPromotionApprovalTests(TestCase):
         self.assertEqual(emp.get_effective_status(), "NEW_APPLICANT")
 
     def test_vacation_override_still_wins_for_staff(self):
-        hr = _make_hr("hr@example.com", **{"user_status": "VACATION"})
+        hr = _make_user("hr@example.com", "HR", "Manager", role="HR Manager",
+                        password="hrpass", user_status="VACATION")
         self.assertEqual(hr.get_effective_status(), "VACATION")
 
     def test_promotion_to_staff_approves_the_account(self):
