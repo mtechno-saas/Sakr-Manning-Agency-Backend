@@ -9767,3 +9767,181 @@ class ReportHealthCertNoExpiryCandidatesCommandTests(TestCase):
         u = Users.objects.get(email="no-mutate@example.com")
         self.assertFalse(u.yellow_fever_no_expiry)
 
+
+
+# ============================================================================
+# Staff default password + public-signup role lockdown
+# ============================================================================
+
+
+class StaffDefaultPasswordTests(TestCase):
+    """Staff accounts created by an Admin get a usable default password.
+
+    The dashboard's "add user" form has NO password field, so before this
+    change a staff account created from the UI was created with an empty
+    password and could never sign in. Staff roles now fall back to
+    DEFAULT_STAFF_PASSWORD when the caller does not supply one.
+    """
+
+    DEFAULT = "admin123!"
+
+    def setUp(self):
+        self.admin = _make_admin("admin@example.com")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.admin)
+
+    def _create(self, email, payload):
+        resp = self.client.post(
+            "/api/users/users/", payload, format="json"
+        )
+        return resp, Users.objects.get(email=email)
+
+    def test_admin_without_password_gets_default(self):
+        resp, user = self._create(
+            "new-admin@example.com",
+            {"email": "new-admin@example.com", "first_name": "New", "role": "Admin"},
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        self.assertTrue(
+            user.check_password(self.DEFAULT),
+            "Admin created without a password must get the default password",
+        )
+
+    def test_hr_manager_without_password_gets_default(self):
+        resp, user = self._create(
+            "new-hr@example.com",
+            {"email": "new-hr@example.com", "first_name": "New", "role": "HR Manager"},
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        self.assertTrue(user.check_password(self.DEFAULT))
+
+    def test_recruiter_without_password_gets_default(self):
+        resp, user = self._create(
+            "new-rec@example.com",
+            {"email": "new-rec@example.com", "first_name": "New", "role": "Recruiter"},
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        self.assertTrue(user.check_password(self.DEFAULT))
+
+    def test_lowercase_role_also_gets_default(self):
+        """The dashboard posts lower-case roles; they normalize before create()."""
+        for raw, expected in [("admin", "Admin"), ("hr_manager", "HR Manager"),
+                               ("recruiter", "Recruiter")]:
+            email = f"lower-{raw}@example.com"
+            resp, user = self._create(
+                email,
+                {"email": email, "first_name": "Lower", "role": raw},
+            )
+            self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+            self.assertEqual(user.role, expected)
+            self.assertTrue(
+                user.check_password(self.DEFAULT),
+                f"role={raw!r} must still get the default password",
+            )
+
+    def test_employee_without_password_does_not_get_default(self):
+        """Only staff roles get the default; employees keep the old behaviour."""
+        resp, user = self._create(
+            "new-emp@example.com",
+            {"email": "new-emp@example.com", "first_name": "New", "role": "Employee"},
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        self.assertFalse(
+            user.check_password(self.DEFAULT),
+            "Employee accounts must not get the staff default password",
+        )
+
+    def test_crew_without_password_does_not_get_default(self):
+        resp, user = self._create(
+            "new-crew@example.com",
+            {"email": "new-crew@example.com", "first_name": "New", "role": "Crew"},
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        self.assertFalse(user.check_password(self.DEFAULT))
+
+    def test_explicit_password_wins(self):
+        resp, user = self._create(
+            "explicit@example.com",
+            {"email": "explicit@example.com", "first_name": "Exp",
+             "role": "Admin", "password": "MyOwnPassword1!"},
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        self.assertTrue(user.check_password("MyOwnPassword1!"))
+        self.assertFalse(user.check_password(self.DEFAULT))
+
+    def test_default_password_is_never_returned_in_the_response(self):
+        resp = self.client.post(
+            "/api/users/users/",
+            {"email": "hidden@example.com", "first_name": "Hid", "role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        self.assertNotIn("password", resp.data)
+        self.assertNotIn(self.DEFAULT, str(resp.data))
+
+
+class PublicRegisterRoleLockdownTests(TestCase):
+    """The public signup endpoint must not be able to create staff accounts.
+
+    RegisterView is AllowAny with no authentication. `role` used to be a
+    writable field on RegisterSerializer, so anyone could POST
+    {"email": ..., "password": ..., "role": "Admin"} to /api/register/ and
+    mint themselves a full admin.
+    """
+
+    def setUp(self):
+        self.client = APIClient()  # NOT authenticated
+
+    def test_register_cannot_create_an_admin(self):
+        resp = self.client.post(
+            "/api/register/",
+            {"email": "sneaky@example.com", "password": "Sneaky@12345",
+             "first_name": "Sneaky", "role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        user = Users.objects.get(email="sneaky@example.com")
+        self.assertEqual(
+            user.role, "Employee",
+            "public signup must never create a staff account",
+        )
+        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_superuser)
+
+    def test_register_cannot_create_hr_or_recruiter(self):
+        for role in ["HR Manager", "Recruiter", "hr_manager", "admin"]:
+            email = f"sneaky-{role.replace(' ', '-').lower()}@example.com"
+            resp = self.client.post(
+                "/api/register/",
+                {"email": email, "password": "Sneaky@12345",
+                 "first_name": "Sneaky", "role": role},
+                format="json",
+            )
+            self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+            user = Users.objects.get(email=email)
+            self.assertEqual(user.role, "Employee", f"role={role!r} leaked through")
+
+    def test_register_ignores_staff_default_password(self):
+        """A self-registered account must not get the staff default password."""
+        resp = self.client.post(
+            "/api/register/",
+            {"email": "sneaky2@example.com", "password": "Sneaky@12345",
+             "first_name": "Sneaky", "role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        user = Users.objects.get(email="sneaky2@example.com")
+        self.assertTrue(user.check_password("Sneaky@12345"))
+        self.assertFalse(user.check_password("admin123!"))
+
+    def test_normal_public_signup_still_works(self):
+        resp = self.client.post(
+            "/api/register/",
+            {"email": "normal@example.com", "password": "Normal@12345",
+             "first_name": "Normal"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        user = Users.objects.get(email="normal@example.com")
+        self.assertEqual(user.role, "Employee")
+        self.assertTrue(user.check_password("Normal@12345"))

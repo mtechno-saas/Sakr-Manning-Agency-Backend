@@ -1,5 +1,6 @@
 from rest_framework import serializers, validators
 from django.contrib.auth.models import Permission, Group
+import os
 from .models import (
     Users, UserRank, Certificate, Rank, Contract, Reference, SeaService,
     Interview, CVSubmission, Document, UserLanguage, PersonalDocument
@@ -2153,6 +2154,17 @@ class RoleChoiceField(serializers.ChoiceField):
         return None
 
 
+# Roles that get a known default password when created without one.
+# The dashboard's "add user" form has no password field, so without this
+# a freshly created staff account is created with an empty password and
+# can never sign in.
+STAFF_ROLES = ('Admin', 'HR Manager', 'Recruiter')
+
+# Override without a code deploy by setting SAKR_DEFAULT_STAFF_PASSWORD
+# in the environment.
+DEFAULT_STAFF_PASSWORD = os.environ.get('SAKR_DEFAULT_STAFF_PASSWORD', 'admin123!')
+
+
 class UsersSerializer(serializers.ModelSerializer):
     # first_name and middle_name are declared as plain model fields so
     # that POST / PUT / PATCH body values actually land on the model.
@@ -2484,6 +2496,16 @@ class UsersSerializer(serializers.ModelSerializer):
         certificates_data = validated_data.pop('certificates', [])
         profile_image_data = validated_data.pop('profile_image', None)
         password = validated_data.pop('password', None)
+
+        # Staff accounts (Admin / HR Manager / Recruiter) created from the
+        # dashboard's "add user" form get a known default password, because
+        # that form has NO password field — without this the account is
+        # created with an empty password and can never sign in.
+        #
+        # Only applies when the caller did NOT supply a password: an
+        # explicit password always wins.
+        if not password and validated_data.get('role') in STAFF_ROLES:
+            password = DEFAULT_STAFF_PASSWORD
 
         # Create the user instance with the remaining standard fields
         user = Users(**validated_data)
@@ -2875,8 +2897,14 @@ class LanguageProficiencySerializer(serializers.ModelSerializer):
         return attrs
 
 class RegisterSerializer(serializers.ModelSerializer):
-    # Same case/alias tolerance as UsersSerializer — see RoleChoiceField.
-    role = RoleChoiceField(choices=Users.ROLE_CHOICES, required=False)
+    # `role` is read-only here on purpose: this serializer is used by the
+    # PUBLIC signup endpoint (RegisterView -> AllowAny, no auth). It used
+    # to be a writable field, which meant anyone could POST
+    # {"email": "...", "password": "...", "role": "Admin"} to
+    # /api/register/ and mint themselves a full admin account.
+    # The frontend signup only sends {email, password, first_name}, so
+    # making role read-only breaks nothing.
+    role = RoleChoiceField(choices=Users.ROLE_CHOICES, required=False, read_only=True)
 
     class Meta:
         model = Users
@@ -2977,6 +3005,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
+        # Belt and braces for the public endpoint: the field is read-only
+        # above, but force the role in the DB row too so a staff account
+        # can never originate from a self-registration.
+        validated_data['role'] = 'Employee'
         user = Users(**validated_data)
         user.set_password(password)
         user.save()
