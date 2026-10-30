@@ -44,6 +44,7 @@ from .serializer import (
     ReferenceSerializer, SeaServiceSerializer, CertificateSerializer, NextOfKinSerializer,
     RankSerializer, RegisterSerializer, UserMeSerializer, DeclarationSerializer,
     CompanySerializer, CompanyListSerializer,
+    RoleChoiceField,
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
     CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer,
@@ -901,6 +902,25 @@ class UserViewSet(viewsets.ModelViewSet):
 
         allowed_fields = ['user_status', 'role', 'status', 'is_active', 'is_blacklisted']
         clean_data = {k: v for k, v in update_data.items() if k in allowed_fields}
+
+        # `role` is written straight to the DB here (a raw .update() does
+        # not run model validation), so an unnormalised value such as
+        # "Applicant" or "employee" would land in Users.role verbatim and
+        # silently break every `user.role == '...'` check downstream.
+        # Normalise it to the canonical ROLE_CHOICES value and reject
+        # anything we cannot map.
+        if 'role' in clean_data:
+            canonical_roles = [c for c, _ in Users.ROLE_CHOICES]
+            role_value = clean_data['role']
+            normalized = None
+            if isinstance(role_value, str):
+                probe = RoleChoiceField(choices=Users.ROLE_CHOICES, required=False)
+                normalized = probe._canonical_role(role_value)
+            if normalized not in canonical_roles:
+                return Response({
+                    'error': f"Invalid role '{role_value}'. Valid roles: {', '.join(canonical_roles)}"
+                }, status=400)
+            clean_data['role'] = normalized
         
         # Handle rank assignment separately if provided
         rank_position = update_data.get('rank')

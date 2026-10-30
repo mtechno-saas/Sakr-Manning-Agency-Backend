@@ -2094,6 +2094,65 @@ class ContractSerializer(serializers.ModelSerializer):
 # USER SERIALIZERS
 # =====================
 
+
+class RoleChoiceField(serializers.ChoiceField):
+    """ChoiceField that also accepts the role spellings the UI sends.
+
+    ``Users.ROLE_CHOICES`` is canonical ("Admin", "HR Manager",
+    "Recruiter", "Employee", "Crew"), but the dashboard's add-user form
+    posts lower-case values ("employee", "crew", "admin") and the
+    display-only alias "applicant". DRF's ChoiceField is case-sensitive,
+    so those payloads were rejected with::
+
+        {"role": ["\\"employee\\" is not a valid choice."]}
+
+    Map the known spellings onto the canonical choice before the choice
+    lookup runs. Genuinely unknown values still fail exactly as before,
+    so this widens the accepted input without loosening validation.
+
+    Same idea as the nationality case-normalization already applied in
+    ``UsersSerializer.to_internal_value`` ("EGYPTIAN is not a valid
+    choice"), just done at the field level so blank/missing handling for
+    every other field is untouched.
+    """
+
+    # Aliases the UI sends instead of the stored role value.
+    ALIASES = {
+        # "Applicant" is the UI *label* for the Employee role — see the
+        # users table dropdown: <option value="Employee">Applicant</option>.
+        'applicant': 'Employee',
+        'administrator': 'Admin',
+        'hr': 'HR Manager',
+        'hr_manager': 'HR Manager',
+        'hrmanager': 'HR Manager',
+    }
+
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            canonical = self._canonical_role(data)
+            if canonical is not None:
+                data = canonical
+        return super().to_internal_value(data)
+
+    def _canonical_role(self, value):
+        choices = list(self.choice_strings_to_values.keys())
+        stripped = value.strip()
+        if stripped in choices:
+            return stripped
+
+        key = stripped.lower().replace(' ', '_')
+        alias = self.ALIASES.get(key)
+        if alias in choices:
+            return alias
+
+        # Case-insensitive fallback: "admin" -> "Admin",
+        # "hr manager" -> "HR Manager".
+        for choice in choices:
+            if choice.lower().replace(' ', '_') == key:
+                return choice
+        return None
+
+
 class UsersSerializer(serializers.ModelSerializer):
     # first_name and middle_name are declared as plain model fields so
     # that POST / PUT / PATCH body values actually land on the model.
@@ -2173,6 +2232,13 @@ class UsersSerializer(serializers.ModelSerializer):
     # Password field for user creation (write-only) — accepted on
     # input, never echoed back in responses.
     password = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
+
+    # `role` is declared explicitly instead of being auto-generated from
+    # the model field so the case/alias spellings the dashboard form
+    # sends ("employee", "admin", "applicant") are accepted and stored
+    # as the canonical choice. `required=False` mirrors the model field's
+    # `default='Employee'`; blank/missing keeps the previous behaviour.
+    role = RoleChoiceField(choices=Users.ROLE_CHOICES, required=False)
 
     # Use FlexibleFileField for file fields to handle existing URLs from frontend
     profile_image = FlexibleFileField(required=False, allow_null=True)
@@ -2809,6 +2875,9 @@ class LanguageProficiencySerializer(serializers.ModelSerializer):
         return attrs
 
 class RegisterSerializer(serializers.ModelSerializer):
+    # Same case/alias tolerance as UsersSerializer — see RoleChoiceField.
+    role = RoleChoiceField(choices=Users.ROLE_CHOICES, required=False)
+
     class Meta:
         model = Users
         fields = (
