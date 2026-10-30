@@ -2631,6 +2631,20 @@ class UsersSerializer(serializers.ModelSerializer):
             if new_role in STAFF_ROLES and 'user_status' not in validated_data:
                 validated_data['user_status'] = staff_role_approval_status(instance.user_status)
 
+            # Promotion to a staff role must also make the account
+            # USABLE. An applicant created from the dashboard's add-user
+            # form has no password at all (that form has no password
+            # field), so promoting them to HR Manager used to leave them
+            # with an account that could never sign in -- the promotion
+            # worked, the login did not.
+            #
+            # The default staff password is only handed out when the
+            # account has NO usable password. An explicit password always
+            # wins and an existing one is never overwritten.
+            if new_role in STAFF_ROLES and not password and not instance.has_set_password():
+                instance.set_password(DEFAULT_STAFF_PASSWORD)
+                instance.save(update_fields=['password'])
+
             # Audit ANY role change. A role change is the single most
             # security-relevant write in the whole user API -- it is what
             # grants admin powers, and a demotion is just as worth

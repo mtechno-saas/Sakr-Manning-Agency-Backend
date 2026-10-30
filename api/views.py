@@ -46,6 +46,7 @@ from .serializer import (
     RankSerializer, RegisterSerializer, UserMeSerializer, DeclarationSerializer,
     CompanySerializer, CompanyListSerializer,
     RoleChoiceField,
+    DEFAULT_STAFF_PASSWORD,
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
     CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer,
@@ -993,7 +994,20 @@ class UserViewSet(viewsets.ModelViewSet):
             for u in users_to_update:
                 if (u.role or '').strip() != clean_data['role']:
                     u.user_status = staff_role_approval_status(u.user_status)
-                    u.save(update_fields=['user_status'])
+                    fields = ['user_status']
+                    # A promotion must also leave the account USABLE.
+                    # An applicant created from the dashboard's add-user
+                    # form has no password at all (that form has no
+                    # password field), so promoting them to a staff role
+                    # used to produce an account that could never sign
+                    # in. bulk-edit cannot carry an explicit password
+                    # (it is not in allowed_fields), so the default staff
+                    # password is the only option -- and it is only
+                    # applied when the account has no usable password.
+                    if not u.has_set_password():
+                        u.set_password(DEFAULT_STAFF_PASSWORD)
+                        fields.append('password')
+                    u.save(update_fields=fields)
 
         if clean_data:
             users_to_update.update(**clean_data)

@@ -29,6 +29,7 @@ from rest_framework.test import APIClient
 from rest_framework import status as http_status
 
 from api.models import Users, Rank, UserRank
+from api.serializer import DEFAULT_STAFF_PASSWORD
 from api.permissions import UserPermission
 
 
@@ -10402,6 +10403,174 @@ class UserAuditTrailTests(TestCase):
 
         line = [r for r in records if "[USER-AUDIT]" in r][0]
         self.assertIn("xff='9.9.9.9, 162.158.217.38'", line)
+
+
+class StaffPromotionPasswordTests(TestCase):
+    """Promoting an applicant to a staff role must leave a USABLE account.
+
+    The dashboard's add-user form has no password field, so an account
+    created as an applicant has NO password at all. Promoting that
+    account to HR Manager used to succeed and still leave the owner
+    unable to sign in -- the role change worked, the login did not.
+    """
+
+    def test_has_set_password_detects_the_dashboard_created_account(self):
+        applicant = _make_user("applicant@example.com", "App", "Licant")
+        # The add-user form sends no password, so the stored value is the
+        # model's empty-string default.
+        applicant.password = ""
+        self.assertFalse(applicant.has_set_password())
+
+        real = _make_user("real@example.com", "Real", "User",
+                          password="somepassword")
+        self.assertTrue(real.has_set_password())
+
+        unusable = _make_user("unusable@example.com", "Un", "Usable")
+        unusable.set_password(None)
+        self.assertFalse(unusable.has_set_password())
+
+    def test_promoting_an_applicant_hands_out_the_default_password(self):
+        applicant = _make_user("applicant@example.com", "App", "Licant")
+        applicant.password = ""
+        applicant.save(update_fields=["password"])
+        self.assertFalse(applicant.has_set_password())
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        resp = client.patch(
+            f"/api/users/users/{applicant.id}/",
+            {"role": "HR Manager"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+
+        applicant.refresh_from_db()
+        self.assertEqual(applicant.role, "HR Manager")
+        self.assertTrue(applicant.has_set_password())
+        self.assertTrue(
+            applicant.check_password(DEFAULT_STAFF_PASSWORD),
+            "the promoted account must be able to sign in with the "
+            "default staff password",
+        )
+
+    def test_the_promoted_account_can_actually_log_in(self):
+        applicant = _make_user("applicant@example.com", "App", "Licant")
+        applicant.password = ""
+        applicant.save(update_fields=["password"])
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        client.patch(
+            f"/api/users/users/{applicant.id}/",
+            {"role": "HR Manager"},
+            format="json",
+        )
+
+        fresh = APIClient()
+        resp = fresh.post(
+            "/api/login/",
+            {"email": "applicant@example.com", "password": DEFAULT_STAFF_PASSWORD},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+
+    def test_an_existing_password_is_never_overwritten(self):
+        """The promotion must not clobber a password the person already has."""
+        applicant = _make_user(
+            "applicant@example.com", "App", "Licant", password="their-own-password"
+        )
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        client.patch(
+            f"/api/users/users/{applicant.id}/",
+            {"role": "HR Manager"},
+            format="json",
+        )
+
+        applicant.refresh_from_db()
+        self.assertTrue(applicant.check_password("their-own-password"))
+        self.assertFalse(applicant.check_password(DEFAULT_STAFF_PASSWORD))
+
+    def test_an_explicit_password_in_the_same_request_wins(self):
+        applicant = _make_user("applicant@example.com", "App", "Licant")
+        applicant.password = ""
+        applicant.save(update_fields=["password"])
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        client.patch(
+            f"/api/users/users/{applicant.id}/",
+            {"role": "HR Manager", "password": "chosen-password"},
+            format="json",
+        )
+
+        applicant.refresh_from_db()
+        self.assertTrue(applicant.check_password("chosen-password"))
+        self.assertFalse(applicant.check_password(DEFAULT_STAFF_PASSWORD))
+
+    def test_promoting_to_a_non_staff_role_sets_no_password(self):
+        applicant = _make_user("applicant@example.com", "App", "Licant")
+        applicant.password = ""
+        applicant.save(update_fields=["password"])
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        client.patch(
+            f"/api/users/users/{applicant.id}/",
+            {"role": "Employee"},
+            format="json",
+        )
+
+        applicant.refresh_from_db()
+        self.assertFalse(applicant.has_set_password())
+
+    def test_bulk_edit_promotion_also_hands_out_the_default_password(self):
+        applicant = _make_user("applicant@example.com", "App", "Licant")
+        applicant.password = ""
+        applicant.save(update_fields=["password"])
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        resp = client.post(
+            "/api/users/users/bulk-edit/",
+            {"ids": [applicant.id], "data": {"role": "HR Manager"}},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+
+        applicant.refresh_from_db()
+        self.assertEqual(applicant.role, "HR Manager")
+        self.assertTrue(applicant.check_password(DEFAULT_STAFF_PASSWORD))
+
+    def test_bulk_edit_does_not_overwrite_an_existing_password(self):
+        applicant = _make_user(
+            "applicant@example.com", "App", "Licant", password="their-own-password"
+        )
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        client.post(
+            "/api/users/users/bulk-edit/",
+            {"ids": [applicant.id], "data": {"role": "HR Manager"}},
+            format="json",
+        )
+
+        applicant.refresh_from_db()
+        self.assertTrue(applicant.check_password("their-own-password"))
 
 
 class LoginAuditTrailTests(TestCase):

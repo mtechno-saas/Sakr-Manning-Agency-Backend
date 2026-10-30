@@ -865,6 +865,34 @@ class Users(AbstractBaseUser, PermissionsMixin):
         """
         return f"{self.first_name or ''} {self.middle_name or ''}".strip()
 
+    def has_set_password(self):
+        """
+        True when this account has a password that somebody can actually
+        use to sign in.
+
+        Django's own `has_usable_password()` is NOT enough here: it only
+        checks that the stored value is not the "unusable" marker
+        ("!..."), but the model default for a password that was never
+        set is the EMPTY STRING -- and `has_usable_password()` reports
+        the empty string as usable while `check_password()` can never
+        succeed with it.
+
+        Accounts created from the dashboard's "add user" form land in
+        exactly that state: that form has no password field, so the
+        account is created with an empty password and the owner cannot
+        sign in until an admin sets one.
+
+        Used to decide whether a staff promotion needs to hand out the
+        default staff password (see UsersSerializer.update()).
+        """
+        password = self.password or ''
+        if not password:
+            return False
+        if password.startswith('!'):
+            # Django's UNUSABLE_PASSWORD_PREFIX -- set_password(None).
+            return False
+        return True
+
     def get_effective_status(self):
         """
         Return the effective availability status for this user.
