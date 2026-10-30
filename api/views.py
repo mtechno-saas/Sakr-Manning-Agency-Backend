@@ -194,6 +194,20 @@ class PhoneLoginView(APIView):
         from rest_framework_simplejwt.tokens import RefreshToken
         refresh = RefreshToken.for_user(user)
 
+        # This path builds the tokens by hand, so it misses SimpleJWT's
+        # UPDATE_LAST_LOGIN handling entirely -- without this the
+        # seafarer's last_login would stay NULL forever.
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
+
+        log_user_action(
+            request,
+            'login',
+            target_ids=[user.id],
+            extra={'email': user.email},
+            actor=(user.id, user.email, user.role),
+        )
+
         return Response(
             {
                 "access": str(refresh.access_token),

@@ -25,10 +25,69 @@ from rest_framework_simplejwt.views import (
 )
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
+from rest_framework.response import Response
+from rest_framework import status
+
+from api.audit import log_user_action
+
+
 class CustomTokenObtainPairView(TokenObtainPairView):
+    """JWT login that records who signed in, and when.
+
+    Two things the stock SimpleJWT view does not do:
+
+    1. ``last_login`` was NEVER populated. DRF's
+       ``TokenObtainPairSerializer`` calls ``authenticate()`` directly
+       instead of ``django.contrib.auth.login()``, so the
+       ``user_logged_in`` signal never fired and therefore
+       ``update_last_login`` never ran -- every row in ``Users`` had
+       ``last_login = NULL``. Fixed at the source by setting
+       ``SIMPLE_JWT["UPDATE_LAST_LOGIN"] = True`` in saker/settings.py,
+       which makes SimpleJWT update it on every JWT login path.
+
+    2. There was no audit trail for sign-ins either, so "who was on the
+       site at 15:26" had no answer. Both successful and failed logins
+       are now recorded (never the password).
+    """
+
     permission_classes = [AllowAny]
     serializer_class = TokenObtainPairSerializer
-    
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except (AuthenticationFailed, ValidationError):
+            # Bad credentials. NOTE: SimpleJWT raises AuthenticationFailed
+            # (a 401), which is an APIException but NOT a ValidationError
+            # -- catching only ValidationError lets it escape uncaught.
+            # Audit it -- the attempted address is attacker-controlled, so
+            # it is repr()-quoted by the audit helper and can never break
+            # the key=value parsing.
+            log_user_action(
+                request,
+                'login_failed',
+                extra={'email': request.data.get('email')},
+            )
+            raise
+
+        user = getattr(serializer, 'user', None)
+        if user is not None:
+            # `last_login` is updated by SimpleJWT itself now that
+            # SIMPLE_JWT["UPDATE_LAST_LOGIN"] is True.
+            log_user_action(
+                request,
+                'login',
+                target_ids=[user.id],
+                extra={'email': user.email},
+                actor=(user.id, user.email, user.role),
+            )
+
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/contracts-gen/", include("contracts.urls")),

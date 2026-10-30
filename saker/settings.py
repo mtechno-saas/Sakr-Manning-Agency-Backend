@@ -266,7 +266,12 @@ SIMPLE_JWT = {
 
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
-    "UPDATE_LAST_LOGIN": False,
+    # Was False (SimpleJWT's default is False too), which meant the
+    # `user_logged_in` signal never fired on the JWT path and EVERY row
+    # in Users had last_login = NULL -- there was no way to tell which
+    # account was last active. SimpleJWT calls update_last_login() for
+    # us when this is True.
+    "UPDATE_LAST_LOGIN": True,
 
     "ALGORITHM": "HS256",
     "SIGNING_KEY": SECRET_KEY, # Uses your project's secret key

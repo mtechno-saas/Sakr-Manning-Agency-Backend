@@ -10343,3 +10343,142 @@ class UserAuditTrailTests(TestCase):
         line = [r for r in records if "[USER-AUDIT]" in r][0]
         self.assertIn("ip=203.0.113.7", line)
         self.assertIn("ua='TestAgent/1.0'", line)
+
+    def test_cloudflare_connecting_ip_wins_over_x_forwarded_for(self):
+        """Behind Cloudflare the client IP is in CF-Connecting-IP.
+
+        Cloudflare OVERWRITES CF-Connecting-IP (so it cannot be spoofed
+        by a request that went through Cloudflare) but APPENDS to
+        X-Forwarded-For, which leaves any client-supplied value at the
+        LEFT of the chain. Reading the left-most XFF entry would
+        therefore record a spoofable address.
+        """
+        admin = _make_admin("admin@example.com")
+        victim = _make_user("victim@example.com", "Vic", "Tim")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with _capture_audit() as records:
+            client.delete(
+                f"/api/users/users/{victim.id}/",
+                HTTP_CF_CONNECTING_IP="198.51.100.42",
+                HTTP_X_FORWARDED_FOR="9.9.9.9, 162.158.217.38",
+            )
+
+        line = [r for r in records if "[USER-AUDIT]" in r][0]
+        self.assertIn("ip=198.51.100.42", line)
+        self.assertNotIn("ip=9.9.9.9", line)
+
+    def test_x_real_ip_is_used_when_there_is_no_cloudflare_header(self):
+        admin = _make_admin("admin@example.com")
+        victim = _make_user("victim@example.com", "Vic", "Tim")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with _capture_audit() as records:
+            client.delete(
+                f"/api/users/users/{victim.id}/",
+                HTTP_X_REAL_IP="198.51.100.7",
+            )
+
+        line = [r for r in records if "[USER-AUDIT]" in r][0]
+        self.assertIn("ip=198.51.100.7", line)
+
+    def test_the_raw_forwarded_chain_is_kept_as_evidence(self):
+        admin = _make_admin("admin@example.com")
+        victim = _make_user("victim@example.com", "Vic", "Tim")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with _capture_audit() as records:
+            client.delete(
+                f"/api/users/users/{victim.id}/",
+                HTTP_CF_CONNECTING_IP="198.51.100.42",
+                HTTP_X_FORWARDED_FOR="9.9.9.9, 162.158.217.38",
+            )
+
+        line = [r for r in records if "[USER-AUDIT]" in r][0]
+        self.assertIn("xff='9.9.9.9, 162.158.217.38'", line)
+
+
+class LoginAuditTrailTests(TestCase):
+    """Sign-ins are audited, and `last_login` is actually populated.
+
+    `last_login` was NULL for every single user because
+    SIMPLE_JWT["UPDATE_LAST_LOGIN"] was False -- there was no way to
+    tell which account had been active.
+    """
+
+    def test_a_successful_login_is_audited(self):
+        user = _make_user("crew@example.com", "Crew", "Mate",
+                          password="secretpass123")
+        client = APIClient()
+
+        with _capture_audit() as records:
+            resp = client.post(
+                "/api/login/",
+                {"email": "crew@example.com", "password": "secretpass123"},
+                format="json",
+            )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        lines = [r for r in records if "[USER-AUDIT]" in r]
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn("action=login", lines[0])
+        self.assertIn(f"actor_id={user.id}", lines[0])
+        self.assertIn("actor_email=crew@example.com", lines[0])
+
+    def test_a_successful_login_populates_last_login(self):
+        user = _make_user("crew@example.com", "Crew", "Mate",
+                          password="secretpass123")
+        self.assertIsNone(user.last_login)
+
+        client = APIClient()
+        with _capture_audit():
+            resp = client.post(
+                "/api/login/",
+                {"email": "crew@example.com", "password": "secretpass123"},
+                format="json",
+            )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        user.refresh_from_db()
+        self.assertIsNotNone(user.last_login)
+
+    def test_a_failed_login_is_audited_without_the_password(self):
+        _make_user("crew@example.com", "Crew", "Mate",
+                   password="secretpass123")
+        client = APIClient()
+
+        with _capture_audit() as records:
+            resp = client.post(
+                "/api/login/",
+                {"email": "crew@example.com", "password": "wrong-password"},
+                format="json",
+            )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_401_UNAUTHORIZED)
+        lines = [r for r in records if "[USER-AUDIT]" in r]
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn("action=login_failed", lines[0])
+        self.assertIn("email='crew@example.com'", lines[0])
+        self.assertNotIn("wrong-password", lines[0])
+        self.assertNotIn("secretpass123", lines[0])
+
+    def test_an_anonymous_action_omits_the_actor_fields(self):
+        """A failed login has no authenticated actor -- don't print None."""
+        client = APIClient()
+
+        with _capture_audit() as records:
+            client.post(
+                "/api/login/",
+                {"email": "ghost@example.com", "password": "nope"},
+                format="json",
+            )
+
+        line = [r for r in records if "[USER-AUDIT]" in r][0]
+        self.assertNotIn("actor_id=None", line)
+        self.assertNotIn("actor_email=None", line)
