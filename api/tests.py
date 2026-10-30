@@ -20,6 +20,8 @@
 # Run with: python manage.py test api.tests --verbosity=2
 
 import datetime
+import logging
+from contextlib import contextmanager
 from unittest.mock import patch, MagicMock
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -10124,3 +10126,220 @@ class StaffPromotionApprovalTests(TestCase):
         resp2 = client.get("/api/users/users/?user_status=ON_SITE")
         emails2 = {u["email"] for u in resp2.json()["results"]}
         self.assertNotIn(hr.email, emails2, "a staff member on leave is VACATION, not ON_SITE")
+
+
+# ============================================================================
+# Audit trail
+# ============================================================================
+
+
+@contextmanager
+def _capture_audit():
+    """Collect the messages logged to the 'audit' logger.
+
+    Unlike assertLogs() this tolerates ZERO records, which is what the
+    "a refused action must leave no trail" tests need.
+    """
+    messages = []
+
+    class _Collector(logging.Handler):
+        def emit(self, record):
+            messages.append(record.getMessage())
+
+    audit_logger = logging.getLogger("audit")
+    handler = _Collector()
+    previous_level = audit_logger.level
+    audit_logger.addHandler(handler)
+    audit_logger.setLevel(logging.INFO)
+    try:
+        yield messages
+    finally:
+        audit_logger.removeHandler(handler)
+        audit_logger.setLevel(previous_level)
+
+
+class UserAuditTrailTests(TestCase):
+    """Destructive user actions must leave a trail naming the actor.
+
+    The gunicorn access log records *that* a DELETE happened but not
+    *who* did it -- every request arrives through the nginx proxy as
+    127.0.0.1. api/audit.py emits one structured line per action so
+    "which account deleted these users" is answerable after the fact.
+    """
+
+    def _audit_lines(self, fn, *args, **kwargs):
+        """Run fn() and return the audit lines it produced.
+
+        assertLogs() cannot be used here: it raises when *no* log record
+        is emitted, and "a refused action must leave no trail" is
+        precisely the case we need to assert. So we attach a plain
+        collecting handler instead.
+        """
+        with _capture_audit() as records:
+            fn(*args, **kwargs)
+        return [r for r in records if "[USER-AUDIT]" in r]
+
+    def test_bulk_delete_records_the_actor_and_the_targets(self):
+        admin = _make_admin("admin@example.com")
+        a = _make_user("a@example.com", "A", "One")
+        b = _make_user("b@example.com", "B", "Two")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        lines = self._audit_lines(
+            client.post,
+            "/api/users/users/bulk-delete/",
+            {"ids": [a.id, b.id]},
+            format="json",
+        )
+
+        self.assertEqual(len(lines), 1, lines)
+        line = lines[0]
+        self.assertIn("action=bulk_delete", line)
+        self.assertIn(f"actor_id={admin.id}", line)
+        self.assertIn(f"actor_email={admin.email}", line)
+        self.assertIn("actor_role=Admin", line)
+        self.assertIn(f"target_ids=[{a.id}, {b.id}]", line)
+        self.assertIn("count=2", line)
+
+    def test_bulk_delete_actually_deleted_the_users(self):
+        admin = _make_admin("admin@example.com")
+        a = _make_user("a@example.com", "A", "One")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with _capture_audit():
+            resp = client.post(
+                "/api/users/users/bulk-delete/", {"ids": [a.id]}, format="json"
+            )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        self.assertFalse(Users.objects.filter(id=a.id).exists())
+
+    def test_single_delete_records_the_actor_and_the_target(self):
+        admin = _make_admin("admin@example.com")
+        victim = _make_user("victim@example.com", "Vic", "Tim")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        lines = self._audit_lines(
+            client.delete, f"/api/users/users/{victim.id}/"
+        )
+
+        self.assertEqual(len(lines), 1, lines)
+        line = lines[0]
+        self.assertIn("action=delete_user", line)
+        self.assertIn(f"actor_id={admin.id}", line)
+        self.assertIn(f"target_ids=[{victim.id}]", line)
+        self.assertIn(f"target_email={victim.email}", line)
+
+    def test_bulk_edit_records_the_actor_and_the_new_role(self):
+        admin = _make_admin("admin@example.com")
+        emp = _make_user("emp@example.com", "Emp", "Loyee")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        lines = self._audit_lines(
+            client.post,
+            "/api/users/users/bulk-edit/",
+            {"ids": [emp.id], "data": {"role": "HR Manager"}},
+            format="json",
+        )
+
+        self.assertEqual(len(lines), 1, lines)
+        line = lines[0]
+        self.assertIn("action=bulk_edit", line)
+        self.assertIn(f"actor_id={admin.id}", line)
+        self.assertIn(f"target_ids=[{emp.id}]", line)
+        self.assertIn("new_role=HR Manager", line)
+
+    def test_role_change_on_the_single_user_path_is_audited(self):
+        admin = _make_admin("admin@example.com")
+        emp = _make_user("emp@example.com", "Emp", "Loyee")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        lines = self._audit_lines(
+            client.patch,
+            f"/api/users/users/{emp.id}/",
+            {"role": "HR Manager"},
+            format="json",
+        )
+
+        self.assertEqual(len(lines), 1, lines)
+        line = lines[0]
+        self.assertIn("action=change_role", line)
+        self.assertIn(f"actor_id={admin.id}", line)
+        self.assertIn("old_role=Employee", line)
+        self.assertIn("new_role=HR Manager", line)
+
+    def test_a_demotion_is_audited_too(self):
+        admin = _make_admin("admin@example.com")
+        hr = _make_user("hr@example.com", "HR", "Manager", role="HR Manager")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        lines = self._audit_lines(
+            client.patch,
+            f"/api/users/users/{hr.id}/",
+            {"role": "Employee"},
+            format="json",
+        )
+
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn("action=change_role", lines[0])
+        self.assertIn("old_role=HR Manager", lines[0])
+        self.assertIn("new_role=Employee", lines[0])
+
+    def test_a_rejected_action_leaves_no_audit_line(self):
+        """A refused bulk-delete must not look like it happened."""
+        emp = _make_user("emp@example.com", "Emp", "Loyee")
+        other = _make_user("other@example.com", "Oth", "Er")
+
+        client = APIClient()
+        client.force_authenticate(user=emp)
+
+        lines = self._audit_lines(
+            client.post,
+            "/api/users/users/bulk-delete/",
+            {"ids": [other.id]},
+            format="json",
+        )
+
+        self.assertEqual(lines, [])
+
+    def test_an_empty_bulk_delete_leaves_no_audit_line(self):
+        admin = _make_admin("admin@example.com")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        lines = self._audit_lines(
+            client.post, "/api/users/users/bulk-delete/", {"ids": []}, format="json"
+        )
+
+        self.assertEqual(lines, [])
+
+    def test_the_line_carries_the_client_ip_and_user_agent(self):
+        admin = _make_admin("admin@example.com")
+        victim = _make_user("victim@example.com", "Vic", "Tim")
+
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with _capture_audit() as records:
+            client.delete(
+                f"/api/users/users/{victim.id}/",
+                HTTP_X_FORWARDED_FOR="203.0.113.7",
+                HTTP_USER_AGENT="TestAgent/1.0",
+            )
+
+        line = [r for r in records if "[USER-AUDIT]" in r][0]
+        self.assertIn("ip=203.0.113.7", line)
+        self.assertIn("ua='TestAgent/1.0'", line)

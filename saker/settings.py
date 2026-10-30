@@ -533,8 +533,10 @@ import os
 log_dir = '/var/log/gunicorn'
 if not os.path.exists(log_dir):
     log_file_path = os.path.join(BASE_DIR, 'django_errors.log')
+    audit_file_path = os.path.join(BASE_DIR, 'user_audit.log')
 else:
     log_file_path = os.path.join(log_dir, 'django_errors.log')
+    audit_file_path = os.path.join(log_dir, 'user_audit.log')
 
 LOGGING = {
     'version': 1,
@@ -547,6 +549,21 @@ LOGGING = {
         },
         'console': {
             'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+        },
+        # Dedicated audit trail for user-management actions (see api/audit.py).
+        # Kept in its own file so it survives gunicorn's error-log rotation
+        # and stays out of the error noise.
+        'audit_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': audit_file_path,
+        },
+        # The shared 'console' handler is ERROR-level, so INFO audit lines
+        # would be filtered out of it. This one mirrors the audit lines into
+        # the worker's stderr, which gunicorn folds into its error log.
+        'audit_console': {
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
         },
     },
@@ -566,6 +583,13 @@ LOGGING = {
         # to gunicorn's error stream, which is fine for dev.
         'api': {
             'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # Audit trail for destructive user actions -- see api/audit.py.
+        # Writes to gunicorn's error stream AND to its own file.
+        'audit': {
+            'handlers': ['audit_console', 'audit_file'],
             'level': 'INFO',
             'propagate': False,
         },

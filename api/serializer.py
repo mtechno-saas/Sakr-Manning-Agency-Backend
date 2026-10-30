@@ -2623,9 +2623,32 @@ class UsersSerializer(serializers.ModelSerializer):
         #
         # An explicit user_status in the same request always wins.
         new_role = validated_data.get('role')
-        if new_role in STAFF_ROLES and new_role != (instance.role or '').strip():
-            if 'user_status' not in validated_data:
+        old_role = (instance.role or '').strip()
+        role_changed = bool(new_role) and new_role != old_role
+
+        if role_changed:
+            # Promotion to a staff role IS the approval.
+            if new_role in STAFF_ROLES and 'user_status' not in validated_data:
                 validated_data['user_status'] = staff_role_approval_status(instance.user_status)
+
+            # Audit ANY role change. A role change is the single most
+            # security-relevant write in the whole user API -- it is what
+            # grants admin powers, and a demotion is just as worth
+            # recording as a promotion -- so the trail must name the
+            # actor, the account and the old/new role.
+            audit_request = self.context.get('request')
+            if audit_request is not None:
+                from .audit import log_user_action
+                log_user_action(
+                    audit_request,
+                    'change_role',
+                    target_ids=[instance.id],
+                    extra={
+                        'target_email': instance.email,
+                        'old_role': instance.role,
+                        'new_role': new_role,
+                    },
+                )
 
         instance = super().update(instance, validated_data)
         if password:

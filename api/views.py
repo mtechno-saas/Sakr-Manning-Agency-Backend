@@ -67,6 +67,8 @@ from rest_framework import viewsets, permissions
 from django.core.cache import cache
 from rest_framework.views import APIView
 
+from .audit import log_user_action
+
 logger = logging.getLogger(__name__)
 
 class RegisterView(generics.CreateAPIView):
@@ -879,6 +881,21 @@ class UserViewSet(viewsets.ModelViewSet):
         # Employee can only see themselves
         return Users.objects.filter(id=user.id)
 
+    def destroy(self, request, *args, **kwargs):
+        # Audit BEFORE the row disappears -- after the delete we can no
+        # longer resolve the target's email/role for the trail.
+        instance = self.get_object()
+        log_user_action(
+            request,
+            'delete_user',
+            target_ids=[instance.id],
+            extra={
+                'target_email': instance.email,
+                'target_role': instance.role,
+            },
+        )
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=False, methods=['post'], url_path='bulk-delete')
     def bulk_delete(self, request):
         user_ids = request.data.get('ids', [])
@@ -887,7 +904,14 @@ class UserViewSet(viewsets.ModelViewSet):
         
         if request.user.role not in ['Admin', 'HR Manager']:
             return Response({'error': 'Permission denied'}, status=403)
-            
+
+        # Resolve the targets BEFORE deleting them so the audit trail
+        # carries the emails, not just the bare ids.
+        targets = list(
+            Users.objects.filter(id__in=user_ids).values_list('id', flat=True)
+        )
+        log_user_action(request, 'bulk_delete', target_ids=targets)
+
         Users.objects.filter(id__in=user_ids).delete()
         return Response({'message': f'Successfully deleted {len(user_ids)} users'})
 
@@ -930,6 +954,21 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No valid fields provided for update'}, status=400)
 
         users_to_update = Users.objects.filter(id__in=user_ids)
+
+        # Audit the edit before it lands. A role change is the most
+        # security-relevant thing that can happen here (it grants admin
+        # powers), so it must name the actor and the affected accounts.
+        audited_ids = list(users_to_update.values_list('id', flat=True))
+        log_user_action(
+            request,
+            'bulk_edit',
+            target_ids=audited_ids,
+            extra={
+                'fields': sorted(clean_data.keys()),
+                'new_role': clean_data.get('role'),
+                'rank': rank_position,
+            },
+        )
 
         # Promotion to a staff role IS the approval -- same rule as the
         # serializer's update(): an account promoted to Admin / HR Manager
