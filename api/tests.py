@@ -9945,3 +9945,132 @@ class PublicRegisterRoleLockdownTests(TestCase):
         user = Users.objects.get(email="normal@example.com")
         self.assertEqual(user.role, "Employee")
         self.assertTrue(user.check_password("Normal@12345"))
+
+class StaffPromotionApprovalTests(TestCase):
+    """Promoting an account to a staff role IS the approval.
+
+    Staff accounts never hold ship contracts, so the contract-derived
+    status rules used to resolve EVERY staff account (including the
+    admin and both HR managers) to NEW_APPLICANT -- the dashboard showed
+    them as pending applicants.
+    """
+
+    def test_staff_account_is_not_a_new_applicant(self):
+        admin = _make_admin("admin@example.com")
+        hr = _make_hr("hr@example.com")
+        rec = _make_recruiter("rec@example.com")
+        for user in (admin, hr, rec):
+            self.assertEqual(
+                user.get_effective_status(), "ON_SITE",
+                f"{user.email} (role={user.role}) must not resolve to NEW_APPLICANT",
+            )
+
+    def test_employee_with_no_contracts_is_still_a_new_applicant(self):
+        emp = _make_user("emp@example.com", "Emp", "Loyee", role="Employee")
+        self.assertEqual(emp.get_effective_status(), "NEW_APPLICANT")
+
+    def test_vacation_override_still_wins_for_staff(self):
+        hr = _make_hr("hr@example.com", **{"user_status": "VACATION"})
+        self.assertEqual(hr.get_effective_status(), "VACATION")
+
+    def test_promotion_to_staff_approves_the_account(self):
+        """PATCH role Employee -> HR Manager clears the pending state."""
+        emp = _make_user("emp@example.com", "Emp", "Loyee", role="Employee",
+                         user_status="NEW_APPLICANT")
+        self.assertEqual(emp.get_effective_status(), "NEW_APPLICANT")
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        resp = client.patch(
+            f"/api/users/users/{emp.id}/",
+            {"role": "HR Manager"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+
+        emp.refresh_from_db()
+        self.assertEqual(emp.role, "HR Manager")
+        self.assertEqual(
+            emp.user_status, "ON_SITE",
+            "promotion to a staff role must approve the account",
+        )
+        self.assertEqual(emp.get_effective_status(), "ON_SITE")
+
+    def test_promotion_with_lowercase_role_also_approves(self):
+        emp = _make_user("emp2@example.com", "Emp", "Loyee", role="Employee",
+                         user_status="NEW_APPLICANT")
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        resp = client.patch(
+            f"/api/users/users/{emp.id}/",
+            {"role": "recruiter"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        emp.refresh_from_db()
+        self.assertEqual(emp.role, "Recruiter")
+        self.assertEqual(emp.user_status, "ON_SITE")
+
+    def test_explicit_user_status_in_the_same_request_wins(self):
+        emp = _make_user("emp3@example.com", "Emp", "Loyee", role="Employee",
+                         user_status="NEW_APPLICANT")
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        resp = client.patch(
+            f"/api/users/users/{emp.id}/",
+            {"role": "HR Manager", "user_status": "VACATION"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        emp.refresh_from_db()
+        self.assertEqual(emp.user_status, "VACATION")
+
+    def test_promotion_preserves_a_vacation_flag(self):
+        emp = _make_user("emp4@example.com", "Emp", "Loyee", role="Employee",
+                         user_status="VACATION")
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        resp = client.patch(
+            f"/api/users/users/{emp.id}/",
+            {"role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        emp.refresh_from_db()
+        self.assertEqual(emp.user_status, "VACATION")
+
+    def test_demotion_back_to_employee_keeps_the_stored_status(self):
+        hr = _make_hr("hr2@example.com")
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        resp = client.patch(
+            f"/api/users/users/{hr.id}/",
+            {"role": "Employee"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        hr.refresh_from_db()
+        self.assertEqual(hr.role, "Employee")
+        # demoted -> back to the contract-derived rules
+        self.assertEqual(hr.get_effective_status(), "NEW_APPLICANT")
+
+    def test_bulk_edit_promotion_also_approves(self):
+        emp = _make_user("emp5@example.com", "Emp", "Loyee", role="Employee",
+                         user_status="NEW_APPLICANT")
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        resp = client.post(
+            "/api/users/users/bulk-edit/",
+            {"ids": [emp.id], "data": {"role": "HR Manager"}},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        emp.refresh_from_db()
+        self.assertEqual(emp.role, "HR Manager")
+        self.assertEqual(emp.user_status, "ON_SITE")

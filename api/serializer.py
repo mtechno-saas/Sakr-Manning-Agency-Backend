@@ -3,7 +3,8 @@ from django.contrib.auth.models import Permission, Group
 import os
 from .models import (
     Users, UserRank, Certificate, Rank, Contract, Reference, SeaService,
-    Interview, CVSubmission, Document, UserLanguage, PersonalDocument
+    Interview, CVSubmission, Document, UserLanguage, PersonalDocument,
+    STAFF_ROLES, staff_role_approval_status
 )
 from companies.models import Company
 from finance.models import FinanceRecord
@@ -2154,11 +2155,13 @@ class RoleChoiceField(serializers.ChoiceField):
         return None
 
 
-# Roles that get a known default password when created without one.
-# The dashboard's "add user" form has no password field, so without this
-# a freshly created staff account is created with an empty password and
-# can never sign in.
-STAFF_ROLES = ('Admin', 'HR Manager', 'Recruiter')
+# The staff roles that get a known default password when created without
+# one. The dashboard's "add user" form has no password field, so without
+# this a freshly created staff account is created with an empty password
+# and can never sign in.
+#
+# STAFF_ROLES itself is imported from api.models so the model, the
+# serializer and the status resolver all agree on the list.
 
 # Override without a code deploy by setting SAKR_DEFAULT_STAFF_PASSWORD
 # in the environment.
@@ -2607,6 +2610,23 @@ class UsersSerializer(serializers.ModelSerializer):
         # write the raw value into Users.password and the user couldn't
         # log in.)
         password = validated_data.pop('password', None)
+
+        # Promotion to a staff role IS the approval.
+        #
+        # When an admin changes a user's role from Employee to Admin /
+        # HR Manager / Recruiter, that promotion is the sign-off: the
+        # account must not stay in the NEW_APPLICANT ("pending") state.
+        # Staff also never hold ship contracts, so without this the
+        # effective status kept resolving to NEW_APPLICANT and the
+        # dashboard showed the admin and the HR managers as pending
+        # applicants.
+        #
+        # An explicit user_status in the same request always wins.
+        new_role = validated_data.get('role')
+        if new_role in STAFF_ROLES and new_role != (instance.role or '').strip():
+            if 'user_status' not in validated_data:
+                validated_data['user_status'] = staff_role_approval_status(instance.user_status)
+
         instance = super().update(instance, validated_data)
         if password:
             instance.set_password(password)

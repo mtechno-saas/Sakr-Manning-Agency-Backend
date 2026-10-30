@@ -37,7 +37,8 @@ from .models import (
     Users, Rank, UserRank, Contract, Reference, SeaService, Certificate,
     #Company, Interview, CVSubmission, Document,
     Company, Interview, CVSubmission, Document,
-    UserLanguage, PersonalDocument, Declaration, NextOfKin, LanguageProficiency
+    UserLanguage, PersonalDocument, Declaration, NextOfKin, LanguageProficiency,
+    STAFF_ROLES, staff_role_approval_status
 )
 from .serializer import (
     UsersSerializer, UserRankSerializer, ContractSerializer, ContractListSerializer,
@@ -929,7 +930,18 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No valid fields provided for update'}, status=400)
 
         users_to_update = Users.objects.filter(id__in=user_ids)
-        
+
+        # Promotion to a staff role IS the approval -- same rule as the
+        # serializer's update(): an account promoted to Admin / HR Manager
+        # / Recruiter must not stay in the NEW_APPLICANT ("pending") state.
+        # This has to be a per-user loop because each user may carry a
+        # different current status (a VACATION flag must be preserved).
+        if clean_data.get('role') in STAFF_ROLES:
+            for u in users_to_update:
+                if (u.role or '').strip() != clean_data['role']:
+                    u.user_status = staff_role_approval_status(u.user_status)
+                    u.save(update_fields=['user_status'])
+
         if clean_data:
             users_to_update.update(**clean_data)
             

@@ -42,6 +42,31 @@ class User_Status(models.TextChoices):
     NEW_APPLICANT = 'NEW_APPLICANT', 'NEW APPLICANT'
 
 
+# Roles that belong to the internal team rather than to the seafarer pool.
+# They do the approving, so they are never "applicants" and never sit in
+# the NEW_APPLICANT (pending) state.
+#
+# This is the single source of truth for "is this a staff role" — the
+# serializer (default staff password, approval on promotion) and the
+# status resolver both read it.
+STAFF_ROLES = ('Admin', 'HR Manager', 'Recruiter')
+
+
+def staff_role_approval_status(current_status):
+    """The status to store when an account is promoted to a staff role.
+
+    A promotion IS the approval — the admin has vouched for the person,
+    so they must not remain in the NEW_APPLICANT ("pending") state.
+    VACATION and MEDICAL_VACATION are explicit admin overrides and are
+    preserved as-is; everything else becomes ON_SITE ("approved /
+    available").
+    """
+    current = (current_status or '').strip()
+    if current in (User_Status.VACATION, User_Status.MEDICAL_VACATION):
+        return current
+    return User_Status.ON_SITE
+
+
 class Nationality(models.TextChoices):
     """
     Curated list of nationalities commonly seen in the maritime
@@ -847,22 +872,37 @@ class Users(AbstractBaseUser, PermissionsMixin):
         Resolution order (first match wins):
           1. If the admin has set VACATION              -> 'VACATION'
           2. If the admin has set MEDICAL_VACATION     -> 'MEDICAL_VACATION'
-          3. If the user has any Active or Signed
+          3. If the user is staff (Admin / HR Manager /
+             Recruiter)                                -> 'ON_SITE'
+          4. If the user has any Active or Signed
              contract whose sign_off_date is null or
              in the future                            -> 'ON_BOARD'
-          4. If the user has no contract history at
+          5. If the user has no contract history at
              all (never been placed)                  -> 'NEW_APPLICANT'
-          5. Otherwise                                 -> 'ON_SITE'
+          6. Otherwise                                 -> 'ON_SITE'
 
         Manual overrides (1, 2) always win over the contract-derived
-        values (3, 4) so an admin can flag a user as on vacation
+        values (4, 5) so an admin can flag a user as on vacation
         even if they technically have an open contract.
+
+        Rule 3 exists because staff never hold ship contracts -- without
+        it every staff account resolved to NEW_APPLICANT and the dashboard
+        showed the admin and the HR managers as pending applicants.
         """
         stored = (self.user_status or "").strip()
         if stored == User_Status.VACATION:
             return User_Status.VACATION
         if stored == User_Status.MEDICAL_VACATION:
             return User_Status.MEDICAL_VACATION
+
+        # Staff accounts (Admin / HR Manager / Recruiter) are part of the
+        # team, not applicants. They never hold ship contracts, so the
+        # contract-derived rules below would mark EVERY one of them
+        # NEW_APPLICANT -- which is exactly what happened to admin@ and
+        # both of the HR Managers: they all showed up as pending
+        # applicants in the dashboard.
+        if (self.role or "").strip() in STAFF_ROLES:
+            return User_Status.ON_SITE
 
         # Lazy import: api.models is imported by lots of things, and
         # Contract lives in the same module so it's already loaded.
