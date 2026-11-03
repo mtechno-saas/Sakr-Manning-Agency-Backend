@@ -29,7 +29,7 @@ from rest_framework.test import APIClient
 from rest_framework import status as http_status
 
 from api.models import Users, Rank, UserRank
-from api.serializer import DEFAULT_STAFF_PASSWORD
+from api.staff_credentials import generate_staff_password
 from api.permissions import UserPermission
 
 
@@ -9778,15 +9778,17 @@ class ReportHealthCertNoExpiryCandidatesCommandTests(TestCase):
 
 
 class StaffDefaultPasswordTests(TestCase):
-    """Staff accounts created by an Admin get a usable default password.
+    """Staff accounts created by an Admin get their own emailed password.
 
     The dashboard's "add user" form has NO password field, so before this
     change a staff account created from the UI was created with an empty
-    password and could never sign in. Staff roles now fall back to
-    DEFAULT_STAFF_PASSWORD when the caller does not supply one.
-    """
+    password and could never sign in. Staff roles now get a random
+    8-digit password which is emailed to them.
 
-    DEFAULT = "admin123!"
+    There is NO shared default password any more: every account gets its
+    own value, so the audit trail can tell two staff members apart and
+    nobody can guess another person's password.
+    """
 
     def setUp(self):
         self.admin = _make_admin("admin@example.com")
@@ -9794,93 +9796,206 @@ class StaffDefaultPasswordTests(TestCase):
         self.client.force_authenticate(user=self.admin)
 
     def _create(self, email, payload):
-        resp = self.client.post(
-            "/api/users/users/", payload, format="json"
-        )
-        return resp, Users.objects.get(email=email)
+        """Create a user with the email service mocked.
 
-    def test_admin_without_password_gets_default(self):
-        resp, user = self._create(
+        Returns (response, user, mocked_email_service).
+        """
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_welcome_credentials_email.return_value = True
+            resp = self.client.post(
+                "/api/users/users/", payload, format="json"
+            )
+        if resp.status_code != http_status.HTTP_201_CREATED:
+            return resp, None, mock_service
+        return resp, Users.objects.get(email=email), mock_service
+
+    def _emailed_password(self, mock_service):
+        return mock_service.send_welcome_credentials_email.call_args.kwargs[
+            "password"
+        ]
+
+    def test_admin_without_password_gets_an_emailed_password(self):
+        resp, user, mock_service = self._create(
             "new-admin@example.com",
             {"email": "new-admin@example.com", "first_name": "New", "role": "Admin"},
         )
         self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        mock_service.send_welcome_credentials_email.assert_called_once()
+        password = self._emailed_password(mock_service)
+        self.assertEqual(len(password), 8)
+        self.assertTrue(password.isdigit(), password)
         self.assertTrue(
-            user.check_password(self.DEFAULT),
-            "Admin created without a password must get the default password",
+            user.check_password(password),
+            "a staff account created without a password must be able to "
+            "sign in with the password that was emailed",
         )
 
-    def test_hr_manager_without_password_gets_default(self):
-        resp, user = self._create(
+    def test_hr_manager_without_password_gets_an_emailed_password(self):
+        resp, user, mock_service = self._create(
             "new-hr@example.com",
             {"email": "new-hr@example.com", "first_name": "New", "role": "HR Manager"},
         )
         self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
-        self.assertTrue(user.check_password(self.DEFAULT))
+        self.assertTrue(user.check_password(self._emailed_password(mock_service)))
 
-    def test_recruiter_without_password_gets_default(self):
-        resp, user = self._create(
+    def test_recruiter_without_password_gets_an_emailed_password(self):
+        resp, user, mock_service = self._create(
             "new-rec@example.com",
             {"email": "new-rec@example.com", "first_name": "New", "role": "Recruiter"},
         )
         self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
-        self.assertTrue(user.check_password(self.DEFAULT))
+        self.assertTrue(user.check_password(self._emailed_password(mock_service)))
 
-    def test_lowercase_role_also_gets_default(self):
+    def test_lowercase_role_also_gets_an_emailed_password(self):
         """The dashboard posts lower-case roles; they normalize before create()."""
         for raw, expected in [("admin", "Admin"), ("hr_manager", "HR Manager"),
                                ("recruiter", "Recruiter")]:
             email = f"lower-{raw}@example.com"
-            resp, user = self._create(
+            resp, user, mock_service = self._create(
                 email,
                 {"email": email, "first_name": "Lower", "role": raw},
             )
             self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
             self.assertEqual(user.role, expected)
             self.assertTrue(
-                user.check_password(self.DEFAULT),
-                f"role={raw!r} must still get the default password",
+                user.check_password(self._emailed_password(mock_service)),
+                f"role={raw!r} must still get an emailed password",
             )
 
-    def test_employee_without_password_does_not_get_default(self):
-        """Only staff roles get the default; employees keep the old behaviour."""
-        resp, user = self._create(
+    def test_two_staff_accounts_get_different_passwords(self):
+        """No shared password -- that was the whole point."""
+        resp1, user1, mock1 = self._create(
+            "staff-one@example.com",
+            {"email": "staff-one@example.com", "first_name": "One", "role": "HR Manager"},
+        )
+        resp2, user2, mock2 = self._create(
+            "staff-two@example.com",
+            {"email": "staff-two@example.com", "first_name": "Two", "role": "Recruiter"},
+        )
+        self.assertEqual(resp1.status_code, http_status.HTTP_201_CREATED)
+        self.assertEqual(resp2.status_code, http_status.HTTP_201_CREATED)
+
+        password1 = self._emailed_password(mock1)
+        password2 = self._emailed_password(mock2)
+        self.assertNotEqual(password1, password2)
+        self.assertFalse(user1.check_password(password2))
+        self.assertFalse(user2.check_password(password1))
+
+    def test_employee_without_password_does_not_get_one(self):
+        """Only staff roles get credentials; employees keep the old behaviour."""
+        resp, user, mock_service = self._create(
             "new-emp@example.com",
             {"email": "new-emp@example.com", "first_name": "New", "role": "Employee"},
         )
         self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
         self.assertFalse(
-            user.check_password(self.DEFAULT),
-            "Employee accounts must not get the staff default password",
+            user.has_set_password(),
+            "Employee accounts must not get a staff password",
         )
+        mock_service.send_welcome_credentials_email.assert_not_called()
 
-    def test_crew_without_password_does_not_get_default(self):
-        resp, user = self._create(
+    def test_crew_without_password_does_not_get_one(self):
+        resp, user, mock_service = self._create(
             "new-crew@example.com",
             {"email": "new-crew@example.com", "first_name": "New", "role": "Crew"},
         )
         self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
-        self.assertFalse(user.check_password(self.DEFAULT))
+        self.assertFalse(user.has_set_password())
+        mock_service.send_welcome_credentials_email.assert_not_called()
 
     def test_explicit_password_wins(self):
-        resp, user = self._create(
+        resp, user, mock_service = self._create(
             "explicit@example.com",
             {"email": "explicit@example.com", "first_name": "Exp",
              "role": "Admin", "password": "MyOwnPassword1!"},
         )
         self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
         self.assertTrue(user.check_password("MyOwnPassword1!"))
-        self.assertFalse(user.check_password(self.DEFAULT))
+        mock_service.send_welcome_credentials_email.assert_not_called()
 
-    def test_default_password_is_never_returned_in_the_response(self):
-        resp = self.client.post(
-            "/api/users/users/",
-            {"email": "hidden@example.com", "first_name": "Hid", "role": "Admin"},
-            format="json",
-        )
+    def test_the_password_is_never_returned_in_the_response(self):
+        with patch("api.email.get_email_service") as mock_get:
+            mock_get.return_value.send_welcome_credentials_email.return_value = True
+            resp = self.client.post(
+                "/api/users/users/",
+                {"email": "hidden@example.com", "first_name": "Hid", "role": "Admin"},
+                format="json",
+            )
         self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
         self.assertNotIn("password", resp.data)
-        self.assertNotIn(self.DEFAULT, str(resp.data))
+        password = (
+            mock_get.return_value.send_welcome_credentials_email.call_args.kwargs[
+                "password"
+            ]
+        )
+        self.assertNotIn(password, str(resp.data))
+
+    def test_a_failed_email_still_creates_a_usable_account(self):
+        with patch("api.email.get_email_service") as mock_get:
+            mock_get.return_value.send_welcome_credentials_email.return_value = False
+            resp = self.client.post(
+                "/api/users/users/",
+                {"email": "mailfail@example.com", "first_name": "Fail",
+                 "role": "HR Manager"},
+                format="json",
+            )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        # The admin is told the email did not go out ...
+        self.assertFalse(resp.json()["staff_credentials_sent"])
+        # ... and the account still exists with a password.
+        user = Users.objects.get(email="mailfail@example.com")
+        self.assertTrue(user.has_set_password())
+
+    def test_the_response_reports_which_email_backend_handled_it(self):
+        """The console backend reports success but delivers nothing.
+
+        The admin has to be able to tell the two apart, otherwise they
+        will believe the person got an email when it only went to the
+        server log.
+        """
+        from api.email import DjangoSMTPEmailService
+
+        with patch("api.email.get_email_service",
+                   return_value=DjangoSMTPEmailService()):
+            resp = self.client.post(
+                "/api/users/users/",
+                {"email": "whichsvc@example.com", "first_name": "Which",
+                 "role": "HR Manager"},
+                format="json",
+            )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        self.assertEqual(
+            resp.json()["staff_credentials_email_service"],
+            "api.email.DjangoSMTPEmailService",
+        )
+
+    def test_the_email_body_actually_contains_the_generated_password(self):
+        """The whole point of the feature: the person receives the password."""
+        from django.core import mail
+        from api.email import DjangoSMTPEmailService
+
+        with patch("api.serializer.generate_staff_password",
+                   return_value="86753099"):
+            with patch("api.email.get_email_service",
+                       return_value=DjangoSMTPEmailService()):
+                resp = self.client.post(
+                    "/api/users/users/",
+                    {"email": "inbox@example.com", "first_name": "In",
+                     "role": "HR Manager"},
+                    format="json",
+                )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED)
+        # Django's test runner swaps the email backend for locmem, so the
+        # message lands in mail.outbox instead of being sent.
+        self.assertEqual(len(mail.outbox), 1)
+        body = mail.outbox[0].body
+        self.assertIn("86753099", body)
+        self.assertIn("inbox@example.com", body)
+
+        user = Users.objects.get(email="inbox@example.com")
+        self.assertTrue(user.check_password("86753099"))
 
 
 class PublicRegisterRoleLockdownTests(TestCase):
@@ -9925,7 +10040,12 @@ class PublicRegisterRoleLockdownTests(TestCase):
             self.assertEqual(user.role, "Employee", f"role={role!r} leaked through")
 
     def test_register_ignores_staff_default_password(self):
-        """A self-registered account must not get the staff default password."""
+        """A self-registered account must not get staff credentials.
+
+        Public signup forces the role to Employee, so the account gets
+        neither a generated staff password nor an emailed one -- and
+        certainly not the old shared default.
+        """
         resp = self.client.post(
             "/api/register/",
             {"email": "sneaky2@example.com", "password": "Sneaky@12345",
@@ -10412,7 +10532,40 @@ class StaffPromotionPasswordTests(TestCase):
     created as an applicant has NO password at all. Promoting that
     account to HR Manager used to succeed and still leave the owner
     unable to sign in -- the role change worked, the login did not.
+
+    The fix: the account is given its own random 8-digit password and
+    that password is emailed to them. It is never returned in the API
+    response and never written to the audit trail.
     """
+
+    def _applicant_without_password(self, email="applicant@example.com"):
+        """A user created the way the dashboard's add-user form does."""
+        applicant = _make_user(email, "App", "Licant")
+        applicant.password = ""
+        applicant.save(update_fields=["password"])
+        self.assertFalse(applicant.has_set_password())
+        return applicant
+
+    def _promote(self, user, role="HR Manager", password=None):
+        """Promote `user` as an admin, with the email service mocked.
+
+        Returns (response, mocked_email_service).
+        """
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+        payload = {"role": role}
+        if password is not None:
+            payload["password"] = password
+        with patch("api.email.get_email_service") as mock_get:
+            mock_service = mock_get.return_value
+            mock_service.send_welcome_credentials_email.return_value = True
+            resp = client.patch(
+                f"/api/users/users/{user.id}/", payload, format="json",
+            )
+        return resp, mock_service
+
+    # ── detection helper ──────────────────────────────────────────────
 
     def test_has_set_password_detects_the_dashboard_created_account(self):
         applicant = _make_user("applicant@example.com", "App", "Licant")
@@ -10429,53 +10582,121 @@ class StaffPromotionPasswordTests(TestCase):
         unusable.set_password(None)
         self.assertFalse(unusable.has_set_password())
 
-    def test_promoting_an_applicant_hands_out_the_default_password(self):
-        applicant = _make_user("applicant@example.com", "App", "Licant")
-        applicant.password = ""
-        applicant.save(update_fields=["password"])
-        self.assertFalse(applicant.has_set_password())
+    # ── the password generator ────────────────────────────────────────
 
-        admin = _make_admin("admin@example.com")
-        client = APIClient()
-        client.force_authenticate(user=admin)
+    def test_the_generated_password_is_eight_digits(self):
+        for _ in range(25):
+            password = generate_staff_password()
+            self.assertEqual(len(password), 8)
+            self.assertTrue(password.isdigit(), password)
 
-        resp = client.patch(
-            f"/api/users/users/{applicant.id}/",
-            {"role": "HR Manager"},
-            format="json",
-        )
+    def test_the_generated_password_is_not_predictable(self):
+        passwords = {generate_staff_password() for _ in range(50)}
+        self.assertGreater(len(passwords), 45, "passwords must not repeat")
+
+    # ── promotion ─────────────────────────────────────────────────────
+
+    def test_promoting_an_applicant_emails_a_random_password(self):
+        applicant = self._applicant_without_password()
+
+        resp, mock_service = self._promote(applicant)
         self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+
+        mock_service.send_welcome_credentials_email.assert_called_once()
+        kwargs = mock_service.send_welcome_credentials_email.call_args.kwargs
+        self.assertEqual(kwargs["to_email"], "applicant@example.com")
+        self.assertEqual(kwargs["username"], "applicant@example.com")
+        self.assertEqual(kwargs["first_name"], "App")
+
+        emailed_password = kwargs["password"]
+        self.assertEqual(len(emailed_password), 8)
+        self.assertTrue(emailed_password.isdigit(), emailed_password)
 
         applicant.refresh_from_db()
         self.assertEqual(applicant.role, "HR Manager")
-        self.assertTrue(applicant.has_set_password())
         self.assertTrue(
-            applicant.check_password(DEFAULT_STAFF_PASSWORD),
+            applicant.check_password(emailed_password),
             "the promoted account must be able to sign in with the "
-            "default staff password",
+            "password that was emailed",
         )
 
-    def test_the_promoted_account_can_actually_log_in(self):
-        applicant = _make_user("applicant@example.com", "App", "Licant")
-        applicant.password = ""
-        applicant.save(update_fields=["password"])
+    def test_the_promoted_account_can_log_in_with_the_emailed_password(self):
+        applicant = self._applicant_without_password()
+        resp, mock_service = self._promote(applicant)
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+
+        emailed_password = (
+            mock_service.send_welcome_credentials_email.call_args.kwargs["password"]
+        )
+
+        fresh = APIClient()
+        login = fresh.post(
+            "/api/login/",
+            {"email": "applicant@example.com", "password": emailed_password},
+            format="json",
+        )
+        self.assertEqual(login.status_code, http_status.HTTP_200_OK, login.data)
+
+    def test_the_password_is_never_returned_in_the_api_response(self):
+        applicant = self._applicant_without_password()
+        resp, mock_service = self._promote(applicant)
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+
+        emailed_password = (
+            mock_service.send_welcome_credentials_email.call_args.kwargs["password"]
+        )
+        self.assertNotIn(emailed_password, resp.content.decode())
+
+        # The admin IS told that the email went out, so they can chase it.
+        self.assertTrue(resp.json()["staff_credentials_sent"])
+
+    def test_the_plaintext_password_is_not_in_the_audit_trail(self):
+        applicant = self._applicant_without_password()
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_get.return_value.send_welcome_credentials_email.return_value = True
+            with _capture_audit() as records:
+                client.patch(
+                    f"/api/users/users/{applicant.id}/",
+                    {"role": "HR Manager"},
+                    format="json",
+                )
+
+        emailed_password = (
+            mock_get.return_value.send_welcome_credentials_email.call_args.kwargs[
+                "password"
+            ]
+        )
+        for record in records:
+            self.assertNotIn(emailed_password, record)
+
+    def test_each_promoted_account_gets_a_different_password(self):
+        first = self._applicant_without_password("one@example.com")
+        second = self._applicant_without_password("two@example.com")
 
         admin = _make_admin("admin@example.com")
         client = APIClient()
         client.force_authenticate(user=admin)
-        client.patch(
-            f"/api/users/users/{applicant.id}/",
-            {"role": "HR Manager"},
-            format="json",
-        )
 
-        fresh = APIClient()
-        resp = fresh.post(
-            "/api/login/",
-            {"email": "applicant@example.com", "password": DEFAULT_STAFF_PASSWORD},
-            format="json",
-        )
-        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        sent = []
+        with patch("api.email.get_email_service") as mock_get:
+            mock_get.return_value.send_welcome_credentials_email.side_effect = (
+                lambda **kwargs: sent.append(kwargs["password"]) or True
+            )
+            for user in (first, second):
+                client.patch(
+                    f"/api/users/users/{user.id}/",
+                    {"role": "HR Manager"},
+                    format="json",
+                )
+
+        self.assertEqual(len(sent), 2)
+        self.assertNotEqual(sent[0], sent[1])
+
+    # ── things that must NOT happen ───────────────────────────────────
 
     def test_an_existing_password_is_never_overwritten(self):
         """The promotion must not clobber a password the person already has."""
@@ -10483,76 +10704,110 @@ class StaffPromotionPasswordTests(TestCase):
             "applicant@example.com", "App", "Licant", password="their-own-password"
         )
 
-        admin = _make_admin("admin@example.com")
-        client = APIClient()
-        client.force_authenticate(user=admin)
-
-        client.patch(
-            f"/api/users/users/{applicant.id}/",
-            {"role": "HR Manager"},
-            format="json",
-        )
-
-        applicant.refresh_from_db()
-        self.assertTrue(applicant.check_password("their-own-password"))
-        self.assertFalse(applicant.check_password(DEFAULT_STAFF_PASSWORD))
-
-    def test_an_explicit_password_in_the_same_request_wins(self):
-        applicant = _make_user("applicant@example.com", "App", "Licant")
-        applicant.password = ""
-        applicant.save(update_fields=["password"])
-
-        admin = _make_admin("admin@example.com")
-        client = APIClient()
-        client.force_authenticate(user=admin)
-
-        client.patch(
-            f"/api/users/users/{applicant.id}/",
-            {"role": "HR Manager", "password": "chosen-password"},
-            format="json",
-        )
-
-        applicant.refresh_from_db()
-        self.assertTrue(applicant.check_password("chosen-password"))
-        self.assertFalse(applicant.check_password(DEFAULT_STAFF_PASSWORD))
-
-    def test_promoting_to_a_non_staff_role_sets_no_password(self):
-        applicant = _make_user("applicant@example.com", "App", "Licant")
-        applicant.password = ""
-        applicant.save(update_fields=["password"])
-
-        admin = _make_admin("admin@example.com")
-        client = APIClient()
-        client.force_authenticate(user=admin)
-
-        client.patch(
-            f"/api/users/users/{applicant.id}/",
-            {"role": "Employee"},
-            format="json",
-        )
-
-        applicant.refresh_from_db()
-        self.assertFalse(applicant.has_set_password())
-
-    def test_bulk_edit_promotion_also_hands_out_the_default_password(self):
-        applicant = _make_user("applicant@example.com", "App", "Licant")
-        applicant.password = ""
-        applicant.save(update_fields=["password"])
-
-        admin = _make_admin("admin@example.com")
-        client = APIClient()
-        client.force_authenticate(user=admin)
-
-        resp = client.post(
-            "/api/users/users/bulk-edit/",
-            {"ids": [applicant.id], "data": {"role": "HR Manager"}},
-            format="json",
-        )
+        resp, mock_service = self._promote(applicant)
         self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
 
         applicant.refresh_from_db()
+        self.assertTrue(applicant.check_password("their-own-password"))
+        mock_service.send_welcome_credentials_email.assert_not_called()
+
+    def test_an_explicit_password_in_the_same_request_wins(self):
+        applicant = self._applicant_without_password()
+
+        resp, mock_service = self._promote(applicant, password="chosen-password")
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+
+        applicant.refresh_from_db()
+        self.assertTrue(applicant.check_password("chosen-password"))
+        mock_service.send_welcome_credentials_email.assert_not_called()
+
+    def test_promoting_to_a_non_staff_role_sets_no_password(self):
+        applicant = self._applicant_without_password()
+
+        resp, mock_service = self._promote(applicant, role="Employee")
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+
+        applicant.refresh_from_db()
+        self.assertFalse(applicant.has_set_password())
+        mock_service.send_welcome_credentials_email.assert_not_called()
+
+    # ── email failure ─────────────────────────────────────────────────
+
+    def test_email_failure_still_sets_the_password_and_reports_it(self):
+        applicant = self._applicant_without_password()
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_get.return_value.send_welcome_credentials_email.return_value = False
+            resp = client.patch(
+                f"/api/users/users/{applicant.id}/",
+                {"role": "HR Manager"},
+                format="json",
+            )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        # The admin is told the email did not go out ...
+        self.assertFalse(resp.json()["staff_credentials_sent"])
+        # ... but the account still works.
+        applicant.refresh_from_db()
+        self.assertTrue(applicant.has_set_password())
+
+    def test_an_email_service_that_raises_does_not_break_the_promotion(self):
+        applicant = self._applicant_without_password()
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_get.return_value.send_welcome_credentials_email.side_effect = (
+                RuntimeError("smtp is down")
+            )
+            resp = client.patch(
+                f"/api/users/users/{applicant.id}/",
+                {"role": "HR Manager"},
+                format="json",
+            )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.assertFalse(resp.json()["staff_credentials_sent"])
+        applicant.refresh_from_db()
+        self.assertTrue(applicant.has_set_password())
+
+    # ── bulk edit ─────────────────────────────────────────────────────
+
+    def test_bulk_edit_promotion_emails_credentials(self):
+        applicant = self._applicant_without_password()
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_get.return_value.send_welcome_credentials_email.return_value = True
+            resp = client.post(
+                "/api/users/users/bulk-edit/",
+                {"ids": [applicant.id], "data": {"role": "HR Manager"}},
+                format="json",
+            )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.json()["staff_credentials_emailed"], 1)
+        self.assertTrue(resp.json()["staff_credentials_sent"])
+
+        emailed_password = (
+            mock_get.return_value.send_welcome_credentials_email.call_args.kwargs[
+                "password"
+            ]
+        )
+        self.assertEqual(len(emailed_password), 8)
+
+        applicant.refresh_from_db()
         self.assertEqual(applicant.role, "HR Manager")
-        self.assertTrue(applicant.check_password(DEFAULT_STAFF_PASSWORD))
+        self.assertTrue(applicant.check_password(emailed_password))
 
     def test_bulk_edit_does_not_overwrite_an_existing_password(self):
         applicant = _make_user(
@@ -10563,14 +10818,67 @@ class StaffPromotionPasswordTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=admin)
 
-        client.post(
-            "/api/users/users/bulk-edit/",
-            {"ids": [applicant.id], "data": {"role": "HR Manager"}},
-            format="json",
-        )
+        with patch("api.email.get_email_service") as mock_get:
+            resp = client.post(
+                "/api/users/users/bulk-edit/",
+                {"ids": [applicant.id], "data": {"role": "HR Manager"}},
+                format="json",
+            )
 
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
         applicant.refresh_from_db()
         self.assertTrue(applicant.check_password("their-own-password"))
+        mock_get.return_value.send_welcome_credentials_email.assert_not_called()
+
+    def test_bulk_edit_without_a_role_change_sends_no_email(self):
+        applicant = self._applicant_without_password()
+
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with patch("api.email.get_email_service") as mock_get:
+            resp = client.post(
+                "/api/users/users/bulk-edit/",
+                {"ids": [applicant.id], "data": {"user_status": "ON_SITE"}},
+                format="json",
+            )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        mock_get.return_value.send_welcome_credentials_email.assert_not_called()
+
+    # ── creating a staff account directly ─────────────────────────────
+
+    def test_creating_a_staff_account_directly_emails_credentials(self):
+        admin = _make_admin("admin@example.com")
+        client = APIClient()
+        client.force_authenticate(user=admin)
+
+        with patch("api.email.get_email_service") as mock_get:
+            mock_get.return_value.send_welcome_credentials_email.return_value = True
+            resp = client.post(
+                "/api/users/users/",
+                {
+                    "email": "newhr@example.com",
+                    "first_name": "New",
+                    "middle_name": "HR",
+                    "role": "HR Manager",
+                },
+                format="json",
+            )
+
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+
+        mock_get.return_value.send_welcome_credentials_email.assert_called_once()
+        kwargs = mock_get.return_value.send_welcome_credentials_email.call_args.kwargs
+        self.assertEqual(kwargs["to_email"], "newhr@example.com")
+
+        emailed_password = kwargs["password"]
+        self.assertEqual(len(emailed_password), 8)
+        self.assertTrue(emailed_password.isdigit(), emailed_password)
+
+        created = Users.objects.get(email="newhr@example.com")
+        self.assertTrue(created.check_password(emailed_password))
 
 
 class LoginAuditTrailTests(TestCase):

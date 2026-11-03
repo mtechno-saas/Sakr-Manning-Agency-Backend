@@ -1,0 +1,212 @@
+diff --git a/src/App.jsx b/src/App.jsx
+index 111820e..19535a4 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -29,11 +29,11 @@ import LoadingScreen from "./components/dashboard/Components/Common/LoadingScree
+ const DashboardApp = lazy(() => import("./components/dashboard/DashboardApp"));
+ const SakrForm = lazy(() => import("./components/form/SakrForm"));
+ 
+-/** Shared helper – keep in sync with ProtectedRoute & authService */
+-export const isAdminRole = (role) => {
+-  const r = role?.toLowerCase();
+-  return r === "admin" || r === "administrator";
+-};
++import { isStaffRole } from "./utils/roles";
++
++/** Kept as an alias for backwards compatibility. */
++export const isAdminRole = isStaffRole;
++
+ // Auth Pages — redirect already-authenticated users away from /auth
+ const AuthPages = () => {
+   const navigate = useNavigate();
+@@ -60,7 +60,7 @@ const AuthPages = () => {
+   // Redirect authenticated users away from /auth once auth state is fully initialized
+   useEffect(() => {
+     if (isInitialized && isAuthenticated && user) {
+-      if (isAdminRole(user.role)) {
++      if (isStaffRole(user.role)) {
+         navigate("/dashboard", { replace: true });
+       } else {
+         navigate(intendedPath || "/quick-apply", { replace: true });
+@@ -80,7 +80,7 @@ const AuthPages = () => {
+     const result = await login(credentials);
+ 
+     if (result.success && result.user) {
+-      if (isAdminRole(result.user.role)) {
++      if (isStaffRole(result.user.role)) {
+         navigate("/dashboard");
+       } else {
+         navigate(intendedPath || "/quick-apply");
+diff --git a/src/components/dashboard/Components/Modal/ViewModal/CVSubmissionEditModal.jsx b/src/components/dashboard/Components/Modal/ViewModal/CVSubmissionEditModal.jsx
+index 006f1b1..d0b8873 100644
+--- a/src/components/dashboard/Components/Modal/ViewModal/CVSubmissionEditModal.jsx
++++ b/src/components/dashboard/Components/Modal/ViewModal/CVSubmissionEditModal.jsx
+@@ -12,6 +12,7 @@ import api from "../../../../../services/Auth/api";
+ import userService from "../../../../../services/Form/userService";
+ import { cvSubmissionsApi } from "../../../../../services/Dashboard/cvSubmissionsApi";
+ import { usersApi } from "../../../../../services/Dashboard/usersApi";
++import { isStaffRole } from "../../../../../utils/roles";
+ import GenerateContractModal from "./../GenerateContractModal";
+ import CVSubmissionFormModal from "./../CVSubmissionFormModal";
+ import { generateBrandedCVPdf } from "../../../../../utils/dashboard/brandedCVGenerator";
+@@ -124,7 +125,7 @@ function CVSubmissionEditModalInner({ isOpen, onClose, submission: initialSubmis
+   const [isUpdating, setIsUpdating] = useState(false);
+   const { notify } = useToast();
+   const { user: currentUser } = useAuthContext();
+-  const isAdminOrHR = currentUser?.role === "Admin" || currentUser?.role === "HR";
++  const isAdminOrHR = isStaffRole(currentUser?.role);
+ 
+   const userId = useMemo(() => {
+     if (createdUserId) return createdUserId;
+diff --git a/src/components/landing/layout/Header.jsx b/src/components/landing/layout/Header.jsx
+index 6b9eefc..30bf1fe 100644
+--- a/src/components/landing/layout/Header.jsx
++++ b/src/components/landing/layout/Header.jsx
+@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
+ import { LayoutDashboard } from "lucide-react";
+ import { ASSETS } from "../../../utils/constants";
+ import { getMediaUrl } from "../../../utils/fileHelpers";
++import { isStaffRole } from "../../../utils/roles";
+ import gsap from "gsap";
+ import { useGSAP } from "@gsap/react";
+ 
+@@ -21,7 +22,7 @@ const Header = ({ onNavigate, onOpenAuth, user, onLogout, currentPage, onOpenFor
+     );
+   }, { scope: headerRef });
+ 
+-  const isAdmin = ["admin", "administrator"].includes(user?.role?.toLowerCase());
++  const isAdmin = isStaffRole(user?.role);
+ 
+   const navLinks = [
+     { id: "home", label: "Home" },
+diff --git a/src/components/layout/ProtectedRoute.jsx b/src/components/layout/ProtectedRoute.jsx
+index fdb73f7..09e6472 100644
+--- a/src/components/layout/ProtectedRoute.jsx
++++ b/src/components/layout/ProtectedRoute.jsx
+@@ -3,6 +3,7 @@ import React from "react";
+ import { Navigate } from "react-router-dom";
+ import { useAuth } from "../../hooks/useAuth";
+ import { tokenStorage } from "../../services/Auth/tokenStorage";
++import { isStaffRole } from "../../utils/roles";
+ 
+ /**
+  * ProtectedRoute
+@@ -16,11 +17,6 @@ import { tokenStorage } from "../../services/Auth/tokenStorage";
+  * Security note: localStorage role is UI-only. Real enforcement is on the
+  * Django backend via JWT permission classes on every API call.
+  */
+-const isAdminRole = (role) => {
+-  const r = role?.toLowerCase();
+-  return r === "admin" || r === "administrator";
+-};
+-
+ export const ProtectedRoute = ({ children, requiredRole }) => {
+   const { user, isLoading, isInitialized } = useAuth();
+ 
+@@ -46,7 +42,7 @@ export const ProtectedRoute = ({ children, requiredRole }) => {
+       // If the stored role already fails the check, redirect immediately
+       // rather than showing the spinner. Avoids a slow flash for regular users
+       // trying to access /dashboard.
+-      const storedRoleOk = isAdminRole(storedUser.role);
++      const storedRoleOk = isStaffRole(storedUser.role);
+       if (!storedRoleOk) {
+         return <Navigate to="/" replace />;
+       }
+@@ -75,7 +71,7 @@ export const ProtectedRoute = ({ children, requiredRole }) => {
+   }
+ 
+   if (requiredRole) {
+-    const hasRole = isAdminRole(user.role);
++    const hasRole = isStaffRole(user.role);
+     if (!hasRole) {
+       // Regular user trying to access /dashboard → send home
+       return <Navigate to="/" replace />;
+diff --git a/src/hooks/useAuth.js b/src/hooks/useAuth.js
+index 307cceb..50a4948 100644
+--- a/src/hooks/useAuth.js
++++ b/src/hooks/useAuth.js
+@@ -3,6 +3,7 @@ import { useCallback } from "react";
+ import authService from "../services/Auth/authServices";
+ import config from "../services/Auth/config";
+ import { useAuthContext } from "../context/AuthContext";
++import { isStaffRole } from "../utils/roles";
+ 
+ export const useAuth = () => {
+   const {
+@@ -40,7 +41,7 @@ export const useAuth = () => {
+           success: true,
+           message: result.message,
+           user: result.user,
+-          requiresAdminRedirect: result.user.role?.toLowerCase() === "admin",
++          requiresAdminRedirect: isStaffRole(result.user.role),
+         };
+       }
+ 
+diff --git a/src/services/Auth/tokenStorage.js b/src/services/Auth/tokenStorage.js
+index 307b97b..789f75e 100644
+--- a/src/services/Auth/tokenStorage.js
++++ b/src/services/Auth/tokenStorage.js
+@@ -1,3 +1,5 @@
++import { isStaffRole } from "../../utils/roles";
++
+ const TOKEN_KEYS = {
+   ACCESS: "maritime_access_token",
+   REFRESH: "maritime_refresh_token",
+@@ -114,7 +116,7 @@ export const tokenStorage = {
+ 
+   isStoredAdmin: () => {
+     const role = tokenStorage.getStoredRole();
+-    return role === "admin" || role === "administrator";
++    return isStaffRole(role);
+   },
+ 
+   // ── Clear everything ────────────────────────────────────────────────────────
+diff --git a/src/utils/roles.js b/src/utils/roles.js
+new file mode 100644
+index 0000000..4daf80d
+--- /dev/null
++++ b/src/utils/roles.js
+@@ -0,0 +1,43 @@
++/**
++ * Canonical staff role names, shared by the whole app.
++ *
++ * Source of truth: the backend's `api/models.py` ->
++ * `Users.ROLE_CHOICES` / `STAFF_ROLES`:
++ *
++ *   Admin | Administrator | HR Manager | HR | Recruiter
++ *
++ * `isStaffRole()` normalises case and whitespace so "HR Manager",
++ * "hr manager" and "HR_MANAGER" all match.
++ *
++ * Why this file exists: the role check used to be copy-pasted into
++ * `App.jsx`, `ProtectedRoute.jsx` and `tokenStorage.js`, and each copy
++ * only knew "admin" / "administrator". That sent every HR Manager and
++ * Recruiter to /quick-apply instead of /dashboard, and hid the
++ * Dashboard link in the header. There must be exactly ONE role helper
++ * in the app -- this one.
++ */
++
++export const STAFF_ROLES = [
++  "Admin",
++  "Administrator",
++  "HR Manager",
++  "HR",
++  "Recruiter",
++];
++
++const STAFF_ROLE_KEYS = new Set(
++  STAFF_ROLES.map((r) => r.toLowerCase().replace(/\s+/g, "_"))
++);
++
++/**
++ * True when the role is one of the staff roles that belong in the
++ * dashboard. Real enforcement is on the Django backend via JWT
++ * permission classes on every API call -- this only decides what the UI
++ * shows.
++ */
++export const isStaffRole = (role) => {
++  if (!role) return false;
++  return STAFF_ROLE_KEYS.has(
++    String(role).toLowerCase().replace(/\s+/g, "_")
++  );
++};

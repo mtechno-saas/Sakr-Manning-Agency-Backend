@@ -12,6 +12,10 @@ from tickets_papers.models import Ticket, TravelingPaper
 from ships.serializers import ShipSerializer
 from .models import LanguageProficiency
 from api.serializers import FlexibleDateField, FlexibleFileField
+from .staff_credentials import (
+    generate_staff_password,
+    email_staff_credentials,
+)
 
 
 # ========================
@@ -2163,9 +2167,9 @@ class RoleChoiceField(serializers.ChoiceField):
 # STAFF_ROLES itself is imported from api.models so the model, the
 # serializer and the status resolver all agree on the list.
 
-# Override without a code deploy by setting SAKR_DEFAULT_STAFF_PASSWORD
-# in the environment.
-DEFAULT_STAFF_PASSWORD = os.environ.get('SAKR_DEFAULT_STAFF_PASSWORD', 'admin123!')
+# The password is NOT a shared constant any more: each account gets its
+# own random 8-digit password, which is emailed to the account holder.
+# See api/staff_credentials.py.
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -2443,6 +2447,26 @@ class UsersSerializer(serializers.ModelSerializer):
         # Remove the codes field from output (internal use only)
         representation.pop('codes', None)
 
+        # When THIS request promoted the account to a staff role, the
+        # account was given a fresh random password which was emailed to
+        # them. Tell the admin whether that email actually went out --
+        # if it did not, the new account has a password nobody knows and
+        # the admin has to set one explicitly.
+        #
+        # Only present on the response that performed the promotion; a
+        # plain GET/list never sets it.
+        staff_credentials = getattr(self, '_staff_credentials', None)
+        if staff_credentials is not None:
+            representation['staff_credentials_sent'] = staff_credentials['email_sent']
+            representation['staff_credentials_email'] = staff_credentials['email']
+            representation['staff_credentials_role'] = staff_credentials['role']
+            # Which backend handled it. The console backend reports
+            # success but only writes to the server log -- nothing is
+            # actually delivered, and the admin needs to know that.
+            representation['staff_credentials_email_service'] = staff_credentials.get(
+                'email_service', ''
+            )
+
         # Calculate BMI from Height_Cm and Weight_Kg
         height_cm = instance.Height_Cm or 0
         weight_kg = instance.Weight_Kg or 0
@@ -2501,14 +2525,19 @@ class UsersSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password', None)
 
         # Staff accounts (Admin / HR Manager / Recruiter) created from the
-        # dashboard's "add user" form get a known default password, because
-        # that form has NO password field — without this the account is
-        # created with an empty password and can never sign in.
+        # dashboard's "add user" form have NO password field to fill in,
+        # so without help the account is created with an empty password
+        # and can never sign in.
         #
-        # Only applies when the caller did NOT supply a password: an
-        # explicit password always wins.
+        # They get a fresh random 8-digit password which is emailed to
+        # them (see api/staff_credentials.py). Only when the caller did
+        # NOT supply a password: an explicit password always wins.
+        #
+        # The password is applied to the instance here; the save happens
+        # below with the rest of the fields.
+        generated_staff_password = None
         if not password and validated_data.get('role') in STAFF_ROLES:
-            password = DEFAULT_STAFF_PASSWORD
+            generated_staff_password = generate_staff_password()
 
         # Create the user instance with the remaining standard fields
         user = Users(**validated_data)
@@ -2516,9 +2545,22 @@ class UsersSerializer(serializers.ModelSerializer):
         # Set password properly (if provided)
         if password:
             user.set_password(password)
+        elif generated_staff_password is not None:
+            user.set_password(generated_staff_password)
 
         # Save the user
         user.save()
+
+        # Email the generated password to the new staff member. The
+        # account is already usable by this point -- a mail failure must
+        # not roll the creation back -- but the admin is told whether
+        # the credentials actually arrived.
+        if generated_staff_password is not None:
+            self._staff_credentials = email_staff_credentials(
+                user,
+                generated_staff_password,
+                role=validated_data.get('role') or '',
+            )
 
         # Handle the profile image if it was provided
         if profile_image_data:
@@ -2625,6 +2667,7 @@ class UsersSerializer(serializers.ModelSerializer):
         new_role = validated_data.get('role')
         old_role = (instance.role or '').strip()
         role_changed = bool(new_role) and new_role != old_role
+        pending_staff_password = None
 
         if role_changed:
             # Promotion to a staff role IS the approval.
@@ -2638,12 +2681,19 @@ class UsersSerializer(serializers.ModelSerializer):
             # with an account that could never sign in -- the promotion
             # worked, the login did not.
             #
-            # The default staff password is only handed out when the
-            # account has NO usable password. An explicit password always
-            # wins and an existing one is never overwritten.
+            # The account is given a fresh random 8-digit password which
+            # is emailed to them (see api/staff_credentials.py). This is
+            # only done when the account has NO usable password: an
+            # explicit password always wins, and an existing one is
+            # never overwritten.
+            #
+            # The password is applied to the instance here and persisted
+            # by the super().update() save below; the email goes out
+            # after that save, so the recipient always finds a working
+            # account.
             if new_role in STAFF_ROLES and not password and not instance.has_set_password():
-                instance.set_password(DEFAULT_STAFF_PASSWORD)
-                instance.save(update_fields=['password'])
+                pending_staff_password = generate_staff_password()
+                instance.set_password(pending_staff_password)
 
             # Audit ANY role change. A role change is the single most
             # security-relevant write in the whole user API -- it is what
@@ -2668,6 +2718,26 @@ class UsersSerializer(serializers.ModelSerializer):
         if password:
             instance.set_password(password)
             instance.save(update_fields=['password'])
+
+        # The account is committed at this point -- email the generated
+        # password now, so the recipient always finds a working account.
+        if pending_staff_password is not None:
+            self._staff_credentials = email_staff_credentials(
+                instance, pending_staff_password, role=new_role,
+            )
+            audit_request = self.context.get('request')
+            if audit_request is not None:
+                from .audit import log_user_action
+                log_user_action(
+                    audit_request,
+                    'staff_credentials',
+                    target_ids=[instance.id],
+                    extra={
+                        'target_email': instance.email,
+                        'new_role': new_role,
+                        'email_sent': self._staff_credentials['email_sent'],
+                    },
+                )
 
         # Handle the profile image update separately if it was in the request (even if None)
         if has_profile_image:

@@ -46,7 +46,6 @@ from .serializer import (
     RankSerializer, RegisterSerializer, UserMeSerializer, DeclarationSerializer,
     CompanySerializer, CompanyListSerializer,
     RoleChoiceField,
-    DEFAULT_STAFF_PASSWORD,
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
     CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer,
@@ -69,6 +68,10 @@ from django.core.cache import cache
 from rest_framework.views import APIView
 
 from .audit import log_user_action
+from .staff_credentials import (
+    generate_staff_password,
+    email_staff_credentials,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -990,24 +993,40 @@ class UserViewSet(viewsets.ModelViewSet):
         # / Recruiter must not stay in the NEW_APPLICANT ("pending") state.
         # This has to be a per-user loop because each user may carry a
         # different current status (a VACATION flag must be preserved).
+        #
+        # A promotion must also leave the account USABLE. An applicant
+        # created from the dashboard's add-user form has no password at
+        # all (that form has no password field), so promoting them to a
+        # staff role used to produce an account that could never sign in.
+        #
+        # bulk-edit cannot carry an explicit password (it is not in
+        # allowed_fields), so each promoted account gets its own random
+        # 8-digit password which is emailed to them -- see
+        # api/staff_credentials.py. An account that already has a usable
+        # password keeps it and gets no email.
+        staff_credentials_sent = True
+        staff_credentials_emailed = 0
+        staff_credentials_service = ''
         if clean_data.get('role') in STAFF_ROLES:
             for u in users_to_update:
                 if (u.role or '').strip() != clean_data['role']:
                     u.user_status = staff_role_approval_status(u.user_status)
                     fields = ['user_status']
-                    # A promotion must also leave the account USABLE.
-                    # An applicant created from the dashboard's add-user
-                    # form has no password at all (that form has no
-                    # password field), so promoting them to a staff role
-                    # used to produce an account that could never sign
-                    # in. bulk-edit cannot carry an explicit password
-                    # (it is not in allowed_fields), so the default staff
-                    # password is the only option -- and it is only
-                    # applied when the account has no usable password.
+                    pending_password = None
                     if not u.has_set_password():
-                        u.set_password(DEFAULT_STAFF_PASSWORD)
+                        pending_password = generate_staff_password()
+                        u.set_password(pending_password)
                         fields.append('password')
                     u.save(update_fields=fields)
+
+                    if pending_password is not None:
+                        result = email_staff_credentials(
+                            u, pending_password, role=clean_data['role'],
+                        )
+                        staff_credentials_sent = staff_credentials_sent and result['email_sent']
+                        staff_credentials_service = result.get('email_service', '')
+                        if result['email_sent']:
+                            staff_credentials_emailed += 1
 
         if clean_data:
             users_to_update.update(**clean_data)
@@ -1054,7 +1073,16 @@ class UserViewSet(viewsets.ModelViewSet):
                 # Log error but don't fail the whole bulk edit if basic fields were updated
                 print("Bulk Rank Update Error:", e)
 
-        return Response({'message': f'Successfully updated {len(user_ids)} users'})
+        return Response({
+            'message': f'Successfully updated {len(user_ids)} users',
+            # When this bulk-edit promoted accounts to a staff role, each
+            # one got a random password that was emailed to them. Tell the
+            # admin how many emails went out -- if it is fewer than the
+            # number promoted, the admin has to set passwords by hand.
+            'staff_credentials_emailed': staff_credentials_emailed,
+            'staff_credentials_sent': staff_credentials_sent,
+            'staff_credentials_email_service': staff_credentials_service,
+        })
 
     @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
