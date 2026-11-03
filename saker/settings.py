@@ -507,13 +507,44 @@ CORS_ALLOW_METHODS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://sakrshipping.com",
 ]
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # or your provider
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'mtechsaas@gmail.com'
-EMAIL_HOST_PASSWORD = 'udnw dixo vjsq yuqw'
-DEFAULT_FROM_EMAIL = 'Sakr Manning Agency <crew@sakrshipping.com>'
+# ----------------------------------------------------------------------------
+# Outbound email (transactional mail: credentials, OTPs, notifications)
+# ----------------------------------------------------------------------------
+# Every value is overridable by an environment variable so a credential can
+# be rotated by editing the server's .env and restarting gunicorn -- no code
+# change, no redeploy, and no secret committed to the repository.
+#
+# EMAIL_HOST_PASSWORD is deliberately ENV-ONLY. The app password that used to
+# live here was rejected by Gmail with "535 5.7.8 Username and Password not
+# accepted", which meant transactional mail had never actually been sent.
+# Set it in the production .env:
+#
+#   EMAIL_HOST_USER=mtechsaas@gmail.com
+#   EMAIL_HOST_PASSWORD=<fresh 16-char Google App Password, no spaces>
+#
+# The account needs 2-Step Verification ON and an App Password generated at
+# https://myaccount.google.com/apppasswords
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'mtechsaas@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+# Seconds to wait on the SMTP socket. Without this a dead mail server can
+# hang an API request for the default 10s.
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 15))
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL', 'Sakr Manning Agency <crew@sakrshipping.com>')
+
+if not EMAIL_HOST_PASSWORD:
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "EMAIL_HOST_PASSWORD is not set -- transactional email (staff "
+        "credentials, seafarer OTPs, admin notifications) will NOT be "
+        "delivered. Set it in the environment."
+    )
+
 
 # ----------------------------------------------------------------------------
 # Notifications

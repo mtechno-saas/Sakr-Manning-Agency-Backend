@@ -76,13 +76,80 @@ only way to tell. The backend also logs a warning when the console backend is ac
 
 ## Verify the email path BEFORE relying on it
 
-`EMAIL_SERVICE` defaults to `DjangoSMTPEmailService`, but the production `.env` can
-override it to the console backend — in which case nothing is ever delivered.
+> **Known issue (found 3 Nov 2026):** the Gmail App Password that used to sit
+> hard-coded in `saker/settings.py` is **rejected by Gmail** —
+> `535 5.7.8 Username and Password not accepted`. Transactional mail has
+> therefore never actually been delivered: `welcome_email_sent_at` was NULL
+> on every single user in the live database. The SMTP host, port and TLS were
+> all fine — only the credential was wrong.
+>
+> The credential has been moved out of the code and is now **environment-only**
+> (`EMAIL_HOST_PASSWORD`), so it can be rotated without a code change.
+> **You must set it before this feature works.**
 
-### 1. Which backend is active?
+### 1. Generate a fresh App Password
+
+The `mtechsaas@gmail.com` account needs 2-Step Verification enabled. Then:
+
+<https://myaccount.google.com/apppasswords> -> *App passwords* -> *Create* ->
+name it (e.g. `sakr-backend`) -> copy the 16-character password.
+
+> App passwords are shown as `xxxx xxxx xxxx xxxx`. **Remove the spaces** —
+> the API key is the 16 characters with no separators.
+
+### 2. Put it in the server's `.env`
 
 ```bash
 cd /opt/sakr/Sakr-Manning-Agency-Backend
+cat >> .env <<'EOF'
+EMAIL_HOST_USER=mtechsaas@gmail.com
+EMAIL_HOST_PASSWORD=xxxxxxxxxxxxxxxx
+EOF
+```
+
+(Replace the placeholder with the real 16 characters.) Restart gunicorn so the
+new environment is picked up:
+
+```bash
+MASTER=$(pgrep -f "gunicorn saker.wsgi:application" | sort -n | head -1)
+kill -HUP "$MASTER" && sleep 3
+```
+
+### 3. Prove delivery
+
+```bash
+venv/bin/python3 manage.py shell -c "
+from django.core.mail import get_connection
+from django.conf import settings
+print('user     :', settings.EMAIL_HOST_USER)
+print('password :', 'SET' if settings.EMAIL_HOST_PASSWORD else 'MISSING')
+conn = get_connection()
+try:
+    conn.open()
+    print('SMTP login: OK')
+    conn.close()
+except Exception as e:
+    print('SMTP login: FAILED', type(e).__name__, e)
+"
+```
+
+`SMTP login: OK` means the credential is accepted. Then send a real message:
+
+```bash
+venv/bin/python3 manage.py shell -c "
+from django.core.mail import send_mail
+from django.conf import settings
+try:
+    n = send_mail('Sakr test', 'Email delivery is working.', settings.DEFAULT_FROM_EMAIL, ['crew@sakrshipping.com'], fail_silently=False)
+    print('SMTP OK, messages sent:', n)
+except Exception as e:
+    print('SMTP FAILED:', type(e).__name__, e)
+"
+```
+
+### 4. Which backend is active?
+
+```bash
 venv/bin/python3 manage.py shell -c "
 from api.email import get_email_service
 svc = get_email_service()
@@ -90,42 +157,29 @@ print('service :', type(svc).__module__ + '.' + type(svc).__name__)
 "
 ```
 
-If it prints `api.email.ConsoleEmailService`, the emails only go to the server log.
-Fix it by setting the real backend in the production `.env`:
+| Value | Meaning |
+|---|---|
+| `api.email.DjangoSMTPEmailService` | **Real email.** Sent via Gmail SMTP. |
+| `api.email.ConsoleEmailService` | **Not delivered.** Written to the server log only — and it still reports success. |
 
-```
-EMAIL_SERVICE=api.email.DjangoSMTPEmailService
-```
+`EMAIL_SERVICE` defaults to `DjangoSMTPEmailService`. Set
+`EMAIL_SERVICE=api.email.DjangoSMTPEmailService` in `.env` if the production
+`.env` overrides it.
 
-and restarting gunicorn.
+### 5. Past failures
 
-### 2. Does SMTP actually deliver?
-
-```bash
-venv/bin/python3 manage.py shell -c "
-from django.core.mail import send_mail
-from django.conf import settings
-print('backend:', settings.EMAIL_BACKEND, '| host:', settings.EMAIL_HOST, '| from:', settings.DEFAULT_FROM_EMAIL)
-try:
-    send_mail('Sakr test', 'Email delivery is working.', settings.DEFAULT_FROM_EMAIL, ['crew@sakrshipping.com'], fail_silently=False)
-    print('SMTP OK')
-except Exception as e:
-    print('SMTP FAILED:', type(e).__name__, e)
-"
-```
-
-A Gmail App Password is used (`EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` in
-`saker/settings.py`). Free Gmail accounts are capped at **~500 sends/day** — if the agency
-starts hitting that, move to SendGrid / SES.
-
-### 3. Past failures
-
-The SMTP failures are swallowed by the email service (it returns `False` and logs the
-exception). Look for them in the gunicorn error log:
+SMTP failures are swallowed by the email service (it returns `False` and logs
+the exception). Look for them in the gunicorn error log:
 
 ```bash
-grep -iE 'send_mail|SMTP|AuthenticationFailed|staff_credentials' /var/log/gunicorn/error.log | tail -30
+grep -iE 'send_mail|SMTP|AuthenticationFailed|staff_credentials|5\.7\.8' /var/log/gunicorn/error.log | tail -30
 ```
+
+### Note: Gmail's daily cap
+
+Free Gmail accounts are limited to ~500 sends/day. If the agency starts
+hitting that, move to SendGrid / Postmark / SES — `api/email.py` is a
+pluggable protocol, so it is a settings change plus a new class.
 
 ---
 
@@ -150,6 +204,7 @@ An explicit password is used as-is and **no email is sent** — the admin knows 
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| No email arrives | the Gmail app password is wrong / revoked | generate a fresh one, set `EMAIL_HOST_PASSWORD` in `.env`, restart gunicorn |
 | No email arrives | `EMAIL_SERVICE` is the console backend | set it to `DjangoSMTPEmailService` in `.env`, restart gunicorn |
 | No email arrives | Gmail rejected it / daily cap reached | check `/var/log/gunicorn/error.log` |
 | `staff_credentials_sent: false` | the email service returned False or raised | check the gunicorn error log; set an explicit password by hand |
