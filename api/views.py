@@ -65,7 +65,7 @@ from .permissions import (
     privilege_fields_in_payload
 )
 from .roles import canonical_role
-from .capabilities import catalog, granted, validate_permissions, PERMISSION_RESOURCES
+from .capabilities import catalog, granted, sort_permissions, validate_permissions, PERMISSION_RESOURCES
 
 from rest_framework import viewsets, permissions
 from django.core.cache import cache
@@ -886,6 +886,46 @@ class LanguageProficiencyViewSet(viewsets.ModelViewSet):
             serializer.save()
         else:
             serializer.save(user=self.request.user)
+def _requested_permissions(request):
+    """The permission list a request is asking for.
+
+    The body is the normal place::
+
+        {"permissions": ["finance.view", "contracts.write"]}
+
+    A DELETE with a body is legal HTTP but not every client sends one,
+    so the query string is accepted as well::
+
+        ?permissions=finance.view&permissions=contracts.write
+        ?permissions=finance.view,contracts.write
+    """
+    data = getattr(request, 'data', None)
+    raw = None
+
+    if data:
+        getlist = getattr(data, 'getlist', None)
+        if callable(getlist):
+            # A multipart body can repeat the field, and one field can
+            # carry a comma-separated list.
+            values = getlist('permissions')
+            if values:
+                raw = []
+                for value in values:
+                    raw.extend(
+                        part for part in str(value).replace(',', ' ').split()
+                        if part
+                    )
+        else:
+            raw = data.get('permissions')
+
+    if raw is None:
+        query = request.query_params.get('permissions')
+        if query is not None:
+            raw = [part for part in query.replace(',', ' ').split() if part]
+
+    return raw
+
+
 class UserViewSet(viewsets.ModelViewSet):
     """
     User Management - Role-based access:
@@ -934,16 +974,32 @@ class UserViewSet(viewsets.ModelViewSet):
             'resources': PERMISSION_RESOURCES,
         })
 
-    @action(detail=True, methods=['get', 'put', 'patch'], url_path='permissions')
+    @action(
+        detail=True,
+        methods=['get', 'put', 'patch', 'post', 'delete'],
+        url_path='permissions',
+    )
     def set_permissions(self, request, pk=None):
         """
-        Read or set the extra permissions granted to one staff account.
+        Read or change the extra permissions granted to one staff account.
 
-        GET   /api/users/users/{id}/permissions/
+        GET    /api/users/users/{id}/permissions/
             -> the grants currently on that account
 
-        PATCH /api/users/users/{id}/permissions/
+        PUT    /api/users/users/{id}/permissions/
+        PATCH  /api/users/users/{id}/permissions/
             {"permissions": ["finance.view", "contracts.write"]}
+            -> REPLACE the whole set
+
+        POST   /api/users/users/{id}/permissions/
+            {"permissions": ["finance.view"]}
+            -> ADD to the set, keeping what is already there
+
+        DELETE /api/users/users/{id}/permissions/
+            {"permissions": ["finance.view"]}
+            -> REMOVE from the set, keeping the rest
+            (the list may also be given in the query string:
+             ?permissions=finance.view&permissions=contracts.write)
 
         Grants are ADDITIVE: they widen what the account's role already
         allows and can never narrow it. A grant never lets the account
@@ -970,11 +1026,16 @@ class UserViewSet(viewsets.ModelViewSet):
                 )
             }, status=400)
 
-        raw = request.data.get('permissions')
+        raw = _requested_permissions(request)
         if raw is None:
             return Response({'error': 'No permissions provided'}, status=400)
         if not isinstance(raw, (list, tuple)):
             return Response({'error': 'permissions must be a list'}, status=400)
+        if request.method in ('POST', 'DELETE') and not raw:
+            # An empty list would be ambiguous for add/remove -- "do
+            # nothing" or "remove everything"? Say so instead of
+            # guessing. Clearing everything is PUT/PATCH with [].
+            return Response({'error': 'No permissions provided'}, status=400)
 
         clean, unknown = validate_permissions(raw)
         if unknown:
@@ -985,7 +1046,25 @@ class UserViewSet(viewsets.ModelViewSet):
             }, status=400)
 
         previous = list(target.granted_permissions or [])
-        target.granted_permissions = clean
+
+        if request.method == 'POST':
+            # ADD -- keep what is already granted and add these.
+            wanted = set(previous) | set(clean)
+            operation = 'add'
+        elif request.method == 'DELETE':
+            # REMOVE -- take these away, leave the rest.
+            wanted = set(previous) - set(clean)
+            operation = 'remove'
+        else:
+            # PUT / PATCH -- REPLACE the whole set.
+            wanted = set(clean)
+            operation = 'replace'
+
+        new_list = sort_permissions(wanted)
+        added = [p for p in new_list if p not in previous]
+        removed = [p for p in previous if p not in new_list]
+
+        target.granted_permissions = new_list
         target.save(update_fields=['granted_permissions'])
 
         log_user_action(
@@ -995,15 +1074,27 @@ class UserViewSet(viewsets.ModelViewSet):
             extra={
                 'target_email': target.email,
                 'target_role': target.role,
-                'permissions': clean,
+                'permissions': new_list,
                 'previous_permissions': previous,
+                'operation': operation,
             },
         )
 
-        if clean:
+        if operation == 'add':
             message = (
-                f"Permissions updated for {target.email}: "
-                f"{', '.join(clean)}."
+                f"Permissions added to {target.email}: {', '.join(added)}."
+                if added else
+                f"No new permissions for {target.email} -- they already had them."
+            )
+        elif operation == 'remove':
+            message = (
+                f"Permissions removed from {target.email}: {', '.join(removed)}."
+                if removed else
+                f"Nothing to remove from {target.email}."
+            )
+        elif new_list:
+            message = (
+                f"Permissions updated for {target.email}: {', '.join(new_list)}."
             )
         else:
             message = f"All extra permissions removed from {target.email}."
@@ -1012,7 +1103,9 @@ class UserViewSet(viewsets.ModelViewSet):
             'id': target.id,
             'email': target.email,
             'role': target.role,
-            'granted_permissions': clean,
+            'granted_permissions': new_list,
+            'added': added,
+            'removed': removed,
             'message': message,
         })
 

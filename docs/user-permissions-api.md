@@ -109,9 +109,18 @@ Admin only.
 
 ---
 
-## 3. Set the grants of one account
+## 3. Change the grants of one account
 
-`PATCH /api/users/users/{id}/permissions/`
+All four write verbs live on the same URL — pick the one that matches what you want to do.
+
+| Method | Body | What it does |
+|---|---|---|
+| `GET` | — | read the current grants |
+| `PUT` / `PATCH` | `{"permissions": [...]}` | **replace** the whole set |
+| `POST` | `{"permissions": [...]}` | **add** to the set, keeping the rest |
+| `DELETE` | `{"permissions": [...]}` | **remove** from the set, keeping the rest |
+
+### Replace — `PUT` / `PATCH`
 
 ```json
 {
@@ -119,7 +128,7 @@ Admin only.
 }
 ```
 
-The list **replaces** whatever was there before. Send `[]` to clear it.
+The list **replaces** whatever was there before. Send `[]` to clear it completely.
 
 ```json
 {
@@ -127,14 +136,74 @@ The list **replaces** whatever was there before. Send `[]` to clear it.
   "email": "new.hr@sakrshipping.com",
   "role": "HR Manager",
   "granted_permissions": ["finance.view", "contracts.write"],
+  "added": ["finance.view", "contracts.write"],
+  "removed": ["interviews.view"],
   "message": "Permissions updated for new.hr@sakrshipping.com: finance.view, contracts.write."
+}
+```
+
+### Add — `POST`
+
+```json
+{
+  "permissions": ["finance.view"]
+}
+```
+
+Keeps the permissions the account already has and adds these. Adding one it already has is
+a no-op, not an error — `"added": []` in the response tells you nothing changed.
+
+### Remove — `DELETE`
+
+```json
+{
+  "permissions": ["finance.view"]
+}
+```
+
+Takes these away and leaves the rest alone. Removing one it doesn't have is a no-op —
+`"removed": []`.
+
+A `DELETE` with a body is legal HTTP but not every client sends one, so the list can also
+come from the query string:
+
+```
+DELETE /api/users/users/78/permissions/?permissions=finance.view&permissions=contracts.write
+DELETE /api/users/users/78/permissions/?permissions=finance.view,contracts.write
+```
+
+With axios:
+
+```js
+await api.delete(`/users/users/${userId}/permissions/`, {
+  data: { permissions: ["finance.view"] },
+});
+```
+
+An **empty** list on `POST` or `DELETE` is rejected (`400`) — it would be ambiguous
+between "do nothing" and "remove everything". To clear everything, use `PUT`/`PATCH`
+with `[]`.
+
+### The response
+
+Every write returns the account and the resulting set, plus what changed:
+
+```json
+{
+  "id": 78,
+  "email": "new.hr@sakrshipping.com",
+  "role": "HR Manager",
+  "granted_permissions": ["finance.view", "contracts.write"],
+  "added": ["contracts.write"],
+  "removed": [],
+  "message": "Permissions added to new.hr@sakrshipping.com: contracts.write."
 }
 ```
 
 | Status | When |
 |---|---|
-| `200` | Set. |
-| `400` | Unknown permission key; `permissions` missing or not a list; the target is not a staff account. |
+| `200` | Done. |
+| `400` | Unknown permission key; `permissions` missing or not a list; an empty list on `POST`/`DELETE`; the target is not a staff account. |
 | `401` | No / invalid token. |
 | `403` | The caller is not an Admin. |
 
@@ -152,7 +221,7 @@ look like a successful grant:
 ```
 
 Every change is written to the audit trail as
-`[USER-AUDIT] action=set_permissions actor_email=… target_email=… permissions=[…]`.
+`[USER-AUDIT] action=set_permissions actor_email=… target_email=… operation=add|replace|remove permissions=[…]`.
 
 ---
 

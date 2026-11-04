@@ -231,6 +231,16 @@ def can_write(user, resource):
     return granted(user, f'{resource}.write')
 
 
+def sort_permissions(keys):
+    """Return the given permission keys in catalogue order.
+
+    Keeps the stored list deterministic: two accounts with the same
+    grants always read back exactly the same way.
+    """
+    wanted = set(keys)
+    return [p['key'] for p in catalog() if p['key'] in wanted]
+
+
 def validate_permissions(values):
     """Validate a list of permission keys.
 

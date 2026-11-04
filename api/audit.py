@@ -34,12 +34,15 @@ import logging
 logger = logging.getLogger('audit')
 
 # Keys whose values are wrapped in repr() so a value containing spaces
-# (a User-Agent string, a free-text field, an attacker-supplied email)
-# cannot break the key=value parsing of the log line. `target_email` is
-# deliberately NOT quoted -- a real email address can never contain a
-# space, and quoting it would make the line inconsistent with
-# `actor_email`.
-_QUOTED_KEYS = {'ua', 'fields', 'target_role', 'email'}
+# (a User-Agent string, a free-text field, an attacker-supplied email,
+# a list of permission keys) cannot break the key=value parsing of the
+# log line. `target_email` is deliberately NOT quoted -- a real email
+# address can never contain a space, and quoting it would make the line
+# inconsistent with `actor_email`.
+_QUOTED_KEYS = {
+    'ua', 'fields', 'target_role', 'email',
+    'permissions', 'previous_permissions',
+}
 
 
 def _client_ip(request):

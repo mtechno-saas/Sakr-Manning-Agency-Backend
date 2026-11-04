@@ -11854,3 +11854,137 @@ class GrantedPermissionsTests(TestCase):
             resp = client.get(url)
             self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
             self.assertEqual(resp.data["granted_permissions"], [])
+
+    # --- POST adds, DELETE removes --------------------------------------
+
+    def test_post_adds_permissions_and_keeps_the_existing_ones(self):
+        self.hr.granted_permissions = ["finance.view"]
+        self.hr.save(update_fields=["granted_permissions"])
+
+        resp = self.client.post(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id),
+            {"permissions": ["contracts.write"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.hr.refresh_from_db()
+        self.assertEqual(
+            sorted(self.hr.granted_permissions),
+            ["contracts.write", "finance.view"],
+        )
+        self.assertEqual(resp.data["added"], ["contracts.write"])
+        self.assertEqual(resp.data["removed"], [])
+
+    def test_post_is_idempotent(self):
+        self.hr.granted_permissions = ["finance.view"]
+        self.hr.save(update_fields=["granted_permissions"])
+
+        resp = self.client.post(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id),
+            {"permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, ["finance.view"])
+        self.assertEqual(resp.data["added"], [])
+        self.assertIn("already had them", resp.data["message"])
+
+    def test_delete_removes_permissions_and_keeps_the_rest(self):
+        self.hr.granted_permissions = ["finance.view", "contracts.write"]
+        self.hr.save(update_fields=["granted_permissions"])
+
+        resp = self.client.delete(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id),
+            {"permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, ["contracts.write"])
+        self.assertEqual(resp.data["removed"], ["finance.view"])
+        self.assertEqual(resp.data["added"], [])
+
+    def test_delete_accepts_the_list_in_the_query_string(self):
+        # Not every client sends a body with DELETE.
+        self.hr.granted_permissions = ["finance.view", "contracts.write"]
+        self.hr.save(update_fields=["granted_permissions"])
+
+        resp = self.client.delete(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id) + "?permissions=finance.view"
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, ["contracts.write"])
+
+    def test_delete_accepts_a_comma_separated_query_string(self):
+        self.hr.granted_permissions = [
+            "finance.view", "contracts.write", "interviews.view",
+        ]
+        self.hr.save(update_fields=["granted_permissions"])
+
+        resp = self.client.delete(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id)
+            + "?permissions=finance.view,contracts.write"
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, ["interviews.view"])
+
+    def test_delete_with_nothing_to_remove_is_a_no_op(self):
+        self.hr.granted_permissions = ["finance.view"]
+        self.hr.save(update_fields=["granted_permissions"])
+
+        resp = self.client.delete(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id),
+            {"permissions": ["contracts.write"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, ["finance.view"])
+        self.assertEqual(resp.data["removed"], [])
+
+    def test_delete_with_an_empty_list_is_rejected(self):
+        # An empty list would be ambiguous -- "remove everything" or
+        # "remove nothing"? Say so instead of guessing. Clearing
+        # everything is PUT/PATCH with an empty list.
+        resp = self.client.delete(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id),
+            {"permissions": []},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+
+    def test_post_with_an_unknown_permission_is_rejected(self):
+        resp = self.client.post(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id),
+            {"permissions": ["finance.teleport"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, [])
+
+    def test_delete_with_an_unknown_permission_is_rejected(self):
+        self.hr.granted_permissions = ["finance.view"]
+        self.hr.save(update_fields=["granted_permissions"])
+        resp = self.client.delete(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id),
+            {"permissions": ["finance.teleport"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, ["finance.view"])
+
+    def test_the_operation_is_audited(self):
+        with _capture_audit() as records:
+            self.client.post(
+                PERMISSIONS_URL_FMT.format(id=self.hr.id),
+                {"permissions": ["finance.view"]},
+                format="json",
+            )
+        lines = [r for r in records if "action=set_permissions" in r]
+        self.assertEqual(len(lines), 1, records)
+        self.assertIn("operation=add", lines[0])
