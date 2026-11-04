@@ -11804,3 +11804,53 @@ class GrantedPermissionsTests(TestCase):
         self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
         user = Users.objects.get(email="ok@example.com")
         self.assertEqual(user.granted_permissions, ["finance.view"])
+
+    # --- the signed-in account can see its own grants -------------------
+
+    def test_the_me_endpoint_includes_the_granted_permissions(self):
+        self.hr.granted_permissions = ["finance.view"]
+        self.hr.save(update_fields=["granted_permissions"])
+        client = APIClient()
+        client.force_authenticate(user=self.hr)
+
+        resp = client.get("/api/users/users/me/")
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data["role"], "HR Manager")
+        self.assertEqual(resp.data["granted_permissions"], ["finance.view"])
+
+    def test_the_profile_me_endpoint_includes_the_granted_permissions(self):
+        self.hr.granted_permissions = ["finance.view"]
+        self.hr.save(update_fields=["granted_permissions"])
+        client = APIClient()
+        client.force_authenticate(user=self.hr)
+
+        resp = client.get("/api/users/me/")
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data["role"], "HR Manager")
+        self.assertEqual(resp.data["granted_permissions"], ["finance.view"])
+
+    def test_a_newly_created_staff_account_can_use_both_me_endpoints(self):
+        resp = self.client.post(
+            CREATE_STAFF_URL,
+            {"email": "new.hr@example.com", "password": "newpass123",
+             "role": "HR Manager", "permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        user = Users.objects.get(email="new.hr@example.com")
+
+        client = APIClient()
+        client.force_authenticate(user=user)
+        for url in ("/api/users/me/", "/api/users/users/me/"):
+            resp = client.get(url)
+            self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+            self.assertEqual(resp.data["role"], "HR Manager")
+            self.assertEqual(resp.data["granted_permissions"], ["finance.view"])
+
+    def test_an_account_without_grants_reports_an_empty_list(self):
+        client = APIClient()
+        client.force_authenticate(user=self.recruiter)
+        for url in ("/api/users/me/", "/api/users/users/me/"):
+            resp = client.get(url)
+            self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+            self.assertEqual(resp.data["granted_permissions"], [])

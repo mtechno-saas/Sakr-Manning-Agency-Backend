@@ -765,6 +765,11 @@ def _serialize_user(user: "Users") -> dict:
         "available_date": user.available_date.isoformat() if user.available_date else None,
         "role": user.role,
         "user_status": user.user_status,
+        # The extra permissions an Admin granted this account on top of
+        # its role -- so the frontend can tell what the signed-in person
+        # is actually allowed to do. Read-only here; only an Admin may
+        # change them, through PATCH /api/users/users/{id}/permissions/.
+        "granted_permissions": list(user.granted_permissions or []),
     }
 
 

@@ -178,6 +178,12 @@ class SeaServiceSerializer(serializers.ModelSerializer):
 
 class UserMeSerializer(serializers.ModelSerializer):
     cv_status = serializers.SerializerMethodField()
+    # The extra permissions an Admin granted this account ON TOP of its
+    # role (api/capabilities.py). Read-only here: only an Admin may
+    # change them, and only through PATCH
+    # /api/users/users/{id}/permissions/. The frontend reads this to
+    # know what the signed-in account is actually allowed to do.
+    granted_permissions = serializers.JSONField(read_only=True)
 
     class Meta:
         model = Users
@@ -189,6 +195,7 @@ class UserMeSerializer(serializers.ModelSerializer):
             "profile_image",
             "role",
             "cv_status",
+            "granted_permissions",
         ]
 
     def get_cv_status(self, obj):
