@@ -220,8 +220,17 @@ look like a successful grant:
 }
 ```
 
-Every change is written to the audit trail as
-`[USER-AUDIT] action=set_permissions actor_email=… target_email=… operation=add|replace|remove permissions=[…]`.
+Every change is written to the audit trail, from **both** write paths (the endpoint and a
+direct `PATCH` of the user object), so one grep finds every permission change:
+
+```
+[USER-AUDIT] action=set_permissions actor_email=admin@sakrshipping.com
+ target_email=new.hr@sakrshipping.com target_role='HR Manager'
+ operation=replace permissions=['finance.view'] previous_permissions=[]
+```
+
+`operation` is `add`, `replace` or `remove` — `previous_permissions` is what the account
+had before, so a removal is visible in the trail.
 
 ---
 

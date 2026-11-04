@@ -2836,10 +2836,17 @@ class UsersSerializer(serializers.ModelSerializer):
 
         # A change to the granted permissions is a privilege change as
         # well, so it is recorded the same way a role change is.
+        #
+        # This is the OTHER write path -- an Admin PATCHing the user
+        # object itself rather than using the dedicated endpoint -- so
+        # the record is shaped exactly like the endpoint's, with the
+        # previous set and the operation. One shape in the audit trail
+        # means one grep finds every permission change.
         new_permissions = validated_data.get('granted_permissions')
+        previous_permissions = list(instance.granted_permissions or [])
         permissions_changed = (
             new_permissions is not None
-            and list(new_permissions) != list(instance.granted_permissions or [])
+            and list(new_permissions) != previous_permissions
         )
 
         instance = super().update(instance, validated_data)
@@ -2859,6 +2866,8 @@ class UsersSerializer(serializers.ModelSerializer):
                         'target_email': instance.email,
                         'target_role': instance.role,
                         'permissions': list(instance.granted_permissions or []),
+                        'previous_permissions': previous_permissions,
+                        'operation': 'replace',
                     },
                 )
 

@@ -11988,3 +11988,23 @@ class GrantedPermissionsTests(TestCase):
         lines = [r for r in records if "action=set_permissions" in r]
         self.assertEqual(len(lines), 1, records)
         self.assertIn("operation=add", lines[0])
+
+    def test_the_direct_patch_path_audits_the_same_way(self):
+        # An Admin PATCHing the user object is the OTHER write path. Its
+        # audit record must have the same shape as the endpoint's -- one
+        # grep should find every permission change, and the previous set
+        # must be there so a removal is visible.
+        self.recruiter.granted_permissions = ["finance.view"]
+        self.recruiter.save(update_fields=["granted_permissions"])
+
+        with _capture_audit() as records:
+            self.client.patch(
+                DETAIL_URL_FMT.format(id=self.recruiter.id),
+                {"granted_permissions": ["contracts.write"]},
+                format="json",
+            )
+        lines = [r for r in records if "action=set_permissions" in r]
+        self.assertEqual(len(lines), 1, records)
+        self.assertIn("operation=replace", lines[0])
+        self.assertIn("previous_permissions=['finance.view']", lines[0])
+        self.assertIn("permissions=['contracts.write']", lines[0])
