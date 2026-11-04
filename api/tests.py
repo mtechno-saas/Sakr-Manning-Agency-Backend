@@ -29,7 +29,7 @@ from django.contrib.auth.models import Group
 from rest_framework.test import APIClient
 from rest_framework import status as http_status
 
-from api.models import Users, Rank, UserRank
+from api.models import Users, Rank, UserRank, Contract
 from api.staff_credentials import generate_staff_password
 from api.permissions import UserPermission
 
@@ -11434,3 +11434,373 @@ class PrivilegeEscalationTests(TestCase):
         self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
         target.refresh_from_db()
         self.assertFalse(target.is_superuser)
+
+
+# ============================================================================
+# Per-account permission grants
+# ============================================================================
+
+PERMISSIONS_URL_FMT = "/api/users/users/{id}/permissions/"
+PERMISSION_CATALOG_URL = "/api/users/users/permission-catalog/"
+
+
+class GrantedPermissionsTests(TestCase):
+    """An Admin grants a staff account extra access, ON TOP OF its role.
+
+    The rules this locks in:
+
+      * only an Admin can grant
+      * grants are additive -- they widen the role, they never narrow it
+      * a grant NEVER lets the account change anybody's role
+      * a grant NEVER lets the account create accounts
+      * an unknown permission key is an error, not a silent no-op
+    """
+
+    def setUp(self):
+        self.admin = _make_admin("boss@example.com")
+        self.hr = _make_hr("hr@example.com")
+        self.recruiter = _make_recruiter("rec@example.com")
+        self.employee = _make_user(email="emp@example.com", role="Employee")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.admin)
+
+    def _grant(self, target, permissions):
+        return self.client.patch(
+            PERMISSIONS_URL_FMT.format(id=target.id),
+            {"permissions": permissions},
+            format="json",
+        )
+
+    # --- the endpoint ---------------------------------------------------
+
+    def test_admin_can_grant_permissions_to_an_hr_manager(self):
+        resp = self._grant(self.hr, ["finance.view"])
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, ["finance.view"])
+        self.assertEqual(resp.data["granted_permissions"], ["finance.view"])
+        self.assertIn("finance.view", resp.data["message"])
+
+    def test_admin_can_read_the_permissions_of_an_account(self):
+        self.hr.granted_permissions = ["contracts.write"]
+        self.hr.save(update_fields=["granted_permissions"])
+        resp = self.client.get(PERMISSIONS_URL_FMT.format(id=self.hr.id))
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data["granted_permissions"], ["contracts.write"])
+
+    def test_an_empty_list_clears_the_permissions(self):
+        self.hr.granted_permissions = ["finance.view"]
+        self.hr.save(update_fields=["granted_permissions"])
+        resp = self._grant(self.hr, [])
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, [])
+        self.assertIn("removed", resp.data["message"])
+
+    def test_the_grant_replaces_the_previous_list(self):
+        self.hr.granted_permissions = ["finance.view"]
+        self.hr.save(update_fields=["granted_permissions"])
+        resp = self._grant(self.hr, ["contracts.write"])
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, ["contracts.write"])
+
+    def test_an_unknown_permission_is_rejected(self):
+        resp = self._grant(self.hr, ["finance.teleport"])
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("finance.teleport", resp.data["error"])
+        self.hr.refresh_from_db()
+        self.assertEqual(self.hr.granted_permissions, [])
+
+    def test_permissions_must_be_a_list(self):
+        resp = self.client.patch(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id),
+            {"permissions": "finance.view"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+
+    def test_permissions_are_required(self):
+        resp = self.client.patch(
+            PERMISSIONS_URL_FMT.format(id=self.hr.id), {}, format="json")
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+
+    def test_permissions_cannot_be_set_on_a_non_staff_account(self):
+        resp = self._grant(self.employee, ["finance.view"])
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.employee.refresh_from_db()
+        self.assertEqual(self.employee.granted_permissions, [])
+
+    def test_an_employee_cannot_grant_permissions(self):
+        client = APIClient()
+        client.force_authenticate(user=self.employee)
+        resp = client.patch(
+            PERMISSIONS_URL_FMT.format(id=self.recruiter.id),
+            {"permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+
+    def test_an_hr_manager_cannot_grant_permissions(self):
+        client = APIClient()
+        client.force_authenticate(user=self.hr)
+        resp = client.patch(
+            PERMISSIONS_URL_FMT.format(id=self.recruiter.id),
+            {"permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+
+    def test_a_recruiter_cannot_grant_permissions(self):
+        client = APIClient()
+        client.force_authenticate(user=self.recruiter)
+        resp = client.patch(
+            PERMISSIONS_URL_FMT.format(id=self.employee.id),
+            {"permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+
+    def test_an_anonymous_caller_cannot_grant_permissions(self):
+        resp = APIClient().patch(
+            PERMISSIONS_URL_FMT.format(id=self.recruiter.id),
+            {"permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_401_UNAUTHORIZED)
+
+    def test_the_grant_is_audited(self):
+        with _capture_audit() as records:
+            self._grant(self.hr, ["finance.view"])
+        lines = [r for r in records if "action=set_permissions" in r]
+        self.assertEqual(len(lines), 1, records)
+        self.assertIn("target_email=hr@example.com", lines[0])
+        self.assertIn("finance.view", lines[0])
+
+    # --- the catalogue --------------------------------------------------
+
+    def test_the_catalog_lists_every_grantable_permission(self):
+        resp = self.client.get(PERMISSION_CATALOG_URL)
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        keys = {p["key"] for p in resp.data["permissions"]}
+        self.assertIn("finance.view", keys)
+        self.assertIn("contracts.write", keys)
+        self.assertIn("users.view_all", keys)
+        for entry in resp.data["permissions"]:
+            self.assertIn("label", entry)
+            self.assertIn("description", entry)
+
+    def test_the_catalog_is_admin_only(self):
+        client = APIClient()
+        client.force_authenticate(user=self.hr)
+        resp = client.get(PERMISSION_CATALOG_URL)
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+
+    # --- create-staff in one call ---------------------------------------
+
+    def test_create_staff_can_grant_permissions_in_one_call(self):
+        resp = self.client.post(
+            CREATE_STAFF_URL,
+            {"email": "new.hr@example.com", "password": "newpass123",
+             "role": "HR Manager", "permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        user = Users.objects.get(email="new.hr@example.com")
+        self.assertEqual(user.granted_permissions, ["finance.view"])
+        self.assertEqual(resp.data["granted_permissions"], ["finance.view"])
+
+    def test_create_staff_rejects_an_unknown_permission(self):
+        resp = self.client.post(
+            CREATE_STAFF_URL,
+            {"email": "new.hr@example.com", "password": "newpass123",
+             "role": "HR Manager", "permissions": ["finance.teleport"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("permissions", resp.data)
+        self.assertFalse(Users.objects.filter(email="new.hr@example.com").exists())
+
+    # --- the grant actually widens access -------------------------------
+
+    def test_a_grant_widens_contract_access(self):
+        other = _make_user(email="other@example.com", role="Employee")
+        contract = Contract.objects.create(
+            user=other,
+            sign_on_date=datetime.date(2026, 1, 1),
+            sign_off_date=datetime.date(2026, 6, 1),
+        )
+        client = APIClient()
+        client.force_authenticate(user=self.recruiter)
+
+        # A Recruiter only sees their own contracts.
+        resp = client.get(f"/api/users/contracts/{contract.id}/")
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+
+        self.recruiter.granted_permissions = ["contracts.view"]
+        self.recruiter.save(update_fields=["granted_permissions"])
+
+        resp = client.get(f"/api/users/contracts/{contract.id}/")
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+
+    def test_users_view_all_widens_the_user_list(self):
+        client = APIClient()
+        client.force_authenticate(user=self.employee)
+        resp = client.get(LIST_URL)
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(resp.data["count"], 1)
+
+        self.employee.granted_permissions = ["users.view_all"]
+        self.employee.save(update_fields=["granted_permissions"])
+
+        resp = client.get(LIST_URL)
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        self.assertGreater(resp.data["count"], 1)
+
+    # --- a grant never becomes an escalation ---------------------------
+
+    def test_a_grant_never_lets_the_target_change_a_role(self):
+        # "users.write" lets an account EDIT accounts. It must never let
+        # them change a role -- that would be an escalation grant wearing
+        # a different hat.
+        self.recruiter.granted_permissions = ["users.write"]
+        self.recruiter.save(update_fields=["granted_permissions"])
+        target = _make_user(email="target@example.com", role="Employee")
+
+        client = APIClient()
+        client.force_authenticate(user=self.recruiter)
+        resp = client.patch(
+            DETAIL_URL_FMT.format(id=target.id),
+            {"role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        target.refresh_from_db()
+        self.assertEqual(target.role, "Employee")
+
+    def test_a_grant_never_lets_the_target_create_an_account(self):
+        self.recruiter.granted_permissions = ["users.write"]
+        self.recruiter.save(update_fields=["granted_permissions"])
+
+        client = APIClient()
+        client.force_authenticate(user=self.recruiter)
+        resp = client.post(
+            LIST_URL,
+            {"email": "minted@example.com", "first_name": "Minted",
+             "role": "Employee"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="minted@example.com").exists())
+
+    def test_a_grant_never_lets_the_target_touch_the_authority_fields(self):
+        self.recruiter.granted_permissions = ["users.write"]
+        self.recruiter.save(update_fields=["granted_permissions"])
+
+        client = APIClient()
+        client.force_authenticate(user=self.recruiter)
+        resp = client.patch(
+            DETAIL_URL_FMT.format(id=self.recruiter.id),
+            {"is_superuser": True},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.recruiter.refresh_from_db()
+        self.assertFalse(self.recruiter.is_superuser)
+
+    def test_a_grant_never_lets_the_target_grant_itself_more(self):
+        self.recruiter.granted_permissions = ["users.write"]
+        self.recruiter.save(update_fields=["granted_permissions"])
+
+        client = APIClient()
+        client.force_authenticate(user=self.recruiter)
+        resp = client.patch(
+            DETAIL_URL_FMT.format(id=self.recruiter.id),
+            {"granted_permissions": ["users.delete"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.recruiter.refresh_from_db()
+        self.assertEqual(self.recruiter.granted_permissions, ["users.write"])
+
+    def test_a_non_admin_cannot_change_the_permissions_directly(self):
+        client = APIClient()
+        client.force_authenticate(user=self.hr)
+        resp = client.patch(
+            DETAIL_URL_FMT.format(id=self.recruiter.id),
+            {"granted_permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.recruiter.refresh_from_db()
+        self.assertEqual(self.recruiter.granted_permissions, [])
+
+    def test_an_admin_can_change_the_permissions_directly(self):
+        resp = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.recruiter.id),
+            {"granted_permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.recruiter.refresh_from_db()
+        self.assertEqual(self.recruiter.granted_permissions, ["finance.view"])
+
+    def test_a_direct_change_with_an_unknown_permission_is_rejected(self):
+        resp = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.recruiter.id),
+            {"granted_permissions": ["finance.teleport"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.recruiter.refresh_from_db()
+        self.assertEqual(self.recruiter.granted_permissions, [])
+
+    # --- a create cannot smuggle in authority ---------------------------
+
+    def test_an_hr_manager_cannot_create_a_user_with_permissions(self):
+        client = APIClient()
+        client.force_authenticate(user=self.hr)
+        resp = client.post(
+            LIST_URL,
+            {"email": "sneaky@example.com", "first_name": "Sneaky",
+             "role": "Employee", "granted_permissions": ["users.write"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="sneaky@example.com").exists())
+
+    def test_an_hr_manager_cannot_create_a_user_with_permissions_via_the_legacy_view(self):
+        client = APIClient()
+        client.force_authenticate(user=self.hr)
+        resp = client.post(
+            "/api/users/create/",
+            {"email": "sneaky@example.com", "first_name": "Sneaky",
+             "role": "Employee", "granted_permissions": ["users.write"]},
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="sneaky@example.com").exists())
+
+    def test_an_hr_manager_cannot_create_a_django_superuser(self):
+        # Pre-existing hole: the legacy create view never checked the
+        # Django privilege flags, so an HR Manager could create a
+        # superuser outright. Multipart carries booleans as strings.
+        client = APIClient()
+        client.force_authenticate(user=self.hr)
+        resp = client.post(
+            "/api/users/create/",
+            {"email": "sneaky@example.com", "first_name": "Sneaky",
+             "role": "Employee", "is_superuser": "true"},
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="sneaky@example.com").exists())
+
+    def test_an_admin_can_still_create_a_user_with_permissions(self):
+        resp = self.client.post(
+            LIST_URL,
+            {"email": "ok@example.com", "first_name": "Ok", "role": "HR Manager",
+             "granted_permissions": ["finance.view"]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        user = Users.objects.get(email="ok@example.com")
+        self.assertEqual(user.granted_permissions, ["finance.view"])

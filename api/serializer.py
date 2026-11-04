@@ -13,6 +13,7 @@ from ships.serializers import ShipSerializer
 from .models import LanguageProficiency
 from api.serializers import FlexibleDateField, FlexibleFileField
 from .roles import ROLE_ALIASES, canonical_role
+from .capabilities import validate_permissions
 from .staff_credentials import (
     generate_staff_password,
     email_staff_credentials,
@@ -2181,10 +2182,33 @@ class StaffAccountCreateSerializer(serializers.ModelSerializer):
     middle_name = serializers.CharField(
         required=False, allow_blank=True, default='', max_length=100,
     )
+    # Optional: grant extra capabilities on top of the role, so that
+    # "create an HR and give it the right access" is a single call.
+    permissions = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        default=list,
+        write_only=True,
+        help_text='Extra permissions to grant on top of the role.',
+    )
 
     class Meta:
         model = Users
-        fields = ['email', 'password', 'role', 'first_name', 'middle_name']
+        fields = [
+            'email', 'password', 'role', 'first_name', 'middle_name',
+            'permissions',
+        ]
+
+    def validate(self, attrs):
+        clean, unknown = validate_permissions(attrs.get('permissions') or [])
+        if unknown:
+            raise serializers.ValidationError({
+                'permissions': [
+                    'Unknown permission(s): ' + ', '.join(str(u) for u in unknown)
+                ]
+            })
+        attrs['permissions'] = clean
+        return attrs
 
     def validate_email(self, value):
         # Stored VERBATIM. The login does an exact match on the email
@@ -2203,6 +2227,7 @@ class StaffAccountCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         role = validated_data['role']
+        permissions = validated_data.pop('permissions', []) or []
         # A new Admin gets the same Django flags as the existing Admin
         # accounts (is_staff / is_superuser True). An HR Manager or a
         # Recruiter gets neither.
@@ -2215,6 +2240,7 @@ class StaffAccountCreateSerializer(serializers.ModelSerializer):
             is_staff=is_admin,
             is_superuser=is_admin,
             is_active=True,
+            granted_permissions=permissions,
         )
         user.set_password(validated_data['password'])
         user.save()
@@ -2321,6 +2347,12 @@ class UsersSerializer(serializers.ModelSerializer):
     # `default='Employee'`; blank/missing keeps the previous behaviour.
     role = RoleChoiceField(choices=Users.ROLE_CHOICES, required=False)
 
+    # Extra capabilities an Admin granted this account ON TOP of its role
+    # -- see api/capabilities.py. Writable, but ONLY by an Admin:
+    # api.permissions.UserPermission treats it as an authority-bearing
+    # field, exactly like `role`.
+    granted_permissions = serializers.JSONField(required=False)
+
     # Use FlexibleFileField for file fields to handle existing URLs from frontend
     profile_image = FlexibleFileField(required=False, allow_null=True)
     marlins_test_attachment = FlexibleFileField(required=False, allow_null=True)
@@ -2351,6 +2383,25 @@ class UsersSerializer(serializers.ModelSerializer):
             'salary': {'required': False, 'allow_null': True},
             'next_of_kin_email': {'required': False, 'allow_null': True},
         }
+
+    def validate_granted_permissions(self, value):
+        """Reject permission keys that are not in the catalogue.
+
+        An unknown key would silently do nothing, which is worse than an
+        error: the admin would think the permission was granted.
+        """
+        if value is None:
+            return []
+        if not isinstance(value, (list, tuple)):
+            raise serializers.ValidationError(
+                'Must be a list of permission keys.'
+            )
+        clean, unknown = validate_permissions(value)
+        if unknown:
+            raise serializers.ValidationError(
+                'Unknown permission(s): ' + ', '.join(str(u) for u in unknown)
+            )
+        return clean
 
     def to_internal_value(self, data):
         if 'first_name' in data:
@@ -2776,10 +2827,33 @@ class UsersSerializer(serializers.ModelSerializer):
                     },
                 )
 
+        # A change to the granted permissions is a privilege change as
+        # well, so it is recorded the same way a role change is.
+        new_permissions = validated_data.get('granted_permissions')
+        permissions_changed = (
+            new_permissions is not None
+            and list(new_permissions) != list(instance.granted_permissions or [])
+        )
+
         instance = super().update(instance, validated_data)
         if password:
             instance.set_password(password)
             instance.save(update_fields=['password'])
+
+        if permissions_changed:
+            audit_request = self.context.get('request')
+            if audit_request is not None:
+                from .audit import log_user_action
+                log_user_action(
+                    audit_request,
+                    'set_permissions',
+                    target_ids=[instance.id],
+                    extra={
+                        'target_email': instance.email,
+                        'target_role': instance.role,
+                        'permissions': list(instance.granted_permissions or []),
+                    },
+                )
 
         # The account is committed at this point -- email the generated
         # password now, so the recipient always finds a working account.

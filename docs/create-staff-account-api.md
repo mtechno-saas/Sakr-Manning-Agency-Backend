@@ -31,6 +31,7 @@ Content-Type: application/json
 | `role` | yes | One of `Admin`, `HR Manager`, `Recruiter`. Case-insensitive: `"admin"` and `"HR"` are accepted and stored canonically. |
 | `first_name` | no | Defaults to `""`. |
 | `middle_name` | no | Defaults to `""`. |
+| `permissions` | no | Extra permissions to grant on top of the role — e.g. `["finance.view"]`. See [user-permissions-api.md](user-permissions-api.md). An unknown key is a `400`. |
 
 The password is **not** trimmed — if you send `" pass1234 "`, that is the password,
 spaces included.
@@ -50,6 +51,7 @@ spaces included.
   "is_superuser": false,
   "user_status": "ON_SITE",
   "effective_user_status": "ON_SITE",
+  "granted_permissions": [],
   "message": "HR Manager account created for new.hr@sakrshipping.com. The account can sign in now with the password you supplied."
 }
 ```

@@ -61,9 +61,11 @@ from .permissions import (
     IsAdmin, IsHRManager, IsRecruiter, IsEmployee,
     IsHROrReadOnly, IsOwnerOrHR, UserPermission, IsAdminRole,
     CVPermission, InterviewPermission, FinancePermission,
-    CompanyPermission, ContractPermission, is_admin_user, as_bool
+    CompanyPermission, ContractPermission, is_admin_user, as_bool,
+    privilege_fields_in_payload
 )
 from .roles import canonical_role
+from .capabilities import catalog, granted, validate_permissions, PERMISSION_RESOURCES
 
 from rest_framework import viewsets, permissions
 from django.core.cache import cache
@@ -898,16 +900,116 @@ class UserViewSet(viewsets.ModelViewSet):
             return Users.objects.none()
         if user.is_superuser or user.role in ['Admin', 'HR Manager', 'Recruiter', 'admin']:
             return Users.objects.all()
+        # A grant can widen this: "users.view_all" lets the account see
+        # every user, not just themselves.
+        if granted(user, 'users.view_all'):
+            return Users.objects.all()
         # Employee can only see themselves
         return Users.objects.filter(id=user.id)
 
     def get_permissions(self):
-        # Minting a staff account is the most privileged write this API
-        # has, so it is not delegated to an HR Manager: only an Admin may
-        # create an Admin / HR Manager / Recruiter account.
-        if self.action == 'create_staff':
+        # Minting a staff account and handing out permissions are the two
+        # most privileged writes this API has, so neither is delegated to
+        # an HR Manager: only an Admin may do either.
+        if self.action in ('create_staff', 'set_permissions', 'permission_catalog'):
             return [IsAuthenticated(), IsAdminRole()]
         return super().get_permissions()
+
+    @action(detail=False, methods=['get'], url_path='permission-catalog')
+    def permission_catalog(self, request):
+        """Everything an Admin can grant, for the permission picker.
+
+        GET /api/users/users/permission-catalog/
+
+        The frontend renders this list as checkboxes. Nothing here is
+        secret -- it is the same list the API validates against.
+        """
+        return Response({
+            'permissions': catalog(),
+            'resources': PERMISSION_RESOURCES,
+        })
+
+    @action(detail=True, methods=['get', 'put', 'patch'], url_path='permissions')
+    def set_permissions(self, request, pk=None):
+        """
+        Read or set the extra permissions granted to one staff account.
+
+        GET   /api/users/users/{id}/permissions/
+            -> the grants currently on that account
+
+        PATCH /api/users/users/{id}/permissions/
+            {"permissions": ["finance.view", "contracts.write"]}
+
+        Grants are ADDITIVE: they widen what the account's role already
+        allows and can never narrow it. A grant never lets the account
+        change anybody's role, and never lets it create accounts.
+        """
+        target = self.get_object()
+
+        if request.method in ('GET', 'HEAD'):
+            return Response({
+                'id': target.id,
+                'email': target.email,
+                'role': target.role,
+                'granted_permissions': list(target.granted_permissions or []),
+            })
+
+        # Only staff accounts carry extra permissions -- the whole point
+        # of the endpoint is to configure a freshly created HR/Recruiter.
+        if (target.role or '').strip() not in STAFF_ROLES:
+            return Response({
+                'error': (
+                    'Permissions can only be set for staff accounts '
+                    f'({", ".join(STAFF_ROLES)}). This account is '
+                    f'"{target.role}".'
+                )
+            }, status=400)
+
+        raw = request.data.get('permissions')
+        if raw is None:
+            return Response({'error': 'No permissions provided'}, status=400)
+        if not isinstance(raw, (list, tuple)):
+            return Response({'error': 'permissions must be a list'}, status=400)
+
+        clean, unknown = validate_permissions(raw)
+        if unknown:
+            return Response({
+                'error': 'Unknown permission(s): '
+                         + ', '.join(str(u) for u in unknown),
+                'valid_permissions': [p['key'] for p in catalog()],
+            }, status=400)
+
+        previous = list(target.granted_permissions or [])
+        target.granted_permissions = clean
+        target.save(update_fields=['granted_permissions'])
+
+        log_user_action(
+            request,
+            'set_permissions',
+            target_ids=[target.id],
+            extra={
+                'target_email': target.email,
+                'target_role': target.role,
+                'permissions': clean,
+                'previous_permissions': previous,
+            },
+        )
+
+        if clean:
+            message = (
+                f"Permissions updated for {target.email}: "
+                f"{', '.join(clean)}."
+            )
+        else:
+            message = f"All extra permissions removed from {target.email}."
+
+        return Response({
+            'id': target.id,
+            'email': target.email,
+            'role': target.role,
+            'granted_permissions': clean,
+            'message': message,
+        })
 
     @action(detail=False, methods=['post'], url_path='create-staff')
     def create_staff(self, request):
@@ -960,6 +1062,7 @@ class UserViewSet(viewsets.ModelViewSet):
             'is_superuser': user.is_superuser,
             'user_status': user.user_status,
             'effective_user_status': user.get_effective_status(),
+            'granted_permissions': list(user.granted_permissions or []),
             'message': (
                 f'{user.role} account created for {user.email}. '
                 f'The account can sign in now with the password you supplied.'
@@ -1711,6 +1814,17 @@ def create_user(request):
     # an HR Manager could mint an Admin account through this endpoint.
     if request.user.role == 'HR Manager' and canonical_role(request.data.get('role')) == 'Admin':
         return Response({'error': 'Cannot create admin users'}, status=403)
+
+    # Only an Admin may hand out authority: extra permissions, the Django
+    # superuser flag, Django groups. An HR Manager creating a user must
+    # not be able to create one with more power than they have.
+    if not is_admin_user(request.user):
+        privilege_fields = privilege_fields_in_payload(request)
+        if privilege_fields:
+            return Response({
+                'error': 'Only an Admin can set: '
+                         + ', '.join(privilege_fields)
+            }, status=403)
     
     serializer = UsersSerializer(data=request.data)
     if serializer.is_valid():

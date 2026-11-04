@@ -52,6 +52,7 @@
 
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
+from .capabilities import can_view, can_write, granted
 from .roles import canonical_role
 
 
@@ -98,7 +99,10 @@ class IsHROrReadOnly(BasePermission):
             return False
         if request.method in SAFE_METHODS:
             return True
-        return request.user.role in ['Admin', 'HR Manager']
+        if request.user.role in ['Admin', 'HR Manager']:
+            return True
+        # A grant widens the role.
+        return can_write(request.user, 'certificates')
 
 
 class IsOwnerOrHR(BasePermission):
@@ -138,21 +142,29 @@ class CVPermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        
+
         if request.user.role in ['Admin', 'HR Manager']:
             return True
-        
+
+        # A grant widens the role.
+        if can_write(request.user, 'cv_submissions'):
+            return True
+        if can_view(request.user, 'cv_submissions') and request.method in SAFE_METHODS:
+            return True
+
         if request.user.role == 'Recruiter':
             return request.method in SAFE_METHODS or request.method == 'PATCH'
-        
+
         # Employee can only create (submit CV) or view
         if request.user.role == 'Employee':
             return request.method in ['GET', 'POST']
-        
+
         return False
 
     def has_object_permission(self, request, view, obj):
         if request.user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return True
+        if can_view(request.user, 'cv_submissions'):
             return True
         # Employee can only access own CV submissions
         return obj.user == request.user
@@ -167,15 +179,23 @@ class InterviewPermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        
+
         if request.user.role in ['Admin', 'HR Manager', 'Recruiter']:
             return True
-        
+
+        # A grant widens the role.
+        if can_write(request.user, 'interviews'):
+            return True
+        if can_view(request.user, 'interviews') and request.method in SAFE_METHODS:
+            return True
+
         # Employee can only view
         return request.method in SAFE_METHODS
 
     def has_object_permission(self, request, view, obj):
         if request.user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return True
+        if can_view(request.user, 'interviews'):
             return True
         return obj.candidate == request.user
 
@@ -190,15 +210,24 @@ class FinancePermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        
+
         if request.user.role in ['Admin', 'HR Manager']:
             return True
-        
+
+        # A grant widens the role: it reaches finance records the account
+        # would not otherwise see, and lets it change them.
+        if can_write(request.user, 'finance'):
+            return True
+        if can_view(request.user, 'finance') and request.method in SAFE_METHODS:
+            return True
+
         # Recruiter and Employee can only view
         return request.method in SAFE_METHODS
 
     def has_object_permission(self, request, view, obj):
         if request.user.role in ['Admin', 'HR Manager']:
+            return True
+        if can_view(request.user, 'finance'):
             return True
         return obj.user == request.user
 
@@ -213,13 +242,19 @@ class CompanyPermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        
+
         if request.user.role == 'Admin':
             return True
-        
+
+        # A grant widens the role.
+        if can_write(request.user, 'companies'):
+            return True
+        if can_view(request.user, 'companies') and request.method in SAFE_METHODS:
+            return True
+
         if request.user.role in ['HR Manager', 'Recruiter']:
             return request.method in SAFE_METHODS + ('PUT', 'PATCH')
-        
+
         # Employee can only view
         return request.method in SAFE_METHODS
 
@@ -234,14 +269,23 @@ class ContractPermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        
+
         if request.user.role in ['Admin', 'HR Manager']:
             return True
-        
+
+        # A grant widens the role: it lets this account reach contracts
+        # its role would not otherwise see, and change them.
+        if can_write(request.user, 'contracts'):
+            return True
+        if can_view(request.user, 'contracts') and request.method in SAFE_METHODS:
+            return True
+
         return request.method in SAFE_METHODS
 
     def has_object_permission(self, request, view, obj):
         if request.user.role in ['Admin', 'HR Manager']:
+            return True
+        if can_view(request.user, 'contracts'):
             return True
         return obj.user == request.user
 
@@ -259,6 +303,11 @@ class ContractPermission(BasePermission):
 #   groups            Django groups carry model permissions
 #   user_permissions  direct Django model permissions
 #
+#   granted_permissions  the EXTRA capabilities an Admin granted to this
+#                        account on top of its role (api/capabilities.py).
+#                        Writing it is as sensitive as changing a role --
+#                        it IS a permission change.
+#
 # Every one of those used to be writable by anybody who could reach the
 # endpoint, which meant an ordinary Employee could PATCH its own record
 # with {"role": "Admin"} -- or {"is_superuser": true, "groups": [1]} -- and
@@ -266,6 +315,7 @@ class ContractPermission(BasePermission):
 
 PRIVILEGE_FLAG_FIELDS = ('is_superuser', 'is_staff')
 PRIVILEGE_M2M_FIELDS = ('groups', 'user_permissions')
+PRIVILEGE_LIST_FIELDS = ('granted_permissions',)
 
 
 def _actor_role(user):
@@ -360,6 +410,52 @@ def _changed_privilege_fields(request, obj):
         if requested != current:
             changed.append(field)
 
+    for field in PRIVILEGE_LIST_FIELDS:
+        if field not in data:
+            continue
+        raw = data.get(field)
+        if not isinstance(raw, (list, tuple)):
+            continue  # malformed -- the serializer reports it
+        incoming = {str(v) for v in raw}
+        current = {str(v) for v in (getattr(obj, field, None) or [])}
+        if incoming != current:
+            changed.append(field)
+
+    return changed
+
+
+def privilege_fields_in_payload(request):
+    """The authority-bearing fields a payload would set on a NEW account.
+
+    A create has no object to compare against, so anything that would
+    GRANT authority counts as a change -- and only an Admin may do that.
+
+    This is the create-side counterpart of
+    :func:`_changed_privilege_fields`, and it closes the last way a
+    non-Admin could hand out permissions: by creating an account with
+    them already attached.
+    """
+    data = getattr(request, 'data', None)
+    if not data:
+        return []
+
+    changed = []
+    for field in PRIVILEGE_FLAG_FIELDS:
+        # `is_staff: false` is not a grant -- the default is already false.
+        if field in data and as_bool(data.get(field)):
+            changed.append(field)
+
+    for field in PRIVILEGE_M2M_FIELDS:
+        if field in data and _payload_values(data, field):
+            changed.append(field)
+
+    for field in PRIVILEGE_LIST_FIELDS:
+        if field in data:
+            # A multipart body arrives as repeated string values, a JSON
+            # body as a real list -- _payload_values handles both.
+            if _payload_values(data, field):
+                changed.append(field)
+
     return changed
 
 
@@ -400,6 +496,12 @@ class UserPermission(BasePermission):
         if is_admin_user(user):
             return True
 
+        # A CREATE has no object to compare against, so anything in the
+        # payload that would hand the new account authority counts as a
+        # privilege change -- and only an Admin may do that.
+        if request.method == 'POST' and privilege_fields_in_payload(request):
+            return False
+
         role = _actor_role(user)
 
         if role == 'HR Manager':
@@ -416,7 +518,14 @@ class UserPermission(BasePermission):
             return True
 
         if role == 'Recruiter':
-            return request.method in SAFE_METHODS
+            if request.method in SAFE_METHODS:
+                return True
+            # A grant widens the role: it lets a Recruiter edit or delete
+            # other accounts. It NEVER lets them CREATE one -- creating
+            # accounts stays Admin / HR Manager.
+            if request.method == 'DELETE':
+                return can_write(user, 'users.delete') and _is_detail_route(view)
+            return can_write(user, 'users') and _is_detail_route(view)
 
         # Employee: own profile only.
         #
@@ -426,7 +535,8 @@ class UserPermission(BasePermission):
         # Employee could POST a new Admin.
         #
         # A write on a DETAIL route is allowed through to the
-        # object-level rule, which limits it to their own record.
+        # object-level rule, which limits it to their own record -- or
+        # to the accounts a grant opens up.
         if request.method in SAFE_METHODS:
             return True
         return _is_detail_route(view)
@@ -444,7 +554,7 @@ class UserPermission(BasePermission):
 
         # The authority-bearing flags are Admin-only, whoever the target
         # is. Without this an Employee could grant itself is_superuser /
-        # is_staff / Django groups on its own record.
+        # is_staff / Django groups / extra permissions on its own record.
         if _changed_privilege_fields(request, obj):
             return False
 
@@ -460,14 +570,29 @@ class UserPermission(BasePermission):
                 return False
             return True
 
-        if role == 'Recruiter':
-            return request.method in SAFE_METHODS
-
-        # Employee: own profile only, and never a role change.
-        if obj != user:
-            return False
+        # From here on the caller is a Recruiter or an Employee.
+        #
+        # A grant NEVER lets anybody change a role. That is the whole
+        # point of the gate: without it "users.write" would be a
+        # privilege-escalation grant wearing a different hat.
         if role_change:
             return False
+
+        if role == 'Recruiter':
+            if request.method == 'DELETE':
+                return can_write(user, 'users.delete')
+            if request.method in SAFE_METHODS:
+                return True
+            return can_write(user, 'users')
+
+        # Employee
+        if obj != user:
+            if request.method in SAFE_METHODS:
+                # Seeing somebody else's account needs the grant.
+                return granted(user, 'users.view_all')
+            if request.method == 'DELETE':
+                return can_write(user, 'users.delete')
+            return can_write(user, 'users')
         return True
 
 
@@ -513,6 +638,12 @@ class JobOrderPermission(BasePermission):
 
         # Admin, HR, Recruiter — full access
         if request.user.role in ['Admin', 'HR Manager', 'Recruiter']:
+            return True
+
+        # A grant widens the role.
+        if can_write(request.user, 'job_orders'):
+            return True
+        if can_view(request.user, 'job_orders') and request.method in SAFE_METHODS:
             return True
 
         # Employee — read-only + apply action

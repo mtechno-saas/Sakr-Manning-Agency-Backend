@@ -813,6 +813,15 @@ class Users(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
+    # Extra API capabilities an Admin granted to this account, ON TOP OF
+    # what its role already allows. A list of keys from
+    # api.capabilities.PERMISSION_CATALOG -- e.g. ["finance.view"].
+    #
+    # Additive only: a grant can widen access, never narrow it, and it
+    # never lets the account change anybody's role or touch the
+    # authority-bearing fields. See api/capabilities.py.
+    granted_permissions = models.JSONField(default=list, blank=True)
+
     # Phone-verification (SMS OTP) — populated when the seafarer verifies
     # ownership of the phone number on file. is_phone_verified=True is
     # required by /api/auth/phone-login/. otp_code + otp_expires_at are
