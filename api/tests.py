@@ -25,6 +25,7 @@ from contextlib import contextmanager
 from unittest.mock import patch, MagicMock
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.contrib.auth.models import Group
 from rest_framework.test import APIClient
 from rest_framework import status as http_status
 
@@ -10959,3 +10960,477 @@ class LoginAuditTrailTests(TestCase):
         line = [r for r in records if "[USER-AUDIT]" in r][0]
         self.assertNotIn("actor_id=None", line)
         self.assertNotIn("actor_email=None", line)
+
+
+# ============================================================================
+# Staff-account creation endpoint
+# ============================================================================
+
+CREATE_STAFF_URL = "/api/users/users/create-staff/"
+
+
+class StaffAccountCreateEndpointTests(TestCase):
+    """An Admin creates a staff account that can sign in immediately.
+
+    POST /api/users/users/create-staff/ with {email, password, role}.
+
+    The password is set EXACTLY as supplied, so there is nothing else to
+    deliver to the new person and no shared default to rotate later.
+    """
+
+    def setUp(self):
+        self.admin = _make_admin("boss@example.com")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.admin)
+
+    def _create(self, **overrides):
+        payload = {
+            "email": "new.hr@example.com",
+            "password": "newpass123",
+            "role": "HR Manager",
+            "first_name": "New",
+            "middle_name": "Hire",
+        }
+        payload.update(overrides)
+        return self.client.post(CREATE_STAFF_URL, payload, format="json")
+
+    # --- the happy path -------------------------------------------------
+
+    def test_admin_can_create_an_hr_manager(self):
+        resp = self._create()
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        user = Users.objects.get(email="new.hr@example.com")
+        self.assertEqual(user.role, "HR Manager")
+        self.assertTrue(user.is_active)
+        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_superuser)
+
+    def test_admin_can_create_a_recruiter(self):
+        resp = self._create(role="Recruiter")
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        self.assertEqual(
+            Users.objects.get(email="new.hr@example.com").role, "Recruiter"
+        )
+
+    def test_admin_can_create_another_admin(self):
+        resp = self._create(role="Admin")
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        user = Users.objects.get(email="new.hr@example.com")
+        self.assertEqual(user.role, "Admin")
+        # Same Django flags as the live Admin accounts.
+        self.assertTrue(user.is_staff)
+        self.assertTrue(user.is_superuser)
+
+    def test_the_new_account_can_sign_in_with_the_supplied_password(self):
+        self._create(email="new.hr@example.com", password="newpass123")
+        resp = APIClient().post(
+            "/api/login/",
+            {"email": "new.hr@example.com", "password": "newpass123"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.assertIn("access", resp.data)
+        self.assertIn("refresh", resp.data)
+
+    def test_the_role_is_stored_canonically(self):
+        resp = self._create(role="admin")
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        self.assertEqual(Users.objects.get(email="new.hr@example.com").role, "Admin")
+
+    def test_the_response_describes_the_new_account(self):
+        resp = self._create()
+        body = resp.data
+        self.assertEqual(body["email"], "new.hr@example.com")
+        self.assertEqual(body["role"], "HR Manager")
+        self.assertEqual(body["full_name"], "New Hire")
+        self.assertEqual(body["effective_user_status"], "ON_SITE")
+        self.assertIn("sign in", body["message"])
+
+    def test_the_name_is_optional(self):
+        resp = self._create(first_name="", middle_name="")
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        user = Users.objects.get(email="new.hr@example.com")
+        self.assertEqual(user.first_name, "")
+        self.assertEqual(user.middle_name, "")
+
+    # --- the password never leaks ---------------------------------------
+
+    def test_the_password_is_never_returned(self):
+        resp = self._create(password="supersecret123")
+        self.assertNotIn("supersecret123", str(resp.data))
+        self.assertNotIn("password", resp.data)
+
+    def test_the_password_is_never_written_to_the_audit_trail(self):
+        with _capture_audit() as records:
+            self._create(password="supersecret123")
+        lines = [r for r in records if "action=create_staff_account" in r]
+        self.assertEqual(len(lines), 1, records)
+        self.assertNotIn("supersecret123", lines[0])
+        self.assertIn("target_email=new.hr@example.com", lines[0])
+        self.assertIn("target_role='HR Manager'", lines[0])
+
+    def test_the_creation_is_audited(self):
+        with _capture_audit() as records:
+            self._create()
+        lines = [r for r in records if "action=create_staff_account" in r]
+        self.assertEqual(len(lines), 1, records)
+        self.assertIn("actor_email=boss@example.com", lines[0])
+        self.assertIn("actor_role=Admin", lines[0])
+
+    # --- the password policy: 8+ characters, nothing else ----------------
+
+    def test_a_password_shorter_than_eight_characters_is_rejected(self):
+        resp = self._create(password="short12")
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("password", resp.data)
+        self.assertFalse(Users.objects.filter(email="new.hr@example.com").exists())
+
+    def test_a_password_of_exactly_eight_characters_is_accepted(self):
+        resp = self._create(password="12345678")
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+
+    def test_the_password_is_required(self):
+        resp = self.client.post(
+            CREATE_STAFF_URL,
+            {"email": "new.hr@example.com", "role": "HR Manager"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("password", resp.data)
+        self.assertFalse(Users.objects.filter(email="new.hr@example.com").exists())
+
+    def test_the_password_is_not_silently_trimmed(self):
+        resp = self._create(password=" pass1234 ")
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        user = Users.objects.get(email="new.hr@example.com")
+        self.assertTrue(user.check_password(" pass1234 "))
+        self.assertFalse(user.check_password("pass1234"))
+
+    # --- the payload is validated ---------------------------------------
+
+    def test_the_email_is_required(self):
+        resp = self.client.post(
+            CREATE_STAFF_URL,
+            {"password": "newpass123", "role": "HR Manager"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", resp.data)
+
+    def test_a_malformed_email_is_rejected(self):
+        resp = self._create(email="not-an-email")
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", resp.data)
+
+    def test_the_role_must_be_a_staff_role(self):
+        resp = self._create(role="Employee")
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("role", resp.data)
+        self.assertFalse(Users.objects.filter(email="new.hr@example.com").exists())
+
+    def test_an_unknown_role_is_rejected(self):
+        resp = self._create(role="Wizard")
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("role", resp.data)
+
+    def test_a_duplicate_email_is_rejected(self):
+        _make_user(email="new.hr@example.com", role="Employee")
+        resp = self._create()
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", resp.data)
+
+    def test_a_duplicate_email_is_rejected_case_insensitively(self):
+        # "NEW.HR@example.com" and "new.hr@example.com" would be two
+        # different rows but only one of them can be typed at the login
+        # box -- so the second one is always a trap.
+        _make_user(email="new.hr@example.com", role="Employee")
+        resp = self._create(email="NEW.HR@example.com")
+        self.assertEqual(resp.status_code, http_status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", resp.data)
+
+    # --- who may call it ------------------------------------------------
+
+    def test_an_employee_cannot_create_a_staff_account(self):
+        client = APIClient()
+        client.force_authenticate(user=_make_user(email="emp@example.com"))
+        resp = client.post(
+            CREATE_STAFF_URL,
+            {"email": "new.hr@example.com", "password": "newpass123",
+             "role": "HR Manager"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="new.hr@example.com").exists())
+
+    def test_an_hr_manager_cannot_create_a_staff_account(self):
+        client = APIClient()
+        client.force_authenticate(user=_make_hr("hr@example.com"))
+        resp = client.post(
+            CREATE_STAFF_URL,
+            {"email": "new.hr@example.com", "password": "newpass123",
+             "role": "HR Manager"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="new.hr@example.com").exists())
+
+    def test_a_recruiter_cannot_create_a_staff_account(self):
+        client = APIClient()
+        client.force_authenticate(user=_make_recruiter("rec@example.com"))
+        resp = client.post(
+            CREATE_STAFF_URL,
+            {"email": "new.hr@example.com", "password": "newpass123",
+             "role": "Recruiter"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="new.hr@example.com").exists())
+
+    def test_an_anonymous_caller_cannot_create_a_staff_account(self):
+        resp = APIClient().post(
+            CREATE_STAFF_URL,
+            {"email": "new.hr@example.com", "password": "newpass123",
+             "role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_401_UNAUTHORIZED)
+        self.assertFalse(Users.objects.filter(email="new.hr@example.com").exists())
+
+
+# ============================================================================
+# Privilege escalation
+# ============================================================================
+
+class PrivilegeEscalationTests(TestCase):
+    """A non-admin must not be able to hand itself authority.
+
+    Every case below was a live hole, reachable by an ordinary Employee
+    account holding a valid JWT:
+
+      * POST /api/users/users/            role=Admin    (Employee minted an Admin)
+      * POST /api/users/users/            role=admin    (HR minted an Admin)
+      * PATCH /api/users/users/{me}/      role=Admin    (Employee promoted itself)
+      * PATCH /api/users/users/{me}/      is_superuser  (Employee got Django admin)
+      * POST /api/users/create/           role=admin    (HR minted an Admin)
+      * POST /api/users/users/bulk-edit/  role=Admin    (HR minted an Admin)
+    """
+
+    def setUp(self):
+        self.employee = _make_user(email="emp@example.com", role="Employee")
+        self.hr = _make_hr("hr@example.com")
+        self.admin = _make_admin("boss@example.com")
+
+    def _client_for(self, user):
+        client = APIClient()
+        client.force_authenticate(user=user)
+        return client
+
+    # --- the Employee ---------------------------------------------------
+
+    def test_an_employee_cannot_post_to_the_users_collection(self):
+        resp = self._client_for(self.employee).post(
+            LIST_URL,
+            {"email": "sneaky@example.com", "first_name": "Sneaky",
+             "role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="sneaky@example.com").exists())
+
+    def test_an_employee_cannot_promote_itself(self):
+        resp = self._client_for(self.employee).patch(
+            DETAIL_URL_FMT.format(id=self.employee.id),
+            {"role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.employee.refresh_from_db()
+        self.assertEqual(self.employee.role, "Employee")
+
+    def test_an_employee_cannot_promote_itself_with_a_lowercase_role(self):
+        resp = self._client_for(self.employee).patch(
+            DETAIL_URL_FMT.format(id=self.employee.id),
+            {"role": "admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.employee.refresh_from_db()
+        self.assertEqual(self.employee.role, "Employee")
+
+    def test_an_employee_cannot_grant_itself_django_superuser(self):
+        resp = self._client_for(self.employee).patch(
+            DETAIL_URL_FMT.format(id=self.employee.id),
+            {"is_superuser": True},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.employee.refresh_from_db()
+        self.assertFalse(self.employee.is_superuser)
+
+    def test_an_employee_cannot_grant_itself_django_staff(self):
+        resp = self._client_for(self.employee).patch(
+            DETAIL_URL_FMT.format(id=self.employee.id),
+            {"is_staff": True},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.employee.refresh_from_db()
+        self.assertFalse(self.employee.is_staff)
+
+    def test_an_employee_cannot_add_itself_to_a_django_group(self):
+        group = Group.objects.create(name="Admins")
+        resp = self._client_for(self.employee).patch(
+            DETAIL_URL_FMT.format(id=self.employee.id),
+            {"groups": [group.id]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.employee.refresh_from_db()
+        self.assertEqual(list(self.employee.groups.values_list("id", flat=True)), [])
+
+    # --- the HR Manager -------------------------------------------------
+
+    def test_an_hr_manager_cannot_create_an_admin_with_a_lowercase_role(self):
+        resp = self._client_for(self.hr).post(
+            LIST_URL,
+            {"email": "hr-made@example.com", "first_name": "Made",
+             "role": "admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="hr-made@example.com").exists())
+
+    def test_an_hr_manager_cannot_promote_somebody_to_admin_by_patching(self):
+        target = _make_user(email="target@example.com", role="Employee")
+        resp = self._client_for(self.hr).patch(
+            DETAIL_URL_FMT.format(id=target.id),
+            {"role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        target.refresh_from_db()
+        self.assertEqual(target.role, "Employee")
+
+    def test_an_hr_manager_cannot_promote_somebody_to_admin_through_bulk_edit(self):
+        target = _make_user(email="target@example.com", role="Employee")
+        resp = self._client_for(self.hr).post(
+            BULK_EDIT_URL,
+            {"ids": [target.id], "data": {"role": "Admin"}},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        target.refresh_from_db()
+        self.assertEqual(target.role, "Employee")
+
+    def test_an_hr_manager_cannot_demote_an_admin_through_bulk_edit(self):
+        resp = self._client_for(self.hr).post(
+            BULK_EDIT_URL,
+            {"ids": [self.admin.id], "data": {"role": "Employee"}},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.role, "Admin")
+
+    def test_an_hr_manager_cannot_create_an_admin_through_the_legacy_create_view(self):
+        # /api/users/create/ is a multipart-only function view.
+        resp = self._client_for(self.hr).post(
+            "/api/users/create/",
+            {"email": "hr-made@example.com", "first_name": "Made",
+             "role": "admin"},
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Users.objects.filter(email="hr-made@example.com").exists())
+
+    # --- nothing that used to work has been broken ----------------------
+
+    def test_an_admin_can_still_create_an_admin_through_the_collection(self):
+        resp = self._client_for(self.admin).post(
+            LIST_URL,
+            {"email": "boss-made@example.com", "first_name": "Made",
+             "role": "Admin"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+        self.assertTrue(
+            Users.objects.filter(email="boss-made@example.com", role="Admin").exists()
+        )
+
+    def test_an_hr_manager_can_still_create_a_non_admin_account(self):
+        resp = self._client_for(self.hr).post(
+            LIST_URL,
+            {"email": "hr-made@example.com", "first_name": "Made",
+             "role": "Recruiter"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_201_CREATED, resp.data)
+
+    def test_an_employee_can_still_read_its_own_profile(self):
+        resp = self._client_for(self.employee).get(
+            DETAIL_URL_FMT.format(id=self.employee.id)
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+
+    def test_an_employee_can_still_update_its_own_profile(self):
+        resp = self._client_for(self.employee).patch(
+            DETAIL_URL_FMT.format(id=self.employee.id),
+            {"first_name": "Renamed"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        self.employee.refresh_from_db()
+        self.assertEqual(self.employee.first_name, "Renamed")
+
+    def test_an_admin_can_still_change_a_role(self):
+        target = _make_user(email="target@example.com", role="Employee")
+        resp = self._client_for(self.admin).patch(
+            DETAIL_URL_FMT.format(id=target.id),
+            {"role": "Recruiter"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        target.refresh_from_db()
+        self.assertEqual(target.role, "Recruiter")
+
+    def test_an_admin_can_still_grant_django_groups(self):
+        group = Group.objects.create(name="Admins")
+        target = _make_user(email="target@example.com", role="Employee")
+        resp = self._client_for(self.admin).patch(
+            DETAIL_URL_FMT.format(id=target.id),
+            {"groups": [group.id]},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        target.refresh_from_db()
+        self.assertEqual(
+            list(target.groups.values_list("id", flat=True)), [group.id]
+        )
+
+    # --- multipart carries booleans as STRINGS --------------------------
+
+    def test_a_multipart_false_flag_is_not_read_as_a_privilege_change(self):
+        # The dashboard switches to multipart as soon as the payload holds
+        # a file, and then every boolean arrives as the string "false".
+        # bool("false") is True in Python, so a naive check would invent a
+        # privilege change and refuse an ordinary edit.
+        target = _make_user(email="target@example.com", role="Employee")
+        resp = self._client_for(self.hr).patch(
+            DETAIL_URL_FMT.format(id=target.id),
+            {"is_superuser": "false", "is_staff": "false"},
+            format="multipart",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK, resp.data)
+        target.refresh_from_db()
+        self.assertFalse(target.is_superuser)
+        self.assertFalse(target.is_staff)
+
+    def test_a_multipart_true_flag_is_still_refused(self):
+        target = _make_user(email="target@example.com", role="Employee")
+        resp = self._client_for(self.hr).patch(
+            DETAIL_URL_FMT.format(id=target.id),
+            {"is_superuser": "true"},
+            format="multipart",
+        )
+        self.assertEqual(resp.status_code, http_status.HTTP_403_FORBIDDEN)
+        target.refresh_from_db()
+        self.assertFalse(target.is_superuser)

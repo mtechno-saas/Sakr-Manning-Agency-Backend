@@ -12,6 +12,7 @@ from tickets_papers.models import Ticket, TravelingPaper
 from ships.serializers import ShipSerializer
 from .models import LanguageProficiency
 from api.serializers import FlexibleDateField, FlexibleFileField
+from .roles import ROLE_ALIASES, canonical_role
 from .staff_credentials import (
     generate_staff_password,
     email_staff_credentials,
@@ -2123,15 +2124,13 @@ class RoleChoiceField(serializers.ChoiceField):
     """
 
     # Aliases the UI sends instead of the stored role value.
-    ALIASES = {
-        # "Applicant" is the UI *label* for the Employee role — see the
-        # users table dropdown: <option value="Employee">Applicant</option>.
-        'applicant': 'Employee',
-        'administrator': 'Admin',
-        'hr': 'HR Manager',
-        'hr_manager': 'HR Manager',
-        'hrmanager': 'HR Manager',
-    }
+    #
+    # Shared with api.permissions: the permission layer must resolve a
+    # spelling EXACTLY the way this field does.  When they disagreed, the
+    # gate compared the raw payload against the literal "Admin" while this
+    # field normalised "admin" UP to "Admin" -- so a lower-case role walked
+    # straight past the permission check.
+    ALIASES = ROLE_ALIASES
 
     def to_internal_value(self, data):
         if isinstance(data, str):
@@ -2141,22 +2140,85 @@ class RoleChoiceField(serializers.ChoiceField):
         return super().to_internal_value(data)
 
     def _canonical_role(self, value):
-        choices = list(self.choice_strings_to_values.keys())
-        stripped = value.strip()
-        if stripped in choices:
-            return stripped
+        return canonical_role(
+            value, choices=list(self.choice_strings_to_values.keys())
+        )
 
-        key = stripped.lower().replace(' ', '_')
-        alias = self.ALIASES.get(key)
-        if alias in choices:
-            return alias
 
-        # Case-insensitive fallback: "admin" -> "Admin",
-        # "hr manager" -> "HR Manager".
-        for choice in choices:
-            if choice.lower().replace(' ', '_') == key:
-                return choice
-        return None
+class StaffAccountCreateSerializer(serializers.ModelSerializer):
+    """
+    Payload for the Admin-only staff-account endpoint.
+
+    Creates an account that can sign in IMMEDIATELY with the email and
+    password the admin supplies -- no activation link, no shared default
+    password, no waiting for an email that may never arrive.
+
+    Deliberately strict about the fields it accepts.  This serializer is
+    the only path to minting an administrator, so it does NOT use
+    ``fields = '__all__'`` the way ``UsersSerializer`` does: an account
+    created here gets exactly these fields and nothing else.  In
+    particular it can never set its own ``is_superuser`` / ``is_staff`` /
+    ``groups``.
+    """
+
+    email = serializers.EmailField(required=True, max_length=100)
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        min_length=8,
+        # Do not silently trim: the password the admin types is the
+        # password the new person has to type.
+        trim_whitespace=False,
+        style={'input_type': 'password'},
+        help_text='At least 8 characters.',
+    )
+    # RoleChoiceField, so the endpoint accepts the same spellings the
+    # dashboard form sends ("admin", "HR") and stores the canonical one.
+    role = RoleChoiceField(choices=STAFF_ROLES, required=True)
+    first_name = serializers.CharField(
+        required=False, allow_blank=True, default='', max_length=100,
+    )
+    middle_name = serializers.CharField(
+        required=False, allow_blank=True, default='', max_length=100,
+    )
+
+    class Meta:
+        model = Users
+        fields = ['email', 'password', 'role', 'first_name', 'middle_name']
+
+    def validate_email(self, value):
+        # Stored VERBATIM. The login does an exact match on the email
+        # column, so the account has to be reachable with the very string
+        # the admin typed -- normalising it here would mint an account
+        # that cannot be signed into.
+        #
+        # The duplicate check is case-INsensitive on purpose: "Admin@x.com"
+        # and "admin@x.com" are two different rows but only one of them
+        # can be typed at the login box, which makes the other one a trap.
+        if Users.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError(
+                'An account with this email address already exists.'
+            )
+        return value
+
+    def create(self, validated_data):
+        role = validated_data['role']
+        # A new Admin gets the same Django flags as the existing Admin
+        # accounts (is_staff / is_superuser True). An HR Manager or a
+        # Recruiter gets neither.
+        is_admin = role == 'Admin'
+        user = Users(
+            email=validated_data['email'],
+            first_name=validated_data.get('first_name') or '',
+            middle_name=validated_data.get('middle_name') or '',
+            role=role,
+            is_staff=is_admin,
+            is_superuser=is_admin,
+            is_active=True,
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 
 # The staff roles that get a known default password when created without

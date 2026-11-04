@@ -46,6 +46,7 @@ from .serializer import (
     RankSerializer, RegisterSerializer, UserMeSerializer, DeclarationSerializer,
     CompanySerializer, CompanyListSerializer,
     RoleChoiceField,
+    StaffAccountCreateSerializer,
     InterviewSerializer, InterviewCalendarSerializer,
     FinanceRecordSerializer,
     CVSubmissionSerializer, CVSubmissionListSerializer, DocumentSerializer,
@@ -58,10 +59,11 @@ from .filters import (
 )
 from .permissions import (
     IsAdmin, IsHRManager, IsRecruiter, IsEmployee,
-    IsHROrReadOnly, IsOwnerOrHR, UserPermission,
+    IsHROrReadOnly, IsOwnerOrHR, UserPermission, IsAdminRole,
     CVPermission, InterviewPermission, FinancePermission,
-    CompanyPermission, ContractPermission
+    CompanyPermission, ContractPermission, is_admin_user, as_bool
 )
+from .roles import canonical_role
 
 from rest_framework import viewsets, permissions
 from django.core.cache import cache
@@ -899,6 +901,71 @@ class UserViewSet(viewsets.ModelViewSet):
         # Employee can only see themselves
         return Users.objects.filter(id=user.id)
 
+    def get_permissions(self):
+        # Minting a staff account is the most privileged write this API
+        # has, so it is not delegated to an HR Manager: only an Admin may
+        # create an Admin / HR Manager / Recruiter account.
+        if self.action == 'create_staff':
+            return [IsAuthenticated(), IsAdminRole()]
+        return super().get_permissions()
+
+    @action(detail=False, methods=['post'], url_path='create-staff')
+    def create_staff(self, request):
+        """
+        Create a staff account that can sign in immediately.
+
+        POST /api/users/users/create-staff/
+
+        Body::
+
+            {
+              "email": "new.hr@sakrshipping.com",
+              "password": "at-least-8-characters",
+              "role": "HR Manager",        # Admin | HR Manager | Recruiter
+              "first_name": "New",         # optional
+              "middle_name": ""            # optional
+            }
+
+        The password is set EXACTLY as supplied -- no shared default, no
+        generated one -- so the new person signs in with this credential
+        and nothing else has to be delivered to them.  The password is
+        never echoed back in the response and never written to the audit
+        trail.
+        """
+        serializer = StaffAccountCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = serializer.save()
+
+        log_user_action(
+            request,
+            'create_staff_account',
+            target_ids=[user.id],
+            extra={
+                'target_email': user.email,
+                'target_role': user.role,
+            },
+        )
+
+        return Response({
+            'id': user.id,
+            'email': user.email,
+            'role': user.role,
+            'first_name': user.first_name,
+            'middle_name': user.middle_name,
+            'full_name': user.full_name,
+            'is_active': user.is_active,
+            'is_staff': user.is_staff,
+            'is_superuser': user.is_superuser,
+            'user_status': user.user_status,
+            'effective_user_status': user.get_effective_status(),
+            'message': (
+                f'{user.role} account created for {user.email}. '
+                f'The account can sign in now with the password you supplied.'
+            ),
+        }, status=status.HTTP_201_CREATED)
+
     def destroy(self, request, *args, **kwargs):
         # Audit BEFORE the row disappears -- after the delete we can no
         # longer resolve the target's email/role for the trail.
@@ -964,6 +1031,15 @@ class UserViewSet(viewsets.ModelViewSet):
                     'error': f"Invalid role '{role_value}'. Valid roles: {', '.join(canonical_roles)}"
                 }, status=400)
             clean_data['role'] = normalized
+
+            # Only an Admin may hand out the Admin role. This endpoint
+            # writes straight to the DB and bypasses the serializer, so
+            # nothing else would have stopped an HR Manager from promoting
+            # somebody to Admin here.
+            if normalized == 'Admin' and not is_admin_user(request.user):
+                return Response({
+                    'error': 'Only an Admin can assign the Admin role.'
+                }, status=403)
         
         # Handle rank assignment separately if provided
         rank_position = update_data.get('rank')
@@ -972,6 +1048,17 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No valid fields provided for update'}, status=400)
 
         users_to_update = Users.objects.filter(id__in=user_ids)
+
+        # An HR Manager cannot touch an Admin account -- not even to
+        # demote it, which would be a way to lock the real admins out.
+        if not is_admin_user(request.user):
+            admin_ids = list(
+                users_to_update.filter(role='Admin').values_list('id', flat=True)
+            )
+            if admin_ids:
+                return Response({
+                    'error': 'Cannot modify admin users.'
+                }, status=403)
 
         # Audit the edit before it lands. A role change is the most
         # security-relevant thing that can happen here (it grants admin
@@ -1616,8 +1703,13 @@ def create_user(request):
     if request.user.role not in ['Admin', 'HR Manager']:
         return Response({'error': 'Permission denied'}, status=403)
     
-    # HR can't create admins
-    if request.user.role == 'HR Manager' and request.data.get('role') == 'Admin':
+    # HR can't create admins.
+    #
+    # The comparison MUST use the CANONICAL spelling. It used to be a
+    # literal `== 'Admin'`, so a payload of {"role": "admin"} slipped past
+    # the check and the serializer then normalised it up to "Admin" --
+    # an HR Manager could mint an Admin account through this endpoint.
+    if request.user.role == 'HR Manager' and canonical_role(request.data.get('role')) == 'Admin':
         return Response({'error': 'Cannot create admin users'}, status=403)
     
     serializer = UsersSerializer(data=request.data)
@@ -1653,6 +1745,20 @@ def user_detail(request, pk):
     
     if request.user.role == 'HR Manager' and user.role == 'Admin':
         return Response({'error': 'Cannot modify admin users'}, status=403)
+
+    # Only an Admin may change a role or the Django privilege flags.
+    # (This route is currently shadowed by the router's own detail route,
+    # but the guard belongs here all the same -- an Employee must not be
+    # able to promote itself by writing its own record.)
+    if request.method in ('PUT', 'PATCH'):
+        requested_role = canonical_role(request.data.get('role'))
+        if requested_role and requested_role != (user.role or '').strip():
+            if not is_admin_user(request.user):
+                return Response({'error': 'Cannot change roles'}, status=403)
+        for flag in ('is_superuser', 'is_staff'):
+            if flag in request.data and as_bool(request.data.get(flag)) != bool(getattr(user, flag, False)):
+                if not is_admin_user(request.user):
+                    return Response({'error': f'Cannot change {flag}'}, status=403)
 
     if request.method == 'GET':
         serializer = UsersSerializer(user)
