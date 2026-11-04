@@ -190,6 +190,21 @@ when there are none):
 
 Show it as a badge or a small chip next to the role, e.g. `HR Manager · +1 permission`.
 
+### The signed-in user's own grants
+
+Both "me" endpoints report the grants of the **caller**, so the frontend can work out
+what the logged-in person may do without a second request:
+
+```
+GET /api/users/users/me/     -> { id, email, first_name, middle_name, profile_image,
+                                 role, cv_status, granted_permissions }
+GET /api/users/me/           -> { id, email, ..., role, user_status,
+                                 granted_permissions }
+```
+
+An account with no grants reports `"granted_permissions": []` — never `null`, so no null
+check is needed.
+
 ### Example
 
 ```js
@@ -231,12 +246,15 @@ Note the axios base URL already carries the `/api` prefix
 - `api/serializer.py`
   - `UsersSerializer.granted_permissions` — read/write, validated against the
     catalogue.
+  - `UserMeSerializer.granted_permissions` — read-only, so the signed-in account can
+    see its own grants.
   - `StaffAccountCreateSerializer` accepts an optional `permissions` list.
 - `api/views.py`
   - `UserViewSet.permission_catalog` — **new** (`GET .../permission-catalog/`).
   - `UserViewSet.set_permissions` — **new** (`GET|PATCH .../{id}/permissions/`).
   - `UserViewSet.get_queryset` honours `users.view_all`.
+  - `MeView`'s profile dict reports `granted_permissions`.
   - The legacy `POST /api/users/create/` view now refuses privilege fields from
     non-Admins — it used to let an HR Manager create a Django superuser.
 - `api/tests.py`
-  - `GrantedPermissionsTests` (30 tests).
+  - `GrantedPermissionsTests` (34 tests).
