@@ -638,6 +638,26 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
         else:
             data = dict(data)
 
+        # An empty string means "the admin did not choose this" -- the
+        # dashboard's forms send "" for every untouched select. It must
+        # NEVER reach a "contains" lookup: "" is a substring of every
+        # name, so the fallback below matched EVERY row and .first()
+        # returned an arbitrary one -- which is how a CV submission ended
+        # up attached to the first Principal in the list ("3 SEAS
+        # SHIPPING") with no error anywhere.
+        #
+        # A blank value is dropped here, so the field keeps its current
+        # value instead of being pointed at an arbitrary row.
+        for _blankable in (
+            'position', 'position_id',
+            'company', 'company_id',
+            'ship', 'ship_id',
+            'reviewed_by', 'reviewed_by_id',
+        ):
+            _value = data.get(_blankable)
+            if isinstance(_value, str) and not _value.strip():
+                data.pop(_blankable, None)
+
         # ---- position (Rank) ----
         pos_val = data.get('position')
         pos_id_val = data.get('position_id')

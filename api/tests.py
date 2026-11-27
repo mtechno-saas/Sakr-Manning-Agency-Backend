@@ -12252,3 +12252,103 @@ class PositionRankSyncTests(APITestCase):
         )
         other_row = self.client.get(DETAIL_URL_FMT.format(id=other.id)).json()
         self.assertEqual(other_row["ranks"][0]["rank_name"], "Baker")
+
+
+# ============================================================================
+# BLANK FK VALUES
+# ============================================================================
+#
+# The dashboard's forms send "" for every select the admin did not touch.
+# The CV submission serializer resolved those fields by name with a
+# two-step lookup (exact match, then "contains"), and an empty string IS a
+# substring of every name -- so the fallback matched every row and .first()
+# returned an arbitrary one. The CV submission was silently attached to the
+# first Principal in the list ("3 SEAS SHIPPING"), with no error anywhere.
+#
+# A blank value now means "not chosen": the field keeps its current value.
+
+
+class BlankForeignKeyLookupTests(APITestCase):
+    """An empty Principal / Position / Ship is never filled in for you."""
+
+    CV_URL = "/api/cv-submissions/"
+
+    def setUp(self):
+        from companies.models import Company
+
+        self.admin = _make_admin("admin@example.com")
+        self.applicant = _make_user(
+            "blank@example.com", "Bl", "Ank", role="Employee",
+        )
+        self.master = Rank.objects.create(code="DO-1.000", name="Master")
+        self.baker = Rank.objects.create(code="DR-32.000", name="Baker")
+        # Two principals: the "contains" fallback used to pick the first.
+        self.first_company = Company.objects.create(company_name="AAA Shipping")
+        self.other_company = Company.objects.create(company_name="ZZZ Shipping")
+        self.client.force_authenticate(user=self.admin)
+
+    def _cv_row(self, cv_id):
+        from api.models import CVSubmission
+        return CVSubmission.objects.get(id=cv_id)
+
+    def test_an_empty_principal_does_not_attach_the_first_company(self):
+        resp = self.client.post(
+            self.CV_URL,
+            {"user": self.applicant.id, "company": "", "position": "Baker"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.content[:400])
+        row = self._cv_row(resp.json()["id"])
+        self.assertIsNone(row.company_id)
+
+    def test_an_empty_position_does_not_pick_the_first_rank(self):
+        resp = self.client.post(
+            self.CV_URL,
+            {"user": self.applicant.id, "company": "", "position": ""},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.content[:400])
+        row = self._cv_row(resp.json()["id"])
+        self.assertIsNone(row.position_id)
+
+    def test_a_blank_principal_keeps_the_current_one_on_update(self):
+        from api.models import CVSubmission
+
+        cv = CVSubmission.objects.create(
+            user=self.applicant, position=self.master, company=self.other_company,
+        )
+        resp = self.client.patch(
+            f"{self.CV_URL}{cv.id}/",
+            {"company": "", "position": "Baker"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        cv.refresh_from_db()
+        # The Principal is untouched, the position did change.
+        self.assertEqual(cv.company_id, self.other_company.id)
+        self.assertEqual(cv.position_id, self.baker.id)
+
+    def test_a_blank_ship_is_not_filled_in(self):
+        from api.models import CVSubmission
+
+        cv = CVSubmission.objects.create(
+            user=self.applicant, position=self.master, company=self.other_company,
+        )
+        resp = self.client.patch(
+            f"{self.CV_URL}{cv.id}/", {"ship": ""}, format="json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        cv.refresh_from_db()
+        self.assertIsNone(cv.ship_id)
+
+    def test_a_real_principal_is_still_resolved_by_name(self):
+        resp = self.client.post(
+            self.CV_URL,
+            {"user": self.applicant.id, "company": "ZZZ Shipping",
+             "position": "Baker"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201, resp.content[:400])
+        row = self._cv_row(resp.json()["id"])
+        self.assertEqual(row.company_id, self.other_company.id)
+        self.assertEqual(row.position_id, self.baker.id)
