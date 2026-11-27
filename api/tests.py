@@ -12008,3 +12008,247 @@ class GrantedPermissionsTests(TestCase):
         self.assertIn("operation=replace", lines[0])
         self.assertIn("previous_permissions=['finance.view']", lines[0])
         self.assertIn("permissions=['contracts.write']", lines[0])
+
+
+# ============================================================================
+# POSITION <-> RANK CODE
+# ============================================================================
+#
+# The rule: the rank code shown must belong to the position shown.
+#
+# The bug this covers: every read path took the NEWEST UserRank row
+# ("last write wins"). An applicant who held more than one rank always saw
+# the code of whichever rank was written last, so changing an application's
+# POSITION from Master to Baker changed nothing on screen -- the RANK CODE
+# column kept showing the other rank's code.
+
+
+class PositionRankSyncTests(APITestCase):
+    """Changing the position changes the rank code, in both directions."""
+
+    CV_URL = "/api/cv-submissions/"
+
+    def setUp(self):
+        self.admin = _make_admin("admin@example.com")
+        self.applicant = _make_user(
+            "applicant@example.com", "App", "Licant", role="Employee",
+        )
+        self.master = Rank.objects.create(code="DO-1.000", name="Master")
+        self.baker = Rank.objects.create(code="DR-32.000", name="Baker")
+        self.client.force_authenticate(user=self.admin)
+
+    def _cv(self, position=None):
+        from api.models import CVSubmission
+        return CVSubmission.objects.create(
+            user=self.applicant, position=position, status="Pending",
+        )
+
+    def _detail(self, cv):
+        resp = self.client.get(f"{self.CV_URL}{cv.id}/")
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        return resp.json()
+
+    def _list_row(self, cv):
+        resp = self.client.get(self.CV_URL)
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        payload = resp.json()
+        rows = payload.get("results", payload)
+        for row in rows:
+            if row["id"] == cv.id:
+                return row
+        self.fail("the submission is missing from the list response")
+
+    # ── the regression ──────────────────────────────────────────────────
+
+    def test_the_rank_code_belongs_to_the_position_of_the_row(self):
+        # The production state: the applicant holds a Master code and a
+        # newer Baker code, and the application is for Master.
+        master_assignment = UserRank.objects.create(
+            user=self.applicant, rank=self.master,
+        )
+        UserRank.objects.create(user=self.applicant, rank=self.baker)
+        cv = self._cv(position=self.master)
+
+        row = self._detail(cv)
+        self.assertEqual(row["position_name"], "Master")
+        self.assertEqual(row["rank_code"], "DO-1.000")
+        self.assertEqual(row["coded_rank"][0]["rank_code"], "DO-1.000")
+        self.assertEqual(
+            row["coded_rank"][0]["assigned_code"], master_assignment.assigned_code,
+        )
+
+    def test_the_list_endpoint_shows_the_same_code_as_the_detail(self):
+        UserRank.objects.create(user=self.applicant, rank=self.master)
+        UserRank.objects.create(user=self.applicant, rank=self.baker)
+        cv = self._cv(position=self.master)
+
+        detail = self._detail(cv)
+        listed = self._list_row(cv)
+        self.assertEqual(
+            listed["coded_rank"][0]["assigned_code"],
+            detail["coded_rank"][0]["assigned_code"],
+        )
+        self.assertEqual(listed["coded_rank"][0]["rank_code"], "DO-1.000")
+
+    def test_changing_the_position_changes_the_rank_code(self):
+        UserRank.objects.create(user=self.applicant, rank=self.master)
+        cv = self._cv(position=self.master)
+
+        resp = self.client.patch(
+            f"{self.CV_URL}{cv.id}/", {"position": "Baker"}, format="json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+
+        row = self._detail(cv)
+        self.assertEqual(row["position_name"], "Baker")
+        self.assertEqual(row["rank_code"], "DR-32.000")
+        self.assertEqual(row["coded_rank"][0]["rank_code"], "DR-32.000")
+        self.assertEqual(row["coded_rank"][0]["rank_name"], "Baker")
+
+    def test_the_code_follows_the_position_in_both_directions(self):
+        UserRank.objects.create(user=self.applicant, rank=self.master)
+        cv = self._cv(position=self.master)
+
+        for position, code in (("Baker", "DR-32.000"), ("Master", "DO-1.000")):
+            resp = self.client.patch(
+                f"{self.CV_URL}{cv.id}/", {"position": position}, format="json",
+            )
+            self.assertEqual(resp.status_code, 200, resp.content[:400])
+            row = self._detail(cv)
+            self.assertEqual(row["position_name"], position)
+            self.assertEqual(row["rank_code"], code)
+            self.assertEqual(row["coded_rank"][0]["rank_code"], code)
+
+    def test_the_new_position_gets_an_assigned_code(self):
+        # The applicant does not hold Baker yet: the new position must come
+        # with a code of its own, not with the old rank's code.
+        UserRank.objects.create(user=self.applicant, rank=self.master)
+        cv = self._cv(position=self.master)
+
+        self.client.patch(
+            f"{self.CV_URL}{cv.id}/", {"position": "Baker"}, format="json",
+        )
+
+        assignment = UserRank.objects.get(user=self.applicant, rank=self.baker)
+        self.assertTrue(assignment.assigned_code)
+        row = self._detail(cv)
+        self.assertEqual(
+            row["coded_rank"][0]["assigned_code"], assignment.assigned_code,
+        )
+
+    def test_saving_the_same_position_twice_does_not_issue_a_second_code(self):
+        cv = self._cv(position=self.master)
+
+        for _ in range(2):
+            resp = self.client.patch(
+                f"{self.CV_URL}{cv.id}/", {"position": "Baker"}, format="json",
+            )
+            self.assertEqual(resp.status_code, 200, resp.content[:400])
+
+        self.assertEqual(
+            UserRank.objects.filter(user=self.applicant, rank=self.baker).count(), 1,
+        )
+
+    # ── the profile ─────────────────────────────────────────────────────
+
+    def test_the_profile_rank_code_follows_the_position(self):
+        UserRank.objects.create(user=self.applicant, rank=self.master)
+        UserRank.objects.create(user=self.applicant, rank=self.baker)
+        self.applicant.application_for_position = "Master"
+        self.applicant.save(update_fields=["application_for_position"])
+
+        resp = self.client.get(DETAIL_URL_FMT.format(id=self.applicant.id))
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        row = resp.json()
+        self.assertEqual(row["application_for_position"], "Master")
+        self.assertEqual(row["rank_code"], "DO-1.000")
+        # The dashboard reads ranks[0] for its Rank and Assigned Code.
+        self.assertEqual(row["ranks"][0]["rank_name"], "Master")
+
+    def test_changing_the_profile_position_points_it_at_the_new_rank(self):
+        UserRank.objects.create(user=self.applicant, rank=self.master)
+        self.applicant.application_for_position = "Master"
+        self.applicant.save(update_fields=["application_for_position"])
+
+        resp = self.client.patch(
+            DETAIL_URL_FMT.format(id=self.applicant.id),
+            {"application_for_position": "Baker"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        row = resp.json()
+        self.assertEqual(row["application_for_position"], "Baker")
+        self.assertEqual(row["rank_code"], "DR-32.000")
+        self.assertEqual(row["ranks"][0]["rank_name"], "Baker")
+        self.assertTrue(UserRank.objects.filter(
+            user=self.applicant, rank=self.baker,
+        ).exists())
+
+    # ── the assignment endpoints stay consistent ────────────────────────
+
+    def test_assign_by_position_is_idempotent(self):
+        assignment = UserRank.objects.create(
+            user=self.applicant, rank=self.baker,
+        )
+
+        resp = self.client.post(
+            f"/api/users/users/{self.applicant.id}/assign-by-position/",
+            {"position": "Baker"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        body = resp.json()
+        self.assertTrue(body["already_assigned"])
+        self.assertEqual(
+            body["user_rank"]["assigned_code"], assignment.assigned_code,
+        )
+        self.assertEqual(
+            UserRank.objects.filter(user=self.applicant, rank=self.baker).count(), 1,
+        )
+
+    def test_bulk_edit_assigns_the_rank_when_the_person_does_not_hold_it(self):
+        # The bulk rank lookup used to raise FieldError on every call (the
+        # companies.JobOrderPosition model has no `title` field), so the
+        # assignment was silently skipped and nobody ever got a code.
+        resp = self.client.post(
+            f"{LIST_URL}bulk-edit/",
+            {"ids": [self.applicant.id], "data": {"rank": "Baker"}},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+
+        assignment = UserRank.objects.get(user=self.applicant, rank=self.baker)
+        self.assertTrue(assignment.assigned_code)
+
+    def test_bulk_edit_does_not_duplicate_an_existing_assignment(self):
+        assignment = UserRank.objects.create(
+            user=self.applicant, rank=self.baker,
+        )
+
+        resp = self.client.post(
+            f"{LIST_URL}bulk-edit/",
+            {"ids": [self.applicant.id], "data": {"rank": "Baker"}},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        self.assertEqual(
+            UserRank.objects.filter(user=self.applicant, rank=self.baker).count(), 1,
+        )
+        assignment.refresh_from_db()
+        self.assertTrue(assignment.assigned_code)
+
+    def test_another_person_is_not_affected(self):
+        other = _make_user("other@example.com", "Oth", "Er", role="Employee")
+        UserRank.objects.create(user=other, rank=self.baker)
+        UserRank.objects.create(user=self.applicant, rank=self.master)
+        cv = self._cv(position=self.master)
+
+        self.client.patch(
+            f"{self.CV_URL}{cv.id}/", {"position": "Baker"}, format="json",
+        )
+
+        self.assertEqual(
+            UserRank.objects.filter(user=other, rank=self.baker).count(), 1,
+        )
+        other_row = self.client.get(DETAIL_URL_FMT.format(id=other.id)).json()
+        self.assertEqual(other_row["ranks"][0]["rank_name"], "Baker")

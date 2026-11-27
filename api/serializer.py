@@ -418,18 +418,15 @@ class CVSubmissionListSerializer(serializers.ModelSerializer):
 
     def get_coded_rank(self, obj):
         """
-        Returns all assigned rank codes for the user.
+        Returns the coded rank for this application.
+
+        The rank shown is the rank of the application's POSITION, so the
+        POSITION and RANK CODE columns always agree -- changing the
+        position changes the code. See api/rank_sync.py.
         Each entry contains: assigned_code, rank_code, rank_name.
         """
-        user_ranks = obj.user.user_ranks.select_related('rank').order_by('-id')[:1]
-        return [
-            {
-                'assigned_code': ur.assigned_code,
-                'rank_code': ur.rank.code,
-                'rank_name': ur.rank.name,
-            }
-            for ur in user_ranks
-        ]
+        from .rank_sync import coded_entries
+        return coded_entries(getattr(obj, 'user', None), getattr(obj, 'position', None))
 
     def to_representation(self, instance):
         # Fall back to the linked user's profile values when the CV
@@ -767,10 +764,14 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
 
         instance = super().create(validated_data)
         
-        # Auto-assign the position as a UserRank to generate assigned_code immediately
+        # Keep the rank code in step with the position: the person must
+        # hold an assignment for the rank of THIS application, otherwise
+        # the RANK CODE column would keep showing the code of some other
+        # rank. An assignment that already exists is reused, so no second
+        # code is issued. See api/rank_sync.py.
         if instance.position:
-            from api.models import UserRank
-            UserRank.objects.get_or_create(user=instance.user, rank=instance.position)
+            from .rank_sync import ensure_assignment
+            ensure_assignment(instance.user, instance.position)
 
         if custom_data:
             self.update(instance, custom_data)
@@ -1029,9 +1030,14 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
 
         instance = super().update(instance, validated_data)
 
+        # Keep the rank code in step with the position: the person must
+        # hold an assignment for the rank of THIS application, otherwise
+        # the RANK CODE column would keep showing the code of some other
+        # rank. An assignment that already exists is reused, so no second
+        # code is issued. See api/rank_sync.py.
         if instance.position:
-            from api.models import UserRank
-            UserRank.objects.get_or_create(user=instance.user, rank=instance.position)
+            from .rank_sync import ensure_assignment
+            ensure_assignment(instance.user, instance.position)
 
         return instance
 
@@ -1304,18 +1310,15 @@ class CVSubmissionSerializer(serializers.ModelSerializer):
 
     def get_coded_rank(self, obj):
         """
-        Returns all assigned rank codes for the user.
+        Returns the coded rank for this application.
+
+        The rank shown is the rank of the application's POSITION, so the
+        POSITION and RANK CODE columns always agree -- changing the
+        position changes the code. See api/rank_sync.py.
         Each entry contains: assigned_code, rank_code, rank_name.
         """
-        user_ranks = obj.user.user_ranks.select_related('rank').order_by('-id')[:1]
-        return [
-            {
-                'assigned_code': ur.assigned_code,
-                'rank_code': ur.rank.code,
-                'rank_name': ur.rank.name,
-            }
-            for ur in user_ranks
-        ]
+        from .rank_sync import coded_entries
+        return coded_entries(getattr(obj, 'user', None), getattr(obj, 'position', None))
 
     def get_job_position_details(self, obj):
         if not obj.job_position:
@@ -1869,16 +1872,16 @@ class ContractSerializer(serializers.ModelSerializer):
         return CertificateSerializer(obj.user.certificates.all(), many=True).data
 
     def get_coded_rank(self, obj):
-        if not obj.user: return []
-        user_ranks = obj.user.user_ranks.select_related('rank').order_by('-id')[:1]
-        return [
-            {
-                'assigned_code': ur.assigned_code,
-                'rank_code': ur.rank.code,
-                'rank_name': ur.rank.name,
-            }
-            for ur in user_ranks
-        ]
+        """
+        Returns the coded rank of this contract.
+
+        The rank shown is the rank of the contract itself, so the contract's
+        position and its code always agree. See api/rank_sync.py.
+        """
+        if not obj.user:
+            return []
+        from .rank_sync import coded_entries
+        return coded_entries(obj.user, getattr(obj, 'rank', None))
 
     def get_user_documents(self, obj):
         if not obj.user: return {}
@@ -2513,36 +2516,39 @@ class UsersSerializer(serializers.ModelSerializer):
 
         # Keep application_for_position as a string to prevent frontend .trim() crashes
         # Provide rank_code and assigned_code as separate top-level fields
+        #
+        # The rank code shown must belong to the POSITION shown. The old
+        # code took the newest UserRank row ("last write wins"), so an
+        # applicant who held more than one rank kept seeing the code of a
+        # rank that was NOT the one in the POSITION column -- changing the
+        # position changed nothing on screen. The rule now is one rule
+        # everywhere: the rank shown is the rank of the position shown.
+        # See api/rank_sync.py.
         app_pos_name = instance.application_for_position
-        
-        # 1. Try to find the user rank that exactly matches the string
-        ur = None
-        if app_pos_name:
-            ur = instance.user_ranks.filter(rank__name__iexact=app_pos_name).first()
-            
-        # 2. If no exact match, fallback to the user's first assigned rank
-        if not ur:
-            ur = instance.user_ranks.first()
+        from .rank_sync import (
+            coded_entries,
+            ordered_assignments,
+            rank_for_user_position,
+        )
+        position_rank = rank_for_user_position(instance, app_pos_name)
+        entries = coded_entries(instance, position_rank)
 
-        if ur:
-            representation['application_for_position'] = ur.rank.name
-            representation['rank_code'] = ur.rank.code
-            representation['assigned_code'] = ur.assigned_code
-        elif app_pos_name:
-            # 3. Fallback: they have a string but no assigned user_rank yet
-            from api.models import Rank
-            rank = Rank.objects.filter(name__iexact=app_pos_name).first()
-            representation['application_for_position'] = app_pos_name
-            representation['rank_code'] = rank.code if rank else None
-            representation['assigned_code'] = None
+        if entries:
+            entry = entries[0]
+            representation['application_for_position'] = (
+                app_pos_name or entry['rank_name']
+            )
+            representation['rank_code'] = entry['rank_code']
+            representation['assigned_code'] = entry['assigned_code']
         else:
-            representation['application_for_position'] = None
+            representation['application_for_position'] = app_pos_name or None
             representation['rank_code'] = None
             representation['assigned_code'] = None
-
-        # Explicitly serialize ranks with assigned_code
+        # Explicitly serialize ranks with assigned_code. The assignment
+        # that matches the position comes first: the dashboard reads
+        # ranks[0] for its Rank and Assigned Code columns.
         representation['ranks'] = UserRankSerializer(
-            instance.user_ranks.all(),
+            ordered_assignments(instance, position_rank),
             many=True
         ).data
 
@@ -2701,6 +2707,16 @@ class UsersSerializer(serializers.ModelSerializer):
                 rank_obj = Rank.objects.filter(Q(code__iexact=rank_identifier) | Q(name__iexact=rank_identifier)).first()
             if rank_obj:
                 UserRank.objects.create(user=user, rank=rank_obj)
+        # Keep the rank code in step with the position from the start
+        # (see api/rank_sync.py).
+        if user.application_for_position:
+            from .rank_sync import ensure_assignment, rank_for_user_position
+            position_rank = rank_for_user_position(
+                user, user.application_for_position
+            )
+            if position_rank is not None:
+                ensure_assignment(user, position_rank)
+
         if certificates_data:
             user.certificates.set(certificates_data)
 
@@ -2915,6 +2931,21 @@ class UsersSerializer(serializers.ModelSerializer):
                     rank_obj = Rank.objects.filter(Q(code__iexact=rank_identifier) | Q(name__iexact=rank_identifier)).first()
                 if rank_obj:
                     UserRank.objects.create(user=instance, rank=rank_obj)
+        # Keep the rank code in step with the position.
+        #
+        # The POSITION on the profile and the RANK CODE the dashboard
+        # shows next to it must agree, so a new position points the
+        # profile at that rank's code. Existing assignments are never
+        # deleted: a person who was a Master and is now a Baker
+        # legitimately holds both codes. See api/rank_sync.py.
+        if instance.application_for_position:
+            from .rank_sync import ensure_assignment, rank_for_user_position
+            position_rank = rank_for_user_position(
+                instance, instance.application_for_position
+            )
+            if position_rank is not None:
+                ensure_assignment(instance, position_rank)
+
         if certificates_data is not None:
             instance.certificates.set(certificates_data)
 
@@ -3135,18 +3166,16 @@ class UsersSerializer(serializers.ModelSerializer):
 
     def get_coded_rank(self, obj):
         """
-        Returns all assigned rank codes for the user.
+        Returns the coded rank for the user.
+
+        The rank shown is the rank of the user's POSITION, so the position
+        and the rank code always agree -- changing the position changes the
+        code. See api/rank_sync.py.
         Each entry contains: assigned_code, rank_code, rank_name.
         """
-        user_ranks = obj.user_ranks.select_related('rank').order_by('-id')[:1]
-        return [
-            {
-                'assigned_code': ur.assigned_code,
-                'rank_code': ur.rank.code,
-                'rank_name': ur.rank.name,
-            }
-            for ur in user_ranks
-        ]
+        from .rank_sync import coded_entries, rank_for_user_position
+        position = obj.application_for_position
+        return coded_entries(obj, rank_for_user_position(obj, position))
 
 class LanguageProficiencySerializer(serializers.ModelSerializer):
     class Meta:

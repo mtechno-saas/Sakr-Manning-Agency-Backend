@@ -1321,42 +1321,36 @@ class UserViewSet(viewsets.ModelViewSet):
             
         if rank_position:
             # Replicate the logic from assign_rank_by_position
-            from companies.models import JobOrderPosition
             try:
-                # In assign_rank_by_position we look up Rank or create it
-                # The user provides a position name like "Master"
-                from api.models import Rank, UserRank
-                
-                # Fetch position short code from JobOrderPosition if possible, else use first 3 chars
-                position_obj = JobOrderPosition.objects.filter(title__iexact=rank_position).first()
-                if position_obj and position_obj.rank_code:
-                    short_code = position_obj.rank_code
-                else:
+                # The user provides a position name like "Master".
+                #
+                # NOTE: this used to look the rank up through
+                # JobOrderPosition.objects.filter(title__iexact=...) and
+                # read position_obj.rank_code -- but the companies
+                # JobOrderPosition model has NEITHER a `title` NOR a
+                # `rank_code` field, so every call raised FieldError,
+                # the surrounding try/except swallowed it, and the rank
+                # assignment was silently skipped. The rank is now
+                # resolved through api/rank_sync.py (the canonical RANKS
+                # table), which is what assign_rank_by_position uses.
+                from api.models import Rank
+                from api.rank_sync import ensure_assignment, rank_for_name
+
+                rank = rank_for_name(rank_position)
+                if rank is None:
+                    # A position the system does not know yet: create
+                    # the rank row, as before.
                     short_code = rank_position[:3].upper()
-                
-                rank, created = Rank.objects.get_or_create(
-                    name=rank_position,
-                    defaults={'code': short_code}
-                )
-                
-                for user in users_to_update:
-                    prefix = rank.code.split('.')[0] if '.' in rank.code else rank.code
-                    last_ur = UserRank.objects.filter(rank__code__startswith=prefix).order_by('-assigned_code').first()
-                    
-                    next_num = 1
-                    if last_ur and last_ur.assigned_code:
-                        try:
-                            last_num = int(last_ur.assigned_code.split('.')[-1])
-                            next_num = last_num + 1
-                        except (ValueError, IndexError):
-                            pass
-                    
-                    new_assigned_code = f"{prefix}.{next_num:03d}"
-                    UserRank.objects.create(
-                        user=user,
-                        rank=rank,
-                        assigned_code=new_assigned_code
+                    rank, created = Rank.objects.get_or_create(
+                        name=rank_position,
+                        defaults={'code': short_code}
                     )
+
+                # Reuse the assignment the person already holds for this
+                # rank; issue a new code only when they do not hold it
+                # yet. See api/rank_sync.py.
+                for user in users_to_update:
+                    ensure_assignment(user, rank)
             except Exception as e:
                 # Log error but don't fail the whole bulk edit if basic fields were updated
                 print("Bulk Rank Update Error:", e)
@@ -2001,8 +1995,19 @@ def assign_rank(request, user_id, rank_id):
     except (Users.DoesNotExist, Rank.DoesNotExist):
         return Response({"error": "User or Rank not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    user_rank = UserRank.objects.create(user=user, rank=rank)
+    # Reuse the assignment the person already holds for this rank, so
+    # a repeated assignment never issues a second code.
+    # See api/rank_sync.py.
+    from api.rank_sync import assignment_for, ensure_assignment
+    already = assignment_for(user, rank) is not None
+    user_rank = ensure_assignment(user, rank)
+    if user_rank is None:
+        return Response({'error': 'Could not assign the rank.'}, status=status.HTTP_400_BAD_REQUEST)
     serializer = UserRankSerializer(user_rank)
+    if already:
+        data = dict(serializer.data)
+        data['already_assigned'] = True
+        return Response(data, status=status.HTTP_200_OK)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 # =====================
@@ -3849,15 +3854,22 @@ def assign_rank_by_position(request, user_id):
             defaults={'name': position_name}
         )
 
-    # Prevent duplicate assignment
-    if UserRank.objects.filter(user=user, rank=rank).exists():
-        existing = UserRank.objects.filter(user=user, rank=rank).first()
+    # Already assigned? Return the existing code instead of failing.
+    # Changing a position creates the assignment automatically (see
+    # api/rank_sync.py), so the admin assigning the same rank again
+    # must not look like an error.
+    existing = UserRank.objects.filter(user=user, rank=rank).order_by('-id').first()
+    if existing:
+        from .serializer import UserRankSerializer
         return Response(
             {
-                'error': f'User already has the rank "{position_name}".',
-                'existing_assigned_code': existing.assigned_code
+                'message': f"Rank '{position_name}' is already assigned to {user.first_name} {user.middle_name}.",
+                'rank_created_in_db': created,
+                'already_assigned': True,
+                'existing_assigned_code': existing.assigned_code,
+                'user_rank': UserRankSerializer(existing).data,
             },
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_200_OK
         )
 
     # Create UserRank â€” assigned_code is auto-generated in UserRank.save()
