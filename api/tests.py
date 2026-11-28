@@ -12352,3 +12352,63 @@ class BlankForeignKeyLookupTests(APITestCase):
         row = self._cv_row(resp.json()["id"])
         self.assertEqual(row.company_id, self.other_company.id)
         self.assertEqual(row.position_id, self.baker.id)
+
+
+# ============================================================================
+# DASHBOARD SEAFARER COUNTS
+# ============================================================================
+#
+# The dashboard's "Total Seafarers" card counted the rows the browser had
+# loaded (one page of the users list = 50), so it reported 49 seafarers
+# while the database held 625. "New Registrations" had the same problem.
+# The counts belong to the database.
+
+
+class DashboardSeafarerStatsTests(APITestCase):
+    """The dashboard cards must count the database, not the loaded page."""
+
+    STATS_URL = "/api/users/users/stats/"
+
+    def setUp(self):
+        self.admin = _make_admin("admin@example.com")
+        self.client.force_authenticate(user=self.admin)
+
+    def test_the_stats_endpoint_counts_every_seafarer_not_just_the_page(self):
+        # More seafarers than one page of the users list (50) -- the
+        # dashboard used to report the page size as the total.
+        for i in range(60):
+            _make_user(
+                "seafarer%s@example.com" % i, "Sea", "Farer%s" % i,
+                role="Employee",
+            )
+        _make_user("crew@example.com", "Cr", "Ew", role="Crew")
+        _make_user("recruiter@example.com", "Rec", "Ru", role="Recruiter")
+
+        resp = self.client.get(self.STATS_URL)
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        body = resp.json()
+        self.assertEqual(body["employees"], 60)
+        self.assertEqual(body["crew"], 1)
+        self.assertEqual(body["recruiters"], 1)
+        # 60 employees + 1 crew -- the admin and the recruiter are not
+        # seafarers.
+        self.assertEqual(body["total_seafarers"], 61)
+        self.assertEqual(body["total_users"], 63)
+
+    def test_the_recent_registrations_count_comes_from_the_database(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        _make_user("old@example.com", "Ol", "D", role="Employee")
+        older = _make_user("older@example.com", "Ol", "Der", role="Employee")
+        Users.objects.filter(pk=older.pk).update(
+            created_at=timezone.now() - timedelta(days=40)
+        )
+        _make_user("new@example.com", "Ne", "W", role="Employee")
+
+        resp = self.client.get(self.STATS_URL)
+        self.assertEqual(resp.status_code, 200, resp.content[:400])
+        body = resp.json()
+        self.assertEqual(body["total_seafarers"], 3)
+        # The 40-day-old seafarer is outside the 30-day window.
+        self.assertEqual(body["recent_seafarers_30d"], 2)

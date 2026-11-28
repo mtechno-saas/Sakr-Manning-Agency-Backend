@@ -1485,6 +1485,15 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Permission denied'}, status=403)
         
         users = Users.objects.all()
+        # The dashboard's seafarer cards.
+        #
+        # "Total Seafarers" used to be the number of rows the browser
+        # had loaded -- one page of the users list, 50 rows -- so the
+        # dashboard reported 49 seafarers while the database held 625.
+        # "New Registrations" had the same problem. A count belongs to
+        # the database, not to the page somebody happens to have open.
+        seafarers = users.filter(role__in=('Employee', 'Crew'))
+        cutoff = timezone.now() - timedelta(days=30)
         return Response({
             'total_users': users.count(),
             'admins': users.filter(role='Admin').count(),
@@ -1493,6 +1502,11 @@ class UserViewSet(viewsets.ModelViewSet):
             'employees': users.filter(role='Employee').count(),
             'crew': users.filter(role='Crew').count(),
             'active_users': users.filter(is_active=True).count(),
+            # The two dashboard cards that had no server-side source.
+            'total_seafarers': seafarers.count(),
+            'recent_seafarers_30d': seafarers.filter(
+                created_at__gte=cutoff
+            ).count(),
         })
 
     @action(detail=True, methods=['get'], url_path='full-profile')
